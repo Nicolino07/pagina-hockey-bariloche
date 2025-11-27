@@ -1,0 +1,14 @@
+Para login en Pgadmin
+
+
+pgAdmin Access:
+URL: http://localhost:8080
+Email: admin@hockeybariloche.com
+Password: admin123
+
+Database Connection:
+Host: db (desde dentro de Docker) o localhost (desde tu máquina)
+Port: 5432 (interno) o 5433 (externo)
+Database matenimiento: hockey_db
+User: hockey_user
+Password: hockey1234

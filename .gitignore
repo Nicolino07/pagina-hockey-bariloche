@@ -1,0 +1,57 @@
+# =====================
+# Archivos sensibles
+# =====================
+.env
+.env.*
+
+# =====================
+# Logs
+# =====================
+logs/
+*.log
+
+# =====================
+# Node / Frontend
+# =====================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# =====================
+# Python (si usás scripts)
+# =====================
+__pycache__/
+*.pyc
+*.pyo
+venv/
+
+# =====================
+# PHP / Laravel (por si más adelante lo usás)
+# =====================
+vendor/
+storage/*.key
+
+# =====================
+# Docker
+# =====================
+/uploads/
+volumes/
+data/
+backup/
+
+# =====================
+# Sistemas / IDEs
+# =====================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =====================
+# Compilados / cache
+# =====================
+*.cache
+*.tmp
