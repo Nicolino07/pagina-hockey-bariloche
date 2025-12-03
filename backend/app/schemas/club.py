@@ -16,4 +16,4 @@ class Club(ClubBase):
     id_club: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
