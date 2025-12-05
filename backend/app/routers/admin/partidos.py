@@ -1,20 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models.partido import Partido
-from app.schemas.partido import PartidoCreate, PartidoUpdate, PartidoOut
+from app.models.partido import Partido as PartidoModel
+from app.schemas.partido import PartidoCreate, PartidoOut, PartidoUpdate
 
 router = APIRouter(prefix="/admin/partidos", tags=["Admin Partidos"])
 
 
 @router.get("/", response_model=list[PartidoOut])
 def listar_partidos(db: Session = Depends(get_db)):
-    return db.query(Partido).all()
+    return db.query(PartidoModel).all()
 
 
-@router.post("/", response_model=PartidoOut)
+@router.post("/", response_model=PartidoOut, status_code=201)
 def crear_partido(data: PartidoCreate, db: Session = Depends(get_db)):
-    partido = Partido(**data.dict())
+    partido = PartidoModel(**data.dict())
     db.add(partido)
     db.commit()
     db.refresh(partido)
@@ -23,7 +23,7 @@ def crear_partido(data: PartidoCreate, db: Session = Depends(get_db)):
 
 @router.get("/{id_partido}", response_model=PartidoOut)
 def obtener_partido(id_partido: int, db: Session = Depends(get_db)):
-    partido = db.query(Partido).filter_by(id_partido=id_partido).first()
+    partido = db.query(PartidoModel).filter_by(id_partido=id_partido).first()
     if not partido:
         raise HTTPException(404, "Partido no encontrado")
     return partido
@@ -31,7 +31,7 @@ def obtener_partido(id_partido: int, db: Session = Depends(get_db)):
 
 @router.put("/{id_partido}", response_model=PartidoOut)
 def actualizar_partido(id_partido: int, data: PartidoUpdate, db: Session = Depends(get_db)):
-    partido = db.query(Partido).filter_by(id_partido=id_partido).first()
+    partido = db.query(PartidoModel).filter_by(id_partido=id_partido).first()
     if not partido:
         raise HTTPException(404, "Partido no encontrado")
 
@@ -43,12 +43,11 @@ def actualizar_partido(id_partido: int, data: PartidoUpdate, db: Session = Depen
     return partido
 
 
-@router.delete("/{id_partido}")
+@router.delete("/{id_partido}", status_code=204)
 def eliminar_partido(id_partido: int, db: Session = Depends(get_db)):
-    partido = db.query(Partido).filter_by(id_partido=id_partido).first()
+    partido = db.query(PartidoModel).filter_by(id_partido=id_partido).first()
     if not partido:
         raise HTTPException(404, "Partido no encontrado")
 
     db.delete(partido)
     db.commit()
-    return {"message": "Partido eliminado"}

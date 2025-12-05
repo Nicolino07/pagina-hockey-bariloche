@@ -1,6 +1,7 @@
 # routes/torneos.py
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session 
+from sqlalchemy.exc import IntegrityError
 from app.database import get_db
 from app.models.torneo import Torneo as TorneoModel
 from app.schemas.torneo import Torneo, TorneoCreate
@@ -18,11 +19,27 @@ def get_torneo(id_torneo: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Torneo no encontrado")
     return torneo
 
-@router.post("/", response_model=Torneo)
-def create_torneo(torneo: TorneoCreate, db: Session = Depends(get_db)):
-    nuevo = TorneoModel(**torneo.dict())
+@router.post("/", response_model=Torneo, status_code=201)
+def crear_torneo(data: TorneoCreate, db: Session = Depends(get_db)):
+
+    # Convertir "" en None para fechas
+    torneo_data = data.dict()
+    if torneo_data.get("fecha_inicio") == "":
+        torneo_data["fecha_inicio"] = None
+    if torneo_data.get("fecha_fin") == "":
+        torneo_data["fecha_fin"] = None
+
+    nuevo = TorneoModel(**torneo_data)
     db.add(nuevo)
-    db.commit()
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            409, "Ya existe un torneo con ese nombre y categoría"
+        )
+
     db.refresh(nuevo)
     return nuevo
 

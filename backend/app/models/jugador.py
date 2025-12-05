@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column,relationship
 from sqlalchemy import String, Date
 from app.database import Base
 from datetime import date
@@ -16,3 +16,5 @@ class Jugador(Base):
     telefono: Mapped[str | None] = mapped_column(String(20))
     email: Mapped[str | None] = mapped_column(String(100))
 
+    relationship("PlantelIntegrante", back_populates="jugador")
+    

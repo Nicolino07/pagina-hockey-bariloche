@@ -19,10 +19,30 @@ class PartidoBase(BaseModel):
 
 
 class PartidoCreate(PartidoBase):
+    """Schema para crear partido (POST)"""
     pass
 
 
-class Partido(PartidoBase):
+class PartidoUpdate(BaseModel):
+    """Schema para actualizar partido (PUT) — todos los campos opcionales"""
+    id_torneo: Optional[int] = None
+    id_fase: Optional[int] = None
+    fecha: Optional[str] = None
+    horario: Optional[str] = None
+    id_local: Optional[int] = None
+    id_visitante: Optional[int] = None
+    goles_local: Optional[int] = None
+    goles_visitante: Optional[int] = None
+    id_arbitro1: Optional[int] = None
+    id_arbitro2: Optional[int] = None
+    ubicacion: Optional[str] = None
+    observaciones: Optional[str] = None
+    tipo_fase: Optional[str] = None
+    numero_fecha: Optional[int] = None
+
+
+class PartidoOut(PartidoBase):
+    """Schema de salida (GET, POST response)"""
     id_partido: int
 
     class Config:

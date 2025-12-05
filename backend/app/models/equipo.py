@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, ForeignKey
 from app.database import Base
 
@@ -13,3 +13,5 @@ class Equipo(Base):
     categoria: Mapped[str] = mapped_column(String(50), nullable=False)
     genero: Mapped[str] = mapped_column(String(20), nullable=False)
 
+     # relación inversa
+    planteles = relationship("Plantel", back_populates="equipo")

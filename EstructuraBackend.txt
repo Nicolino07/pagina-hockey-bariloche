@@ -10,7 +10,7 @@ pagina-hockey-bariloche/
 │       ├── __init__.py
 │       ├── main.py    ⬅️ SOLO incluye app y routers
 │       ├── database.py
-│       ├── models/
+│       ├── models/          ← ORM (SQLAlchemy)
 │       │   ├── __init__.py
 │       │   ├── club.py
 │       │   ├── equipo.py
@@ -26,7 +26,7 @@ pagina-hockey-bariloche/
 │       │   ├── tarjeta.py
 │       │   └── posicion.py
 |       |
-│       ├── schemas/
+│       ├── schemas/            ← Validación y tipos (Pydantic)
 |       |   ├── __init__.py
 │       │   ├── club.py
 │       │   ├── equipo.py
@@ -42,28 +42,33 @@ pagina-hockey-bariloche/
 │       │   ├── tarjeta.py
 │       │   └── posicion.py
 │       │
-│       ├── routers/                    # ⬅️ ENDPOINTS
-|            │── public/
-|            |    ├── __init__.py   
-|            │    ├── torneos_public.py
-|            │    ├── partidos_public.py
-|            │    ├── posiciones_public.py
-|            │    ├── estadisticas_public.py
-|            │    └── planteles_public.py
-|            │
-|            └── admin/
-|                ├── __init__.py
-|                ├── clubes_admin.py
-|                ├── equipos_admin.py
-|                ├── jugadores_admin.py
-|                ├── entrenadores_admin.py
-|                ├── arbitros_admin.py
-|                ├── torneos_admin.py
-|                ├── fases_admin.py
-|                ├── partidos_admin.py
-|                ├── goles_admin.py
-|                ├── tarjetas_admin.py
-|                └── posiciones_admin.py
-|
+│       ├── routers/                 ← Solo endpoints (peticiones HTTP)
+|       |     │── public/
+|       |     |    ├── __init__.py   
+|       |     │    ├── torneos_public.py
+|       |     │    ├── partidos_public.py
+|       |     │    ├── posiciones_public.py
+|       |     │    ├── estadisticas_public.py
+|       |     │    └── planteles_public.py
+|       |     │
+|       |     └── admin/
+|       |         ├── __init__.py
+|       |         ├── clubes_admin.py
+|       |         ├── equipos_admin.py
+|       |         ├── jugadores_admin.py
+|       |         ├── entrenadores_admin.py
+|       |         ├── arbitros_admin.py
+|       |         ├── torneos_admin.py
+|       |         ├── fases_admin.py
+|       |         ├── partidos_admin.py
+|       |        ├── goles_admin.py
+|       |         ├── tarjetas_admin.py
+|       |         └── posiciones_admin.py
+|       |
+|       ├── services/   ← AQUÍ VAN LAS REGLAS DE NEGOCIO
+│           ├── inscripciones_service.py
+│           ├── planteles_service.py
+│           ├── partidos_service.py
+│           └── posiciones_service.py
 |
 └── frontend/           # (para después)

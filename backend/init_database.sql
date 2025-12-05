@@ -1,5 +1,5 @@
 -- ================================================
--- INICIO: CREACIÓN DE TABLAS
+-- INICIO: CREACIÓN DE TABLAS 
 -- ================================================
 
 -- -------------------------
@@ -70,28 +70,50 @@ CREATE TABLE IF NOT EXISTS arbitro (
     email            VARCHAR(100)
 );
 
--- -------------------------
--- TABLA: plantel_equipo
--- -------------------------
-CREATE TABLE IF NOT EXISTS plantel_equipo (
-    id_plantel        SERIAL PRIMARY KEY,
-    id_equipo         INT NOT NULL REFERENCES equipo(id_equipo) ON DELETE CASCADE,
-    id_jugador        INT REFERENCES jugador(id_jugador),
-    id_entrenador     INT REFERENCES entrenador(id_entrenador),
-    posicion          VARCHAR(50),
-    fecha_alta        DATE DEFAULT CURRENT_DATE,
-    fecha_baja        DATE,
+-- OPTIONAL: UNIQUE recomendado en árbitros por dni (si lo usás)
+CREATE UNIQUE INDEX IF NOT EXISTS unq_arbitro_dni ON arbitro(dni) WHERE dni IS NOT NULL;
 
-    CONSTRAINT plantel_equipo_jugador_unq UNIQUE (id_equipo, id_jugador),
-    CONSTRAINT plantel_equipo_entrenador_unq UNIQUE (id_equipo, id_entrenador),
 
-    CONSTRAINT chk_jugador_o_entrenador
-        CHECK (
-            (id_jugador IS NOT NULL AND id_entrenador IS NULL)
-            OR
-            (id_jugador IS NULL AND id_entrenador IS NOT NULL)
-        )
+-- -------------------------
+-- TABLA: plantel
+-- -------------------------
+CREATE TABLE IF NOT EXISTS plantel (
+    id_plantel SERIAL PRIMARY KEY,
+    id_equipo INT NOT NULL REFERENCES equipo(id_equipo) ON DELETE CASCADE,
+    temporada VARCHAR(20),
+    fecha_creacion DATE DEFAULT CURRENT_DATE
 );
+
+-- -------------------------
+-- TABLA: plantel_integrante
+-- -------------------------
+CREATE TABLE IF NOT EXISTS plantel_integrante (
+    id_plantel_integrante SERIAL PRIMARY KEY,
+    id_plantel INT NOT NULL REFERENCES plantel(id_plantel) ON DELETE CASCADE,
+    id_jugador INT REFERENCES jugador(id_jugador),
+    id_entrenador INT REFERENCES entrenador(id_entrenador),
+    rol VARCHAR(50) NOT NULL,  -- jugador, DT, PF, médico, etc.
+    numero_camiseta INT,       -- referencia (opcional) de número preferente en plantel
+    fecha_alta DATE NOT NULL DEFAULT CURRENT_DATE,
+    fecha_baja DATE,
+
+    -- Asegura que solo uno de los dos campos (id_jugador o id_entrenador) sea NO NULO
+    CONSTRAINT chk_un_solo_tipo CHECK (
+        (id_jugador IS NOT NULL AND id_entrenador IS NULL)
+        OR
+        (id_jugador IS NULL AND id_entrenador IS NOT NULL)
+    )
+);
+
+-- Índices parciales para asegurar unicidad por tipo (evita NULL dupes)
+CREATE UNIQUE INDEX IF NOT EXISTS unq_jugador_plantel
+    ON plantel_integrante(id_plantel, id_jugador)
+    WHERE id_jugador IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS unq_entrenador_plantel
+    ON plantel_integrante(id_plantel, id_entrenador)
+    WHERE id_entrenador IS NOT NULL;
+
 
 -- -------------------------
 -- TABLA: torneo
@@ -163,12 +185,13 @@ CREATE TABLE IF NOT EXISTS partido (
 -- TABLA: participan_partido
 -- -------------------------
 CREATE TABLE IF NOT EXISTS participan_partido (
-    id_participante_partido     SERIAL PRIMARY KEY,
-    id_partido                  INT NOT NULL REFERENCES partido(id_partido) ON DELETE CASCADE,
-    id_plantel                  INT NOT NULL REFERENCES plantel_equipo(id_plantel),
-    numero_camiseta             INT CHECK (numero_camiseta > 0),
+    id_participante_partido SERIAL PRIMARY KEY,
+    id_partido              INT NOT NULL REFERENCES partido(id_partido) ON DELETE CASCADE,
+    id_plantel_integrante   INT NOT NULL REFERENCES plantel_integrante(id_plantel_integrante) ON DELETE CASCADE,
+    numero_camiseta         INT CHECK (numero_camiseta > 0),
 
-    CONSTRAINT participante_partido UNIQUE (id_partido, id_plantel)
+    -- Asegura que un jugador/entrenador no se registre dos veces para el mismo partido
+    CONSTRAINT unq_jugador_partido UNIQUE (id_partido, id_plantel_integrante)
 );
 
 -- -------------------------
@@ -197,6 +220,24 @@ CREATE TABLE IF NOT EXISTS tarjeta (
 );
 
 -- -------------------------
+-- TABLA: suspension
+-- -------------------------
+CREATE TABLE IF NOT EXISTS suspension (
+    id_suspension SERIAL PRIMARY KEY,
+    id_integrante_plantel INT NOT NULL
+        REFERENCES plantel_integrante(id_plantel_integrante),
+    id_torneo INT NOT NULL
+        REFERENCES torneo(id_torneo),
+    tipo_suspension VARCHAR(20) NOT NULL CHECK (tipo_suspension IN ('por_partidos', 'por_fecha')),
+    motivo VARCHAR(200) NOT NULL,   -- "Acumulación amarillas", "Roja directa", etc.
+    fechas_suspension INT, -- cuántos partidos debe cumplir (NULL si tipo = por_fecha)
+    fecha_fin_suspension DATE NULL, -- fecha hasta la cual dura la suspensión (NULL si tipo = por_partidos)
+    cumplidas INT NOT NULL DEFAULT 0,
+    activa BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- -------------------------
 -- TABLA: posicion
 -- -------------------------
 CREATE TABLE IF NOT EXISTS posicion (
@@ -221,9 +262,6 @@ CREATE TABLE IF NOT EXISTS posicion (
 -- ================================================
 
 
-
-
-
 -- ================================================
 -- INICIO: ÍNDICES RECOMENDADOS (80/20)
 -- ================================================
@@ -245,18 +283,26 @@ CREATE INDEX IF NOT EXISTS idx_jugador_dni
 CREATE INDEX IF NOT EXISTS idx_jugador_nombre_apellido 
     ON jugador(nombre, apellido);
 
--- 3. EQUIPOS / PLANTEL
+-- 3. EQUIPOS / PLANTEL / PLANTEL_INTEGRANTE
 CREATE INDEX IF NOT EXISTS idx_equipo_club 
     ON equipo(id_club);
 
-CREATE INDEX IF NOT EXISTS idx_plantel_equipo_equipo 
-    ON plantel_equipo(id_equipo);
+-- plantel
+CREATE INDEX IF NOT EXISTS idx_plantel_equipo 
+    ON plantel(id_equipo);
 
-CREATE INDEX IF NOT EXISTS idx_plantel_equipo_jugador 
-    ON plantel_equipo(id_jugador);
+-- plantel_integrante
+CREATE INDEX IF NOT EXISTS idx_pi_plantel 
+    ON plantel_integrante(id_plantel);
 
-CREATE INDEX IF NOT EXISTS idx_plantel_equipo_entrenador 
-    ON plantel_equipo(id_entrenador);
+CREATE INDEX IF NOT EXISTS idx_pi_jugador 
+    ON plantel_integrante(id_jugador);
+
+CREATE INDEX IF NOT EXISTS idx_pi_entrenador 
+    ON plantel_integrante(id_entrenador);
+
+CREATE INDEX IF NOT EXISTS idx_pi_fecha_baja 
+    ON plantel_integrante(fecha_baja);
 
 -- 4. TORNEO
 CREATE INDEX IF NOT EXISTS idx_torneo_activo 
@@ -282,6 +328,23 @@ CREATE INDEX IF NOT EXISTS idx_posicion_torneo
 -- 7. PARTICIPANTES
 CREATE INDEX IF NOT EXISTS idx_participacion_partido 
     ON participan_partido(id_partido);
+
+-- índice para búsquedas por integrante en participan_partido
+CREATE INDEX IF NOT EXISTS idx_participante_integrante
+    ON participan_partido(id_plantel_integrante);
+
+-- 8. SUSPENSIONES (muy importante)
+CREATE INDEX IF NOT EXISTS idx_susp_integrante 
+    ON suspension(id_integrante_plantel);
+
+CREATE INDEX IF NOT EXISTS idx_susp_torneo 
+    ON suspension(id_torneo);
+
+CREATE INDEX IF NOT EXISTS idx_susp_activa 
+    ON suspension(activa) WHERE activa = true;
+
+CREATE INDEX IF NOT EXISTS idx_susp_fin 
+    ON suspension(fecha_fin_suspension);
 
 -- ================================================
 -- FIN DE ÍNDICES
