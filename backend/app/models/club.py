@@ -1,10 +1,14 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String
+from sqlalchemy import String, CheckConstraint
 from app.database import Base
 
 
 class Club(Base):
     __tablename__ = "club"
+
+    __table_args__ = (
+        CheckConstraint("nombre <> ''", name="chk_club_nombre_no_vacio"),
+    )
 
     id_club: Mapped[int] = mapped_column(primary_key=True)
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)

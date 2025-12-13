@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Date
+from sqlalchemy import String, Date, Integer, CheckConstraint
 from datetime import date
 from app.database import Base
 
@@ -7,10 +7,18 @@ from app.database import Base
 class Arbitro(Base):
     __tablename__ = "arbitro"
 
+    # Restricciones a nivel de tabla (similares a SQL)
+    __table_args__ = (
+        CheckConstraint("nombre <> ''", name="chk_arbitro_nombre_no_vacio"),
+        CheckConstraint("apellido <> ''", name="chk_arbitro_apellido_no_vacio"),
+        
+    )
+    
+
     id_arbitro: Mapped[int] = mapped_column(primary_key=True)
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)
     apellido: Mapped[str] = mapped_column(String(100), nullable=False)
     fecha_nacimiento: Mapped[date | None] = mapped_column(Date, nullable=True)
-    dni: Mapped[str | None] = mapped_column(String(20), unique=True)
+    dni: Mapped[int | None] = mapped_column(Integer, unique=True, nullable=True)
     telefono: Mapped[str | None] = mapped_column(String(20))
     email: Mapped[str | None] = mapped_column(String(100))

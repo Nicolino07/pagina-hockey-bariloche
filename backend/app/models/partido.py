@@ -17,7 +17,13 @@ class Partido(Base):
     goles_visitante: Mapped[int | None]
     id_arbitro1: Mapped[int | None] = mapped_column(ForeignKey("arbitro.id_arbitro"))
     id_arbitro2: Mapped[int | None] = mapped_column(ForeignKey("arbitro.id_arbitro"))
+    capitan_local: Mapped[int | None] = mapped_column(ForeignKey("participan_partido.id_participante_partido"))
+    capitan_visitante: Mapped[int | None] = mapped_column(ForeignKey("participan_partido.id_participante_partido"))
+    juez_mesa_local: Mapped[str | None] = mapped_column(String(100))
+    juez_mesa_visitante: Mapped[str | None] = mapped_column(String(100))
     ubicacion: Mapped[str | None] = mapped_column(String(200))
     observaciones: Mapped[str | None] = mapped_column(String(1000))
     tipo_fase: Mapped[str]
     numero_fecha: Mapped[int | None]
+
+

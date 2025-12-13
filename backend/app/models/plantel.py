@@ -1,6 +1,6 @@
 from datetime import date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, String, Date
+from sqlalchemy import ForeignKey, String, Date, CheckConstraint
 from sqlalchemy.sql import func
 from app.database import Base
 
@@ -8,14 +8,17 @@ from app.database import Base
 class Plantel(Base):
     __tablename__ = "plantel"
 
+
     id_plantel: Mapped[int] = mapped_column(primary_key=True, index=True)
 
     id_equipo: Mapped[int] = mapped_column(
         ForeignKey("equipo.id_equipo", ondelete="CASCADE"),
         nullable=False
     )
-
-    temporada: Mapped[str | None] = mapped_column(String(20))
+    id_torneo: Mapped[int] = mapped_column(
+        ForeignKey("torneo.id_torneo"),
+        nullable=False
+    )
 
     fecha_creacion: Mapped[date | None] = mapped_column(
         Date,
@@ -33,6 +36,15 @@ class Plantel(Base):
 
 class PlantelIntegrante(Base):
     __tablename__ = "plantel_integrante"
+
+    __table_args__ = (
+        CheckConstraint("rol <> ''", name="chk_plantel_integrante_rol_no_vacio"),
+        CheckConstraint(
+            "(id_jugador IS NOT NULL AND id_entrenador IS NULL) OR (id_jugador IS NULL AND id_entrenador IS NOT NULL)",
+            name="chk_un_solo_tipo"
+        ),
+        CheckConstraint("fecha_baja IS NULL OR fecha_baja > fecha_alta", name="chk_plantel_integrante_fecha_baja_mayor_fecha_alta"),
+    )
 
     id_plantel_integrante: Mapped[int] = mapped_column(primary_key=True, index=True)
 
@@ -58,3 +70,6 @@ class PlantelIntegrante(Base):
     plantel: Mapped["Plantel"] = relationship(back_populates="integrantes")
     jugador: Mapped["Jugador"] = relationship()
     entrenador: Mapped["Entrenador"] = relationship()
+
+
+
