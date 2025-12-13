@@ -1,7 +1,11 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
 import datetime
 
+
+# ======================
+# Plantel
+# ======================
 
 class PlantelBase(BaseModel):
     id_equipo: int
@@ -14,7 +18,7 @@ class PlantelCreate(PlantelBase):
 
 class PlantelResponse(PlantelBase):
     id_plantel: int
-    fecha_creacion: datetime.date
+    fecha_creacion: Optional[datetime.date] = None  # <-- CAMBIO IMPORTANTE
 
     class Config:
         orm_mode = True
@@ -39,7 +43,7 @@ class PlantelIntegranteCreate(PlantelIntegranteBase):
 
 class PlantelIntegranteResponse(PlantelIntegranteBase):
     id_plantel_integrante: int
-    fecha_alta: datetime.date
+    fecha_alta: Optional[datetime.date] = None  # Para evitar errores similares
 
     class Config:
         orm_mode = True

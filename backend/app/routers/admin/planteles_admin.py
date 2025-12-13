@@ -1,98 +1,96 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from typing import List, Optional
 from app.database import get_db
-import datetime 
-
-from app.models.plantel import Plantel, PlantelIntegrante
-from app.models.plantel import Plantel, PlantelIntegrante
 from app.schemas.plantel import (
-    PlantelResponse, PlantelCreate,
-    PlantelIntegranteCreate,
-    PlantelIntegranteResponse
+    PlantelCreate, PlantelResponse,
+    PlantelIntegranteCreate, PlantelIntegranteResponse
 )
+from app.services.planteles_services import (
+    agregar_integrante_a_plantel,
+    obtener_integrantes_plantel,
+    eliminar_integrante_plantel
+)
+from app.models.plantel import Plantel
 
+router = APIRouter(prefix="/admin/plantel", tags=["plantel admin"])
 
-router = APIRouter(prefix="/admin/plantel", tags=["Plantel Admin"])
-
-
-# ============================
-#  PLANTELES
-# ============================
-
-@router.post("/", response_model=PlantelResponse)
-def crear_plantel(data: PlantelCreate, db: Session = Depends(get_db)):
-
-    plantel = Plantel(
-        id_equipo=data.id_equipo,
-        temporada=data.temporada
-    )
-
-    db.add(plantel)
-    db.commit()
-    db.refresh(plantel)
-
-    return plantel
-
-
-@router.get("/", response_model=list[PlantelResponse])
-def listar_planteles(db: Session = Depends(get_db)):
-    return db.query(Plantel).all()
-
-
-# ============================
-#  INTEGRANTES DEL PLANTEL
-# ============================
+# ======================
+# Endpoints para PlantelIntegrante
+# ======================
 
 @router.post("/integrante", response_model=PlantelIntegranteResponse)
-def agregar_integrante(data: PlantelIntegranteCreate, db: Session = Depends(get_db)):
-
-    # Validación lógico: uno u otro
-    if (data.id_jugador is None and data.id_entrenador is None) or \
-       (data.id_jugador is not None and data.id_entrenador is not None):
-        raise HTTPException(
-            status_code=400,
-            detail="Debe especificar solo jugador O entrenador"
-        )
-
-    integrante = PlantelIntegrante(
-        id_plantel=data.id_plantel,
-        id_jugador=data.id_jugador,
-        id_entrenador=data.id_entrenador,
-        rol=data.rol,
-        numero_camiseta=data.numero_camiseta,
-        fecha_baja=data.fecha_baja
+def agregar_integrante(
+    integrante_data: PlantelIntegranteCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Agrega un nuevo integrante (jugador o entrenador) a un plantel
+    """
+    return agregar_integrante_a_plantel(
+        db=db,
+        id_plantel= integrante_data.id_plantel,
+        id_jugador= integrante_data.id_jugador,
+        id_entrenador= integrante_data.id_entrenador,
+        rol=integrante_data.rol,
+        numero_camiseta=integrante_data.numero_camiseta
     )
 
+@router.get("/{id_plantel}/integrantes", response_model=List[PlantelIntegranteResponse])
+def listar_integrantes(
+    id_plantel: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Lista todos los integrantes de un plantel específico
+    """
+    return obtener_integrantes_plantel(db, id_plantel)
+
+@router.delete("/integrante/{id_plantel_integrante}")
+def eliminar_integrante(
+    id_plantel_integrante: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Elimina un integrante de un plantel
+    """
+    return eliminar_integrante_plantel(db, id_plantel_integrante)
+
+# ======================
+# Endpoints para Plantel (si los necesitas)
+# ======================
+
+@router.post("/", response_model=PlantelResponse)
+def crear_plantel(
+    plantel_data: PlantelCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Crea un nuevo plantel
+    """
+    nuevo_plantel = Plantel(
+        id_equipo=plantel_data.id_equipo,
+        temporada=plantel_data.temporada
+    )
+    
     try:
-        db.add(integrante)
+        db.add(nuevo_plantel)
         db.commit()
-        db.refresh(integrante)
+        db.refresh(nuevo_plantel)
+        return nuevo_plantel
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
-    return integrante
-
-
-@router.get("/{id_plantel}/integrantes", response_model=list[PlantelIntegranteResponse])
-def listar_integrantes(id_plantel: int, db: Session = Depends(get_db)):
-    return (
-        db.query(PlantelIntegrante)
-        .filter(PlantelIntegrante.id_plantel == id_plantel)
-        .all()
-    )
-
-
-@router.put("/integrante/{id_integrante}/baja")
-def dar_baja_integrante(id_integrante: int, db: Session = Depends(get_db)):
-    integrante = db.query(PlantelIntegrante).filter(
-        PlantelIntegrante.id_plantel_integrante == id_integrante
-    ).first()
-
-    if not integrante:
-        raise HTTPException(404, "Integrante no encontrado")
-
-    integrante.fecha_baja = datetime.date.today()
-
-    db.commit()
-    return {"message": "Integrante dado de baja"}
+@router.get("/{id_plantel}", response_model=PlantelResponse)
+def obtener_plantel(
+    id_plantel: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Obtiene un plantel por ID
+    """
+    plantel = db.query(Plantel).filter(Plantel.id_plantel == id_plantel).first()
+    if not plantel:
+        raise HTTPException(status_code=404, detail="Plantel no encontrado")
+    return plantel
