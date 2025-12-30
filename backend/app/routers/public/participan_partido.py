@@ -5,7 +5,7 @@ from app.models.participan_partido import ParticipanPartido as PPModel
 from app.schemas.participan_partido import ParticipanPartido
 from app.database import get_db
 
-router = APIRouter(prefix="/public/participaciones", tags=["Participan Partido Público"])
+router = APIRouter(prefix="/public/participaciones", tags=["Participan Partido - Public"])
 
 @router.get("/", response_model=list[ParticipanPartido])
 def get_participaciones(db: Session = Depends(get_db)):

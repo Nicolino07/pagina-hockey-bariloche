@@ -4,7 +4,7 @@ from app.database import get_db
 from app.models.partido import Partido as PartidoModel
 from app.schemas.partido import PartidoOut
 
-router = APIRouter(prefix="/public/partidos", tags=["Partidos Público"])
+router = APIRouter(prefix="/public/partidos", tags=["Partidos - Public"])
 
 
 @router.get("/", response_model=list[PartidoOut])

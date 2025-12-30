@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models.club import Club
 from app.schemas.club import Club as ClubSchema, ClubCreate, ClubUpdate
 
-router = APIRouter(prefix="/admin/clubes", tags=["Clubes Admin"])
+router = APIRouter(prefix="/admin/clubes", tags=["Clubes - Admin"])
 
 
 # ======================================

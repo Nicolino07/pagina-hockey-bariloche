@@ -5,7 +5,7 @@ from app.database import get_db
 from app.models.fase import Fase as FaseModel
 from app.schemas.fase import Fase
 
-router = APIRouter(prefix="/public/fases", tags=["Fases Público"])
+router = APIRouter(prefix="/public/fases", tags=["Fases - Public"])
 
 @router.get("/", response_model=list[Fase])
 def get_fases(db: Session = Depends(get_db)):

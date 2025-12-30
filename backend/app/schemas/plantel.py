@@ -1,49 +1,21 @@
 from pydantic import BaseModel
-from typing import Optional
-import datetime
+from datetime import date
+from typing import List
+from .plantel_integrante import PlantelIntegranteRead
 
-
-# ======================
-# Plantel
-# ======================
-
-class PlantelBase(BaseModel):
+class PlantelCreate(BaseModel):
     id_equipo: int
-    temporada: Optional[str] = None
+    id_torneo: int
 
 
-class PlantelCreate(PlantelBase):
-    pass
-
-
-class PlantelResponse(PlantelBase):
+class PlantelRead(BaseModel):
     id_plantel: int
-    fecha_creacion: Optional[datetime.date] = None  # <-- CAMBIO IMPORTANTE
+    id_equipo: int
+    id_torneo: int
+    fecha_creacion: date
+    integrantes: List[PlantelIntegranteRead] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
-# ======================
-# Plantel Integrante
-# ======================
-
-class PlantelIntegranteBase(BaseModel):
-    id_plantel: int
-    id_jugador: Optional[int] = None
-    id_entrenador: Optional[int] = None
-    rol: str
-    numero_camiseta: Optional[int] = None
-    fecha_baja: Optional[datetime.date] = None
-
-
-class PlantelIntegranteCreate(PlantelIntegranteBase):
-    pass
-
-
-class PlantelIntegranteResponse(PlantelIntegranteBase):
-    id_plantel_integrante: int
-    fecha_alta: Optional[datetime.date] = None  # Para evitar errores similares
-
-    class Config:
-        orm_mode = True

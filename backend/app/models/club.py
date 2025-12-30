@@ -8,6 +8,7 @@ class Club(Base):
 
     __table_args__ = (
         CheckConstraint("nombre <> ''", name="chk_club_nombre_no_vacio"),
+        
     )
 
     id_club: Mapped[int] = mapped_column(primary_key=True)

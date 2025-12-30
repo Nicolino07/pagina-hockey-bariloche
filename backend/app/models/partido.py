@@ -1,5 +1,7 @@
+from typing import Optional
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Time, ForeignKey, Integer
+from datetime import time
 from app.database import Base
 from datetime import date
 
@@ -10,13 +12,13 @@ class Partido(Base):
     id_torneo: Mapped[int] = mapped_column(ForeignKey("torneo.id_torneo", ondelete="CASCADE"))
     id_fase: Mapped[int | None] = mapped_column(ForeignKey("fase.id_fase"))
     fecha: Mapped[date | None]
-    horario: Mapped[Time | None]
+    horario: Mapped[time] = mapped_column(Time, nullable=False)
     id_local: Mapped[int] = mapped_column(ForeignKey("equipo.id_equipo"))
     id_visitante: Mapped[int] = mapped_column(ForeignKey("equipo.id_equipo"))
     goles_local: Mapped[int | None]
     goles_visitante: Mapped[int | None]
-    id_arbitro1: Mapped[int | None] = mapped_column(ForeignKey("arbitro.id_arbitro"))
-    id_arbitro2: Mapped[int | None] = mapped_column(ForeignKey("arbitro.id_arbitro"))
+    id_arbitro1: Mapped[Optional[int]] = mapped_column(ForeignKey("persona.id_persona"),nullable=True)
+    id_arbitro2: Mapped[Optional[int]] = mapped_column(ForeignKey("persona.id_persona"), nullable=True)
     capitan_local: Mapped[int | None] = mapped_column(ForeignKey("participan_partido.id_participante_partido"))
     capitan_visitante: Mapped[int | None] = mapped_column(ForeignKey("participan_partido.id_participante_partido"))
     juez_mesa_local: Mapped[str | None] = mapped_column(String(100))

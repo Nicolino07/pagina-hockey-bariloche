@@ -8,5 +8,5 @@ class ParticipanPartido(Base):
 
     id_participante_partido: Mapped[int] = mapped_column(primary_key=True)
     id_partido: Mapped[int] = mapped_column(ForeignKey("partido.id_partido", ondelete="CASCADE"))
-    id_plantel: Mapped[int] = mapped_column(ForeignKey("plantel_equipo.id_plantel"))
+    id_plantel: Mapped[int] = mapped_column(ForeignKey("plantel.id_plantel"))
     numero_camiseta: Mapped[int]

@@ -20,7 +20,7 @@ INSERT INTO equipo ( id_club, nombre, genero, categoria) VALUES
 (4, 'Patagonia Femenino','Femenino', 'Damas A'),
 (4, 'Patagonia Masculino','Masculino','Caballeros A');
 
-INSERT INTO jugador (id_jugador, nombre, apellido, dni, fecha_nacimiento, genero) VALUES
+INSERT INTO persona (id_persona, nombre, apellido, dni, fecha_nacimiento, genero) VALUES
 -- Nahuel Femenino (equipo 1)
 (1,'María','González','30111222','1995-04-11', 'Femenino'),
 (2,'Florencia','Paredes','29888777','1994-09-14', 'Femenino'),
@@ -76,3 +76,44 @@ INSERT INTO jugador (id_jugador, nombre, apellido, dni, fecha_nacimiento, genero
 (38,'Hernán','Cabral','29999100','1994-12-01', 'Masculino'),
 (39,'Nicolás','Ortiz','31599222','1997-03-09', 'Masculino'),
 (40,'Emanuel','García','33022111','2000-07-31', 'Masculino');
+
+INSERT INTO persona_rol (id_persona, rol) VALUES
+(1,'jugador'),
+(2,'jugador'),
+(4,'jugador'),
+(5,'jugador'),
+(6,'jugador'),
+(7,'jugador'),
+(8,'jugador'),
+(9,'jugador'),
+(10,'jugador'),
+(11,'jugador'),
+(12,'jugador'),
+(13,'jugador'),
+(14,'jugador'),
+(15,'jugador'),
+(16,'jugador'),
+(17,'jugador'),
+(18,'jugador'),
+(19,'jugador'),
+(20,'jugador'),
+(21,'jugador'),
+(22,'jugador'),
+(23,'jugador'),
+(24,'jugador'),
+(25,'jugador'),
+(26,'jugador'),
+(27,'jugador'),
+(28,'jugador'),
+(29,'jugador'),
+(30,'jugador'),
+(31,'jugador'),
+(32,'jugador'),
+(33,'jugador'),
+(34,'jugador'),
+(35,'jugador'),
+(36,'jugador'),
+(37,'jugador'),
+(38,'jugador'),
+(39,'jugador'),
+(40,'jugador');
