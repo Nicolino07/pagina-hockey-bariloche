@@ -1,5 +1,26 @@
-from fastapi import FastAPI
+
 from app.database import Base, engine
+from fastapi import FastAPI, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from fastapi.responses import JSONResponse
+from app import models
+
+
+limiter = Limiter(key_func=get_remote_address)
+
+app = FastAPI()
+
+app.state.limiter = limiter
+app.add_exception_handler(
+    RateLimitExceeded,
+    lambda request, exc: JSONResponse(
+        status_code=429,
+        content={"detail": "Demasiadas solicitudes"}
+    )
+)
+
 
 from app.routers.public import (
     clubes_router as public_clubes,
@@ -15,10 +36,9 @@ from app.routers.admin import (
     planteles_router as admin_planteles,
     torneos_router as admin_torneos,
 )
+# se importa el router de autenticación
+from app.auth.router import router as auth_router
 
-
-# SOLO desarrollo
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Hockey Bariloche API",
@@ -42,3 +62,5 @@ app.include_router(admin_personas)
 app.include_router(admin_planteles)
 app.include_router(admin_torneos)
 
+# Router de autenticación incluido
+app.include_router(auth_router)

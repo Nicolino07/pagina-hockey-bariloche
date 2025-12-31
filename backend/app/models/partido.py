@@ -1,9 +1,8 @@
 from typing import Optional
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Time, ForeignKey, Integer
-from datetime import time
+from datetime import time ,date
 from app.database import Base
-from datetime import date
 
 class Partido(Base):
     __tablename__ = "partido"

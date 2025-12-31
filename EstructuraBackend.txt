@@ -7,6 +7,18 @@ pagina-hockey-bariloche/
 │   ├── .dockerignore
 │   ├── init_database.sql
 │   └── app/
+|       ├── dependencies/
+|       |   ├── __init__.py
+|       |   ├── permissions.py
+|       |   └── auth.py
+|       ├── auth/
+│       |   ├── __init__.py
+|       │   ├── models.py
+|       │   ├── schemas.py
+|       │   ├── router.py
+|       │   ├── service.py
+|       │   └── security.py
+|       |
 │       ├── __init__.py
 │       ├── main.py            # crea app + include_router
 │       ├── database.py        # SessionLocal, engine
