@@ -12,7 +12,7 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS auditoria_log (
     id_log             INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     tabla_afectada     VARCHAR(100) NOT NULL CHECK (tabla_afectada <> ''),
-    id_registro        INT,
+    id_registro        TEXT,
     operacion          VARCHAR(20) NOT NULL
         CHECK (operacion IN ('INSERT', 'UPDATE', 'DELETE')),
     valores_anteriores JSONB,
@@ -33,14 +33,12 @@ CREATE TABLE IF NOT EXISTS usuario (
     email             VARCHAR(100) NOT NULL UNIQUE 
         CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'),
     password_hash     TEXT NOT NULL CHECK (password_hash <> ''),
-    rol               usuario_tipo NOT NULL DEFAULT 'lector',
+    tipo               tipo_usuario NOT NULL DEFAULT 'lector',
     activo            BOOLEAN NOT NULL DEFAULT TRUE,
 
     intentos_fallidos INT NOT NULL DEFAULT 0 CHECK (intentos_fallidos >= 0),
     bloqueado_hasta   TIMESTAMP,
     ultimo_login      TIMESTAMP,
-
-    id_persona        INT REFERENCES persona(id_persona),
 
     creado_en         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -52,22 +50,6 @@ CREATE TABLE IF NOT EXISTS usuario (
     )
 );
 
--- ================================================
--- PERMISOS POR ROL / TABLA
--- ================================================
-
-CREATE TABLE IF NOT EXISTS permiso_user_tabla (
-    id_permiso    INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    rol_usuario   usuario_tipo NOT NULL,
-    tabla         VARCHAR(30) NOT NULL CHECK (tabla <> ''),
-    operacion     operacion_permiso_tipo NOT NULL,
-    permitido     BOOLEAN NOT NULL DEFAULT FALSE,
-
-    creado_en     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    creado_por    VARCHAR(100) CHECK (creado_por <> ''),
-
-    CONSTRAINT unq_permiso_rol_tabla UNIQUE (rol_usuario, tabla, operacion)
-);
 
 -- ================================================
 -- REFRESH TOKEN
@@ -96,13 +78,13 @@ CREATE TABLE IF NOT EXISTS fixture_fecha (
     id_torneo        INT NOT NULL
         REFERENCES torneo(id_torneo) ON DELETE CASCADE,
     numero_fecha     INT NOT NULL CHECK (numero_fecha > 0),
-    rueda            INT NOT NULL DEFAULT 1 CHECK (rueda IN (1, 2)),
+    rueda            VARCHAR(10) NOT NULL DEFAULT 'ida' CHECK (rueda IN ('ida', 'vuelta')),
     fecha_programada DATE,
 
     creado_en        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     creado_por       VARCHAR(100),
 
-    CONSTRAINT unq_fixture_fecha UNIQUE (id_torneo, numero_fecha)
+    CONSTRAINT unq_fixture_fecha UNIQUE (id_torneo, rueda, numero_fecha)
 );
 
 -- ================================================
@@ -117,7 +99,7 @@ CREATE TABLE IF NOT EXISTS fixture_partido (
     id_equipo_visitante INT NOT NULL REFERENCES equipo(id_equipo),
 
     jugado              BOOLEAN NOT NULL DEFAULT FALSE,
-    id_partido_real     INT REFERENCES partido(id_partido),
+    id_partido_real     INT REFERENCES partido(id_partido) ON DELETE SET NULL,
 
     creado_en           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     creado_por          VARCHAR(100),

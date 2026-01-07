@@ -1,0 +1,130 @@
+-- =====================================================
+-- 006_views.sql
+-- Vistas del sistema
+-- =====================================================
+
+BEGIN;
+
+-- =====================================================
+-- 1. PERSONAS CON SUS ROLES
+-- =====================================================
+
+CREATE OR REPLACE VIEW vw_persona_roles AS
+SELECT
+    p.id_persona,
+    p.nombre,
+    p.apellido,
+    p.documento,
+    pr.rol,
+    pr.fecha_desde,
+    pr.fecha_hasta
+FROM persona p
+LEFT JOIN persona_rol pr
+       ON pr.id_persona = p.id_persona;
+
+
+-- =====================================================
+-- 2. PLANTELES CON INTEGRANTES
+-- =====================================================
+
+CREATE OR REPLACE VIEW vw_plantel_integrantes AS
+SELECT
+    pl.id_plantel,
+    e.id_equipo,
+    e.nombre AS nombre_equipo,
+    pi.id_plantel_integrante,
+    pi.id_persona,
+    p.nombre,
+    p.apellido,
+    pi.rol_en_plantel,
+    pi.numero_camiseta,
+    pi.fecha_alta,
+    pi.fecha_baja
+FROM plantel pl
+JOIN equipo e
+  ON e.id_equipo = pl.id_equipo
+JOIN plantel_integrante pi
+  ON pi.id_plantel = pl.id_plantel
+JOIN persona p
+  ON p.id_persona = pi.id_persona;
+
+
+-- =====================================================
+-- 3. FIXTURE DE PARTIDOS
+-- =====================================================
+
+CREATE OR REPLACE VIEW vw_fixture_partidos AS
+SELECT
+    p.id_partido,
+    p.id_torneo,
+    p.fecha,
+    p.horario,
+    el.id_equipo AS id_equipo_local,
+    el.nombre AS equipo_local,
+    ev.id_equipo AS id_equipo_visitante,
+    ev.nombre AS equipo_visitante,
+    p.goles_local,
+    p.goles_visitante
+FROM partido p
+JOIN inscripcion_torneo itl
+  ON itl.id_inscripcion = p.id_inscripcion_local
+JOIN equipo el
+  ON el.id_equipo = itl.id_equipo
+JOIN inscripcion_torneo itv
+  ON itv.id_inscripcion = p.id_inscripcion_visitante
+JOIN equipo ev
+  ON ev.id_equipo = itv.id_equipo;
+
+
+-- =====================================================
+-- 4. TABLA DE POSICIONES
+-- =====================================================
+
+CREATE OR REPLACE VIEW vw_tabla_posiciones AS
+SELECT
+    pos.id_torneo,
+    t.nombre AS torneo,
+    pos.id_equipo,
+    e.nombre AS equipo,
+    pos.partidos_jugados,
+    pos.ganados,
+    pos.empatados,
+    pos.perdidos,
+    pos.goles_a_favor,
+    pos.goles_en_contra,
+    pos.puntos
+FROM posicion pos
+JOIN torneo t
+  ON t.id_torneo = pos.id_torneo
+JOIN equipo e
+  ON e.id_equipo = pos.id_equipo
+ORDER BY
+    pos.id_torneo,
+    pos.puntos DESC,
+    (pos.goles_a_favor - pos.goles_en_contra) DESC;
+
+
+-- =====================================================
+-- 5. SUSPENSIONES ACTIVAS
+-- =====================================================
+
+CREATE OR REPLACE VIEW vw_suspensiones_activas AS
+SELECT
+    s.id_suspension,
+    s.id_persona,
+    p.nombre,
+    p.apellido,
+    s.id_torneo,
+    t.nombre AS torneo,
+    s.tipo_suspension,
+    s.fechas_suspension,
+    s.cumplidas,
+    s.fecha_fin_suspension
+FROM suspension s
+JOIN persona p
+  ON p.id_persona = s.id_persona
+JOIN torneo t
+  ON t.id_torneo = s.id_torneo
+WHERE s.activa = TRUE;
+
+

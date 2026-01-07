@@ -1,6 +1,6 @@
 -- =====================================================
 -- 002_tables.sql
--- Creación de tablas base del sistema (CORREGIDA)
+-- Creación de tablas base del sistema 
 -- =====================================================
 
 BEGIN;
@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS equipo (
     nombre         VARCHAR(100) NOT NULL CHECK (nombre <> ''),
     id_club        INT NOT NULL 
         REFERENCES club(id_club) ON UPDATE CASCADE ON DELETE RESTRICT,
-    categoria      categoria_tipo NOT NULL,
-    genero         genero_competencia_tipo NOT NULL,
+    categoria      tipo_categoria NOT NULL,
+    genero         tipo_genero_competencia NOT NULL,
 
     creado_en      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -52,11 +52,11 @@ CREATE TABLE IF NOT EXISTS equipo (
 
 CREATE TABLE IF NOT EXISTS persona (
     id_persona       INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    dni              INT UNIQUE CHECK (dni > 0),
+    documento        INT UNIQUE CHECK (documento > 0),
     nombre           VARCHAR(100) NOT NULL CHECK (nombre <> ''),
     apellido         VARCHAR(100) NOT NULL CHECK (apellido <> ''),
     fecha_nacimiento DATE,
-    genero           genero_persona_tipo NOT NULL,
+    genero           tipo_genero_persona NOT NULL,
     telefono         VARCHAR(20),
     email            VARCHAR(100),
     direccion        VARCHAR(200),
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS persona_rol (
     id_persona_rol INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_persona     INT NOT NULL 
         REFERENCES persona(id_persona) ON UPDATE CASCADE ON DELETE CASCADE,
-    rol            rol_persona_tipo NOT NULL,
+    rol            tipo_rol_persona NOT NULL,
     fecha_desde    DATE NOT NULL DEFAULT CURRENT_DATE,
     fecha_hasta    DATE,
 
@@ -88,65 +88,22 @@ CREATE TABLE IF NOT EXISTS persona_rol (
 );
 
 -- ======================
--- TORNEO
--- ======================
-
-CREATE TABLE IF NOT EXISTS torneo (
-    id_torneo     INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    nombre        VARCHAR(100) NOT NULL CHECK (nombre <> ''),
-    categoria     categoria_tipo NOT NULL,
-    genero        genero_competencia_tipo NOT NULL,
-    fecha_inicio  DATE DEFAULT CURRENT_DATE,
-    fecha_fin     DATE CHECK (fecha_fin > fecha_inicio),
-    activo        BOOLEAN DEFAULT TRUE,
-
-    creado_en     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    creado_por    VARCHAR(100),
-    actualizado_por VARCHAR(100),
-
-    CONSTRAINT torneo_unq_nombre_categoria UNIQUE (nombre, categoria)
-);
-
--- ======================
--- INSCRIPCION_TORNEO
--- ======================
-
-CREATE TABLE IF NOT EXISTS inscripcion_torneo (
-    id_inscripcion INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_equipo      INT NOT NULL 
-        REFERENCES equipo(id_equipo) ON UPDATE CASCADE ON DELETE RESTRICT,
-    id_torneo      INT NOT NULL 
-        REFERENCES torneo(id_torneo) ON UPDATE CASCADE ON DELETE RESTRICT,
-    genero         genero_competencia_tipo NOT NULL,
-    fecha_inscripcion DATE DEFAULT CURRENT_DATE,
-
-    creado_en      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    creado_por     VARCHAR(100),
-    actualizado_por VARCHAR(100),
-
-    CONSTRAINT unq_equipo_torneo UNIQUE (id_equipo, id_torneo)
-);
-
--- ======================
 -- PLANTEL
 -- ======================
 
 CREATE TABLE IF NOT EXISTS plantel (
-    id_plantel    INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_equipo     INT NOT NULL 
+
+    id_plantel      INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_equipo       INT NOT NULL 
         REFERENCES equipo(id_equipo) ON UPDATE CASCADE ON DELETE RESTRICT,
-    id_torneo     INT NOT NULL 
-        REFERENCES torneo(id_torneo) ON UPDATE CASCADE ON DELETE RESTRICT,
-    fecha_creacion DATE DEFAULT CURRENT_DATE,
+    fecha_creacion  DATE DEFAULT CURRENT_DATE,
+    activo          BOOLEAN DEFAULT TRUE,
 
-    creado_en     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    creado_por    VARCHAR(100),
-    actualizado_por VARCHAR(100),
+    creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creado_por      VARCHAR(100),
+    actualizado_por VARCHAR(100)
 
-    UNIQUE (id_equipo, id_torneo)
 );
 
 -- ======================
@@ -159,7 +116,7 @@ CREATE TABLE IF NOT EXISTS plantel_integrante (
         REFERENCES plantel(id_plantel) ON UPDATE CASCADE ON DELETE RESTRICT,
     id_persona            INT NOT NULL 
         REFERENCES persona(id_persona) ON UPDATE CASCADE ON DELETE RESTRICT,
-    rol_en_plantel        rol_plantel_tipo NOT NULL,
+    rol_en_plantel        tipo_rol_persona NOT NULL,
     numero_camiseta       INT CHECK (numero_camiseta > 0),
     fecha_alta            DATE NOT NULL DEFAULT CURRENT_DATE,
     fecha_baja            DATE,
@@ -169,15 +126,52 @@ CREATE TABLE IF NOT EXISTS plantel_integrante (
     creado_por            VARCHAR(100),
     actualizado_por       VARCHAR(100),
 
-    CONSTRAINT unq_plantel_persona_rol UNIQUE (id_plantel, id_persona, rol_en_plantel),
-    CHECK (fecha_baja IS NULL OR fecha_baja > fecha_alta),
-    
-    CONSTRAINT chk_jugador_entrenador CHECK (
-        rol_en_plantel IN ('jugador', 'entrenador')
-    ),
 
+    
     CONSTRAINT unq_plantel_persona UNIQUE (id_plantel, id_persona)
 );
+
+-- ======================
+-- TORNEO
+-- ======================
+
+CREATE TABLE IF NOT EXISTS torneo (
+    id_torneo       INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre          VARCHAR(100) NOT NULL CHECK (nombre <> ''),
+    categoria       tipo_categoria NOT NULL,
+    genero          tipo_genero_competencia NOT NULL,
+    fecha_inicio    DATE DEFAULT CURRENT_DATE,
+    fecha_fin       DATE CHECK (fecha_fin > fecha_inicio),
+    activo          BOOLEAN DEFAULT TRUE,
+    creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creado_por      VARCHAR(100),
+    actualizado_por VARCHAR(100),
+
+    CONSTRAINT torneo_unq_nombre_categoria UNIQUE (nombre, categoria)
+);
+
+-- ======================
+-- INSCRIPCION_TORNEO
+-- ======================
+
+CREATE TABLE IF NOT EXISTS inscripcion_torneo (
+    id_inscripcion  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_equipo       INT NOT NULL 
+        REFERENCES equipo(id_equipo) ON UPDATE CASCADE ON DELETE RESTRICT,
+    id_torneo       INT NOT NULL 
+        REFERENCES torneo(id_torneo) ON UPDATE CASCADE ON DELETE RESTRICT,
+    genero         tipo_genero_competencia NOT NULL,
+    fecha_inscripcion DATE DEFAULT CURRENT_DATE,
+
+    creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creado_por      VARCHAR(100),
+    actualizado_por VARCHAR(100),
+
+    CONSTRAINT unq_equipo_torneo UNIQUE (id_equipo, id_torneo)
+);
+
 
 -- ======================
 -- FASE
@@ -188,7 +182,7 @@ CREATE TABLE IF NOT EXISTS fase (
     id_torneo     INT NOT NULL 
         REFERENCES torneo(id_torneo) ON UPDATE CASCADE ON DELETE CASCADE,
     nombre        VARCHAR(50) NOT NULL CHECK (nombre <> ''),
-    tipo          tipo_fase_enum NOT NULL,
+    tipo          tipo_fase NOT NULL,
     orden         INT,
     fecha_inicio  DATE,
     fecha_fin     DATE,
@@ -200,7 +194,7 @@ CREATE TABLE IF NOT EXISTS fase (
 );
 
 -- ======================
--- PARTIDO (COMPLETA)
+-- PARTIDO 
 -- ======================
 
 CREATE TABLE IF NOT EXISTS partido (
@@ -213,24 +207,24 @@ CREATE TABLE IF NOT EXISTS partido (
     fecha          DATE DEFAULT CURRENT_DATE,
     horario        TIME,
 
-    id_local       INT NOT NULL 
-        REFERENCES equipo(id_equipo) ON UPDATE CASCADE ON DELETE RESTRICT,
-    id_visitante   INT NOT NULL 
-        REFERENCES equipo(id_equipo) ON UPDATE CASCADE ON DELETE RESTRICT,
+    id_inscripcion_local INT NOT NULL 
+        REFERENCES inscripcion_torneo(id_inscripcion) ON DELETE RESTRICT,
+    id_inscripcion_visitante INT NOT NULL
+        REFERENCES inscripcion_torneo(id_inscripcion) ON DELETE RESTRICT,
 
     goles_local    INT DEFAULT 0 CHECK (goles_local >= 0),
     goles_visitante INT DEFAULT 0 CHECK (goles_visitante >= 0),
 
     -- Arbitraje
-    id_arbitro1    INT REFERENCES persona(id_persona),
-    id_arbitro2    INT REFERENCES persona(id_persona),
+    id_arbitro1    INT REFERENCES persona(id_persona) ON DELETE SET NULL,
+    id_arbitro2    INT REFERENCES persona(id_persona) ON DELETE SET NULL,
     
     -- Capitanes
-    id_capitan_local INT REFERENCES plantel_integrante(id_plantel_integrante),
-    id_capitan_visitante INT REFERENCES plantel_integrante(id_plantel_integrante),
+    id_capitan_local INT REFERENCES plantel_integrante(id_plantel_integrante) ON DELETE SET NULL,
+    id_capitan_visitante INT REFERENCES plantel_integrante(id_plantel_integrante) ON DELETE SET NULL,
     
     -- Jueces de mesa
-    juez_mesa_local VARCHAR(100),
+    juez_mesa_local     VARCHAR(100),
     juez_mesa_visitante VARCHAR(100),
     
     -- Ubicación y observaciones
@@ -238,18 +232,15 @@ CREATE TABLE IF NOT EXISTS partido (
     observaciones  VARCHAR(1000),
     numero_fecha   INT,
 
-    -- Confirmación
-    confirmado_por VARCHAR(100),
-    confirmado_en  TIMESTAMP,
-
     -- Auditoría
-    creado_en      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    creado_por     VARCHAR(100),
+    creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100),
 
     -- Constraints
-    CONSTRAINT chk_equipos_distintos CHECK (id_local <> id_visitante),
+
+    CONSTRAINT chk_equipos_distintos CHECK (id_inscripcion_local <> id_inscripcion_visitante),
     CONSTRAINT chk_arbitros_distintos CHECK (
         id_arbitro1 IS DISTINCT FROM id_arbitro2
     ),
@@ -257,7 +248,7 @@ CREATE TABLE IF NOT EXISTS partido (
         id_capitan_local IS DISTINCT FROM id_capitan_visitante
     ),
     CONSTRAINT partido_unq_equipo_fecha UNIQUE (
-        id_torneo, fecha, id_local, id_visitante
+        id_torneo, fecha, id_inscripcion_local, id_inscripcion_visitante
     )
 );
 
@@ -272,7 +263,7 @@ CREATE TABLE IF NOT EXISTS participan_partido (
     id_plantel_integrante   INT NOT NULL 
         REFERENCES plantel_integrante(id_plantel_integrante) ON DELETE CASCADE,
     numero_camiseta         INT CHECK (numero_camiseta > 0),
-
+    -- Auditoría
     creado_en               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     creado_por              VARCHAR(100),
@@ -294,7 +285,7 @@ CREATE TABLE IF NOT EXISTS gol (
     
     minuto                  INT CHECK (minuto >= 0),
     cuarto                  INT CHECK (cuarto BETWEEN 1 AND 4),
-    referencia_gol          referencia_gol_enum,
+    referencia_gol          tipo_gol,
     es_autogol              BOOLEAN DEFAULT FALSE,
     
     -- Anulación (ej: por VAR)
@@ -318,9 +309,9 @@ CREATE TABLE IF NOT EXISTS tarjeta (
     id_partido              INT NOT NULL 
         REFERENCES partido(id_partido) ON DELETE CASCADE,
     id_participante_partido INT NOT NULL 
-        REFERENCES participan_partido(id_participante_partido),
+        REFERENCES participan_partido(id_participante_partido) ON DELETE CASCADE,
     
-    tipo                    tipo_tarjeta_enum NOT NULL,
+    tipo                    tipo_tarjeta NOT NULL,
     minuto                  INT,
     cuarto                  INT CHECK (cuarto BETWEEN 1 AND 4),
     observaciones           VARCHAR(500),
@@ -350,14 +341,15 @@ CREATE TABLE IF NOT EXISTS suspension (
     id_partido_origen       INT 
         REFERENCES partido(id_partido),
     
-    tipo_suspension         tipo_suspension_enum NOT NULL,
+    tipo_suspension         tipo_suspension NOT NULL,
     motivo                  VARCHAR(500) NOT NULL CHECK (motivo <> ''),
     
     fechas_suspension       INT CHECK (fechas_suspension > 0),
     fecha_fin_suspension    DATE,
     
     cumplidas               INT NOT NULL DEFAULT 0 CHECK (cumplidas >= 0),
-    partidos_cumplidos      INT[] DEFAULT '{}',
+    -- ID de los partidos cumplidos como suspension
+    partidos_cumplidos      INT[],
     
     activa                  BOOLEAN NOT NULL DEFAULT TRUE,
 

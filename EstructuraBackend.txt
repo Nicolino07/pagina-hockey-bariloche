@@ -1,29 +1,54 @@
 pagina-hockey-bariloche/
 ├── docker-compose.yml
+│
 ├── backend/
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   ├── .env
 │   ├── .dockerignore
-│   ├── init_database.sql
+│
+│   ├── db/                        
+│   │   ├── init/                    # DDL
+|   │   │   ├── 000_init_database.sql    # orquestador (para docker)
+│   │   │   ├── 001_enums.sql
+│   │   │   ├── 002_tables.sql
+│   │   │   ├── 003_tables_extra.sql
+│   │   │   ├── 004_functions.sql
+│   │   │   ├── 005_triggers.sql
+│   │   │   ├── 006_views.sql
+│   │   │   └── 007_grants.sql
+|   |   |
+|   │   ├── seed/
+|   |   │   ├── 010_seed_clubes.sql
+|   |   |   ├── 020_seed_equipos.sql
+|   |   |   ├── 030_seed_personas.sql
+|   |   |   ├── 040_seed_persona_rol.sql
+|   |   |   ├── 050_seed_torneos.sql
+|   |   |   ├── 060_seed_planteles.sql
+|   |   |   └── 070_seed_usuarios.sql
+|   │   │
+│   │   │
+│   │   └── README.md               # reglas DB / orden de ejecución
+│   |
 │   └── app/
-|       ├── dependencies/
-|       |   ├── __init__.py
-|       |   ├── permissions.py
-|       |   └── auth.py
-|       ├── auth/
-│       |   ├── __init__.py
-|       │   ├── models.py
-|       │   ├── schemas.py
-|       │   ├── router.py
-|       │   ├── service.py
-|       │   └── security.py
-|       |
 │       ├── __init__.py
-│       ├── main.py            # crea app + include_router
-│       ├── database.py        # SessionLocal, engine
-│       │
-│       ├── models/            # ORM (SQLAlchemy)
+│       ├── main.py                 # crea FastAPI + include_router
+│       ├── database.py             # engine, SessionLocal
+│
+│       ├── dependencies/
+│       │   ├── __init__.py
+│       │   ├── auth.py
+│       │   └── permissions.py
+│
+│       ├── auth/
+│       │   ├── __init__.py
+│       │   ├── models.py
+│       │   ├── schemas.py
+│       │   ├── router.py
+│       │   ├── service.py
+│       │   └── security.py
+│
+│       ├── models/                 # SQLAlchemy ORM
 │       │   ├── __init__.py
 │       │   ├── club.py
 │       │   ├── equipo.py
@@ -39,8 +64,8 @@ pagina-hockey-bariloche/
 │       │   ├── tarjeta.py
 │       │   ├── suspension.py
 │       │   └── posicion.py
-│       │
-│       ├── schemas/           # Pydantic (request / response)
+│
+│       ├── schemas/                # Pydantic
 │       │   ├── __init__.py
 │       │   ├── club.py
 │       │   ├── equipo.py
@@ -56,7 +81,7 @@ pagina-hockey-bariloche/
 │       │   ├── tarjeta.py
 │       │   ├── suspension.py
 │       │   └── posicion.py
-│       │
+│
 │       ├── routers/
 │       │   ├── public/
 │       │   │   ├── __init__.py
@@ -71,7 +96,7 @@ pagina-hockey-bariloche/
 │       │       ├── clubes.py
 │       │       ├── equipos.py
 │       │       ├── personas.py
-│       │       ├── roles.py              # persona_rol
+│       │       ├── roles.py
 │       │       ├── torneos.py
 │       │       ├── fases.py
 │       │       ├── planteles.py
@@ -80,8 +105,8 @@ pagina-hockey-bariloche/
 │       │       ├── tarjetas.py
 │       │       ├── suspensiones.py
 │       │       └── posiciones.py
-│       │
-│       ├── services/          # REGLAS DE NEGOCIO + TRANSACCIONES
+│
+│       ├── services/               # 🧠 reglas de negocio
 │       │   ├── personas_service.py
 │       │   ├── roles_service.py
 │       │   ├── inscripciones_service.py
@@ -89,10 +114,10 @@ pagina-hockey-bariloche/
 │       │   ├── partidos_service.py
 │       │   ├── suspensiones_service.py
 │       │   └── posiciones_service.py
-│       │
+│
 │       └── utils/
 │           ├── __init__.py
-│           ├── db.py          # helpers transaccionales
-│           └── validators.py  # reglas reutilizables
+│           ├── db.py               # helpers transaccionales
+│           └── validators.py
 │
 └── frontend/

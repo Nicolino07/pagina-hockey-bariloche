@@ -1,0 +1,147 @@
+-- =====================================================
+-- 005_triggers.sql
+-- Triggers del sistema
+-- =====================================================
+
+BEGIN;
+
+-- =====================================================
+-- TIMESTAMP AUTOMÁTICO
+-- =====================================================
+
+CREATE TRIGGER trg_club_actualizado
+BEFORE UPDATE ON club
+FOR EACH ROW
+EXECUTE FUNCTION fn_set_actualizado_en();
+
+CREATE TRIGGER trg_equipo_actualizado
+BEFORE UPDATE ON equipo
+FOR EACH ROW
+EXECUTE FUNCTION fn_set_actualizado_en();
+
+CREATE TRIGGER trg_persona_actualizado
+BEFORE UPDATE ON persona
+FOR EACH ROW
+EXECUTE FUNCTION fn_set_actualizado_en();
+
+CREATE TRIGGER trg_persona_rol_actualizado
+BEFORE UPDATE ON persona_rol
+FOR EACH ROW
+EXECUTE FUNCTION fn_set_actualizado_en();
+
+CREATE TRIGGER trg_plantel_actualizado
+BEFORE UPDATE ON plantel
+FOR EACH ROW
+EXECUTE FUNCTION fn_set_actualizado_en();
+
+CREATE TRIGGER trg_plantel_integrante_actualizado
+BEFORE UPDATE ON plantel_integrante
+FOR EACH ROW
+EXECUTE FUNCTION fn_set_actualizado_en();
+
+CREATE TRIGGER trg_partido_actualizado
+BEFORE UPDATE ON partido
+FOR EACH ROW
+EXECUTE FUNCTION fn_set_actualizado_en();
+
+
+-- =====================================================
+-- VALIDACIONES DE DOMINIO
+-- =====================================================
+
+-- Rol en plantel vs persona
+CREATE TRIGGER trg_validar_rol_en_plantel
+BEFORE INSERT OR UPDATE ON plantel_integrante
+FOR EACH ROW
+EXECUTE FUNCTION fn_validar_rol_en_plantel();
+
+-- Capitanes
+CREATE TRIGGER trg_validar_capitanes
+BEFORE INSERT OR UPDATE ON partido
+FOR EACH ROW
+EXECUTE FUNCTION fn_validar_capitanes();
+
+-- Árbitros no jugadores
+CREATE TRIGGER trg_validar_arbitros
+AFTER INSERT OR UPDATE ON partido
+FOR EACH ROW
+EXECUTE FUNCTION fn_validar_arbitros_no_jugadores();
+
+
+-- =====================================================
+-- RECÁLCULO DE POSICIONES
+-- =====================================================
+
+CREATE TRIGGER trg_recalcular_posiciones
+AFTER INSERT OR UPDATE OF goles_local, goles_visitante ON partido
+FOR EACH ROW
+EXECUTE FUNCTION fn_recalcular_posiciones();
+
+-- =====================================================
+-- Triggers de auditoría
+-- PERSONAS / USUARIOS
+-- =====================================================
+
+CREATE TRIGGER trg_audit_persona
+AFTER INSERT OR UPDATE OR DELETE
+ON persona
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_persona');
+
+CREATE TRIGGER trg_audit_usuario
+AFTER INSERT OR UPDATE OR DELETE
+ON usuario
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_usuario');
+
+-- =====================================================
+-- COMPETENCIAS / EQUIPOS
+-- =====================================================
+
+CREATE TRIGGER trg_audit_torneo
+AFTER INSERT OR UPDATE OR DELETE
+ON torneo
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_torneo');
+
+CREATE TRIGGER trg_audit_equipo
+AFTER INSERT OR UPDATE OR DELETE
+ON equipo
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_equipo');
+
+CREATE TRIGGER trg_audit_plantel
+AFTER INSERT OR UPDATE OR DELETE
+ON plantel
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_plantel');
+
+-- =====================================================
+-- PARTIDOS / EVENTOS
+-- =====================================================
+
+CREATE TRIGGER trg_audit_partido
+AFTER INSERT OR UPDATE OR DELETE
+ON partido
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_partido');
+
+CREATE TRIGGER trg_audit_gol
+AFTER INSERT OR UPDATE OR DELETE
+ON gol
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_gol');
+
+CREATE TRIGGER trg_audit_tarjeta
+AFTER INSERT OR UPDATE OR DELETE
+ON tarjeta
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_tarjeta');
+
+CREATE TRIGGER trg_audit_suspension
+AFTER INSERT OR UPDATE OR DELETE
+ON suspension
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_suspension');
+
+COMMIT;

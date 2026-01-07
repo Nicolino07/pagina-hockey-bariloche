@@ -1,0 +1,264 @@
+# Reglas de negocio y qué permite hacer el sistema 
+
+Este sistema está pensado para **gestionar torneos de hockey** (o deportes similares) de forma ordenada, segura y con reglas claras. A continuación se describen las **reglas de negocio** y las **acciones que el sistema permite**, explicadas de manera simple y coloquial.
+
+---
+
+## 🏆 Torneos
+
+* Un torneo tiene:
+
+  * Nombre
+  * Categoría (por ejemplo: Sub 12, Sub 14, Sub 16, Sub 19 o Libre)
+  * Género (Masculino, Femenino o Mixto)
+  * Estado (activo o no)
+
+* Los torneos **activos** son los únicos que:
+
+  * Aparecen en las tablas de posiciones
+  * Permiten cargar partidos
+  * Permiten inscribir equipos
+
+---
+
+## 👥 Equipos y clubes
+
+* Cada equipo pertenece a un club.
+* Cada equipo tiene:
+
+  * Categoría
+  * Género
+
+### Regla importante
+
+👉 Un equipo **solo puede inscribirse** en un torneo si:
+
+* El género del equipo es compatible con el del torneo
+
+  * Si el torneo es *Mixto*, cualquier equipo puede jugar
+  * Si no es mixto, el género debe coincidir
+
+---
+
+## 📝 Inscripción a torneos
+
+* Un equipo **solo puede estar inscripto una vez** en un mismo torneo.
+* Cuando un equipo se inscribe:
+
+  * El sistema crea automáticamente su registro en la **tabla de posiciones**.
+
+❌ No se puede:
+
+* Inscribir dos veces al mismo equipo en el mismo torneo
+
+---
+
+## 📊 Tabla de posiciones
+
+* La tabla de posiciones:
+
+  * Se genera automáticamente
+  * No se puede modificar a mano
+
+👉 El sistema calcula:
+
+* Puntos
+* Partidos jugados
+* Ganados / empatados / perdidos
+* Goles a favor y en contra
+* Diferencia de gol
+
+📌 Cada vez que:
+
+* Se carga un partido
+* Se modifica un resultado
+* Se confirma un partido
+
+➡️ **La tabla se recalcula sola**.
+
+---
+
+## 📅 Fixture y fechas
+
+* Un torneo se puede organizar por **fechas**.
+
+* Cada fecha pertenece a un torneo y tiene:
+
+  * Número de fecha
+  * Rueda (ida o vuelta)
+  * Fecha programada
+
+* Dentro de cada fecha se cargan los partidos del fixture.
+
+---
+
+## 🏑 Partidos
+
+Un partido tiene:
+
+* Equipo local y visitante
+* Fecha y horario
+* Árbitros
+* Capitanes
+* Resultado
+* Estado de confirmación
+
+### Confirmación de partido
+
+* Un partido **solo impacta en posiciones** cuando está confirmado.
+* Al confirmar un partido:
+
+  * Se recalculan las posiciones
+  * Se actualizan suspensiones
+  * Se genera un registro de auditoría
+
+---
+
+## 👨‍⚖️ Árbitros
+
+* Una persona solo puede ser árbitro si:
+
+  * Tiene el rol de árbitro activo
+
+El sistema valida que:
+
+* Los árbitros asignados estén habilitados
+* No se repita el mismo árbitro dos veces en un partido
+
+---
+
+## 🧢 Capitanes
+
+* Los capitanes deben:
+
+  * Pertenecer al equipo correspondiente
+  * Estar inscriptos en el plantel del torneo
+
+❌ No se permite:
+
+* Que un capitán no sea parte del equipo
+* Que una misma persona sea capitán de ambos equipos
+
+---
+
+## 👕 Planteles y jugadores
+
+* Cada equipo tiene un plantel por torneo.
+* En el plantel se cargan:
+
+  * Jugadores
+  * Entrenadores
+  * Otros roles
+
+### Validación de edad
+
+* Para categorías Sub-X:
+
+  * El sistema valida automáticamente la edad
+  * Si no cumple, no se puede agregar al plantel
+
+---
+
+## ⚽ Goles
+
+* Los goles se cargan por partido y jugador.
+
+* Se distingue entre:
+
+  * Gol normal
+  * Penal
+  * Jugada
+  * Corner corto
+  * Autogol
+
+* Los goles anulados:
+
+  * No cuentan en estadísticas
+  * No afectan goleadores
+
+---
+
+## 🟨🟥 Tarjetas
+
+* Se registran tarjetas:
+
+  * Amarillas
+  * Rojas
+  * Verdes
+
+El sistema permite:
+
+* Ver totales por jugador
+* Ver historial
+* Usarlas como base para sanciones
+
+---
+
+## ⛔ Suspensiones
+
+Las suspensiones pueden ser:
+
+### Por fechas
+
+* Válidas hasta una fecha determinada
+
+### Por partidos
+
+* Se cumplen jugando partidos
+* El sistema lleva la cuenta automáticamente
+
+📌 Regla clave:
+
+* Un jugador suspendido **no puede ser cargado en un partido**
+* El sistema lo valida antes de permitir la participación
+
+---
+
+## 🔐 Seguridad y permisos
+
+El sistema maneja roles:
+
+### 👀 Lectura
+
+* Solo puede consultar información
+
+### ✏️ Escritura
+
+* Puede cargar y modificar datos permitidos
+
+### 🛠️ Administrador
+
+* Control total del sistema
+
+📌 Todas las operaciones están protegidas por reglas internas:
+
+* Si un rol no tiene permiso, la acción se bloquea automáticamente
+
+---
+
+## 🧾 Auditoría
+
+* El sistema guarda registros de:
+
+  * Confirmación de partidos
+  * Cambios importantes
+
+Esto permite:
+
+* Trazabilidad
+* Control
+* Transparencia
+
+---
+
+## ✅ En resumen
+
+Este sistema:
+
+* Automatiza reglas del torneo
+* Evita errores humanos
+* Mantiene estadísticas confiables
+* Protege la información
+* Permite crecer sin perder control
+
+Está pensado para que **la lógica esté en el sistema**, no en la persona que carga los datos.
