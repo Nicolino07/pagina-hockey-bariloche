@@ -1,20 +1,64 @@
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Integer, ForeignKey
+from datetime import datetime
+from typing import Optional
+
+from sqlalchemy import Integer, ForeignKey, CheckConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.database import Base
 
 
 class Posicion(Base):
     __tablename__ = "posicion"
 
+    __table_args__ = (
+        CheckConstraint("puntos >= 0", name="chk_posicion_puntos"),
+        CheckConstraint("partidos_jugados >= 0", name="chk_posicion_pj"),
+        CheckConstraint("ganados >= 0", name="chk_posicion_ganados"),
+        CheckConstraint("empatados >= 0", name="chk_posicion_empatados"),
+        CheckConstraint("perdidos >= 0", name="chk_posicion_perdidos"),
+        CheckConstraint("goles_a_favor >= 0", name="chk_posicion_gf"),
+        CheckConstraint("goles_en_contra >= 0", name="chk_posicion_gc"),
+    )
+
     id_posicion: Mapped[int] = mapped_column(primary_key=True)
-    id_torneo: Mapped[int] = mapped_column(ForeignKey("torneo.id_torneo"))
-    id_equipo: Mapped[int] = mapped_column(ForeignKey("equipo.id_equipo"))
-    puntos: Mapped[int | None]
-    partidos_jugados: Mapped[int | None]
-    ganados: Mapped[int | None]
-    empatados: Mapped[int | None]
-    perdidos: Mapped[int | None]
-    goles_a_favor: Mapped[int | None]
-    goles_en_contra: Mapped[int | None]
-    diferencia_gol: Mapped[int | None]  # campo generado
-    fecha_actualizacion: Mapped[str | None]
+
+    id_torneo: Mapped[int] = mapped_column(
+        ForeignKey("torneo.id_torneo"),
+        nullable=False
+    )
+
+    id_equipo: Mapped[int] = mapped_column(
+        ForeignKey("equipo.id_equipo"),
+        nullable=False
+    )
+
+    # Estadísticas
+    puntos: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    partidos_jugados: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    ganados: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    empatados: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    perdidos: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    goles_a_favor: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    goles_en_contra: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    # Campo calculado (GENERATED ALWAYS)
+    diferencia_gol: Mapped[int]
+
+    # Auditoría
+    creado_en: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        nullable=False
+    )
+
+    actualizado_en: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False
+    )
+
+    creado_por: Mapped[Optional[str]]
+    actualizado_por: Mapped[Optional[str]]
+
+    # Relaciones
+    torneo = relationship("Torneo")
+    equipo = relationship("Equipo")

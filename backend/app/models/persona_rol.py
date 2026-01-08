@@ -1,22 +1,56 @@
+from datetime import date, datetime
+from typing import Optional
+
+from sqlalchemy import Date, ForeignKey, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Date, CheckConstraint, ForeignKey
+
 from app.database import Base
-from datetime import date
+from app.models.enums import RolPersonaTipo
+
 
 class PersonaRol(Base):
     __tablename__ = "persona_rol"
 
     __table_args__ = (
         CheckConstraint(
-            "rol IN ('jugador', 'entrenador', 'arbitro')",
-            name="chk_rol_valid"
+            "fecha_hasta IS NULL OR fecha_hasta > fecha_desde",
+            name="chk_persona_rol_fechas_validas"
         ),
     )
 
     id_persona_rol: Mapped[int] = mapped_column(primary_key=True)
-    id_persona: Mapped[int] = mapped_column( ForeignKey("persona.id_persona", ondelete="CASCADE"), nullable=False)
-    rol: Mapped[str] = mapped_column(String(30), nullable=False)
-    fecha_desde: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
-    fecha_hasta: Mapped[date | None] = mapped_column(Date)
 
-    persona = relationship("Persona", back_populates="roles")
+    id_persona: Mapped[int] = mapped_column(
+        ForeignKey("persona.id_persona", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    rol: Mapped[RolPersonaTipo] = mapped_column(
+        nullable=False
+    )
+
+    fecha_desde: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+        default=date.today
+    )
+
+    fecha_hasta: Mapped[Optional[date]] = mapped_column(Date)
+
+    # Auditoría
+    creado_en: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        nullable=False
+    )
+
+    actualizado_en: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False
+    )
+
+    creado_por: Mapped[Optional[str]] = mapped_column()
+    actualizado_por: Mapped[Optional[str]] = mapped_column()
+
+    # Relaciones (opcional pero recomendable)
+    persona = relationship("Persona", backref="roles")

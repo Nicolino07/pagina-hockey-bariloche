@@ -1,8 +1,11 @@
-from datetime import date
+from datetime import date, datetime
+from typing import Optional
+
+from sqlalchemy import Date, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Integer, ForeignKey, Date
+
 from app.database import Base
-from typing import List
+
 
 class Plantel(Base):
     __tablename__ = "plantel"
@@ -10,19 +13,41 @@ class Plantel(Base):
     id_plantel: Mapped[int] = mapped_column(primary_key=True)
 
     id_equipo: Mapped[int] = mapped_column(
-        ForeignKey("equipo.id_equipo"),
-        nullable=False
-    )
-
-    id_torneo: Mapped[int] = mapped_column(
-        ForeignKey("torneo.id_torneo"),
+        ForeignKey("equipo.id_equipo", onupdate="CASCADE", ondelete="RESTRICT"),
         nullable=False
     )
 
     fecha_creacion: Mapped[date] = mapped_column(
         Date,
+        default=date.today,
         nullable=False
     )
 
-    equipo = relationship("Equipo", back_populates="planteles")
-    integrantes = relationship("PlantelIntegrante", back_populates="plantel", cascade="all, delete-orphan")
+    activo: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        nullable=False
+    )
+
+    # Auditoría
+    creado_en: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        nullable=False
+    )
+
+    actualizado_en: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False
+    )
+
+    creado_por: Mapped[Optional[str]] = mapped_column()
+    actualizado_por: Mapped[Optional[str]] = mapped_column()
+
+    # Relaciones
+    equipo = relationship("Equipo", backref="planteles")
+    integrantes = relationship(
+        "PlantelIntegrante",
+        back_populates="plantel",
+        cascade="all, delete-orphan"
+    )

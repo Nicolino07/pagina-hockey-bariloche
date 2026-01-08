@@ -1,21 +1,36 @@
-from pydantic import BaseModel
-from datetime import date
-from typing import List
-from .plantel_integrante import PlantelIntegranteRead
+from datetime import date, datetime
+from typing import Optional
 
-class PlantelCreate(BaseModel):
-    id_equipo: int
-    id_torneo: int
+from pydantic import BaseModel, Field, ConfigDict
 
+class PlantelBase(BaseModel):
+    id_equipo: int = Field(..., gt=0)
+    fecha_creacion: Optional[date] = None
+    activo: Optional[bool] = True
 
-class PlantelRead(BaseModel):
+class PlantelCreate(PlantelBase):
+    creado_por: Optional[str] = Field(None, max_length=100)
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "id_equipo": 5,
+                "creado_por": "admin"
+            }
+        }
+    )
+
+class PlantelUpdate(BaseModel):
+    activo: Optional[bool] = None
+    actualizado_por: Optional[str] = Field(None, max_length=100)
+
+class Plantel(PlantelBase):
     id_plantel: int
-    id_equipo: int
-    id_torneo: int
-    fecha_creacion: date
-    integrantes: List[PlantelIntegranteRead] = []
 
-    class Config:
-        from_attributes = True
+    creado_en: datetime
+    actualizado_en: datetime
+    creado_por: Optional[str] = None
+    actualizado_por: Optional[str] = None
 
+    model_config = ConfigDict(from_attributes=True)
 

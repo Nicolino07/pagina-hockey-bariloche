@@ -1,49 +1,60 @@
-from pydantic import BaseModel
+from datetime import date, time, datetime
 from typing import Optional
 
-class PartidoBase(BaseModel):
-    id_torneo: int
-    id_fase: Optional[int] = None
-    fecha: Optional[str] = None
-    horario: Optional[str] = None
-    id_local: int
-    id_visitante: int
-    goles_local: Optional[int] = 0
-    goles_visitante: Optional[int] = 0
-    id_arbitro1: Optional[int] = None
-    id_arbitro2: Optional[int] = None
-    ubicacion: Optional[str] = None
-    observaciones: Optional[str] = None
-    tipo_fase: Optional[str] = "liga"
-    numero_fecha: Optional[int] = None
+from pydantic import BaseModel, Field, ConfigDict
 
+class PartidoBase(BaseModel):
+    id_torneo: int = Field(..., gt=0)
+    id_fase: Optional[int] = None
+
+    fecha: Optional[date] = None
+    horario: Optional[time] = None
+
+    id_inscripcion_local: int = Field(..., gt=0)
+    id_inscripcion_visitante: int = Field(..., gt=0)
+
+    ubicacion: Optional[str] = Field(None, max_length=200)
+    observaciones: Optional[str] = Field(None, max_length=1000)
+    numero_fecha: Optional[int] = Field(None, gt=0)
 
 class PartidoCreate(PartidoBase):
-    """Schema para crear partido (POST)"""
-    pass
+    creado_por: Optional[str] = Field(None, max_length=100)
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "id_torneo": 1,
+                "id_fase": 2,
+                "fecha": "2026-02-10",
+                "horario": "15:30",
+                "id_inscripcion_local": 5,
+                "id_inscripcion_visitante": 8,
+                "ubicacion": "Cancha Central",
+                "numero_fecha": 3,
+                "creado_por": "admin"
+            }
+        }
+    )
 
 class PartidoUpdate(BaseModel):
-    """Schema para actualizar partido (PUT) — todos los campos opcionales"""
-    id_torneo: Optional[int] = None
-    id_fase: Optional[int] = None
-    fecha: Optional[str] = None
-    horario: Optional[str] = None
-    id_local: Optional[int] = None
-    id_visitante: Optional[int] = None
-    goles_local: Optional[int] = None
-    goles_visitante: Optional[int] = None
+    fecha: Optional[date] = None
+    horario: Optional[time] = None
+
     id_arbitro1: Optional[int] = None
     id_arbitro2: Optional[int] = None
-    ubicacion: Optional[str] = None
-    observaciones: Optional[str] = None
-    tipo_fase: Optional[str] = None
-    numero_fecha: Optional[int] = None
 
+    id_capitan_local: Optional[int] = None
+    id_capitan_visitante: Optional[int] = None
 
-class PartidoOut(PartidoBase):
-    """Schema de salida (GET, POST response)"""
-    id_partido: int
+    juez_mesa_local: Optional[str] = Field(None, max_length=100)
+    juez_mesa_visitante: Optional[str] = Field(None, max_length=100)
 
-    class Config:
-        from_attributes = True
+    ubicacion: Optional[str] = Field(None, max_length=200)
+    observaciones: Optional[str] = Field(None, max_length=1000)
+
+    actualizado_por: Optional[str] = Field(None, max_length=100)
+    
+class PartidoResultadoUpdate(BaseModel):
+    goles_local: int = Field(..., ge=0)
+    goles_visitante: int = Field(..., ge=0)
+    actualizado_por: Optional[str] = Field(None, max_length=100)
