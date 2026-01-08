@@ -14,7 +14,7 @@ from .gol import Gol
 from .tarjeta import Tarjeta
 from .suspension import Suspension
 from .posicion import Posicion
-
+from .usuario import Usuario
 
 # Exportar todos los ENUMs 
 from .enums import (
@@ -22,7 +22,6 @@ from .enums import (
     GeneroCompetenciaTipo,
     CategoriaTipo,
     RolPersonaTipo,
-    RolPlantelTipo,
     TipoTarjeta,
     TipoSuspension,
     ReferenciaGol,

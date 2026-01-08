@@ -5,10 +5,8 @@
 
 BEGIN;
 
--- -----------------------------
--- Personas / Competencias
--- -----------------------------
 
+-- Enum genero de persona 
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_genero_persona') THEN
@@ -16,6 +14,7 @@ BEGIN
   END IF;
 END$$;
 
+-- Enum genero de competencia
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_genero_competencia') THEN
@@ -23,29 +22,23 @@ BEGIN
   END IF;
 END$$;
 
+-- Enum categoria de competencia
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_categoria') THEN
     CREATE TYPE tipo_categoria AS ENUM ('A', 'B', 'Sub 19', 'Sub 16', 'Sub 14', 'Sub 14 desarrollo', 'Sub 12');
   END IF;
 END$$;
--- -----------------------------
--- Roles
--- -----------------------------
 
+-- Enum rol de persona individualas (mas de uno) y en particular en un equipo (solo uno)
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_rol_persona') THEN
-    CREATE TYPE tipo_rol_persona AS ENUM ('jugador', 'entrenador', 'arbitro','asistente', 'medico', 'preparador fisico', 'delegado');
+    CREATE TYPE tipo_rol_persona AS ENUM ('jugador', 'entrenador', 'arbitro','asistente', 'medico', 'preparador_fisico', 'delegado');
   END IF;
 END$$;
 
-
-
--- -----------------------------
--- Partido / Disciplina
--- -----------------------------
-
+-- Enum tipo de tarjeta
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_tarjeta_tipo') THEN
@@ -53,6 +46,7 @@ BEGIN
   END IF;
 END$$;
 
+-- Enum tipo de suspension
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_suspension_tipo') THEN
@@ -60,6 +54,7 @@ BEGIN
   END IF;
 END$$;
 
+-- Enum tipo de gol
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_gol') THEN
@@ -67,6 +62,7 @@ BEGIN
   END IF;
 END$$;
 
+-- Enum tipo de fase de competencia
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_fase') THEN
@@ -74,10 +70,7 @@ BEGIN
   END IF;
 END$$;
 
--- -----------------------------
--- Seguridad / Usuarios
--- -----------------------------
-
+-- Enum tipo de usuario
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_usuario') THEN

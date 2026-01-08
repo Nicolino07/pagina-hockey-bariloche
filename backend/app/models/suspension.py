@@ -1,11 +1,10 @@
 from datetime import datetime, date
-from typing import Optional, List
+from typing import Optional
+from sqlalchemy.dialects.postgresql import ARRAY
 
 from sqlalchemy import (
-    String,
     Integer,
-    Boolean,
-    Date,
+    String,
     ForeignKey,
     CheckConstraint,
     Enum,
@@ -59,10 +58,11 @@ class Suspension(Base):
 
     cumplidas: Mapped[int] = mapped_column(default=0, nullable=False)
 
-    partidos_cumplidos: Mapped[Optional[List[int]]] = mapped_column(
-        nullable=True
+    partidos_cumplidos: Mapped[list[int] | None] = mapped_column(
+        ARRAY(Integer),
+        nullable=True,
+        default=list
     )
-
     activa: Mapped[bool] = mapped_column(default=True, nullable=False)
 
     # Auditoría

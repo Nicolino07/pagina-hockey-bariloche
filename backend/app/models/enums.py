@@ -24,12 +24,12 @@ class RolPersonaTipo(str, enum.Enum):
     """Rol global de una persona en el sistema"""
     JUGADOR = 'jugador'
     ENTRENADOR = 'entrenador'
-    ARBITRO = 'arbitro'
+    ARBITRO = 'arbitro' 
+    DELEGADO = 'delegado'
+    ASISTENTE = 'asistente'
+    MEDICO = 'medico'
+    PREPARADOR_FISICO = 'preparador_fisico'
 
-class RolPlantelTipo(str, enum.Enum):
-    """Rol dentro de un plantel específico"""
-    JUGADOR = 'jugador'
-    ENTRENADOR = 'entrenador'
 
 class TipoTarjeta(str, enum.Enum):
     """Tipos de tarjeta disciplinaria"""

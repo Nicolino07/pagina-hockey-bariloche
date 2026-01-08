@@ -5,7 +5,7 @@ from sqlalchemy import Date, ForeignKey, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-from app.models.enums import RolPersona
+from app.models.enums import RolPersonaTipo
 
 
 class PlantelIntegrante(Base):
@@ -27,7 +27,7 @@ class PlantelIntegrante(Base):
         nullable=False
     )
 
-    rol_en_plantel: Mapped[RolPersona] = mapped_column(nullable=False)
+    rol_en_plantel: Mapped[RolPersonaTipo] = mapped_column(nullable=False)
 
     numero_camiseta: Mapped[Optional[int]]
 
