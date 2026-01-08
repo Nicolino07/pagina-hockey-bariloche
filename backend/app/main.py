@@ -22,19 +22,13 @@ app.add_exception_handler(
 )
 
 
-from app.routers.public import (
-    clubes_router as public_clubes,
-    equipos_router as public_equipos,
-    planteles_router as public_planteles,
-    torneos_router as public_torneos,
-)
 
-from app.routers.admin import (
-    clubes_router as admin_clubes,
-    equipos_router as admin_equipos,
-    personas_router as admin_personas,
-    planteles_router as admin_planteles,
-    torneos_router as admin_torneos,
+from app.routers import (
+    clubes_router as clubes,
+    equipos_router as equipos,
+    personas_router as personas,
+    planteles_router as planteles,
+    torneos_router as torneos,
 )
 # se importa el router de autenticación
 from app.auth.router import router as auth_router
@@ -42,25 +36,19 @@ from app.auth.router import router as auth_router
 
 app = FastAPI(
     title="Hockey Bariloche API",
-    version="1.0.0"
+    version="1.1.0"
 )
 
 @app.get("/")
 def root():
     return {"message": "API Hockey Bariloche funcionando"}
 
-# Routers públicos
-app.include_router(public_clubes)
-app.include_router(public_equipos)
-app.include_router(public_planteles)
-app.include_router(public_torneos)
 
-# Routers admin
-app.include_router(admin_clubes)
-app.include_router(admin_equipos)
-app.include_router(admin_personas)
-app.include_router(admin_planteles)
-app.include_router(admin_torneos)
-
+# Routers 
+app.include_router(clubes)
+app.include_router(equipos)
+app.include_router(personas)
+app.include_router(planteles)
+app.include_router(torneos)
 # Router de autenticación incluido
 app.include_router(auth_router)

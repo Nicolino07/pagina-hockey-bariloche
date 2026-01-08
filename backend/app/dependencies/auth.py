@@ -7,7 +7,8 @@ from typing import List
 
 from app.database import get_db
 from app.auth.models import Usuario
-from app.auth.security import SECRET_KEY, ALGORITHM
+from app.auth.security import JWT_SECRET , JWT_ALGORITHM 
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -23,7 +24,7 @@ def get_current_user(
     )
 
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         user_id: str = payload.get("sub")
 
         if user_id is None:

@@ -83,15 +83,6 @@ pagina-hockey-bariloche/
 │       │   └── posicion.py
 │
 │       ├── routers/
-│       │   ├── public/
-│       │   │   ├── __init__.py
-│       │   │   ├── torneos.py
-│       │   │   ├── partidos.py
-│       │   │   ├── posiciones.py
-│       │   │   ├── estadisticas.py
-│       │   │   └── planteles.py
-│       │   │
-│       │   └── admin/
 │       │       ├── __init__.py
 │       │       ├── clubes.py
 │       │       ├── equipos.py
@@ -105,7 +96,7 @@ pagina-hockey-bariloche/
 │       │       ├── tarjetas.py
 │       │       ├── suspensiones.py
 │       │       └── posiciones.py
-│
+│       |
 │       ├── services/               # 🧠 reglas de negocio
 │       │   ├── personas_service.py
 │       │   ├── roles_service.py
