@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import date, datetime
+from typing import Optional
 
 from sqlalchemy import (
     String,
@@ -60,6 +61,21 @@ class Fase(Base):
         Date,
         nullable=True
     )
+
+            # Auditoría
+    creado_en: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        nullable=False
+    )
+
+    actualizado_en: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False
+    )
+
+    creado_por: Mapped[Optional[str]] = mapped_column(String(100))
+    actualizado_por: Mapped[Optional[str]] = mapped_column(String(100))
 
     # Relaciones
     torneo = relationship(

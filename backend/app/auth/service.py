@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Request
 from datetime import datetime
 
-from app.auth.models import Usuario, RefreshToken
+from app.models import Usuario, RefreshToken
 from app.auth.security import (
     verify_password,
     create_access_token,

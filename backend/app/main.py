@@ -10,7 +10,10 @@ from app import models
 
 limiter = Limiter(key_func=get_remote_address)
 
-app = FastAPI()
+app = FastAPI(
+    title="Hockey Bariloche API",
+    version="1.1.0"
+)
 
 app.state.limiter = limiter
 app.add_exception_handler(
@@ -22,7 +25,6 @@ app.add_exception_handler(
 )
 
 
-
 from app.routers import (
     clubes_router as clubes,
     equipos_router as equipos,
@@ -31,13 +33,7 @@ from app.routers import (
     torneos_router as torneos,
 )
 # se importa el router de autenticación
-from app.auth.router import router as auth_router
-
-
-app = FastAPI(
-    title="Hockey Bariloche API",
-    version="1.1.0"
-)
+# from app.auth.router import router as auth_router
 
 @app.get("/")
 def root():
@@ -51,4 +47,4 @@ app.include_router(personas)
 app.include_router(planteles)
 app.include_router(torneos)
 # Router de autenticación incluido
-app.include_router(auth_router)
+#app.include_router(auth_router)

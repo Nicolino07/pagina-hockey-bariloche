@@ -143,6 +143,7 @@ CREATE TABLE IF NOT EXISTS torneo (
     fecha_inicio    DATE DEFAULT CURRENT_DATE,
     fecha_fin       DATE CHECK (fecha_fin > fecha_inicio),
     activo          BOOLEAN DEFAULT TRUE,
+    
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     creado_por      VARCHAR(100),

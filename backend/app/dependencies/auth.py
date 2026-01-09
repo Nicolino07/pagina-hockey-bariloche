@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import List
 
 from app.database import get_db
-from app.auth.models import Usuario
+from app.models.usuario import Usuario
 from app.auth.security import JWT_SECRET , JWT_ALGORITHM 
 
 

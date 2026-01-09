@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, CheckConstraint
 from app.database import Base
+from datetime import datetime
+from typing import Optional
 
 
 class Club(Base):
@@ -19,3 +21,17 @@ class Club(Base):
     telefono: Mapped[str | None] = mapped_column(String(20))
     email: Mapped[str | None] = mapped_column(String(100))
 
+        # Auditoría
+    creado_en: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        nullable=False
+    )
+
+    actualizado_en: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False
+    )
+
+    creado_por: Mapped[Optional[str]] = mapped_column(String(100))
+    actualizado_por: Mapped[Optional[str]] = mapped_column(String(100))

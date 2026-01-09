@@ -3,10 +3,12 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, ConfigDict
 
+
 class PlantelBase(BaseModel):
     id_equipo: int = Field(..., gt=0)
     fecha_creacion: Optional[date] = None
-    activo: Optional[bool] = True
+    activo: bool = True
+
 
 class PlantelCreate(PlantelBase):
     creado_por: Optional[str] = Field(None, max_length=100)
@@ -20,11 +22,13 @@ class PlantelCreate(PlantelBase):
         }
     )
 
+
 class PlantelUpdate(BaseModel):
     activo: Optional[bool] = None
     actualizado_por: Optional[str] = Field(None, max_length=100)
 
-class Plantel(PlantelBase):
+
+class PlantelRead(PlantelBase):
     id_plantel: int
 
     creado_en: datetime
@@ -33,4 +37,3 @@ class Plantel(PlantelBase):
     actualizado_por: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
-

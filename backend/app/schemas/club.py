@@ -71,3 +71,13 @@ class Club(ClubBase):
             }
         }
     )
+
+class ClubResponse(BaseModel):
+    id_club: int
+    nombre: str
+    creado_en: datetime
+    actualizado_en: datetime
+
+    model_config = {
+        "from_attributes": True
+    }

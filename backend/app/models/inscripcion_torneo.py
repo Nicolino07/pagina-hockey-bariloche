@@ -64,5 +64,9 @@ class InscripcionTorneo(Base):
     actualizado_por: Mapped[Optional[str]] = mapped_column(String(100))
 
     # Relaciones (opcionales, pero recomendadas)
-    equipo = relationship("Equipo")
+    equipo = relationship(
+        "Equipo",
+        back_populates="inscripciones"
+    )
+
     torneo = relationship("Torneo")

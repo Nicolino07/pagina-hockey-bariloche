@@ -15,6 +15,8 @@ from .tarjeta import Tarjeta
 from .suspension import Suspension
 from .posicion import Posicion
 from .usuario import Usuario
+from .refresh_token import RefreshToken
+from .inscripcion_torneo import InscripcionTorneo
 
 # Exportar todos los ENUMs 
 from .enums import (

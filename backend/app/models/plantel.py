@@ -45,7 +45,11 @@ class Plantel(Base):
     actualizado_por: Mapped[Optional[str]] = mapped_column()
 
     # Relaciones
-    equipo = relationship("Equipo", backref="planteles")
+    equipo = relationship(
+        "Equipo",
+        back_populates="planteles"
+    )
+
     integrantes = relationship(
         "PlantelIntegrante",
         back_populates="plantel",

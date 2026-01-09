@@ -57,3 +57,11 @@ class Persona(PersonaBase):
 
     model_config = ConfigDict(from_attributes=True)
     
+class PersonaRead(PersonaBase):
+    id_persona: int
+    creado_en: datetime
+    actualizado_en: datetime
+    creado_por: Optional[str]
+    actualizado_por: Optional[str]
+
+    model_config = ConfigDict(from_attributes=True)

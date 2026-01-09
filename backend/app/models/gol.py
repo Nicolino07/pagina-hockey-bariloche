@@ -1,7 +1,7 @@
 from typing import Optional
 from datetime import datetime
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import (
     Integer,
     ForeignKey,
@@ -79,3 +79,15 @@ class Gol(Base):
 
     creado_por: Mapped[Optional[str]] = mapped_column(String(100))
     actualizado_por: Mapped[Optional[str]] = mapped_column(String(100))
+
+# relaciones
+    partido = relationship(
+        "Partido",
+        back_populates="goles"
+    )
+
+    participante_partido = relationship(
+        "ParticipanPartido",
+        back_populates="goles"
+    )
+

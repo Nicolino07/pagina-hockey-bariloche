@@ -70,3 +70,7 @@ class Equipo(Base):
         back_populates="equipo",
         cascade="all, delete-orphan"
     )
+    inscripciones = relationship(
+        "InscripcionTorneo",
+        back_populates="equipo"
+    )

@@ -58,5 +58,9 @@ class Tarjeta(Base):
     actualizado_por: Mapped[Optional[str]] = mapped_column(String(100))
 
     # Relaciones
-    partido = relationship("Partido")
-    participante_partido = relationship("ParticipanPartido")
+    partido = relationship("Partido", back_populates="tarjetas")
+    participante_partido = relationship(
+        "ParticipanPartido",
+        back_populates="tarjetas"
+    )
+

@@ -54,3 +54,10 @@ class TipoFase(str, enum.Enum):
     LIGA = 'liga'
     ELIMINACION = 'eliminacion'
     GRUPOS = 'grupos'
+
+class TipoUsuario(str, enum.Enum):
+    """Tipo de usuario"""
+    SUPERUSUARIO = 'superusuario'
+    ADMIN = 'admin'
+    EDITOR = 'editor'
+    LECTOR = 'lector'

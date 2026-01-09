@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Response, Request, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.auth.schemas import LoginRequest
+from app.schemas.auth import LoginRequest
 from app.auth.service import login_user, logout_user, refresh_access_token
 from slowapi import Limiter
 from slowapi.util import get_remote_address
