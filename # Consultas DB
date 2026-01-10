@@ -1,0 +1,21 @@
+# Consultas posibles que realizara el sistema sobre la DB
+
+Las operaciones que requieren mas de una tabla son realizables como transacciones
+
+* Crear, actualizar o borrar un **Club** 
+* Crear, actualizar o borrar un **Equipo** asociado a un club 
+* Crear, actualizar o borrar una **Persona**
+* Crear, actualizar o borrar una **Plantel** asociado a un equipo
+* Asociar personas a un **Plantel** (plantel_integrante)
+* Crear, actualizar o borrar un **Torneo** 
+* Inscribir equipos en uno o mas torneos (inscripcion_torneos)
+* Crear, actualizar o borrar un **Partido** (Transacción)
+* Ver suspensiones activas del torneo
+* Listar jugadores habilitados
+* Registrar tarjeta en un partido
+* Cerrar una suspensión automáticamente
+* Ver tabla de posiciones
+* Ver fixture
+* Ver historial disciplinario de una persona
+* 
+

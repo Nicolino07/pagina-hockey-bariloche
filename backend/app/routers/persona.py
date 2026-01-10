@@ -8,8 +8,8 @@ from app.schemas.persona_rol import PersonaRolCreate
 from app.services import persona_service
 
 router = APIRouter(
-    prefix="/admin/personas",
-    tags=["Admin - Personas"]
+    prefix="/personas",
+    tags=["Personas"]
 )
 
 

@@ -6,7 +6,7 @@
 BEGIN;
 
 -- =====================================================
--- 1. PERSONAS CON SUS ROLES
+-- 1. JUGADORES CON SUS ROLES
 -- =====================================================
 
 CREATE OR REPLACE VIEW vw_persona_roles AS
@@ -111,20 +111,23 @@ ORDER BY
 CREATE OR REPLACE VIEW vw_suspensiones_activas AS
 SELECT
     s.id_suspension,
-    s.id_persona,
+    pr.id_persona_rol,
+    p.id_persona,
     p.nombre,
     p.apellido,
     s.id_torneo,
     t.nombre AS torneo,
     s.tipo_suspension,
+    s.motivo,
     s.fechas_suspension,
     s.cumplidas,
-    s.fecha_fin_suspension
+    s.fecha_fin_suspension,
+    s.activa
 FROM suspension s
+JOIN persona_rol pr
+    ON pr.id_persona_rol = s.id_persona_rol
 JOIN persona p
-  ON p.id_persona = s.id_persona
+    ON p.id_persona = pr.id_persona
 JOIN torneo t
-  ON t.id_torneo = s.id_torneo
+    ON t.id_torneo = s.id_torneo
 WHERE s.activa = TRUE;
-
-

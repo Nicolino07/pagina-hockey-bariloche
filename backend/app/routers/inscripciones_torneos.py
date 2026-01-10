@@ -5,7 +5,7 @@ from app.database import get_db
 from app.models.inscripcion_torneo import InscripcionTorneo as InscripcionModel
 from app.schemas.inscripcion_torneo import InscripcionTorneo, InscripcionTorneoCreate
 
-router = APIRouter(prefix="/admin/inscripciones", tags=["Inscripciones Torneo Admin"])
+router = APIRouter(prefix="/inscripciones", tags=["Inscripciones Torneo"])
 
 @router.get("/", response_model=list[InscripcionTorneo])
 def get_inscripciones(db: Session = Depends(get_db)):

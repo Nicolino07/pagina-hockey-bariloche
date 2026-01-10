@@ -6,10 +6,7 @@ from app.schemas.club import Club, ClubCreate, ClubUpdate
 from app.services import clubes_services
 from app.dependencies.permissions import require_admin
 
-router = APIRouter(
-    prefix="/clubes",
-    tags=["Clubes"]
-)
+router = APIRouter(prefix="/clubes",tags=["Clubes"])
 
 
 @router.get("/", response_model=list[Club])
@@ -32,7 +29,7 @@ def obtener_club(id_club: int, db: Session = Depends(get_db)):
     "/",
     response_model=Club,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_admin)]
+    # dependencies=[Depends(require_admin)]
 )
 def crear_club(
     data: ClubCreate,
@@ -44,7 +41,7 @@ def crear_club(
 @router.put(
     "/{id_club}",
     response_model=Club,
-    dependencies=[Depends(require_admin)]
+    # dependencies=[Depends(require_admin)]
 )
 def actualizar_club(
     id_club: int,
@@ -63,7 +60,7 @@ def actualizar_club(
 @router.delete(
     "/{id_club}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(require_admin)]
+    #dependencies=[Depends(require_admin)]
 )
 def eliminar_club(id_club: int, db: Session = Depends(get_db)):
     club = clubes_services.obtener_club(db, id_club)

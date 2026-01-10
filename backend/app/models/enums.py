@@ -2,45 +2,45 @@ import enum
 
 class GeneroPersonaTipo(str, enum.Enum):
     """Género biológico de una persona"""
-    MASCULINO = 'Masculino'
-    FEMENINO = 'Femenino'
+    MASCULINO = 'MASCULINO'
+    FEMENINO = 'FEMENINO'
 
 class GeneroCompetenciaTipo(str, enum.Enum):
     """Género de la competencia/categoría"""
-    MASCULINO = 'Masculino'
-    FEMENINO = 'Femenino'
-    MIXTO = 'Mixto'
+    MASCULINO = 'MASCULINO'
+    FEMENINO = 'FEMENINO'
+    MIXTO = 'MIXTO'
 
 class CategoriaTipo(str, enum.Enum):
     """Nivel/categoría deportiva"""
     A = 'A'
     B = 'B'
-    SUB_19 = 'Sub 19'
-    SUB_16 = 'Sub 16'
-    SUB_14 = 'Sub 14'
-    SUB_12 = 'Sub 12'
+    SUB_19 = 'SUB_19'
+    SUB_16 = 'SUB_16'
+    SUB_14 = 'SUB_14'
+    SUB_12 = 'SUB_12'
 
 class RolPersonaTipo(str, enum.Enum):
     """Rol global de una persona en el sistema"""
-    JUGADOR = 'jugador'
-    ENTRENADOR = 'entrenador'
-    ARBITRO = 'arbitro' 
-    DELEGADO = 'delegado'
-    ASISTENTE = 'asistente'
-    MEDICO = 'medico'
-    PREPARADOR_FISICO = 'preparador_fisico'
+    JUGADOR = 'JUGADOR'
+    ENTRENADOR = 'ENTRENADOR'
+    ARBITRO = 'ARBITRO' 
+    DELEGADO = 'DELEGADO'
+    ASISTENTE = 'ASISTENTE'
+    MEDICO = 'MEDICO'
+    PREPARADOR_FISICO = 'PREPARADOR_FISICO'
 
 
 class TipoTarjeta(str, enum.Enum):
     """Tipos de tarjeta disciplinaria"""
-    VERDE = 'verde'
-    AMARILLA = 'amarilla'
-    ROJA = 'roja'
+    VERDE = 'VERDE'
+    AMARILLA = 'AMARILLA'
+    ROJA = 'ROJA'
 
 class TipoSuspension(str, enum.Enum):
     """Tipos de suspensión"""
-    POR_PARTIDOS = 'por_partidos'
-    POR_FECHA = 'por_fecha'
+    POR_PARTIDOS = 'POR_PARTIDOS'
+    POR_FECHA = 'POR_FECHA'
 
 class ReferenciaGol(str, enum.Enum):
     """Tipos de gol"""
@@ -51,13 +51,13 @@ class ReferenciaGol(str, enum.Enum):
 
 class TipoFase(str, enum.Enum):
     """Tipos de fase de torneo"""
-    LIGA = 'liga'
-    ELIMINACION = 'eliminacion'
-    GRUPOS = 'grupos'
+    LIGA = 'LIGA'
+    ELIMINACION = 'ELIMINACION'
+    GRUPOS = 'GRUPOS'
 
 class TipoUsuario(str, enum.Enum):
     """Tipo de usuario"""
-    SUPERUSUARIO = 'superusuario'
-    ADMIN = 'admin'
-    EDITOR = 'editor'
-    LECTOR = 'lector'
+    SUPERUSUARIO = 'SUPERUSUARIO'
+    ADMIN = 'ADMIN'
+    EDITOR = 'EDITOR'
+    LECTOR = 'LECTOR'

@@ -6,7 +6,7 @@ from app.schemas.plantel import PlantelCreate, PlantelRead
 from app.schemas.plantel_integrante import PlantelIntegranteCreate, PlantelIntegranteRead
 from app.services import planteles_services
 
-router = APIRouter(prefix="/admin/planteles", tags=["Planteles - Admin"])
+router = APIRouter(prefix="/planteles", tags=["Planteles"])
 
 
 @router.post("/", response_model=PlantelRead)

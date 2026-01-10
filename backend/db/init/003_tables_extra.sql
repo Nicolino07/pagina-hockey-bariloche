@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS usuario (
     email             VARCHAR(100) NOT NULL UNIQUE 
         CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'),
     password_hash     TEXT NOT NULL CHECK (password_hash <> ''),
-    tipo               tipo_usuario NOT NULL DEFAULT 'lector',
+    tipo               tipo_usuario NOT NULL DEFAULT 'LECTOR',
     activo            BOOLEAN NOT NULL DEFAULT TRUE,
 
     intentos_fallidos INT NOT NULL DEFAULT 0 CHECK (intentos_fallidos >= 0),

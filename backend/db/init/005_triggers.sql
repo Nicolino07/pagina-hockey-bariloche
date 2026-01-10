@@ -49,7 +49,7 @@ EXECUTE FUNCTION fn_set_actualizado_en();
 -- VALIDACIONES DE DOMINIO
 -- =====================================================
 
--- Rol en plantel vs persona
+-- Rol en plantel vs jugador
 CREATE TRIGGER trg_validar_rol_en_plantel
 BEFORE INSERT OR UPDATE ON plantel_integrante
 FOR EACH ROW

@@ -4,7 +4,7 @@ from app.database import get_db
 from app.schemas.equipo import Equipo as EquipoSchema, EquipoCreate
 from app.models.equipo import Equipo
 
-router = APIRouter(prefix="/admin/equipos", tags=["Equipos Admin"])
+router = APIRouter(prefix="/equipos", tags=["Equipos"])
 
 @router.get("/", response_model=list[EquipoSchema])
 def listar_equipos(

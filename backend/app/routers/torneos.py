@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models.torneo import Torneo as TorneoModel
 from app.schemas.torneo import Torneo, TorneoCreate
 
-router = APIRouter(prefix="/admin/torneos", tags=["Torneos Admin"])
+router = APIRouter(prefix="/torneos", tags=["Torneos"])
 
 @router.get("/", response_model=list[Torneo])
 def get_torneos(db: Session = Depends(get_db)):

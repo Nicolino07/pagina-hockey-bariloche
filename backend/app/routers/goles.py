@@ -5,7 +5,7 @@ from app.database import get_db
 from app.models.gol import Gol as GolModel
 from app.schemas.gol import Gol, GolCreate
 
-router = APIRouter(prefix="/admin/goles", tags=["Goles Admin"])
+router = APIRouter(prefix="/goles", tags=["Goles"])
 
 @router.get("/", response_model=list[Gol])
 def get_goles(db: Session = Depends(get_db)):

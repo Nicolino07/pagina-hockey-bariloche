@@ -5,7 +5,7 @@ from app.database import get_db
 from app.models.tarjeta import Tarjeta as TarjetaModel
 from app.schemas.tarjeta import Tarjeta, TarjetaCreate
 
-router = APIRouter(prefix="/admin/tarjetas", tags=["Tarjetas Admin"])
+router = APIRouter(prefix="/tarjetas", tags=["Tarjetas"])
 
 @router.get("/", response_model=list[Tarjeta])
 def get_tarjetas(db: Session = Depends(get_db)):

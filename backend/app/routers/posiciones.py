@@ -4,7 +4,7 @@ from app.database import get_db
 from app.models.posicion import Posicion
 from app.schemas.posicion import PosicionCreate, PosicionUpdate, PosicionOut
 
-router = APIRouter(prefix="/admin/posiciones", tags=["Admin Posiciones"])
+router = APIRouter(prefix="/posiciones", tags=["Posiciones"])
 
 
 @router.get("/", response_model=list[PosicionOut])

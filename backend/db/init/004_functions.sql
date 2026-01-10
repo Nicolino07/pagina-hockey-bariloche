@@ -63,7 +63,7 @@ BEGIN
         FROM plantel_integrante
         WHERE id_plantel_integrante = NEW.id_capitan_local;
 
-        IF rol_local <> 'jugador' THEN
+        IF rol_local <> 'JUGADOR' THEN
             RAISE EXCEPTION 'El capitán local debe ser jugador';
         END IF;
     END IF;
@@ -74,7 +74,7 @@ BEGIN
         FROM plantel_integrante
         WHERE id_plantel_integrante = NEW.id_capitan_visitante;
 
-        IF rol_visitante <> 'jugador' THEN
+        IF rol_visitante <> 'JUGADOR' THEN
             RAISE EXCEPTION 'El capitán visitante debe ser jugador';
         END IF;
     END IF;
@@ -128,10 +128,10 @@ BEGIN
           AND s.id_torneo = p_id_torneo
           AND s.activa = TRUE
           AND (
-              (s.tipo_suspension = 'por_partidos'
+              (s.tipo_suspension = 'POR_PARTIDOS'
                AND s.cumplidas < s.fechas_suspension)
            OR
-              (s.tipo_suspension = 'por_fecha'
+              (s.tipo_suspension = 'POR_FECHA'
                AND p_fecha <= s.fecha_fin_suspension)
           )
     );

@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS persona (
 
 CREATE TABLE IF NOT EXISTS persona_rol (
     id_persona_rol INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_persona     INT NOT NULL 
+    id_persona     INT NOT NULL
         REFERENCES persona(id_persona) ON UPDATE CASCADE ON DELETE CASCADE,
     rol            tipo_rol_persona NOT NULL,
     fecha_desde    DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS plantel_integrante (
 
 
     
-    CONSTRAINT unq_plantel_persona UNIQUE (id_plantel, id_persona)
+    CONSTRAINT unq_plantel_jugador UNIQUE (id_plantel, id_persona)
 );
 
 -- ======================
@@ -335,8 +335,8 @@ CREATE TABLE IF NOT EXISTS tarjeta (
 
 CREATE TABLE IF NOT EXISTS suspension (
     id_suspension           INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_persona              INT NOT NULL 
-        REFERENCES persona(id_persona),
+    id_persona_rol          INT NOT NULL 
+        REFERENCES persona_rol(id_persona_rol),
     id_torneo               INT NOT NULL 
         REFERENCES torneo(id_torneo),
     id_partido_origen       INT 
@@ -361,9 +361,9 @@ CREATE TABLE IF NOT EXISTS suspension (
 
     -- Validaciones
     CHECK (
-        (tipo_suspension = 'por_partidos' AND fechas_suspension IS NOT NULL)
+        (tipo_suspension = 'POR_PARTIDOS' AND fechas_suspension IS NOT NULL)
         OR
-        (tipo_suspension = 'por_fecha' AND fecha_fin_suspension IS NOT NULL)
+        (tipo_suspension = 'POR_FECHA' AND fecha_fin_suspension IS NOT NULL)
     ),
     CHECK (cumplidas <= COALESCE(fechas_suspension, 0))
 );
