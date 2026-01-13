@@ -1,21 +1,1424 @@
-# Consultas posibles que realizara el sistema sobre la DB
+# Definición de Endpoints del Sistema Hockey
 
-Las operaciones que requieren mas de una tabla son realizables como transacciones
+Este documento describe los **endpoints necesarios** para el sistema, derivados directamente del esquema final de base de datos.
 
-* Crear, actualizar o borrar un **Club** 
-* Crear, actualizar o borrar un **Equipo** asociado a un club 
-* Crear, actualizar o borrar una **Persona**
-* Crear, actualizar o borrar una **Plantel** asociado a un equipo
-* Asociar personas a un **Plantel** (plantel_integrante)
-* Crear, actualizar o borrar un **Torneo** 
-* Inscribir equipos en uno o mas torneos (inscripcion_torneos)
-* Crear, actualizar o borrar un **Partido** (Transacción)
-* Ver suspensiones activas del torneo
-* Listar jugadores habilitados
-* Registrar tarjeta en un partido
-* Cerrar una suspensión automáticamente
-* Ver tabla de posiciones
-* Ver fixture
-* Ver historial disciplinario de una persona
-* 
+El objetivo es:
 
+* organizar el trabajo backend/frontend
+* identificar operaciones transaccionales
+* separar CRUD de acciones de negocio
+* dejar explícitas las reglas ya garantizadas por la DB
+
+---
+
+## Convenciones generales
+
+* Prefijo base: `/api/v1`
+* Formato: REST
+* JSON como formato de intercambio
+* Fechas en ISO-8601
+* Los endpoints de consulta **no modifican estado**
+* Las vistas (`vw_*`) se usan solo para lectura
+
+---
+
+## 1. Seguridad y Autenticación
+
+| Caso de uso   | Endpoint      | Método | Tablas                 | Transacción | Observaciones                 |
+| ------------- | ------------- | ------ | ---------------------- | ----------- | ----------------------------- |
+| Login         | /auth/login   | POST   | usuario, refresh_token | SÍ          | Genera access + refresh token |
+| Refresh token | /auth/refresh | POST   | refresh_token          | SÍ          | Revoca token anterior         |
+| Logout        | /auth/logout  | POST   | refresh_token          | SÍ          | Marca token como revocado     |
+
+---
+
+## 2. Clubes
+
+| Caso de uso     | Endpoint     | Método | Tablas | Transacción | Observaciones           |
+| --------------- | ------------ | ------ | ------ | ----------- | ----------------------- |
+| Crear club      | /clubes      | POST   | club   | NO          | Nombre único por ciudad |
+| Actualizar club | /clubes/{id} | PUT    | club   | NO          | Auditoría automática    |
+| Eliminar club   | /clubes/{id} | DELETE | club   | NO          | Restricción por equipos |
+| Listar clubes   | /clubes      | GET    | club   | NO          |                         |
+
+---
+
+## 3. Equipos
+
+| Caso de uso       | Endpoint      | Método | Tablas | Transacción | Observaciones              |
+| ----------------- | ------------- | ------ | ------ | ----------- | -------------------------- |
+| Crear equipo      | /equipos      | POST   | equipo | NO          | Asociado a club            |
+| Actualizar equipo | /equipos/{id} | PUT    | equipo | NO          |                            |
+| Eliminar equipo   | /equipos/{id} | DELETE | equipo | NO          | Restricción por torneos    |
+| Listar equipos    | /equipos      | GET    | equipo | NO          | Filtros por club/categoría |
+
+---
+
+## 4. Personas y Roles
+
+| Caso de uso        | Endpoint                     | Método | Tablas           | Transacción | Observaciones    |
+| ------------------ | ---------------------------- | ------ | ---------------- | ----------- | ---------------- |
+| Crear persona      | /personas                    | POST   | persona          | NO          | Documento único  |
+| Actualizar persona | /personas/{id}               | PUT    | persona          | NO          |                  |
+| Asignar rol        | /personas/{id}/roles         | POST   | persona_rol      | NO          | Validez temporal |
+| Quitar rol         | /personas/{id}/roles/{idRol} | DELETE | persona_rol      | NO          | Fecha_hasta      |
+| Ver roles          | /personas/{id}/roles         | GET    | vw_persona_roles | NO          | Vista            |
+
+---
+
+## 5. Planteles
+
+| Caso de uso        | Endpoint                         | Método | Tablas                 | Transacción | Observaciones         |
+| ------------------ | -------------------------------- | ------ | ---------------------- | ----------- | --------------------- |
+| Crear plantel      | /equipos/{id}/planteles          | POST   | plantel                | NO          | Uno activo por equipo |
+| Agregar integrante | /planteles/{id}/integrantes      | POST   | plantel_integrante     | NO          | Valida rol            |
+| Quitar integrante  | /planteles/{id}/integrantes/{id} | DELETE | plantel_integrante     | NO          | Fecha_baja            |
+| Ver plantel        | /planteles/{id}                  | GET    | vw_plantel_integrantes | NO          | Vista                 |
+
+---
+
+## 6. Torneos
+
+| Caso de uso       | Endpoint                    | Método | Tablas             | Transacción | Observaciones    |
+| ----------------- | --------------------------- | ------ | ------------------ | ----------- | ---------------- |
+| Crear torneo      | /torneos                    | POST   | torneo             | NO          |                  |
+| Actualizar torneo | /torneos/{id}               | PUT    | torneo             | NO          |                  |
+| Inscribir equipo  | /torneos/{id}/inscripciones | POST   | inscripcion_torneo | NO          | Único por torneo |
+| Listar torneos    | /torneos                    | GET    | torneo             | NO          |                  |
+
+---
+
+## 7. Fixture
+
+| Caso de uso     | Endpoint              | Método | Tablas                         | Transacción | Observaciones |
+| --------------- | --------------------- | ------ | ------------------------------ | ----------- | ------------- |
+| Generar fixture | /torneos/{id}/fixture | POST   | fixture_fecha, fixture_partido | SÍ          | Algoritmo     |
+| Ver fixture     | /torneos/{id}/fixture | GET    | fixture_*                      | NO          |               |
+
+---
+
+## 8. Partidos
+
+| Caso de uso       | Endpoint                | Método | Tablas                      | Transacción | Observaciones          |
+| ----------------- | ----------------------- | ------ | --------------------------- | ----------- | ---------------------- |
+| Crear partido     | /partidos               | POST   | partido, participan_partido | SÍ          | Desde fixture          |
+| Registrar gol     | /partidos/{id}/goles    | POST   | gol                         | NO          |                        |
+| Registrar tarjeta | /partidos/{id}/tarjetas | POST   | tarjeta, suspension         | SÍ          | Puede crear suspensión |
+| Cerrar partido    | /partidos/{id}/cerrar   | POST   | partido                     | SÍ          | Recalcula posiciones   |
+
+---
+
+## 9. Disciplina
+
+| Caso de uso              | Endpoint                   | Método | Tablas / Vistas         | Transacción | Observaciones |
+| ------------------------ | -------------------------- | ------ | ----------------------- | ----------- | ------------- |
+| Ver suspensiones activas | /torneos/{id}/suspensiones | GET    | vw_suspensiones_activas | NO          |               |
+| Cerrar suspensión        | /suspensiones/{id}/cerrar  | POST   | suspension              | NO          | Automático    |
+| Historial disciplinario  | /personas/{id}/disciplina  | GET    | tarjeta, suspension     | NO          |               |
+| Jugadores habilitados    | /torneos/{id}/habilitados  | GET    | fn_persona_suspendida   | NO          | Función       |
+
+---
+
+## 10. Consultas y Reportes
+
+| Caso de uso      | Endpoint                      | Método | Vista               | Observaciones |
+| ---------------- | ----------------------------- | ------ | ------------------- | ------------- |
+| Tabla posiciones | /torneos/{id}/posiciones      | GET    | vw_tabla_posiciones |               |
+| Fixture resumido | /torneos/{id}/fixture/resumen | GET    | vw_fixture_partidos |               |
+
+---
+
+## Notas finales
+
+* Las validaciones críticas están en DB (triggers)
+* El backend debe manejar errores SQL como errores de negocio
+* Las transacciones deben manejarse a nivel servicio
+* No recalcular posiciones manualmente
+
+---
+
+## Paso 1 – Convención definitiva de la API
+
+Este apartado define los criterios generales que debe respetar toda la API del sistema. Su objetivo es garantizar coherencia, previsibilidad y una correcta separación de responsabilidades entre backend y base de datos.
+
+### 1. Estilo general
+
+* La API sigue un enfoque **REST**.
+* Los recursos se nombran en **plural**.
+* Las URLs no contienen verbos, excepto en acciones de negocio explícitas.
+* El formato de intercambio es **JSON**.
+* Prefijo fijo para todos los endpoints:
+
+```
+/api/v1
+```
+
+Ejemplos:
+
+```
+/api/v1/equipos
+/api/v1/torneos/3/fixture
+```
+
+---
+
+### 2. Uso de métodos HTTP
+
+| Método | Uso                                   |
+| ------ | ------------------------------------- |
+| GET    | Lectura de datos (no modifica estado) |
+| POST   | Crear recursos o ejecutar acciones    |
+| PUT    | Reemplazo completo de un recurso      |
+| PATCH  | Modificación parcial de un recurso    |
+| DELETE | Eliminación lógica o física           |
+
+Reglas:
+
+* No se utiliza `POST` para actualizar recursos existentes.
+* No se utilizan endpoints `GET` para acciones que modifican estado.
+
+---
+
+### 3. Recursos vs acciones de negocio
+
+#### Recursos (CRUD)
+
+Se utilizan para operaciones simples sobre una sola entidad.
+
+Ejemplo:
+
+```
+POST   /equipos
+PUT    /equipos/{id}
+DELETE /equipos/{id}
+GET    /equipos
+```
+
+#### Acciones de negocio
+
+Se utilizan cuando la operación:
+
+* involucra reglas de dominio,
+* requiere una transacción,
+* o no puede modelarse como un CRUD simple.
+
+Ejemplos:
+
+```
+POST /partidos/{id}/cerrar
+POST /torneos/{id}/fixture/generar
+POST /suspensiones/{id}/cerrar
+```
+
+Este enfoque corresponde a un REST pragmático orientado al dominio.
+
+---
+
+### 4. Transacciones
+
+Un endpoint se considera transaccional cuando:
+
+* opera sobre más de una tabla,
+* depende de reglas deportivas,
+* o puede fallar parcialmente.
+
+Ejemplos:
+
+* crear un partido
+* registrar una tarjeta
+* cerrar un partido
+* generar un fixture
+
+Criterios:
+
+* La transacción se maneja en la capa de servicio.
+* La base de datos valida reglas e integridad.
+* El controlador no contiene lógica de negocio.
+
+---
+
+### 5. Responsabilidades: backend vs base de datos
+
+**Backend**
+
+* Validación de formato y campos obligatorios
+* Autorización y control de acceso
+* Manejo de transacciones
+* Traducción de errores SQL a códigos HTTP
+
+**Base de datos**
+
+* Reglas deportivas y disciplinarias
+* Integridad referencial
+* Cálculo de suspensiones y posiciones
+* Auditoría y consistencia
+
+No se deben duplicar reglas de negocio entre backend y base de datos.
+
+---
+
+### 6. Convención de errores HTTP
+
+| Situación                     | Código |
+| ----------------------------- | ------ |
+| Datos inválidos               | 400    |
+| Violación de regla de negocio | 422    |
+| Conflicto (unique, FK)        | 409    |
+| Recurso inexistente           | 404    |
+| Acceso no autorizado          | 403    |
+| Error inesperado              | 500    |
+
+Ejemplos:
+
+* jugador suspendido → 422
+* equipo duplicado → 409
+
+---
+
+### 7. Vistas y funciones de base de datos
+
+* Las vistas (`vw_*`) se exponen únicamente mediante endpoints `GET`.
+* No se permite escritura directa sobre vistas.
+* Las funciones (`fn_*`) encapsulan consultas o reglas de negocio complejas.
+* El backend no expone SQL directo al cliente.
+
+---
+
+Este paso es obligatorio para el desarrollo de todos los endpoints del sistema y debe considerarse la referencia principal para futuras extensiones de la API.
+
+---
+
+## Paso 2 – Roles del sistema
+
+El sistema utiliza un conjunto reducido y estable de roles, definidos a nivel de aplicación mediante un enum. La filosofía general prioriza la flexibilidad operativa y la trazabilidad por sobre restricciones excesivamente granulares.
+
+Los roles **definen el tipo de acciones permitidas**, no el alcance fino sobre instancias específicas (partido, torneo, etc.).
+
+---
+
+### Roles definidos
+
+#### 1. SUPERUSUARIO
+
+**Descripción**
+Rol técnico con control lógico total del sistema.
+
+**Permisos**
+
+* Crear, editar y borrar cualquier entidad
+* Ejecutar todas las acciones de negocio
+* Acceso completo a datos históricos
+* Uso administrativo y de soporte
+
+---
+
+#### 2. ADMIN
+
+**Descripción**
+Rol administrador funcional del sistema deportivo.
+
+**Permisos**
+
+* Crear, editar y borrar entidades clave del dominio deportivo
+* Gestionar torneos, fixtures y partidos
+* Ejecutar acciones de negocio críticas:
+
+  * generar fixture
+  * cerrar partidos
+  * cerrar suspensiones
+* Acceso a consultas internas y reportes
+
+---
+
+#### 3. EDITOR
+
+**Descripción**
+Rol operativo para carga y edición de información.
+
+**Permisos**
+
+* Editar información existente en determinadas tablas
+* Registrar incidencias deportivas:
+
+  * tarjetas
+  * resultados
+  * datos operativos de partidos
+* No puede borrar registros ni ejecutar acciones críticas
+
+El rol EDITOR **no se asigna por partido ni por torneo**; su capacidad es global dentro del sistema.
+
+---
+
+#### 4. LECTOR
+
+**Descripción**
+Rol de solo lectura para información no pública.
+
+**Permisos**
+
+* Acceso de lectura a:
+
+  * planteles
+  * historial disciplinario
+  * suspensiones
+  * datos internos del sistema
+* No puede modificar datos
+
+---
+
+### Público (sin rol)
+
+Usuarios no autenticados.
+
+**Permisos**
+
+* Lectura de información pública:
+
+  * fixture
+  * resultados
+  * tabla de posiciones
+
+---
+
+### Criterios de autorización
+
+* Los roles determinan **qué acciones** puede ejecutar un usuario.
+* No se aplican restricciones por asignación fina (partido, torneo, club).
+* La coherencia de la operación se valida por estado y reglas de dominio.
+* Las acciones sensibles deben quedar registradas para auditoría.
+
+Este esquema busca maximizar la flexibilidad operativa del sistema manteniendo control y trazabilidad.
+
+---
+
+## Paso 2.1 – Roles vs tipos de acción
+
+Este apartado define, de forma transversal, qué tipos de acciones puede ejecutar cada rol. No se detallan endpoints específicos; esta matriz se utiliza como referencia general para todo el diseño de la API.
+
+El objetivo es mantener reglas simples, predecibles y fáciles de aplicar, evitando excepciones innecesarias.
+
+---
+
+### Tipos de acción definidos
+
+Se identifican las siguientes categorías de acciones:
+
+1. **Crear (CREATE)**
+   Alta de nuevas entidades o registros.
+
+2. **Editar (UPDATE)**
+   Modificación de información existente.
+
+3. **Borrar (DELETE)**
+   Eliminación lógica o física de registros.
+
+4. **Acciones de negocio (ACTION)**
+   Operaciones que modifican estado y ejecutan reglas de dominio (ej.: cerrar partido, generar fixture).
+
+5. **Consulta interna (READ_INTERNO)**
+   Lectura de información no pública.
+
+6. **Consulta pública (READ_PUBLICO)**
+   Lectura de información abierta sin autenticación.
+
+---
+
+### Matriz de permisos por rol
+
+| Rol          | CREATE | UPDATE | DELETE | ACTION | READ_INTERNO | READ_PUBLICO |
+| ------------ | ------ | ------ | ------ | ------ | ------------ | ------------ |
+| SUPERUSUARIO | ✔️     | ✔️     | ✔️     | ✔️     | ✔️           | ✔️           |
+| ADMIN        | ✔️     | ✔️     | ✔️*    | ✔️     | ✔️           | ✔️           |
+| EDITOR       | ❌      | ✔️     | ❌      | ❌      | ✔️           | ✔️           |
+| LECTOR       | ❌      | ❌      | ❌      | ❌      | ✔️           | ✔️           |
+| PUBLICO      | ❌      | ❌      | ❌      | ❌      | ❌            | ✔️           |
+
+📌 *El permiso DELETE para ADMIN aplica solo a entidades habilitadas por el dominio y puede estar restringido en casos históricos.
+
+---
+
+### Consideraciones generales
+
+* Las acciones de negocio quedan restringidas a roles con responsabilidad administrativa.
+* El rol EDITOR se enfoca exclusivamente en la edición operativa de datos.
+* El rol LECTOR permite acceso a información sensible sin riesgo de modificación.
+* El público accede únicamente a información expresamente expuesta como pública.
+
+Esta matriz es la referencia principal para autorizar cualquier endpoint del sistema.
+
+---
+
+## Paso 3 – Dominios simples
+
+En este paso se definen los endpoints correspondientes a los dominios básicos del sistema. Son entidades centrales, con reglas simples y sin lógica deportiva compleja. La mayoría de las operaciones son CRUD tradicionales.
+
+Los dominios incluidos en este paso son:
+
+* Club
+* Equipo
+* Persona
+
+---
+
+### 3.1 Club
+
+Entidad institucional base del sistema.
+
+**Endpoints**
+
+| Método | Endpoint    | Acción        | Roles                          |
+| ------ | ----------- | ------------- | ------------------------------ |
+| POST   | /clubs      | Crear club    | SUPERUSUARIO, ADMIN            |
+| PUT    | /clubs/{id} | Editar club   | SUPERUSUARIO, ADMIN            |
+| DELETE | /clubs/{id} | Borrar club   | SUPERUSUARIO                   |
+| GET    | /clubs      | Listar clubes | LECTOR, EDITOR, ADMIN, PUBLICO |
+| GET    | /clubs/{id} | Ver club      | LECTOR, EDITOR, ADMIN, PUBLICO |
+
+**Notas**
+
+* El borrado puede ser lógico según reglas del dominio.
+* Un club con equipos activos no debería borrarse sin validación.
+
+---
+
+### 3.2 Equipo
+
+Entidad deportiva dependiente de un club.
+
+**Endpoints**
+
+| Método | Endpoint            | Acción                    | Roles                          |
+| ------ | ------------------- | ------------------------- | ------------------------------ |
+| POST   | /equipos            | Crear equipo              | SUPERUSUARIO, ADMIN            |
+| PUT    | /equipos/{id}       | Editar equipo             | SUPERUSUARIO, ADMIN            |
+| DELETE | /equipos/{id}       | Borrar equipo             | SUPERUSUARIO, ADMIN            |
+| GET    | /equipos            | Listar equipos            | LECTOR, EDITOR, ADMIN, PUBLICO |
+| GET    | /equipos/{id}       | Ver equipo                | LECTOR, EDITOR, ADMIN, PUBLICO |
+| GET    | /clubs/{id}/equipos | Listar equipos de un club | LECTOR, EDITOR, ADMIN, PUBLICO |
+
+**Notas**
+
+* Un equipo puede existir sin estar inscripto en un torneo.
+* El borrado debe validar que no tenga historial deportivo activo.
+
+---
+
+### 3.3 Persona
+
+Entidad que representa a individuos (jugadores, técnicos, árbitros, etc.).
+
+**Endpoints**
+
+| Método | Endpoint       | Acción          | Roles                       |
+| ------ | -------------- | --------------- | --------------------------- |
+| POST   | /personas      | Crear persona   | SUPERUSUARIO, ADMIN         |
+| PUT    | /personas/{id} | Editar persona  | SUPERUSUARIO, ADMIN, EDITOR |
+| DELETE | /personas/{id} | Borrar persona  | SUPERUSUARIO                |
+| GET    | /personas      | Listar personas | LECTOR, EDITOR, ADMIN       |
+| GET    | /personas/{id} | Ver persona     | LECTOR, EDITOR, ADMIN       |
+
+**Notas**
+
+* Una persona puede existir sin pertenecer a un plantel.
+* El borrado debe estar restringido si existe historial disciplinario o deportivo.
+
+---
+
+### Consideraciones generales del Paso 3
+
+* Todos los endpoints de este paso son CRUD simples.
+* No requieren transacciones complejas.
+* No ejecutan reglas deportivas.
+* Sirven como base para relaciones más complejas en pasos posteriores.
+
+Este paso establece los cimientos estructurales del sistema.
+
+---
+
+## Paso 4 – Relaciones y dominios intermedios
+
+Este paso introduce entidades que representan **relaciones** entre dominios básicos y comienzan a requerir validaciones adicionales. Aunque muchas operaciones siguen siendo CRUD, aparecen las primeras reglas de consistencia.
+
+Dominios incluidos:
+
+* Plantel
+* Integrantes de plantel
+* Inscripción a torneos
+
+---
+
+### 4.1 Plantel
+
+Representa el conjunto de personas asociadas a un equipo en un período determinado.
+
+**Endpoints**
+
+| Método | Endpoint                | Acción                        | Roles                 |
+| ------ | ----------------------- | ----------------------------- | --------------------- |
+| POST   | /planteles              | Crear plantel                 | SUPERUSUARIO, ADMIN   |
+| PUT    | /planteles/{id}         | Editar plantel                | SUPERUSUARIO, ADMIN   |
+| DELETE | /planteles/{id}         | Borrar plantel                | SUPERUSUARIO, ADMIN   |
+| GET    | /planteles              | Listar planteles              | LECTOR, EDITOR, ADMIN |
+| GET    | /planteles/{id}         | Ver plantel                   | LECTOR, EDITOR, ADMIN |
+| GET    | /equipos/{id}/planteles | Listar planteles de un equipo | LECTOR, EDITOR, ADMIN |
+
+**Notas**
+
+* Un equipo puede tener múltiples planteles (por temporada o categoría).
+* Un plantel activo no debería borrarse sin validación.
+
+---
+
+### 4.2 Integrantes de plantel (plantel_integrante)
+
+Asociación entre una persona y un plantel, con rol deportivo y vigencia.
+
+**Endpoints**
+
+| Método | Endpoint                                    | Acción             | Roles                       |
+| ------ | ------------------------------------------- | ------------------ | --------------------------- |
+| POST   | /planteles/{id}/integrantes                 | Agregar integrante | SUPERUSUARIO, ADMIN, EDITOR |
+| PUT    | /planteles/{id}/integrantes/{id_integrante} | Editar integrante  | SUPERUSUARIO, ADMIN, EDITOR |
+| DELETE | /planteles/{id}/integrantes/{id_integrante} | Quitar integrante  | SUPERUSUARIO, ADMIN         |
+| GET    | /planteles/{id}/integrantes                 | Listar integrantes | LECTOR, EDITOR, ADMIN       |
+
+**Notas**
+
+* No se permite duplicar personas activas en el mismo plantel.
+* La vigencia define si un integrante está habilitado.
+
+---
+
+### 4.3 Inscripción a torneos (inscripcion_torneo)
+
+Relación entre equipos y torneos.
+
+**Endpoints**
+
+| Método | Endpoint                                | Acción                    | Roles                          |
+| ------ | --------------------------------------- | ------------------------- | ------------------------------ |
+| POST   | /torneos/{id}/inscripciones             | Inscribir equipo          | SUPERUSUARIO, ADMIN            |
+| DELETE | /torneos/{id}/inscripciones/{id_equipo} | Quitar inscripción        | SUPERUSUARIO, ADMIN            |
+| GET    | /torneos/{id}/inscripciones             | Listar equipos inscriptos | LECTOR, EDITOR, ADMIN, PUBLICO |
+
+**Notas**
+
+* No se permite modificar inscripciones una vez generado el fixture.
+* La DB debe validar unicidad y estado del torneo.
+
+---
+
+### Consideraciones generales del Paso 4
+
+* Aparecen relaciones muchos-a-muchos.
+* Algunas operaciones requieren validaciones de estado.
+* Las reglas críticas siguen siendo responsabilidad de la base de datos.
+* Los endpoints mantienen coherencia con la convención definida en el Paso 1.
+
+Este paso conecta la estructura básica con la lógica deportiva.
+
+---
+
+## Paso 5 – Torneos, Fixture y Partidos
+
+### 5.1 Torneo
+
+Un torneo agrupa equipos, define categoría, género y período de juego. Puede tener múltiples fases.
+
+**Operaciones:** crear, editar, activar/desactivar, consultar.
+
+**Roles:** SUPERUSUARIO, ADMIN
+
+---
+
+### 5.2 Inscripción de equipos
+
+Relaciona equipos con torneos.
+
+**Reglas:**
+
+* Coincidencia de categoría y género
+* No duplicación
+* No eliminación si hay fixture generado
+
+**Operaciones:** inscribir, desinscribir, listar
+
+**Roles:** SUPERUSUARIO, ADMIN
+
+---
+
+### 5.3 Fixture
+
+El fixture es una acción de negocio.
+
+**Acciones:**
+
+* Generar fixture
+* Consultar fixture
+* Marcar partido como jugado
+
+**Reglas:**
+
+* No regenerable sin borrado
+* No enfrentamientos duplicados por rueda
+
+**Roles:** SUPERUSUARIO, ADMIN
+
+---
+
+### 5.4 Partido (real)
+
+Entidad central del juego.
+
+**Operaciones:** crear partido, editar resultado, asignar árbitros, cerrar partido
+
+**Roles:** SUPERUSUARIO, ADMIN, EDITOR
+
+---
+
+## Paso 6 – Eventos del partido y disciplina
+
+### 6.1 Participantes
+
+Define jugadores activos en el partido.
+
+**Reglas:**
+
+* Debe pertenecer al plantel
+* No suspendido
+
+**Operaciones:** registrar, quitar, listar
+
+**Roles:** SUPERUSUARIO, ADMIN, EDITOR
+
+---
+
+### 6.2 Goles
+
+Registro de goles.
+
+**Operaciones:** registrar, anular, editar, listar
+
+**Roles:** SUPERUSUARIO, ADMIN, EDITOR
+
+---
+
+### 6.3 Tarjetas
+
+Registro disciplinario.
+
+**Operaciones:** registrar, revisar, listar
+
+**Roles:** SUPERUSUARIO, ADMIN, EDITOR
+
+---
+
+### 6.4 Suspensiones
+
+Consecuencia disciplinaria.
+
+**Operaciones:** crear, cerrar, listar activas
+
+**Roles:** SUPERUSUARIO, ADMIN
+
+---
+
+### 6.5 Tabla de posiciones
+
+Automática y no editable.
+
+---
+
+## Paso 7 – Consultas, reportes y vistas
+
+### 7.1 Consultas públicas
+
+* Fixture
+* Resultados
+* Tabla de posiciones
+
+---
+
+### 7.2 Consultas privadas
+
+* Planteles
+* Eventos
+* Suspensiones
+
+---
+
+### 7.3 Historial disciplinario
+
+Consulta consolidada por persona.
+
+**Roles:** SUPERUSUARIO, ADMIN
+
+---
+
+### 7.4 Reportes y estadísticas
+
+Consultas derivadas, solo lectura.
+
+---
+
+### 7.5 Auditoría
+
+Trazabilidad completa del sistema.
+
+**Acceso:** SUPERUSUARIO
+
+# Paso 8.4 – Acciones de negocio
+
+Estos endpoints representan operaciones propias del dominio hockey. No son CRUD simples y suelen involucrar múltiples tablas y validaciones.
+
+## 8.4.1 Partido – carga y cierre
+
+### Registrar evento de partido
+
+```
+POST /api/partidos/{id_partido}/eventos
+```
+
+Eventos posibles:
+
+* gol
+* tarjeta amarilla
+* tarjeta roja
+* observación
+
+Roles:
+
+* ADMIN
+* EDITOR
+
+Notas:
+
+* Valida que el partido esté abierto
+* Impacta estadísticas y disciplina
+
+---
+
+### Cerrar partido
+
+```
+POST /api/partidos/{id_partido}/cerrar
+```
+
+Descripción:
+Marca el partido como finalizado y bloquea la carga de eventos.
+
+Roles:
+
+* ADMIN
+
+Transacción:
+
+* calcula resultado
+* actualiza tabla de posiciones
+* dispara suspensiones
+
+---
+
+## 8.4.2 Disciplina
+
+### Registrar sanción disciplinaria
+
+```
+POST /api/disciplinas/sanciones
+```
+
+Descripción:
+Registra una suspensión manual (tribunal / administrativa).
+
+Roles:
+
+* SUPERUSUARIO
+* ADMIN
+
+---
+
+### Cierre automático de suspensión
+
+```
+POST /api/disciplinas/suspensiones/{id_suspension}/cerrar
+```
+
+Descripción:
+Cierra una suspensión cuando se cumple la condición (fechas cumplidas).
+
+Notas:
+
+* Puede ejecutarse por job o acción manual
+
+---
+
+## 8.4.3 Habilitaciones
+
+### Listar jugadores habilitados para un partido
+
+```
+GET /api/partidos/{id_partido}/habilitados
+```
+
+Descripción:
+Devuelve jugadores sin sanción activa y correctamente inscriptos.
+
+Roles:
+
+* ADMIN
+* EDITOR
+
+---
+
+# Paso 8.5 – Consultas avanzadas y reportes
+
+Estos endpoints son de solo lectura, pero con lógica de negocio agregada.
+
+## 8.5.1 Disciplina
+
+### Historial disciplinario completo
+
+```
+GET /api/reportes/personas/{id_persona}/disciplina
+```
+
+Incluye:
+
+* tarjetas
+* suspensiones
+* torneos
+
+---
+
+## 8.5.2 Torneos
+
+### Tabla de posiciones histórica
+
+```
+GET /api/reportes/torneos/{id_torneo}/posiciones
+```
+
+Descripción:
+Tabla final o parcial según estado del torneo.
+
+---
+
+### Resultados por equipo
+
+```
+GET /api/reportes/equipos/{id_equipo}/resultados
+```
+
+---
+
+## 8.5.3 Operativos
+
+### Partidos pendientes de cierre
+
+```
+GET /api/reportes/partidos/pendientes-cierre
+```
+
+Roles:
+
+* ADMIN
+* SUPERUSUARIO
+
+---
+
+## Cierre del bloque de endpoints
+
+Con los pasos 8.1 a 8.5 definidos, el sistema cuenta con:
+
+* API pública
+* API privada
+* API administrativa
+* Acciones de negocio
+* Reportes
+
+Este documento queda listo para:
+
+* implementación backend
+* documentación técnica
+* definición de DTOs
+* versionado de API
+
+# Paso 9 – Contratos de datos (DTOs)
+
+Este paso define los **contratos explícitos** entre la API y sus consumidores. Los DTOs desacoplan la base de datos del modelo expuesto y fijan expectativas estables.
+
+Los DTOs se organizan por **dominio**, no por endpoint.
+
+---
+
+## 9.1 Principios generales
+
+* Los DTOs **no reflejan tablas** directamente
+* No se exponen IDs internos innecesarios
+* Fechas en formato ISO-8601
+* Enums explícitos
+* Campos opcionales bien definidos
+
+---
+
+## 9.2 DTOs públicos (API pública)
+
+### TorneoPublicDTO
+
+Campos:
+
+* id: number
+* nombre: string
+* categoria: string
+* genero: string
+* fecha_inicio: string
+* fecha_fin: string | null
+
+---
+
+### EquipoPublicDTO
+
+Campos:
+
+* id: number
+* nombre: string
+* club: string
+
+---
+
+### PartidoPublicDTO
+
+Campos:
+
+* id: number
+* equipo_local: string
+* equipo_visitante: string
+* goles_local: number
+* goles_visitante: number
+* fecha: string
+* estado: "PROGRAMADO" | "JUGADO"
+
+---
+
+### PosicionDTO
+
+Campos:
+
+* equipo: string
+* puntos: number
+* partidos_jugados: number
+* diferencia_gol: number
+
+---
+
+## 9.3 DTOs privados
+
+### PersonaDTO
+
+Campos:
+
+* id: number
+* nombre: string
+* apellido: string
+* documento: string
+* fecha_nacimiento: string
+* genero: string
+
+Notas:
+
+* Visible solo para roles habilitados
+
+---
+
+### PlantelDTO
+
+Campos:
+
+* id: number
+* equipo: string
+* temporada: string
+* integrantes: PersonaDTO[]
+
+---
+
+### PartidoInternoDTO
+
+Campos:
+
+* id: number
+* equipo_local_id: number
+* equipo_visitante_id: number
+* fecha: string
+* jugado: boolean
+* cerrado: boolean
+
+---
+
+## 9.4 DTOs administrativos
+
+### CrearClubRequestDTO
+
+Campos:
+
+* nombre: string
+* abreviatura: string
+
+---
+
+### CrearEquipoRequestDTO
+
+Campos:
+
+* nombre: string
+* id_club: number
+* categoria: string
+* genero: string
+
+---
+
+### CrearPersonaRequestDTO
+
+Campos:
+
+* nombre: string
+* apellido: string
+* documento: string
+* fecha_nacimiento: string
+* genero: string
+
+---
+
+## 9.5 DTOs de acciones de negocio
+
+### EventoPartidoRequestDTO
+
+Campos:
+
+* tipo: "GOL" | "AMARILLA" | "ROJA" | "OBSERVACION"
+* minuto: number
+* id_persona: number | null
+* observacion: string | null
+
+---
+
+### SancionRequestDTO
+
+Campos:
+
+* id_persona: number
+* motivo: string
+* fechas_suspension: number
+
+---
+
+## Cierre del paso 9
+
+Con estos DTOs definidos:
+
+* la API tiene contratos estables
+* el frontend puede trabajar en paralelo
+* el backend queda desacoplado de la DB
+
+El siguiente paso lógico es definir **validaciones y errores por DTO**.
+
+# Paso 10 – Validaciones y modelo de errores
+
+Este paso define **cómo valida el sistema** y **cómo responde ante errores**, garantizando consistencia y previsibilidad para todos los consumidores de la API.
+
+---
+
+## 10.1 Principios generales
+
+* Todas las validaciones ocurren **antes** de ejecutar lógica de negocio
+* Los errores son **determinísticos** y documentados
+* Un mismo error siempre devuelve el mismo código HTTP
+* Los mensajes están pensados para ser consumidos por frontend
+
+---
+
+## 10.2 Modelo estándar de error
+
+### ErrorResponseDTO
+
+Campos:
+
+* codigo: string
+* mensaje: string
+* detalle: string | null
+* timestamp: string
+
+Ejemplo:
+
+```
+{
+  "codigo": "PARTIDO_CERRADO",
+  "mensaje": "El partido ya fue cerrado",
+  "detalle": null
+}
+```
+
+---
+
+## 10.3 Errores comunes
+
+| Código                | HTTP | Descripción              |
+| --------------------- | ---- | ------------------------ |
+| RECURSO_NO_ENCONTRADO | 404  | Entidad inexistente      |
+| ACCESO_DENEGADO       | 403  | Rol sin permiso          |
+| DATOS_INVALIDOS       | 400  | Validación de campos     |
+| CONFLICTO_ESTADO      | 409  | Estado incompatible      |
+| REGLA_NEGOCIO         | 422  | Regla de dominio violada |
+
+---
+
+## 10.4 Validaciones por dominio
+
+### Club / Equipo
+
+* Nombre obligatorio y único
+* No se permite borrar si tiene relaciones activas
+
+Errores:
+
+* CLUB_CON_EQUIPOS_ASOCIADOS (409)
+
+---
+
+### Personas
+
+* Documento único
+* Fecha de nacimiento válida
+
+Errores:
+
+* DOCUMENTO_DUPLICADO (409)
+
+---
+
+### Planteles
+
+* Una persona no puede estar dos veces en el mismo plantel
+* No se permite modificar plantel con torneo iniciado
+
+Errores:
+
+* PERSONA_YA_EN_PLANTEL (409)
+* TORNEO_EN_CURSO (409)
+
+---
+
+### Partidos
+
+* No se pueden cargar eventos en partidos cerrados
+* Los equipos deben estar inscriptos
+
+Errores:
+
+* PARTIDO_CERRADO (409)
+* EQUIPO_NO_INSCRIPTO (422)
+
+---
+
+### Disciplina
+
+* No se puede sancionar a una persona sin participación
+* No se puede habilitar jugador con suspensión activa
+
+Errores:
+
+* SUSPENSION_ACTIVA (422)
+* PERSONA_NO_HABILITADA (422)
+
+---
+
+## 10.5 Validaciones en acciones críticas
+
+### Cerrar partido
+
+Validaciones:
+
+* Partido existe
+* Partido no cerrado previamente
+* Resultado consistente
+
+Errores:
+
+* PARTIDO_INEXISTENTE (404)
+* PARTIDO_YA_CERRADO (409)
+
+---
+
+### Inscribir equipo en torneo
+
+Validaciones:
+
+* Torneo activo
+* Equipo no inscripto previamente
+
+Errores:
+
+* TORNEO_INACTIVO (409)
+* EQUIPO_YA_INSCRIPTO (409)
+
+---
+
+## Cierre del paso 10
+
+Con este modelo:
+
+* la API es consistente
+* los errores son predecibles
+* el frontend puede reaccionar correctamente
+
+El siguiente paso es definir la **arquitectura de implementación backend**.
+
+# Paso 11 – Arquitectura de implementación backend
+
+Este paso define **cómo se implementa el sistema en código**, alineado con la estructura real del proyecto. El objetivo es mantener una arquitectura clara, predecible y escalable.
+
+---
+
+## 11.1 Regla de oro de responsabilidades
+
+* routers → HTTP, dependencias, permisos
+* services → reglas de negocio y orquestación
+* models → persistencia (ORM)
+* schemas → contratos API (DTOs)
+* dependencies → auth y permisos
+* utils → helpers puros y transacciones
+* db → acceso y helpers de base de datos
+
+Ninguna capa debe asumir responsabilidades de otra.
+
+---
+
+## 11.2 Flujo estándar de una request
+
+1. Router recibe la request
+2. Se validan autenticación y permisos
+3. Se parsea el schema de entrada
+4. El service ejecuta la lógica de negocio
+5. Se interactúa con los models
+6. Se confirman o revierten transacciones
+7. Se devuelve el schema de respuesta
+
+---
+
+## 11.3 Routers
+
+Ubicación:
+
+* app/routers/
+
+Responsabilidades:
+
+* Definir endpoints
+* Inyectar dependencias
+* Aplicar control de roles
+
+No contienen lógica de negocio.
+
+---
+
+## 11.4 Services
+
+Ubicación:
+
+* app/services/
+
+Responsabilidades:
+
+* Validar reglas de dominio (Paso 10)
+* Coordinar múltiples modelos
+* Controlar estados y transiciones
+* Disparar efectos colaterales
+
+Ejemplos:
+
+* cerrar partido
+* registrar eventos
+* calcular posiciones
+* aplicar sanciones
+
+---
+
+## 11.5 Models
+
+Ubicación:
+
+* app/models/
+
+Características:
+
+* Representan tablas
+* Definen relaciones
+* No contienen lógica de negocio compleja
+
+---
+
+## 11.6 Schemas
+
+Ubicación:
+
+* app/schemas/
+
+Características:
+
+* Implementan DTOs del Paso 9
+* Separan request y response
+* Son la base de la documentación OpenAPI
+
+---
+
+## 11.7 Dependencies
+
+Ubicación:
+
+* app/dependencies/
+
+Responsabilidades:
+
+* Autenticación
+* Autorización por roles
+
+Los services asumen que los permisos ya fueron validados.
+
+---
+
+## 11.8 Utils
+
+Ubicación:
+
+* app/utils/
+
+Incluye:
+
+* helpers transaccionales
+* validaciones puras
+* funciones reutilizables
+
+---
+
+## 11.9 Jobs y tareas automáticas
+
+La arquitectura permite incorporar tareas como:
+
+* cierre automático de suspensiones
+* control de partidos abiertos
+* recálculo de posiciones
+
+Sin modificar la API existente.
+
+---
+
+## Cierre del paso 11
+
+Con este paso, el documento cubre:
+
+* diseño funcional
+* contratos API
+* reglas de negocio
+* modelo de errores
+* arquitectura de implementación
+
+El proyecto queda **listo para comenzar el desarrollo de código** de forma ordenada y sin decisiones improvisadas.

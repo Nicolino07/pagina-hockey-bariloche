@@ -19,6 +19,8 @@ services:
   api:
     build: ./backend
     container_name: hockey_api
+    env_file:
+      - ./backend/.env
     environment:
       - DATABASE_URL=postgresql://hockey_user:hockey1234@db:5432/hockey_db
     ports:

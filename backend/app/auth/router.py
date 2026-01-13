@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Depends, Response, Request, status
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -30,7 +31,7 @@ def login(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=True,        # HTTPS en prod
+        secure=bool(os.getenv("COOKIE_SECURE", "false").lower() == "true"),       # HTTPS en prod
         samesite="strict",
         max_age=60 * 60 * 24 * 14
     )
@@ -51,7 +52,7 @@ def logout(
     response.delete_cookie(
         key="refresh_token",
         httponly=True,
-        secure=True,
+        secure=bool(os.getenv("COOKIE_SECURE", "false").lower() == "true"),
         samesite="strict"
     )
 
@@ -68,7 +69,7 @@ def refresh(
         key="refresh_token",
         value=new_refresh,
         httponly=True,
-        secure=True,
+        secure=bool(os.getenv("COOKIE_SECURE", "false").lower() == "true"),
         samesite="strict",
         max_age=60 * 60 * 24 * 30
     )

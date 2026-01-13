@@ -13,6 +13,9 @@ pwd_context = CryptContext(
     schemes=["argon2"],
     deprecated="auto"
 )
+if not JWT_SECRET:
+    raise RuntimeError("JWT_SECRET no definido")
+
 
 def hash_password(password: str) -> str:
     """

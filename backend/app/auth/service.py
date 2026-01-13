@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Request
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from app.models import Usuario, RefreshToken
 from app.auth.security import (
@@ -10,6 +10,8 @@ from app.auth.security import (
     hash_refresh_token,
     refresh_expiration
 )
+
+
 
 
 def login_user(
@@ -37,15 +39,21 @@ def login_user(
 
     if not verify_password(password, user.password_hash):
         user.intentos_fallidos += 1
-        db.commit()
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciales inválidas"
-        )
+
+    if user.intentos_fallidos >= 5 and not user.bloqueado_hasta:
+        user.bloqueado_hasta = datetime.utcnow() + timedelta(minutes=15)
+
+    db.commit()
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Credenciales inválidas"
+    )
 
     # 🔓 Login OK
     user.intentos_fallidos = 0
+    user.bloqueado_hasta = None
     user.ultimo_login = datetime.utcnow()
+
 
     # 🔑 Access token
     access_token = create_access_token({
