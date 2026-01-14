@@ -1,4 +1,3 @@
-from app.database import Base
 
 from .club import Club
 from .equipo import Equipo
@@ -17,6 +16,9 @@ from .posicion import Posicion
 from .usuario import Usuario
 from .refresh_token import RefreshToken
 from .inscripcion_torneo import InscripcionTorneo
+from .auditoria_log import AuditoriaLog
+from .mixins import AuditFieldsMixin, SoftDeleteMixin
+from .base import Base
 
 # Exportar todos los ENUMs 
 from .enums import (
@@ -25,7 +27,11 @@ from .enums import (
     CategoriaTipo,
     RolPersonaTipo,
     TipoTarjeta,
+    EstadoTarjeta,
     TipoSuspension,
+    EstadoSuspension,
+    TipoFase,
+    TipoUsuario,
     ReferenciaGol,
-    TipoFase
+    EstadoGol
 )

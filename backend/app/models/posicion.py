@@ -1,13 +1,14 @@
 from datetime import datetime
 from typing import Optional
 
+from app.models.mixins import AuditFieldsMixin
 from sqlalchemy import Integer, ForeignKey, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.models.base import Base
 
 
-class Posicion(Base):
+class Posicion(Base, AuditFieldsMixin):
     __tablename__ = "posicion"
 
     __table_args__ = (
@@ -44,20 +45,6 @@ class Posicion(Base):
     # Campo calculado (GENERATED ALWAYS)
     diferencia_gol: Mapped[int]
 
-    # Auditoría
-    creado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        nullable=False
-    )
-
-    actualizado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False
-    )
-
-    creado_por: Mapped[Optional[str]]
-    actualizado_por: Mapped[Optional[str]]
 
     # Relaciones
     torneo = relationship("Torneo")

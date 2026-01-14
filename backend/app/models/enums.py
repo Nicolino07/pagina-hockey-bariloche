@@ -37,10 +37,22 @@ class TipoTarjeta(str, enum.Enum):
     AMARILLA = 'AMARILLA'
     ROJA = 'ROJA'
 
+class EstadoTarjeta(str, enum.Enum):
+    """Estado de la tarjeta disciplinaria"""
+    VALIDA = 'VALIDA'
+    ANULADA = 'ANULADA'
+    CORREGIDA = 'CORREGIDA'
+
 class TipoSuspension(str, enum.Enum):
     """Tipos de suspensión"""
     POR_PARTIDOS = 'POR_PARTIDOS'
     POR_FECHA = 'POR_FECHA'
+
+class EstadoSuspension(str, enum.Enum):
+    """Estado de la suspensión"""
+    ACTIVA = 'ACTIVA'
+    CUMPLIDA = 'CUMPLIDA'
+    ANULADA = 'ANULADA'
 
 class ReferenciaGol(str, enum.Enum):
     """Tipos de gol"""
@@ -48,6 +60,12 @@ class ReferenciaGol(str, enum.Enum):
     GC = 'GC'  # Gol corner corto
     GP = 'GP'  # Gol penal
     DP = 'DP'  # Definición penales
+
+class EstadoGol(str, enum.Enum):
+    """Estado del gol"""
+    VALIDO = 'VALIDO'
+    ANULADO = 'ANULADO'
+    CORREGIDO = 'CORREGIDO'
 
 class TipoFase(str, enum.Enum):
     """Tipos de fase de torneo"""

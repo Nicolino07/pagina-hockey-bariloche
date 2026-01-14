@@ -7,11 +7,10 @@ from sqlalchemy import (
     JSON,
     CheckConstraint,
     TIMESTAMP,
-    Inet,
 )
 from sqlalchemy.orm import Mapped, mapped_column
-
-from app.database import Base
+from sqlalchemy.dialects.postgresql import INET
+from app.models.base import Base
 
 
 class AuditoriaLog(Base):
@@ -49,5 +48,5 @@ class AuditoriaLog(Base):
         nullable=False
     )
 
-    ip_address: Mapped[Optional[str]] = mapped_column(Inet)
+    ip_address: Mapped[Optional[str]] = mapped_column(INET)
     user_agent: Mapped[Optional[str]] = mapped_column(Text)

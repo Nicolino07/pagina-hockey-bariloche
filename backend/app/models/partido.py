@@ -1,6 +1,7 @@
 from datetime import datetime, date, time
 from typing import Optional
 
+from app.models.mixins import AuditFieldsMixin, SoftDeleteMixin
 from sqlalchemy import (
     ForeignKey,
     Integer,
@@ -11,11 +12,10 @@ from sqlalchemy import (
     UniqueConstraint
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from app.models.base import Base
 
-from app.database import Base
 
-
-class Partido(Base):
+class Partido(Base, AuditFieldsMixin, SoftDeleteMixin):
     __tablename__ = "partido"
 
     __table_args__ = (
@@ -114,21 +114,6 @@ class Partido(Base):
     ubicacion: Mapped[Optional[str]] = mapped_column(String(200))
     observaciones: Mapped[Optional[str]] = mapped_column(String(1000))
     numero_fecha: Mapped[Optional[int]] = mapped_column(Integer)
-
-    # Auditoría
-    creado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        nullable=False
-    )
-
-    actualizado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False
-    )
-
-    creado_por: Mapped[Optional[str]] = mapped_column(String(100))
-    actualizado_por: Mapped[Optional[str]] = mapped_column(String(100))
 
     # Relaciones
     torneo = relationship("Torneo")

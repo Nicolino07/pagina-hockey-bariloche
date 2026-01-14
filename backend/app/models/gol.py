@@ -1,6 +1,7 @@
 from typing import Optional
 from datetime import datetime
 
+from app.models.mixins import AuditFieldsMixin
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import (
     Integer,
@@ -12,11 +13,11 @@ from sqlalchemy import (
     TIMESTAMP
 )
 
-from app.database import Base
-from app.models.enums import ReferenciaGol
+from app.models.base import Base
+from app.models.enums import EstadoGol, ReferenciaGol
 
 
-class Gol(Base):
+class Gol(Base, AuditFieldsMixin):
     __tablename__ = "gol"
 
     __table_args__ = (
@@ -52,33 +53,15 @@ class Gol(Base):
         nullable=False
     )
 
-    # Anulación (VAR / correcciones)
-    anulado: Mapped[bool] = mapped_column(
-        Boolean,
-        default=False,
+    estado_gol: Mapped[EstadoGol] = mapped_column(
+        Enum(EstadoGol, name="tipo_estado_gol"),
+        default=EstadoGol.VALIDO,
         nullable=False
     )
 
-    anulado_por: Mapped[Optional[str]] = mapped_column(String(100))
-    anulado_en: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP)
     motivo_anulacion: Mapped[Optional[str]] = mapped_column(String(500))
 
-    # Auditoría
-    creado_en: Mapped[datetime] = mapped_column(
-        TIMESTAMP,
-        default=datetime.utcnow,
-        nullable=False
-    )
-
-    actualizado_en: Mapped[datetime] = mapped_column(
-        TIMESTAMP,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False
-    )
-
-    creado_por: Mapped[Optional[str]] = mapped_column(String(100))
-    actualizado_por: Mapped[Optional[str]] = mapped_column(String(100))
+   
 
 # relaciones
     partido = relationship(

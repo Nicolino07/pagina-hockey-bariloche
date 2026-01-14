@@ -10,11 +10,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.models.base import Base
 from app.models.enums import GeneroCompetenciaTipo
+from app.models.mixins import AuditFieldsMixin, SoftDeleteMixin
 
-
-class InscripcionTorneo(Base):
+class InscripcionTorneo(Base, AuditFieldsMixin, SoftDeleteMixin):
     __tablename__ = "inscripcion_torneo"
 
     __table_args__ = (
@@ -47,21 +47,6 @@ class InscripcionTorneo(Base):
         default=date.today,
         nullable=False
     )
-
-    # Auditoría
-    creado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        nullable=False
-    )
-
-    actualizado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False
-    )
-
-    creado_por: Mapped[Optional[str]] = mapped_column(String(100))
-    actualizado_por: Mapped[Optional[str]] = mapped_column(String(100))
 
     # Relaciones (opcionales, pero recomendadas)
     equipo = relationship(

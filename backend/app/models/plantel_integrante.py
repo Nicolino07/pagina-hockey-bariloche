@@ -1,14 +1,15 @@
 from datetime import date, datetime
 from typing import Optional
 
+from app.models.mixins import AuditFieldsMixin, SoftDeleteMixin
 from sqlalchemy import Date, ForeignKey, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.models.base import Base
 from app.models.enums import RolPersonaTipo
 
 
-class PlantelIntegrante(Base):
+class PlantelIntegrante(Base, AuditFieldsMixin, SoftDeleteMixin):
     __tablename__ = "plantel_integrante"
 
     __table_args__ = (
@@ -38,21 +39,6 @@ class PlantelIntegrante(Base):
     )
 
     fecha_baja: Mapped[Optional[date]]
-
-    # Auditoría
-    creado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        nullable=False
-    )
-
-    actualizado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False
-    )
-
-    creado_por: Mapped[Optional[str]]
-    actualizado_por: Mapped[Optional[str]]
 
     # Relaciones
     plantel = relationship("Plantel", back_populates="integrantes")

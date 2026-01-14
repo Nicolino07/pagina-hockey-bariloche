@@ -148,7 +148,7 @@ RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Reinicio
+    -- Reinicio (solo posiciones activas)
     UPDATE posicion
     SET puntos = 0,
         partidos_jugados = 0,
@@ -157,9 +157,10 @@ BEGIN
         perdidos = 0,
         goles_a_favor = 0,
         goles_en_contra = 0
-    WHERE id_torneo = p_id_torneo;
+    WHERE id_torneo = p_id_torneo
+      AND borrado_en IS NULL;
 
-    -- Local
+    -- LOCAL
     UPDATE posicion pos
     SET
         partidos_jugados = partidos_jugados + 1,
@@ -175,11 +176,15 @@ BEGIN
                 ELSE 0
             END
     FROM partido p
-    JOIN inscripcion_torneo it ON it.id_inscripcion = p.id_inscripcion_local
+    JOIN inscripcion_torneo it
+      ON it.id_inscripcion = p.id_inscripcion_local
+     AND it.borrado_en IS NULL
     WHERE p.id_torneo = p_id_torneo
-      AND pos.id_equipo = it.id_equipo;
+      AND p.borrado_en IS NULL
+      AND pos.id_equipo = it.id_equipo
+      AND pos.borrado_en IS NULL;
 
-    -- Visitante
+    -- VISITANTE
     UPDATE posicion pos
     SET
         partidos_jugados = partidos_jugados + 1,
@@ -195,9 +200,13 @@ BEGIN
                 ELSE 0
             END
     FROM partido p
-    JOIN inscripcion_torneo it ON it.id_inscripcion = p.id_inscripcion_visitante
+    JOIN inscripcion_torneo it
+      ON it.id_inscripcion = p.id_inscripcion_visitante
+     AND it.borrado_en IS NULL
     WHERE p.id_torneo = p_id_torneo
-      AND pos.id_equipo = it.id_equipo;
+      AND p.borrado_en IS NULL
+      AND pos.id_equipo = it.id_equipo
+      AND pos.borrado_en IS NULL;
 END;
 $$;
 
@@ -226,8 +235,9 @@ $$;
 CREATE OR REPLACE FUNCTION fn_auditoria_generica()
 RETURNS TRIGGER AS $$
 DECLARE
-    v_pk_column TEXT;
+    v_pk_column   TEXT;
     v_id_registro TEXT;
+    v_operacion   TEXT;
 BEGIN
     -- nombre de la PK pasado por el trigger
     v_pk_column := TG_ARGV[0];
@@ -240,26 +250,49 @@ BEGIN
     INTO v_id_registro
     USING NEW;
 
+    -- Determinar operación real (DELETE lógico)
+    v_operacion :=
+        CASE
+            WHEN TG_OP = 'UPDATE'
+                 AND OLD.borrado_en IS NULL
+                 AND NEW.borrado_en IS NOT NULL
+            THEN 'DELETE'
+            ELSE TG_OP
+        END;
+
     INSERT INTO auditoria_log (
         tabla_afectada,
         id_registro,
         operacion,
-        valores_nuevos,
         valores_anteriores,
-        usuario
+        valores_nuevos,
+        usuario,
+        ip_address,
+        user_agent
     )
     VALUES (
         TG_TABLE_NAME,
         v_id_registro,
-        TG_OP,
-        row_to_json(NEW),
-        CASE WHEN TG_OP = 'UPDATE' THEN row_to_json(OLD) ELSE NULL END,
-        current_user
+        v_operacion,
+        CASE
+            WHEN TG_OP IN ('UPDATE', 'DELETE')
+            THEN row_to_json(OLD)
+            ELSE NULL
+        END,
+        CASE
+            WHEN TG_OP IN ('INSERT', 'UPDATE')
+            THEN row_to_json(NEW)
+            ELSE NULL
+        END,
+        current_setting('app.usuario', true),
+        current_setting('app.ip', true)::inet,
+        current_setting('app.user_agent', true)
     );
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 
 COMMIT;

@@ -1,5 +1,6 @@
 from datetime import datetime, date
 from typing import Optional
+from app.models.mixins import AuditFieldsMixin
 from sqlalchemy.dialects.postgresql import ARRAY
 
 from sqlalchemy import (
@@ -11,11 +12,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
-from app.models.enums import TipoSuspension
+from app.models.base import Base
+from app.models.enums import EstadoSuspension, TipoSuspension
 
 
-class Suspension(Base):
+class Suspension(Base, AuditFieldsMixin):
     __tablename__ = "suspension"
 
     __table_args__ = (
@@ -63,22 +64,17 @@ class Suspension(Base):
         nullable=True,
         default=list
     )
-    activa: Mapped[bool] = mapped_column(default=True, nullable=False)
 
-    # Auditoría
-    creado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        nullable=False
+    estado_suspension: Mapped[EstadoSuspension] = mapped_column(
+        Enum(EstadoSuspension, name="tipo_estado_suspension"),
+        default=EstadoSuspension.ACTIVA,
+        nullable=False  
     )
 
-    actualizado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False
-    )
+    anulada_en: Mapped[Optional[datetime]]
+    anulada_por: Mapped[Optional[str]] = mapped_column(String(100))
+    motivo_anulacion: Mapped[Optional[str]] = mapped_column(String(500))
 
-    creado_por: Mapped[Optional[str]] = mapped_column(String(100))
-    actualizado_por: Mapped[Optional[str]] = mapped_column(String(100))
 
     # Relaciones
     persona = relationship("Persona")

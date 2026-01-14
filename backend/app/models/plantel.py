@@ -1,13 +1,14 @@
 from datetime import date, datetime
 from typing import Optional
 
+from app.models.mixins import AuditFieldsMixin, SoftDeleteMixin
 from sqlalchemy import Date, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.models.base import Base
 
 
-class Plantel(Base):
+class Plantel(Base, AuditFieldsMixin, SoftDeleteMixin):
     __tablename__ = "plantel"
 
     id_plantel: Mapped[int] = mapped_column(primary_key=True)
@@ -28,21 +29,6 @@ class Plantel(Base):
         default=True,
         nullable=False
     )
-
-    # Auditoría
-    creado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        nullable=False
-    )
-
-    actualizado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False
-    )
-
-    creado_por: Mapped[Optional[str]] = mapped_column()
-    actualizado_por: Mapped[Optional[str]] = mapped_column()
 
     # Relaciones
     equipo = relationship(

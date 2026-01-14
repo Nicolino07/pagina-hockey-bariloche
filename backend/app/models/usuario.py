@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
+from app.models.mixins import AuditFieldsMixin, SoftDeleteMixin
 from sqlalchemy import (
     String,
     Text,
@@ -10,12 +11,11 @@ from sqlalchemy import (
     CheckConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column
-
-from app.database import Base
+from app.models.base import Base
 from app.models.enums import TipoUsuario  # enum tipo_usuario
 
 
-class Usuario(Base):
+class Usuario(Base, AuditFieldsMixin, SoftDeleteMixin):
     __tablename__ = "usuario"
 
     __table_args__ = (
@@ -66,18 +66,3 @@ class Usuario(Base):
     bloqueado_hasta: Mapped[Optional[datetime]]
     ultimo_login: Mapped[Optional[datetime]]
 
-    creado_en: Mapped[datetime] = mapped_column(
-        TIMESTAMP,
-        default=datetime.utcnow,
-        nullable=False
-    )
-
-    actualizado_en: Mapped[datetime] = mapped_column(
-        TIMESTAMP,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False
-    )
-
-    creado_por: Mapped[Optional[str]] = mapped_column(String(100))
-    actualizado_por: Mapped[Optional[str]] = mapped_column(String(100))

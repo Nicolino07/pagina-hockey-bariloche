@@ -18,9 +18,10 @@ CREATE TABLE IF NOT EXISTS club (
     telefono       VARCHAR(20),
     email          VARCHAR(100),
 
-    creado_en      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    creado_por     VARCHAR(100),
+    creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    borrado_en      TIMESTAMP DEFAULT NULL,
+    creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100),
 
     CONSTRAINT club_unq_nombre_ciudad UNIQUE (nombre, ciudad)
@@ -40,6 +41,7 @@ CREATE TABLE IF NOT EXISTS equipo (
 
     creado_en      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por     VARCHAR(100),
     actualizado_por VARCHAR(100),
 
@@ -63,6 +65,7 @@ CREATE TABLE IF NOT EXISTS persona (
 
     creado_en        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    borrado_en       TIMESTAMP DEFAULT NULL,
     creado_por       VARCHAR(100),
     actualizado_por  VARCHAR(100)
 );
@@ -101,6 +104,7 @@ CREATE TABLE IF NOT EXISTS plantel (
 
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100)
 
@@ -123,6 +127,7 @@ CREATE TABLE IF NOT EXISTS plantel_integrante (
 
     creado_en             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    borrado_en            TIMESTAMP DEFAULT NULL,
     creado_por            VARCHAR(100),
     actualizado_por       VARCHAR(100),
 
@@ -146,6 +151,7 @@ CREATE TABLE IF NOT EXISTS torneo (
     
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100),
 
@@ -167,6 +173,7 @@ CREATE TABLE IF NOT EXISTS inscripcion_torneo (
 
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100),
 
@@ -190,6 +197,7 @@ CREATE TABLE IF NOT EXISTS fase (
 
     creado_en     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por    VARCHAR(100),
     actualizado_por VARCHAR(100)
 );
@@ -236,6 +244,7 @@ CREATE TABLE IF NOT EXISTS partido (
     -- Auditoría
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100),
 
@@ -290,9 +299,7 @@ CREATE TABLE IF NOT EXISTS gol (
     es_autogol              BOOLEAN DEFAULT FALSE,
     
     -- Anulación (ej: por VAR)
-    anulado                 BOOLEAN DEFAULT FALSE,
-    anulado_por             VARCHAR(100),
-    anulado_en              TIMESTAMP,
+    estado_gol             tipo_estado_gol NOT NULL DEFAULT 'VALIDO',
     motivo_anulacion        VARCHAR(500),
 
     creado_en               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -318,6 +325,9 @@ CREATE TABLE IF NOT EXISTS tarjeta (
     observaciones           VARCHAR(500),
     
     -- Revisión/apelación
+
+    estado_tarjeta          tipo_estado_tarjeta NOT NULL DEFAULT 'VALIDA',
+
     revisada                BOOLEAN DEFAULT FALSE,
     revisada_por            VARCHAR(100),
     revisada_en             TIMESTAMP,
@@ -352,7 +362,10 @@ CREATE TABLE IF NOT EXISTS suspension (
     -- ID de los partidos cumplidos como suspension
     partidos_cumplidos      INT[],
     
-    activa                  BOOLEAN NOT NULL DEFAULT TRUE,
+    estado_suspension       tipo_estado_suspension NOT NULL DEFAULT 'ACTIVA',
+    anulada_en              TIMESTAMP,
+    anulada_por             VARCHAR(100),
+    motivo_anulacion        VARCHAR(500),
 
     creado_en               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

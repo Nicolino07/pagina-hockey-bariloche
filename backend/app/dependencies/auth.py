@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 import os
-
+from app.core.context import current_user_ctx
 from app.database import get_db
 from app.models import Usuario
 from app.auth.security import JWT_ALGORITHM
@@ -43,5 +43,9 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario no válido"
         )
+    
+    # 🔐 guardamos el usuario para auditoría
+    current_user_ctx.set(user)
 
     return user
+

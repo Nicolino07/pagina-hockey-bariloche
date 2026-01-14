@@ -38,6 +38,10 @@ def actualizar_club(
     return club
 
 
-def eliminar_club(db: Session, club: Club) -> None:
-    db.delete(club)
+def eliminar_club(db: Session, club: Club):
+    club.soft_delete()
+    db.commit()
+
+def restaurar_club(db: Session, club: Club):
+    club.restore()
     db.commit()

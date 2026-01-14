@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS usuario (
 
     creado_en         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    borrado_en        TIMESTAMP DEFAULT NULL,
     creado_por        VARCHAR(100),
     actualizado_por   VARCHAR(100),
 

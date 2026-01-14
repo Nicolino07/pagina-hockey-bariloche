@@ -60,12 +60,32 @@ CREATE TYPE tipo_tarjeta AS ENUM (
 );
 
 -- =====================================================
+-- Estado de tarjeta
+-- =====================================================
+CREATE TYPE tipo_estado_tarjeta AS ENUM (
+  'VALIDA',
+  'ANULADA',
+  'CORREGIDA'
+);
+
+-- =====================================================
 -- Tipo de suspensión
 -- =====================================================
 CREATE TYPE tipo_suspension AS ENUM (
   'POR_PARTIDOS',
   'POR_FECHA'
 );
+
+-- =====================================================
+-- Estado de suspensión
+-- =====================================================
+
+CREATE TYPE tipo_estado_suspension AS ENUM (
+    'ACTIVA',
+    'CUMPLIDA',
+    'ANULADA'
+);
+
 
 -- =====================================================
 -- Tipo de gol
@@ -75,6 +95,15 @@ CREATE TYPE tipo_gol AS ENUM (
   'GC', -- Gol de córner
   'GP', -- Gol de penal
   'DP'  -- Desvío penal
+);
+
+-- =====================================================
+-- Estado de gol
+-- =====================================================
+CREATE TYPE tipo_estado_gol AS ENUM (
+  'VALIDO',
+  'ANULADO',
+  'CORREGIDO'
 );
 
 -- =====================================================

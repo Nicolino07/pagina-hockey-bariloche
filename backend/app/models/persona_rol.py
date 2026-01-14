@@ -1,14 +1,15 @@
 from datetime import date, datetime
 from typing import Optional
 
+from app.models.mixins import AuditFieldsMixin
 from sqlalchemy import Date, ForeignKey, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.models.base import Base
 from app.models.enums import RolPersonaTipo
 
 
-class PersonaRol(Base):
+class PersonaRol(Base, AuditFieldsMixin):
     __tablename__ = "persona_rol"
 
     __table_args__ = (
@@ -37,20 +38,6 @@ class PersonaRol(Base):
 
     fecha_hasta: Mapped[Optional[date]] = mapped_column(Date)
 
-    # Auditoría
-    creado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        nullable=False
-    )
-
-    actualizado_en: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False
-    )
-
-    creado_por: Mapped[Optional[str]] = mapped_column()
-    actualizado_por: Mapped[Optional[str]] = mapped_column()
 
     # Relaciones (opcional pero recomendable)
     persona = relationship("Persona", backref="roles")
