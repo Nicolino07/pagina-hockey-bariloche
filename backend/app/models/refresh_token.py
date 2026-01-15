@@ -7,7 +7,6 @@ from sqlalchemy import (
     TIMESTAMP,
     CheckConstraint,
     ForeignKey,
-    Integer,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -25,6 +24,11 @@ class RefreshToken(Base):
         CheckConstraint(
             "expires_at > created_at",
             name="chk_refresh_token_expires_future"
+        ),
+        CheckConstraint(
+            "(revoked = TRUE AND revoked_at IS NOT NULL) "
+            "OR (revoked = FALSE AND revoked_at IS NULL)",
+            name="chk_refresh_token_revoked_at"
         ),
     )
 
@@ -47,18 +51,27 @@ class RefreshToken(Base):
 
     revoked: Mapped[bool] = mapped_column(
         Boolean,
-        default=False,
-        nullable=False
+        nullable=False,
+        default=False
+    )
+
+    revoked_at: Mapped[Optional[datetime]] = mapped_column(
+        TIMESTAMP,
+        nullable=True
     )
 
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP,
-        default=datetime.utcnow,
-        nullable=False
+        nullable=False,
+        default=datetime.utcnow
     )
 
     created_by_ip: Mapped[Optional[str]]
     user_agent: Mapped[Optional[str]]
 
-    # relación (opcional pero útil)
-    usuario = relationship("Usuario", backref="refresh_tokens")
+    # relación (opcional pero muy útil)
+    usuario = relationship(
+        "Usuario",
+        backref="refresh_tokens",
+        lazy="joined"
+    )

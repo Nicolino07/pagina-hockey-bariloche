@@ -9,6 +9,7 @@ INSERT INTO usuario (username, email, password_hash, tipo, creado_por) VALUES
   'SUPERUSUARIO',
   'seed'
 ),
+-- password: admin123
 (
   'Delegado_01',
   'delegado_01@pagina-hockey.com',
@@ -25,3 +26,5 @@ INSERT INTO usuario (username, email, password_hash, tipo, creado_por) VALUES
 );
 
 COMMIT;
+
+

@@ -1,7 +1,8 @@
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-
+from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException, status
 from app.models.club import Club
 from app.schemas.club import ClubCreate, ClubUpdate
 
@@ -15,12 +16,21 @@ def obtener_club(db: Session, id_club: int) -> Club | None:
     return db.get(Club, id_club)
 
 
-def crear_club(db: Session, data: ClubCreate) -> Club:
-    club = Club(**data.model_dump())
-    db.add(club)
-    db.commit()
-    db.refresh(club)
-    return club
+def crear_club(db: Session, club: ClubCreate):
+    nuevo = Club(**club.model_dump())
+    db.add(nuevo)
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Ya existe un club con ese nombre en esa ciudad"
+        )
+
+    db.refresh(nuevo)
+    return nuevo
 
 
 def actualizar_club(

@@ -122,7 +122,10 @@ SELECT
     s.fechas_suspension,
     s.cumplidas,
     s.fecha_fin_suspension,
-    s.activa
+
+    -- columna calculada
+    TRUE AS activa
+
 FROM suspension s
 JOIN persona_rol pr
     ON pr.id_persona_rol = s.id_persona_rol
@@ -130,4 +133,15 @@ JOIN persona p
     ON p.id_persona = pr.id_persona
 JOIN torneo t
     ON t.id_torneo = s.id_torneo
-WHERE s.activa = TRUE;
+
+WHERE
+    s.estado_suspension = 'ACTIVA'
+    AND s.anulada_en IS NULL
+    AND (
+        (s.tipo_suspension = 'POR_PARTIDOS'
+         AND s.cumplidas < s.fechas_suspension)
+        OR
+        (s.tipo_suspension = 'POR_FECHA'
+         AND s.fecha_fin_suspension >= CURRENT_DATE)
+    );
+

@@ -238,19 +238,31 @@ DECLARE
     v_pk_column   TEXT;
     v_id_registro TEXT;
     v_operacion   TEXT;
+    v_user_id     INT;
 BEGIN
-    -- nombre de la PK pasado por el trigger
     v_pk_column := TG_ARGV[0];
 
-    -- obtener el valor de la PK dinámicamente
-    EXECUTE format(
-        'SELECT ($1).%I::text',
-        v_pk_column
-    )
-    INTO v_id_registro
-    USING NEW;
+    -- usuario desde contexto (puede ser NULL)
+    v_user_id := current_setting('app.current_user_id', true)::INT;
 
-    -- Determinar operación real (DELETE lógico)
+    -- obtener PK según operación
+    IF TG_OP = 'DELETE' THEN
+        EXECUTE format(
+            'SELECT ($1).%I::text',
+            v_pk_column
+        )
+        INTO v_id_registro
+        USING OLD;
+    ELSE
+        EXECUTE format(
+            'SELECT ($1).%I::text',
+            v_pk_column
+        )
+        INTO v_id_registro
+        USING NEW;
+    END IF;
+
+    -- detectar DELETE lógico
     v_operacion :=
         CASE
             WHEN TG_OP = 'UPDATE'
@@ -266,7 +278,7 @@ BEGIN
         operacion,
         valores_anteriores,
         valores_nuevos,
-        usuario,
+        id_usuario,
         ip_address,
         user_agent
     )
@@ -276,23 +288,26 @@ BEGIN
         v_operacion,
         CASE
             WHEN TG_OP IN ('UPDATE', 'DELETE')
-            THEN row_to_json(OLD)
+            THEN to_jsonb(OLD)
             ELSE NULL
         END,
         CASE
             WHEN TG_OP IN ('INSERT', 'UPDATE')
-            THEN row_to_json(NEW)
+            THEN to_jsonb(NEW)
             ELSE NULL
         END,
-        current_setting('app.usuario', true),
-        current_setting('app.ip', true)::inet,
+        v_user_id,
+        current_setting('app.ip_address', true)::inet,
         current_setting('app.user_agent', true)
     );
+
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 
 
 COMMIT;

@@ -35,6 +35,10 @@ app.add_exception_handler(
 # =====================================================
 # Routers
 # =====================================================
+
+# import router autenticación
+from app.auth import router as auth
+
 from app.routers import (
     clubes_router as clubes,
     equipos_router as equipos,
@@ -47,6 +51,7 @@ from app.routers import (
 def root():
     return {"message": "API Hockey Bariloche funcionando"}
 
+app.include_router(auth.router)
 app.include_router(clubes)
 app.include_router(equipos)
 app.include_router(personas)

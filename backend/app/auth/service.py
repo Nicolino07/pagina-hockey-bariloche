@@ -11,7 +11,6 @@ from app.auth.security import (
     refresh_expiration
 )
 
-
 MAX_INTENTOS_FALLIDOS = 5
 BLOQUEO_MINUTOS = 15
 
@@ -24,7 +23,8 @@ def login_user(
 ):
     user = db.query(Usuario).filter(
         Usuario.username == username,
-        Usuario.activo.is_(True)
+        Usuario.activo.is_(True),
+        Usuario.borrado_en.is_(None)
     ).first()
 
     if not user:
@@ -64,11 +64,17 @@ def login_user(
     user.bloqueado_hasta = None
     user.ultimo_login = datetime.utcnow()
 
-    # 🔒 Revocar refresh tokens anteriores
+    # 🔒 Revocar TODOS los refresh tokens previos
     db.query(RefreshToken).filter(
         RefreshToken.id_usuario == user.id_usuario,
         RefreshToken.revoked.is_(False)
-    ).update({"revoked": True})
+    ).update(
+        {
+            "revoked": True,
+            "revoked_at": datetime.utcnow()
+        },
+        synchronize_session=False
+    )
 
     db.commit()
 
@@ -80,7 +86,7 @@ def login_user(
         "type": "access"
     })
 
-    # 🔁 Refresh token
+    # 🔁 Refresh token (nuevo)
     refresh_token = generate_refresh_token()
 
     db_refresh = RefreshToken(
@@ -88,7 +94,8 @@ def login_user(
         token_hash=hash_refresh_token(refresh_token),
         expires_at=refresh_expiration(),
         created_by_ip=request.client.host if request.client else None,
-        user_agent=request.headers.get("user-agent")
+        user_agent=request.headers.get("user-agent"),
+        revoked=False
     )
 
     db.add(db_refresh)
@@ -112,6 +119,7 @@ def logout_user(db: Session, request: Request):
 
     if rt:
         rt.revoked = True
+        rt.revoked_at = datetime.utcnow()
         db.commit()
 
 
@@ -126,6 +134,32 @@ def refresh_access_token(db: Session, request: Request):
 
     token_hash = hash_refresh_token(refresh_token)
 
+    # 🔎 1) Reuse attack detection (token ya revocado)
+    reused = db.query(RefreshToken).filter(
+        RefreshToken.token_hash == token_hash,
+        RefreshToken.revoked.is_(True)
+    ).first()
+
+    if reused:
+        # 🚨 Revoke all tokens for this user
+        db.query(RefreshToken).filter(
+            RefreshToken.id_usuario == reused.id_usuario,
+            RefreshToken.revoked.is_(False)
+        ).update(
+            {
+                "revoked": True,
+                "revoked_at": datetime.utcnow()
+            },
+            synchronize_session=False
+        )
+        db.commit()
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token reutilizado detectado"
+        )
+
+    # 🔎 2) Valid token
     rt = db.query(RefreshToken).filter(
         RefreshToken.token_hash == token_hash,
         RefreshToken.revoked.is_(False),
@@ -140,7 +174,8 @@ def refresh_access_token(db: Session, request: Request):
 
     user = db.query(Usuario).filter(
         Usuario.id_usuario == rt.id_usuario,
-        Usuario.activo.is_(True)
+        Usuario.activo.is_(True),
+        Usuario.borrado_en.is_(None)
     ).first()
 
     if not user:
@@ -149,10 +184,20 @@ def refresh_access_token(db: Session, request: Request):
             detail="Usuario inválido"
         )
 
-    # 🔁 Rotación de refresh token
+    # 🔁 Rotación correcta: revocar + crear nuevo
+    rt.revoked = True
+    rt.revoked_at = datetime.utcnow()
+
     new_refresh_token = generate_refresh_token()
-    rt.token_hash = hash_refresh_token(new_refresh_token)
-    rt.expires_at = refresh_expiration()
+
+    db.add(RefreshToken(
+        id_usuario=user.id_usuario,
+        token_hash=hash_refresh_token(new_refresh_token),
+        expires_at=refresh_expiration(),
+        created_by_ip=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+        revoked=False
+    ))
 
     # 🔑 Nuevo access token
     access_token = create_access_token({

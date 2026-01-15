@@ -1,28 +1,37 @@
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, status, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 import os
-from app.core.context import current_user_ctx
+
 from app.database import get_db
 from app.models import Usuario
 from app.auth.security import JWT_ALGORITHM
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+security = HTTPBearer(auto_error=False)
 
 JWT_SECRET = os.getenv("JWT_SECRET")
-
 if not JWT_SECRET:
     raise RuntimeError("JWT_SECRET no definido")
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db)
+    request: Request,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
 ) -> Usuario:
+
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No autenticado"
+        )
+
+    token = credentials.credentials
+
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        user_id: str | None = payload.get("sub")
+        user_id = payload.get("sub")
 
         if not user_id:
             raise HTTPException(status_code=401, detail="Token inválido")
@@ -43,9 +52,6 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario no válido"
         )
-    
-    # 🔐 guardamos el usuario para auditoría
-    current_user_ctx.set(user)
 
+    request.state.user_id = user.id_usuario
     return user
-

@@ -13,6 +13,7 @@
 \i /docker-entrypoint-initdb.d/init/005_triggers.sql
 \i /docker-entrypoint-initdb.d/init/006_views.sql
 \i /docker-entrypoint-initdb.d/init/007_grants.sql
+\i /docker-entrypoint-initdb.d/init/008_auditoria.sql
 
 \echo '== Iniciando seeds =='
 
@@ -23,5 +24,6 @@
 \i /docker-entrypoint-initdb.d/seed/050_seed_torneos.sql
 \i /docker-entrypoint-initdb.d/seed/060_seed_planteles.sql
 \i /docker-entrypoint-initdb.d/seed/070_seed_usuarios.sql
+
 
 \echo '== Base inicializada correctamente =='

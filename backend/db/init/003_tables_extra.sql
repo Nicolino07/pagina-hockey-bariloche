@@ -5,23 +5,6 @@
 
 BEGIN;
 
--- ================================================
--- AUDITORÍA GENERAL
--- ================================================
-
-CREATE TABLE IF NOT EXISTS auditoria_log (
-    id_log             INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    tabla_afectada     VARCHAR(100) NOT NULL CHECK (tabla_afectada <> ''),
-    id_registro        TEXT,
-    operacion          VARCHAR(20) NOT NULL
-        CHECK (operacion IN ('INSERT', 'UPDATE', 'DELETE')),
-    valores_anteriores JSONB,
-    valores_nuevos     JSONB,
-    usuario            VARCHAR(100),
-    fecha_hora         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ip_address         INET,
-    user_agent         TEXT
-);
 
 -- ================================================
 -- USUARIO
@@ -63,6 +46,7 @@ CREATE TABLE IF NOT EXISTS refresh_token (
     token_hash       TEXT NOT NULL CHECK (token_hash <> ''),
     expires_at       TIMESTAMP NOT NULL,
     revoked          BOOLEAN NOT NULL DEFAULT FALSE,
+    revoked_at       TIMESTAMP,
     created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by_ip    INET,
     user_agent       TEXT,

@@ -53,7 +53,7 @@ class ClubUpdate(BaseModel):
 class Club(ClubBase):
     id_club: int = Field(..., gt=0)
     creado_en: datetime
-    actualizado_en: datetime
+    actualizado_en: Optional[datetime] = None
     creado_por: Optional[str] = None
     actualizado_por: Optional[str] = None
     
@@ -76,7 +76,7 @@ class ClubResponse(BaseModel):
     id_club: int
     nombre: str
     creado_en: datetime
-    actualizado_en: datetime
+    actualizado_en: Optional[datetime] = None
 
     model_config = {
         "from_attributes": True

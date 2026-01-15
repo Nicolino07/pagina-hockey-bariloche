@@ -7,7 +7,7 @@ def require_roles(*roles_permitidos: str):
     def role_checker(
         current_user: Usuario = Depends(get_current_user)
     ):
-        if current_user.rol not in roles_permitidos:
+        if current_user.tipo not in roles_permitidos:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Permisos insuficientes"

@@ -39,15 +39,18 @@ pagina-hockey-bariloche/
 │       │   ├── __init__.py
 │       │   ├── auth.py
 │       │   └── permissions.py
-│
+│       |
 │       ├── auth/
 │       │   ├── __init__.py
-│       │   ├── models.py
-│       │   ├── schemas.py
 │       │   ├── router.py
 │       │   ├── service.py
 │       │   └── security.py
-│
+|       |
+|       ├── core/
+|       |    ├── __init__.py
+|       |    ├── context.py
+|       |    ├── middleware.py
+│       |
 │       ├── models/                 # SQLAlchemy ORM
 │       │   ├── __init__.py
 │       │   ├── club.py
