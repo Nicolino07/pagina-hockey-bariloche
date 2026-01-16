@@ -245,6 +245,26 @@ BEGIN
     -- usuario desde contexto (puede ser NULL)
     v_user_id := current_setting('app.current_user_id', true)::INT;
 
+    -- ===========================
+    -- IGNORAR UPDATE SOLO ultimo_login EN USUARIO
+    -- ===========================
+    IF TG_OP = 'UPDATE'
+    
+       AND to_jsonb(NEW) - ARRAY[
+            'ultimo_login',
+            'actualizado_en',
+            'actualizado_por'
+        ]
+        =
+        to_jsonb(OLD) - ARRAY[
+            'ultimo_login',
+            'actualizado_en',
+            'actualizado_por'
+        ]
+    THEN
+        RETURN NEW;
+    END IF;
+
     -- obtener PK según operación
     IF TG_OP = 'DELETE' THEN
         EXECUTE format(
@@ -308,6 +328,7 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 
 COMMIT;

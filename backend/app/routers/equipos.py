@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas.equipo import Equipo as EquipoSchema, EquipoCreate
-from app.models.equipo import Equipo
+from app.schemas.equipo import Equipo as EquipoSchema, EquipoCreate, EquipoUpdate
+from app.services import equipos_services
 from app.dependencies.permissions import require_admin
 
 router = APIRouter(prefix="/equipos", tags=["Equipos"])
@@ -13,63 +13,39 @@ router = APIRouter(prefix="/equipos", tags=["Equipos"])
 @router.get("/", response_model=list[EquipoSchema])
 def listar_equipos(
     nombre: str | None = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    query = db.query(Equipo)
-
-    if nombre:
-        query = query.filter(Equipo.nombre.ilike(f"%{nombre}%"))
-
-    return query.all()
+    return equipos_services.listar_equipos(db, nombre)
 
 
 # 🔓 Público
 @router.get("/{equipo_id}", response_model=EquipoSchema)
-def obtener_equipo(equipo_id: int, db: Session = Depends(get_db)):
-    equipo = db.query(Equipo).filter(Equipo.id_equipo == equipo_id).first()
-    if not equipo:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Equipo no encontrado"
-        )
-    return equipo
+def obtener_equipo(
+    equipo_id: int,
+    db: Session = Depends(get_db),
+):
+    return equipos_services.obtener_equipo(db, equipo_id)
 
 
 # 🔐 ADMIN / SUPERUSUARIO
 @router.post("/", response_model=EquipoSchema, status_code=status.HTTP_201_CREATED)
 def crear_equipo(
-    equipo: EquipoCreate,
+    data: EquipoCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(require_admin)
+    current_user = Depends(require_admin),
 ):
-    db_equipo = Equipo(**equipo.dict())
-    db.add(db_equipo)
-    db.commit()
-    db.refresh(db_equipo)
-    return db_equipo
+    return equipos_services.crear_equipo(db, data)
 
 
 # 🔐 ADMIN / SUPERUSUARIO
 @router.put("/{equipo_id}", response_model=EquipoSchema)
 def actualizar_equipo(
     equipo_id: int,
-    equipo_data: EquipoCreate,
+    data: EquipoUpdate,
     db: Session = Depends(get_db),
-    current_user = Depends(require_admin)
+    current_user = Depends(require_admin),
 ):
-    equipo = db.query(Equipo).filter(Equipo.id_equipo == equipo_id).first()
-    if not equipo:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Equipo no encontrado"
-        )
-
-    for key, value in equipo_data.dict().items():
-        setattr(equipo, key, value)
-
-    db.commit()
-    db.refresh(equipo)
-    return equipo
+    return equipos_services.actualizar_equipo(db, equipo_id, data)
 
 
 # 🔐 ADMIN / SUPERUSUARIO
@@ -77,14 +53,6 @@ def actualizar_equipo(
 def eliminar_equipo(
     equipo_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(require_admin)
+    current_user = Depends(require_admin),
 ):
-    equipo = db.query(Equipo).filter(Equipo.id_equipo == equipo_id).first()
-    if not equipo:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Equipo no encontrado"
-        )
-
-    db.delete(equipo)
-    db.commit()
+    equipos_services.eliminar_equipo(db, equipo_id)

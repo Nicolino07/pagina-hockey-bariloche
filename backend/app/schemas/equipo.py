@@ -5,11 +5,37 @@ from typing import Optional
 # IMPORTAR LOS ENUMs
 from app.models.enums import CategoriaTipo, GeneroCompetenciaTipo
 
+
 class EquipoBase(BaseModel):
     nombre: str = Field(..., min_length=1, max_length=100)
     id_club: int = Field(..., gt=0)
     categoria: CategoriaTipo  # ENUM
     genero: GeneroCompetenciaTipo  # ENUM
+
+
+class Equipo(EquipoBase):
+    id_equipo: int = Field(..., gt=0)
+    creado_en: datetime
+    actualizado_en: Optional[datetime] = None   # ✅ FIX
+    creado_por: Optional[str] = None
+    actualizado_por: Optional[str] = None
+    
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "example": {
+                "id_equipo": 1,
+                "nombre": "Leones HC",
+                "id_club": 1,
+                "categoria": "A",
+                "genero": "Masculino",
+                "creado_en": "2024-01-15T10:30:00",
+                "actualizado_en": None,
+                "creado_por": "admin",
+                "actualizado_por": None
+            }
+        }
+    )
 
 class EquipoCreate(EquipoBase):
     creado_por: Optional[str] = Field(None, max_length=100)
@@ -42,26 +68,3 @@ class EquipoUpdate(BaseModel):
         }
     )
 
-class Equipo(EquipoBase):
-    id_equipo: int = Field(..., gt=0)
-    creado_en: datetime
-    actualizado_en: datetime
-    creado_por: Optional[str] = None
-    actualizado_por: Optional[str] = None
-    
-    model_config = ConfigDict(
-        from_attributes=True,
-        json_schema_extra={
-            "example": {
-                "id_equipo": 1,
-                "nombre": "Leones HC",
-                "id_club": 1,
-                "categoria": "A",
-                "genero": "Masculino",
-                "creado_en": "2024-01-15T10:30:00",
-                "actualizado_en": "2024-01-15T10:30:00",
-                "creado_por": "admin",
-                "actualizado_por": None
-            }
-        }
-    )

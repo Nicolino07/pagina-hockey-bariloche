@@ -88,6 +88,12 @@ ON persona
 FOR EACH ROW
 EXECUTE FUNCTION fn_auditoria_generica('id_persona');
 
+CREATE TRIGGER trg_audit_persona_rol
+AFTER INSERT OR UPDATE OR DELETE
+ON persona_rol
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_persona_rol');
+
 CREATE TRIGGER trg_audit_usuario
 AFTER INSERT OR UPDATE OR DELETE
 ON usuario
@@ -95,6 +101,7 @@ FOR EACH ROW
 EXECUTE FUNCTION fn_auditoria_generica('id_usuario');
 
 -- =====================================================
+-- Auditoría
 -- COMPETENCIAS / EQUIPOS
 -- =====================================================
 
@@ -103,6 +110,18 @@ AFTER INSERT OR UPDATE OR DELETE
 ON torneo
 FOR EACH ROW
 EXECUTE FUNCTION fn_auditoria_generica('id_torneo');
+
+CREATE TRIGGER trg_audit_inscripcion_torneo
+AFTER INSERT OR UPDATE OR DELETE
+ON inscripcion_torneo
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_inscripcion');
+
+CREATE TRIGGER trg_audit_club
+AFTER INSERT OR UPDATE OR DELETE
+ON club
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_club');
 
 CREATE TRIGGER trg_audit_equipo
 AFTER INSERT OR UPDATE OR DELETE
@@ -116,7 +135,14 @@ ON plantel
 FOR EACH ROW
 EXECUTE FUNCTION fn_auditoria_generica('id_plantel');
 
+CREATE TRIGGER trg_audit_plantel_integrante
+AFTER INSERT OR UPDATE OR DELETE
+ON plantel_integrante
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_plantel_integrante');
+
 -- =====================================================
+-- Auditoría
 -- PARTIDOS / EVENTOS
 -- =====================================================
 
@@ -125,6 +151,13 @@ AFTER INSERT OR UPDATE OR DELETE
 ON partido
 FOR EACH ROW
 EXECUTE FUNCTION fn_auditoria_generica('id_partido');
+
+
+CREATE TRIGGER trg_audit_participan_partido
+AFTER INSERT OR UPDATE OR DELETE
+ON participan_partido
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica('id_participan_partido');
 
 CREATE TRIGGER trg_audit_gol
 AFTER INSERT OR UPDATE OR DELETE

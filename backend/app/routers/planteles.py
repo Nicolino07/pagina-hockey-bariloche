@@ -22,14 +22,14 @@ router = APIRouter(prefix="/planteles", tags=["Planteles"])
 def crear_plantel(
     data: PlantelCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(require_admin),
+    current_user=Depends(require_admin),
 ):
     return planteles_services.crear_plantel(
         db, data.id_equipo, data.id_torneo
     )
 
 
-# 🔐 EDITOR (o ADMIN)
+# 🔐 EDITOR / ADMIN
 @router.post(
     "/{id_plantel}/integrantes",
     response_model=PlantelIntegranteRead,
@@ -39,14 +39,14 @@ def agregar_integrante(
     id_plantel: int,
     data: PlantelIntegranteCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(require_editor),
+    current_user=Depends(require_editor),
 ):
     return planteles_services.agregar_integrante(
         db, id_plantel, data
     )
 
 
-# 🔐 EDITOR (o ADMIN)
+# 🔐 EDITOR / ADMIN
 @router.delete(
     "/integrantes/{id_integrante}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -54,6 +54,6 @@ def agregar_integrante(
 def baja_integrante(
     id_integrante: int,
     db: Session = Depends(get_db),
-    current_user = Depends(require_editor),
+    current_user=Depends(require_editor),
 ):
     planteles_services.dar_baja_integrante(db, id_integrante)
