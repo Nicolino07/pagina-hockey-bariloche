@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS club (
     email          VARCHAR(100),
 
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en  TIMESTAMP DEFAULT NULL,
     borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100),
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS equipo (
     genero         tipo_genero_competencia NOT NULL,
 
     creado_en      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMP DEFAULT NULL,
     borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por     VARCHAR(100),
     actualizado_por VARCHAR(100),
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS persona (
     direccion        VARCHAR(200),
 
     creado_en        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en   TIMESTAMP DEFAULT NULL,
     borrado_en       TIMESTAMP DEFAULT NULL,
     creado_por       VARCHAR(100),
     actualizado_por  VARCHAR(100)
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS persona_rol (
     fecha_hasta    DATE,
 
     creado_en      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMP DEFAULT NULL,
     creado_por     VARCHAR(100),
     actualizado_por VARCHAR(100),
 
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS plantel (
     activo          BOOLEAN DEFAULT TRUE,
 
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en  TIMESTAMP DEFAULT NULL,
     borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100)
@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS plantel_integrante (
     fecha_baja            DATE,
 
     creado_en             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en        TIMESTAMP DEFAULT NULL,
     borrado_en            TIMESTAMP DEFAULT NULL,
     creado_por            VARCHAR(100),
     actualizado_por       VARCHAR(100),
@@ -150,7 +150,7 @@ CREATE TABLE IF NOT EXISTS torneo (
     activo          BOOLEAN DEFAULT TRUE,
     
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en  TIMESTAMP DEFAULT NULL,
     borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100),
@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS inscripcion_torneo (
     fecha_inscripcion DATE DEFAULT CURRENT_DATE,
 
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en  TIMESTAMP DEFAULT NULL,
     borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100),
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS fase (
     fecha_fin     DATE,
 
     creado_en     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMP DEFAULT NULL,
     borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por    VARCHAR(100),
     actualizado_por VARCHAR(100)
@@ -243,7 +243,7 @@ CREATE TABLE IF NOT EXISTS partido (
 
     -- Auditoría
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en  TIMESTAMP DEFAULT NULL,
     borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100),
@@ -275,7 +275,7 @@ CREATE TABLE IF NOT EXISTS participan_partido (
     numero_camiseta         INT CHECK (numero_camiseta > 0),
     -- Auditoría
     creado_en               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en          TIMESTAMP DEFAULT NULL,
     creado_por              VARCHAR(100),
     actualizado_por         VARCHAR(100),
 
@@ -303,7 +303,7 @@ CREATE TABLE IF NOT EXISTS gol (
     motivo_anulacion        VARCHAR(500),
 
     creado_en               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en          TIMESTAMP DEFAULT NULL,
     creado_por              VARCHAR(100),
     actualizado_por         VARCHAR(100)
 );
@@ -334,7 +334,7 @@ CREATE TABLE IF NOT EXISTS tarjeta (
     decision_revision       VARCHAR(200),
 
     creado_en               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en          TIMESTAMP DEFAULT NULL,
     creado_por              VARCHAR(100),
     actualizado_por         VARCHAR(100)
 );
@@ -368,7 +368,7 @@ CREATE TABLE IF NOT EXISTS suspension (
     motivo_anulacion        VARCHAR(500),
 
     creado_en               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en          TIMESTAMP DEFAULT NULL,
     creado_por              VARCHAR(100),
     actualizado_por         VARCHAR(100),
 
@@ -406,7 +406,7 @@ CREATE TABLE IF NOT EXISTS posicion (
 
     -- Auditoría
     creado_en            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en       TIMESTAMP DEFAULT NULL,
     creado_por           VARCHAR(100),
     actualizado_por      VARCHAR(100),
 

@@ -286,8 +286,10 @@ BEGIN
     v_operacion :=
         CASE
             WHEN TG_OP = 'UPDATE'
-                 AND OLD.borrado_en IS NULL
-                 AND NEW.borrado_en IS NOT NULL
+                AND to_jsonb(OLD) ? 'borrado_en'
+                AND to_jsonb(NEW) ? 'borrado_en'
+                AND (to_jsonb(OLD)->>'borrado_en') IS NULL
+                AND (to_jsonb(NEW)->>'borrado_en') IS NOT NULL
             THEN 'DELETE'
             ELSE TG_OP
         END;

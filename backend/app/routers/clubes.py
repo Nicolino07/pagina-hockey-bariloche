@@ -9,22 +9,18 @@ from app.models.usuario import Usuario
 
 router = APIRouter(prefix="/clubes", tags=["Clubes"])
 
-
+# 🔓 Público
 @router.get("/", response_model=list[Club])
 def listar_clubes(db: Session = Depends(get_db)):
     return clubes_services.listar_clubes(db)
 
-
+# 🔓 Público
 @router.get("/{id_club}", response_model=Club)
 def obtener_club(id_club: int, db: Session = Depends(get_db)):
     return clubes_services.obtener_club(db, id_club)
 
-
-@router.post(
-    "/",
-    response_model=Club,
-    status_code=status.HTTP_201_CREATED
-)
+# 🔐 ADMIN / SUPERUSUARIO
+@router.post("/", response_model=Club, status_code=status.HTTP_201_CREATED)
 def crear_club(
     data: ClubCreate,
     db: Session = Depends(get_db),
@@ -35,7 +31,7 @@ def crear_club(
     )
     return clubes_services.crear_club(db, data)
 
-
+# 🔐 ADMIN / SUPERUSUARIO
 @router.put("/{id_club}", response_model=Club)
 def actualizar_club(
     id_club: int,
@@ -49,7 +45,7 @@ def actualizar_club(
     club = clubes_services.obtener_club(db, id_club)
     return clubes_services.actualizar_club(db, club, data)
 
-
+# 🔐 ADMIN / SUPERUSUARIO
 @router.delete("/{id_club}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_club(
     id_club: int,
@@ -59,7 +55,7 @@ def eliminar_club(
     club = clubes_services.obtener_club(db, id_club)
     clubes_services.eliminar_club(db, club)
 
-
+# 🔐 ADMIN / SUPERUSUARIO
 @router.post("/{club_id}/restore", response_model=Club)
 def restore_club(
     club_id: int,

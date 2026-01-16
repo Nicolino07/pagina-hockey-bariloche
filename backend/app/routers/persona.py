@@ -44,7 +44,7 @@ def crear_jugador(
     current_user=Depends(require_admin),
 ):
     rol = PersonaRolCreate(rol="jugador")
-    return personas_services.crear_persona_con_rol(db, data, rol)
+    return personas_services.crear_persona_con_rol(db, data, rol, current_user)
 
 
 # 🔐 ADMIN
@@ -59,7 +59,7 @@ def crear_entrenador(
     current_user=Depends(require_admin),
 ):
     rol = PersonaRolCreate(rol="entrenador")
-    return personas_services.crear_persona_con_rol(db, data, rol)
+    return personas_services.crear_persona_con_rol(db, data, rol, current_user)
 
 
 # 🔐 ADMIN
@@ -74,4 +74,22 @@ def crear_arbitro(
     current_user=Depends(require_admin),
 ):
     rol = PersonaRolCreate(rol="arbitro")
-    return personas_services.crear_persona_con_rol(db, data, rol)
+    return personas_services.crear_persona_con_rol(db, data, rol, current_user)
+
+# 🔐 ADMIN / SUPERUSUARIO
+@router.delete("/{persona_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_persona(
+    persona_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_admin),
+):
+    personas_services.eliminar_persona(db, persona_id, current_user)
+
+# 🔐 ADMIN / SUPERUSUARIO
+@router.post("/{persona_id}", response_model=PersonaRead,)
+def restore_persona(
+    persona_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    return personas_services.restaurar_persona(db, persona_id, current_user)

@@ -34,7 +34,7 @@ def crear_equipo(
     db: Session = Depends(get_db),
     current_user = Depends(require_admin),
 ):
-    return equipos_services.crear_equipo(db, data)
+    return equipos_services.crear_equipo(db, data, current_user)
 
 
 # 🔐 ADMIN / SUPERUSUARIO
@@ -45,7 +45,7 @@ def actualizar_equipo(
     db: Session = Depends(get_db),
     current_user = Depends(require_admin),
 ):
-    return equipos_services.actualizar_equipo(db, equipo_id, data)
+    return equipos_services.actualizar_equipo(db, equipo_id, data, current_user)
 
 
 # 🔐 ADMIN / SUPERUSUARIO
@@ -55,4 +55,13 @@ def eliminar_equipo(
     db: Session = Depends(get_db),
     current_user = Depends(require_admin),
 ):
-    equipos_services.eliminar_equipo(db, equipo_id)
+    equipos_services.eliminar_equipo(db, equipo_id, current_user)
+
+# 🔐 ADMIN / SUPERUSUARIO
+@router.post("/{equipo_id}/restore", response_model=EquipoSchema)
+def restore_equipo(
+    equipo_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_admin),
+):
+    return equipos_services.restaurar_equipo(db, equipo_id, current_user)

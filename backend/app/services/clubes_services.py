@@ -18,52 +18,47 @@ def obtener_club(db: Session, id_club: int) -> Club:
     return club
 
 
-def crear_club(db: Session, club: ClubCreate) -> Club:
-    nuevo = Club(**club.model_dump())
-    db.add(nuevo)
-    db.commit()
-    db.refresh(nuevo)
-    return nuevo
 
+def crear_club(db: Session, data: ClubCreate, current_user) -> Club:
+    with db.begin():
+        club = Club(**data.model_dump())
+        club.creado_por = current_user.username
+        db.add(club)
 
-def actualizar_club(
-    db: Session,
-    club: Club,
-    data: ClubUpdate
-) -> Club:
-    valores = data.model_dump(exclude_unset=True)
-
-    for campo, valor in valores.items():
-        setattr(club, campo, valor)
-
-    db.commit()
     db.refresh(club)
     return club
 
 
-def eliminar_club(db: Session, club: Club):
-    club.soft_delete()
-    db.commit()
+def actualizar_club(db: Session,club_id: int,data: ClubUpdate,current_user) -> Club:
+    club = obtener_club(db, club_id)
 
-def restaurar_club(
-    db: Session,
-    club_id: int,
-    usuario: str
-) -> Club:
-    club = (
-        db.query(Club)
-        .filter(Club.id_club == club_id)
-        .one_or_none()
-    )
+    with db.begin():
+        for campo, valor in data.model_dump(exclude_unset=True).items():
+            setattr(club, campo, valor)
 
-    if not club:
-        raise NotFoundError("Club no encontrado")
+        club.actualizado_por = current_user.username
 
-    if not club.is_deleted:
-        raise NotFoundError("El club no está eliminado")
-
-    club.restore(usuario=usuario)
-    db.commit()
     db.refresh(club)
+    return club
 
+
+
+def eliminar_club(db: Session,club_id: int,current_user) -> None:
+    club = obtener_club(db, club_id)
+
+    with db.begin():
+        club.soft_delete(usuario=current_user.username)
+
+
+def restaurar_club(db: Session, club_id: int, current_user) -> Club:
+    with db.begin():
+        club = db.get(Club, club_id)
+        if not club:
+            raise NotFoundError("Club no encontrado")
+
+        club.borrado_en = None
+        club.actualizado_por = current_user.username
+
+    # fuera del begin
+    db.refresh(club)
     return club
