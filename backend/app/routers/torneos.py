@@ -1,47 +1,36 @@
 # routes/torneos.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session 
-from sqlalchemy.exc import IntegrityError
 from app.database import get_db
 from app.models.torneo import Torneo as TorneoModel
 from app.schemas.torneo import Torneo, TorneoCreate
+from app.dependencies.permissions import require_admin
+from app.models.usuario import Usuario
+from app.services import torneos_services
 
 router = APIRouter(prefix="/torneos", tags=["Torneos"])
 
+# 🔓 Público
 @router.get("/", response_model=list[Torneo])
-def get_torneos(db: Session = Depends(get_db)):
+def listar_torneos(db: Session = Depends(get_db)):
     return db.query(TorneoModel).all()
 
+# 🔓 Público
 @router.get("/{id_torneo}", response_model=Torneo)
-def get_torneo(id_torneo: int, db: Session = Depends(get_db)):
+def obtener_torneo(id_torneo: int, db: Session = Depends(get_db)):
     torneo = db.query(TorneoModel).filter(TorneoModel.id_torneo == id_torneo).first()
     if not torneo:
         raise HTTPException(status_code=404, detail="Torneo no encontrado")
     return torneo
 
-@router.post("/", response_model=Torneo, status_code=201)
-def crear_torneo(data: TorneoCreate, db: Session = Depends(get_db)):
-
-    # Convertir "" en None para fechas
-    torneo_data = data.dict()
-    if torneo_data.get("fecha_inicio") == "":
-        torneo_data["fecha_inicio"] = None
-    if torneo_data.get("fecha_fin") == "":
-        torneo_data["fecha_fin"] = None
-
-    nuevo = TorneoModel(**torneo_data)
-    db.add(nuevo)
-
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(
-            409, "Ya existe un torneo con ese nombre y categoría"
-        )
-
-    db.refresh(nuevo)
-    return nuevo
+# 🔐 ADMIN
+@router.post("/", response_model=Torneo, status_code=status.HTTP_201_CREATED)
+def crear_torneo(
+    data: TorneoCreate,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_admin),
+):
+    return torneos_services.crear_torneo(db, data, current_user)
 
 @router.put("/{id_torneo}", response_model=Torneo)
 def update_torneo(id_torneo: int, torneo: TorneoCreate, db: Session = Depends(get_db)):

@@ -49,8 +49,6 @@ async def rate_limit_handler(request, exc):
     )
 
 
-app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
-
 # =====================================================
 # Routers
 # =====================================================

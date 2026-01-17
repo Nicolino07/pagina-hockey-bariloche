@@ -1,6 +1,8 @@
 from datetime import date
 from sqlalchemy.orm import Session
 
+from app.models.equipo import Equipo
+from app.models.persona import Persona
 from app.models.plantel import Plantel
 from app.models.plantel_integrante import PlantelIntegrante
 from app.schemas.plantel_integrante import PlantelIntegranteCreate
@@ -56,6 +58,14 @@ def agregar_integrante(
 
     if plantel.borrado_en is not None:
         raise ValidationError("No se puede modificar un plantel eliminado")
+
+    # ✅ VALIDACIÓN DE GÉNERO (solo si es JUGADOR)
+    validar_genero_para_jugador(
+        db,
+        id_plantel=id_plantel,
+        id_persona=data.id_persona,
+        rol_en_plantel=data.rol_en_plantel,
+    )
 
     existente = (
         db.query(PlantelIntegrante)
@@ -142,3 +152,39 @@ def restore_plantel(
     plantel.restore(usuario=current_user.username)
 
     return plantel
+
+
+def validar_genero_para_jugador(
+    db: Session,
+    *,
+    id_plantel: int,
+    id_persona: int,
+    rol_en_plantel: str,
+) -> None:
+    # 🔓 Solo validamos si es JUGADOR
+    if rol_en_plantel != "JUGADOR":
+        return
+
+    genero_equipo = (
+        db.query(Equipo.genero)
+        .join(Plantel, Plantel.id_equipo == Equipo.id_equipo)
+        .filter(Plantel.id_plantel == id_plantel)
+        .scalar()
+    )
+
+    if genero_equipo is None:
+        raise ValidationError("No se pudo determinar el género del equipo")
+
+    genero_persona = (
+        db.query(Persona.genero)
+        .filter(Persona.id_persona == id_persona)
+        .scalar()
+    )
+
+    if genero_persona is None:
+        raise ValidationError("No se pudo determinar el género de la persona")
+
+    if genero_equipo != genero_persona:
+        raise ValidationError(
+            "El género de la persona no coincide con el del equipo"
+        )

@@ -1,15 +1,10 @@
 import enum
 
-class GeneroPersonaTipo(str, enum.Enum):
+class GeneroTipo(str, enum.Enum):
     """Género biológico de una persona"""
     MASCULINO = 'MASCULINO'
     FEMENINO = 'FEMENINO'
 
-class GeneroCompetenciaTipo(str, enum.Enum):
-    """Género de la competencia/categoría"""
-    MASCULINO = 'MASCULINO'
-    FEMENINO = 'FEMENINO'
-    MIXTO = 'MIXTO'
 
 class CategoriaTipo(str, enum.Enum):
     """Nivel/categoría deportiva"""

@@ -43,7 +43,7 @@ def crear_jugador(
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
-    rol = PersonaRolCreate(rol="jugador")
+    rol = PersonaRolCreate(rol="JUGADOR")
     return personas_services.crear_persona_con_rol(db, data, rol, current_user)
 
 
@@ -58,7 +58,7 @@ def crear_entrenador(
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
-    rol = PersonaRolCreate(rol="entrenador")
+    rol = PersonaRolCreate(rol="ENTRENADOR")
     return personas_services.crear_persona_con_rol(db, data, rol, current_user)
 
 
@@ -73,7 +73,7 @@ def crear_arbitro(
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
-    rol = PersonaRolCreate(rol="arbitro")
+    rol = PersonaRolCreate(rol="ARBITRO")
     return personas_services.crear_persona_con_rol(db, data, rol, current_user)
 
 # 🔐 ADMIN / SUPERUSUARIO

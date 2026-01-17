@@ -4,13 +4,16 @@ from fastapi.responses import JSONResponse
 from app.core.exceptions import AppError
 from app.core.error_response import error_response
 
-async def app_error_handler(
-    request: Request,
-    exc: AppError,
-):
+
+async def app_error_handler(request: Request, exc: AppError):
     return JSONResponse(
         status_code=exc.status_code,
-        content={"detail": exc.detail},
+        content={
+            "error": {
+                "code": exc.code,
+                "message": exc.message,
+            }
+        },
     )
 
 

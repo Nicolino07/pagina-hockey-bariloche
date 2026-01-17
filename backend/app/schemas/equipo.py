@@ -3,14 +3,14 @@ from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 
 # IMPORTAR LOS ENUMs
-from app.models.enums import CategoriaTipo, GeneroCompetenciaTipo
+from app.models.enums import CategoriaTipo, GeneroTipo
 
 
 class EquipoBase(BaseModel):
     nombre: str = Field(..., min_length=1, max_length=100)
     id_club: int = Field(..., gt=0)
     categoria: CategoriaTipo  # ENUM
-    genero: GeneroCompetenciaTipo  # ENUM
+    genero: GeneroTipo  # ENUM
 
 
 class Equipo(EquipoBase):
@@ -54,7 +54,7 @@ class EquipoCreate(EquipoBase):
 class EquipoUpdate(BaseModel):
     nombre: Optional[str] = Field(None, min_length=1, max_length=100)
     categoria: Optional[CategoriaTipo] = None  # ← ENUM opcional
-    genero: Optional[GeneroCompetenciaTipo] = None  # ← ENUM opcional
+    genero: Optional[GeneroTipo] = None  # ← ENUM opcional
     actualizado_por: Optional[str] = Field(None, max_length=100)
     
     model_config = ConfigDict(

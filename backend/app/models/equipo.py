@@ -8,7 +8,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
-from app.models.enums import CategoriaTipo, GeneroCompetenciaTipo
+from app.models.enums import CategoriaTipo, GeneroTipo
 from app.models.mixins import AuditFieldsMixin, SoftDeleteMixin
 
 class Equipo(Base, AuditFieldsMixin, SoftDeleteMixin):
@@ -39,9 +39,9 @@ class Equipo(Base, AuditFieldsMixin, SoftDeleteMixin):
         nullable=False
     )
 
-    genero: Mapped[GeneroCompetenciaTipo] = mapped_column(
+    genero: Mapped[GeneroTipo] = mapped_column(
         Enum(
-            GeneroCompetenciaTipo,
+            GeneroTipo,
             name="genero_competencia_tipo",
             native_enum=True
         ),

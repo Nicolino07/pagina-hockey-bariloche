@@ -26,7 +26,7 @@ class Usuario(BaseModel):
 
     ultimo_login: Optional[datetime]
     creado_en: datetime
-    actualizado_en: datetime
+    actualizado_en: Optional [datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
     

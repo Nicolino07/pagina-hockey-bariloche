@@ -3,14 +3,14 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, ConfigDict
 
-from app.models.enums import GeneroPersonaTipo
+from app.models.enums import GeneroTipo
 
 class PersonaBase(BaseModel):
     documento: Optional[int] = Field(None, gt=0)
     nombre: str = Field(..., min_length=1, max_length=100)
     apellido: str = Field(..., min_length=1, max_length=100)
     fecha_nacimiento: Optional[date] = None
-    genero: GeneroPersonaTipo
+    genero: GeneroTipo
 
     telefono: Optional[str] = Field(None, max_length=20)
     email: Optional[str] = Field(None, max_length=100)
@@ -39,7 +39,7 @@ class PersonaUpdate(BaseModel):
     nombre: Optional[str] = Field(None, min_length=1, max_length=100)
     apellido: Optional[str] = Field(None, min_length=1, max_length=100)
     fecha_nacimiento: Optional[date] = None
-    genero: Optional[GeneroPersonaTipo] = None
+    genero: Optional[GeneroTipo] = None
 
     telefono: Optional[str] = Field(None, max_length=20)
     email: Optional[str] = Field(None, max_length=100)
@@ -60,7 +60,7 @@ class Persona(PersonaBase):
 class PersonaRead(PersonaBase):
     id_persona: int
     creado_en: datetime
-    actualizado_en: datetime
+    actualizado_en: Optional [datetime] = None
     creado_por: Optional[str]
     actualizado_por: Optional[str]
 

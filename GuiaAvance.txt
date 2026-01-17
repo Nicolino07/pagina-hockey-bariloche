@@ -1,5 +1,20 @@
 Ya podemos usar services de club, equipo y persona. 
 estoy arreglando services de planteles.
 se puede crear un plantel pero no podemos agregar un integrante a un plantel
+comprobacion de genero en equipo/plantel/plantel_integrante LISTO
 
-Proximo: agregar un integrante a un plantel
+
+
+PROXIMO: Inscripciones torneos
+
+
+
+
+
+
+vista GENERO/EQUIPO/NOMBRE
+SELECT e.genero, e.nombre as equipo, per.nombre as jugador
+FROM equipo e 
+JOIN plantel pl ON e.id_equipo = pl.id_equipo
+JOIN plantel_integrante pi ON pl.id_plantel = pi.id_plantel
+JOIN persona per ON per.id_persona = pi.id_persona

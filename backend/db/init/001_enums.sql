@@ -9,19 +9,11 @@ BEGIN;
 -- =====================================================
 -- Género de persona
 -- =====================================================
-CREATE TYPE tipo_genero_persona AS ENUM (
+CREATE TYPE tipo_genero AS ENUM (
   'MASCULINO',
   'FEMENINO'
 );
 
--- =====================================================
--- Género de competencia / categoría
--- =====================================================
-CREATE TYPE tipo_genero_competencia AS ENUM (
-  'MASCULINO',
-  'FEMENINO',
-  'MIXTO'
-);
 
 -- =====================================================
 -- Categoría deportiva

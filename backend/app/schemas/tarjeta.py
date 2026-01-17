@@ -45,7 +45,7 @@ class Tarjeta(TarjetaBase):
     decision_revision: Optional[str] = None
 
     creado_en: datetime
-    actualizado_en: datetime
+    actualizado_en: Optional [datetime] = None
     creado_por: Optional[str] = None
     actualizado_por: Optional[str] = None
 

@@ -22,8 +22,7 @@ from .base import Base
 
 # Exportar todos los ENUMs 
 from .enums import (
-    GeneroPersonaTipo,
-    GeneroCompetenciaTipo,
+    GeneroTipo,
     CategoriaTipo,
     RolPersonaTipo,
     TipoTarjeta,

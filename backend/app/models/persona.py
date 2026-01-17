@@ -6,7 +6,7 @@ from sqlalchemy import String, Date, Integer, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
-from app.models.enums import GeneroPersonaTipo
+from app.models.enums import GeneroTipo
 
 
 class Persona(Base, AuditFieldsMixin, SoftDeleteMixin):
@@ -37,7 +37,7 @@ class Persona(Base, AuditFieldsMixin, SoftDeleteMixin):
 
     fecha_nacimiento: Mapped[Optional[date]] = mapped_column(Date)
 
-    genero: Mapped[GeneroPersonaTipo] = mapped_column(
+    genero: Mapped[GeneroTipo] = mapped_column(
         nullable=False
     )
 

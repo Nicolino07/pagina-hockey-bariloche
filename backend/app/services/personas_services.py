@@ -8,7 +8,7 @@ from app.schemas.persona import PersonaCreate
 from app.schemas.persona_rol import PersonaRolCreate
 from app.core.exceptions import NotFoundError, ValidationError, ConflictError
 
-ROLES_VALIDOS = {"jugador", "entrenador", "arbitro"}
+ROLES_VALIDOS = {"JUGADOR", "ENTRENADOR", "ARBITRO"}
 
 
 def listar_personas(db: Session) -> list[Persona]:

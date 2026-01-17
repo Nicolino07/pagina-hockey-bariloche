@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS equipo (
     id_club        INT NOT NULL 
         REFERENCES club(id_club) ON UPDATE CASCADE ON DELETE RESTRICT,
     categoria      tipo_categoria NOT NULL,
-    genero         tipo_genero_competencia NOT NULL,
+    genero         tipo_genero NOT NULL,
 
     creado_en      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS persona (
     nombre           VARCHAR(100) NOT NULL CHECK (nombre <> ''),
     apellido         VARCHAR(100) NOT NULL CHECK (apellido <> ''),
     fecha_nacimiento DATE,
-    genero           tipo_genero_persona NOT NULL,
+    genero           tipo_genero NOT NULL,
     telefono         VARCHAR(20),
     email            VARCHAR(100),
     direccion        VARCHAR(200),
@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS torneo (
     id_torneo       INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre          VARCHAR(100) NOT NULL CHECK (nombre <> ''),
     categoria       tipo_categoria NOT NULL,
-    genero          tipo_genero_competencia NOT NULL,
+    genero          tipo_genero NOT NULL,
     fecha_inicio    DATE DEFAULT CURRENT_DATE,
     fecha_fin       DATE CHECK (fecha_fin > fecha_inicio),
     activo          BOOLEAN DEFAULT TRUE,
@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS torneo (
     creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100),
 
-    CONSTRAINT torneo_unq_nombre_categoria UNIQUE (nombre, categoria)
+    CONSTRAINT torneo_unq_nombre_categoria UNIQUE (nombre, categoria, genero)
 );
 
 -- ======================
@@ -167,7 +167,6 @@ CREATE TABLE IF NOT EXISTS inscripcion_torneo (
         REFERENCES equipo(id_equipo) ON UPDATE CASCADE ON DELETE RESTRICT,
     id_torneo       INT NOT NULL 
         REFERENCES torneo(id_torneo) ON UPDATE CASCADE ON DELETE RESTRICT,
-    genero         tipo_genero_competencia NOT NULL,
     fecha_inscripcion DATE DEFAULT CURRENT_DATE,
 
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

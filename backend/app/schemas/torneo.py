@@ -3,12 +3,12 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, ConfigDict
 
-from app.models.enums import CategoriaTipo, GeneroCompetenciaTipo
+from app.models.enums import CategoriaTipo, GeneroTipo
 
 class TorneoBase(BaseModel):
     nombre: str = Field(..., min_length=1, max_length=100)
     categoria: CategoriaTipo
-    genero: GeneroCompetenciaTipo
+    genero: GeneroTipo
     fecha_inicio: Optional[date] = None
     fecha_fin: Optional[date] = None
 
@@ -41,7 +41,7 @@ class Torneo(TorneoBase):
     activo: bool
 
     creado_en: datetime
-    actualizado_en: datetime
+    actualizado_en: Optional [datetime] = None
     creado_por: Optional[str] = None
     actualizado_por: Optional[str] = None
 
