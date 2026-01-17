@@ -25,9 +25,10 @@ def crear_plantel(
     current_user=Depends(require_admin),
 ):
     return planteles_services.crear_plantel(
-        db, data.id_equipo, data.id_torneo
+        db,
+        data.id_equipo,
+        current_user,
     )
-
 
 # 🔐 EDITOR / ADMIN
 @router.post(
@@ -42,9 +43,11 @@ def agregar_integrante(
     current_user=Depends(require_editor),
 ):
     return planteles_services.agregar_integrante(
-        db, id_plantel, data
+        db,
+        id_plantel,
+        data,
+        current_user,
     )
-
 
 # 🔐 EDITOR / ADMIN
 @router.delete(
@@ -56,4 +59,8 @@ def baja_integrante(
     db: Session = Depends(get_db),
     current_user=Depends(require_editor),
 ):
-    planteles_services.dar_baja_integrante(db, id_integrante)
+    planteles_services.dar_baja_integrante(
+        db,
+        id_integrante,
+        current_user,
+    )

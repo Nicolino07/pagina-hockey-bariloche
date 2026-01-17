@@ -5,7 +5,7 @@ from app.schemas.equipo import EquipoCreate, EquipoUpdate
 from app.core.exceptions import NotFoundError
 
 
-def listar_equipos(db: Session, nombre: str | None = None):
+def listar_equipos(db: Session, nombre: str | None = None) -> list[Equipo]:
     query = db.query(Equipo)
 
     if nombre:
@@ -23,44 +23,41 @@ def obtener_equipo(db: Session, equipo_id: int) -> Equipo:
 
 
 def crear_equipo(db: Session, data: EquipoCreate, current_user) -> Equipo:
-    with db.begin():
-        equipo = Equipo(**data.model_dump())
-        equipo.creado_por = current_user.username
-        db.add(equipo)
+    equipo = Equipo(**data.model_dump())
+    equipo.creado_por = current_user.username
 
-    db.refresh(equipo)
+    db.add(equipo)
+    db.flush()  # 🔥 necesario para id_equipo / creado_en
+
     return equipo
 
 
-def actualizar_equipo(db: Session,equipo_id: int,data: EquipoUpdate,current_user,) -> Equipo:
+def actualizar_equipo(
+    db: Session,
+    equipo_id: int,
+    data: EquipoUpdate,
+    current_user,
+) -> Equipo:
     equipo = obtener_equipo(db, equipo_id)
 
-    with db.begin():
-        for key, value in data.model_dump(exclude_unset=True).items():
-            setattr(equipo, key, value)
+    for key, value in data.model_dump(exclude_unset=True).items():
+        setattr(equipo, key, value)
 
-        equipo.actualizado_por = current_user.username
+    equipo.actualizado_por = current_user.username
 
-    db.refresh(equipo)
     return equipo
 
 
 def eliminar_equipo(db: Session, equipo_id: int, current_user) -> None:
     equipo = obtener_equipo(db, equipo_id)
-
-    with db.begin():
-        equipo.soft_delete(usuario=current_user.username)
+    equipo.soft_delete(usuario=current_user.username)
 
 
 def restaurar_equipo(db: Session, equipo_id: int, current_user) -> Equipo:
-    with db.begin():
-        equipo = db.get(Equipo, equipo_id)
-        if not equipo:
-            raise NotFoundError("Equipo no encontrado")
+    equipo = db.get(Equipo, equipo_id)
+    if not equipo:
+        raise NotFoundError("Equipo no encontrado")
 
-        equipo.borrado_en = None
-        equipo.actualizado_por = current_user.username
+    equipo.restore(usuario=current_user.username)
 
-    # fuera del begin
-    db.refresh(equipo)
     return equipo

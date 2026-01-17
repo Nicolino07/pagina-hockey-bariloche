@@ -18,4 +18,35 @@ CREATE TABLE IF NOT EXISTS auditoria_log (
     user_agent         TEXT
 );
  
+
+
+-- =====================================================
+-- Vista: Auditoría legible para backoffice
+-- esta vista esta aqui para evitar error ""auditoria_log does not exist"
+-- =====================================================
+
+CREATE OR REPLACE VIEW vw_auditoria AS
+SELECT
+    a.id_log,
+    a.fecha_hora,
+    a.tabla_afectada,
+    a.operacion,
+    a.id_registro,
+
+    -- Usuario (si existe)
+    a.id_usuario,
+    u.username AS usuario,
+
+    -- Contexto técnico
+    a.ip_address,
+    a.user_agent,
+
+    -- Datos crudos
+    a.valores_anteriores,
+    a.valores_nuevos
+
+FROM auditoria_log a
+LEFT JOIN usuario u
+       ON u.id_usuario = a.id_usuario;
+
 COMMIT;

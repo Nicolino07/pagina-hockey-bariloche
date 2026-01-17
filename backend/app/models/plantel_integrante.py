@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Optional
 
-from app.models.mixins import AuditFieldsMixin, SoftDeleteMixin
+from app.models.mixins import AuditFieldsMixin
 from sqlalchemy import Date, ForeignKey, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -9,7 +9,7 @@ from app.models.base import Base
 from app.models.enums import RolPersonaTipo
 
 
-class PlantelIntegrante(Base, AuditFieldsMixin, SoftDeleteMixin):
+class PlantelIntegrante(Base, AuditFieldsMixin):
     __tablename__ = "plantel_integrante"
 
     __table_args__ = (

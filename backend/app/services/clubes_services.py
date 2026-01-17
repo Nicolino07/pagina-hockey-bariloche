@@ -18,47 +18,35 @@ def obtener_club(db: Session, id_club: int) -> Club:
     return club
 
 
-
 def crear_club(db: Session, data: ClubCreate, current_user) -> Club:
-    with db.begin():
-        club = Club(**data.model_dump())
-        club.creado_por = current_user.username
-        db.add(club)
-
-    db.refresh(club)
+    club = Club(**data.model_dump())
+    club.creado_por = current_user.username
+    db.add(club)
+    db.flush()  
     return club
 
 
-def actualizar_club(db: Session,club_id: int,data: ClubUpdate,current_user) -> Club:
+def actualizar_club(
+    db: Session,
+    club_id: int,
+    data: ClubUpdate,
+    current_user,
+) -> Club:
     club = obtener_club(db, club_id)
 
-    with db.begin():
-        for campo, valor in data.model_dump(exclude_unset=True).items():
-            setattr(club, campo, valor)
+    for campo, valor in data.model_dump(exclude_unset=True).items():
+        setattr(club, campo, valor)
 
-        club.actualizado_por = current_user.username
-
-    db.refresh(club)
+    club.actualizado_por = current_user.username
     return club
 
 
-
-def eliminar_club(db: Session,club_id: int,current_user) -> None:
+def eliminar_club(db: Session, club_id: int, current_user) -> None:
     club = obtener_club(db, club_id)
-
-    with db.begin():
-        club.soft_delete(usuario=current_user.username)
+    club.soft_delete(usuario=current_user.username)
 
 
 def restaurar_club(db: Session, club_id: int, current_user) -> Club:
-    with db.begin():
-        club = db.get(Club, club_id)
-        if not club:
-            raise NotFoundError("Club no encontrado")
-
-        club.borrado_en = None
-        club.actualizado_por = current_user.username
-
-    # fuera del begin
-    db.refresh(club)
+    club = obtener_club(db, club_id)
+    club.restore(usuario=current_user.username)
     return club

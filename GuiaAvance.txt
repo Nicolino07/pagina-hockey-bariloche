@@ -1,0 +1,5 @@
+Ya podemos usar services de club, equipo y persona. 
+estoy arreglando services de planteles.
+se puede crear un plantel pero no podemos agregar un integrante a un plantel
+
+Proximo: agregar un integrante a un plantel

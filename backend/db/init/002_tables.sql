@@ -127,7 +127,6 @@ CREATE TABLE IF NOT EXISTS plantel_integrante (
 
     creado_en             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en        TIMESTAMP DEFAULT NULL,
-    borrado_en            TIMESTAMP DEFAULT NULL,
     creado_por            VARCHAR(100),
     actualizado_por       VARCHAR(100),
 

@@ -32,7 +32,7 @@ class PlantelRead(PlantelBase):
     id_plantel: int
 
     creado_en: datetime
-    actualizado_en: datetime
+    actualizado_en: Optional[datetime] = None
     creado_por: Optional[str] = None
     actualizado_por: Optional[str] = None
 

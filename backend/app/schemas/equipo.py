@@ -46,8 +46,7 @@ class EquipoCreate(EquipoBase):
                 "nombre": "Leones HC",
                 "id_club": 1,
                 "categoria": "A",  # ← Valor del ENUM
-                "genero": "Masculino",  # ← Valor del ENUM
-                "creado_por": "admin"
+                "genero": "MASCULINO",  # ← Valor del ENUM
             }
         }
     )

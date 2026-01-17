@@ -24,7 +24,6 @@ class ClubCreate(ClubBase):
                 "direccion": "Calle Falsa 123",
                 "telefono": "123456789",
                 "email": "info@leonesfc.com",
-                "creado_por": "admin"
             }
         }
     )
@@ -43,8 +42,11 @@ class ClubUpdate(BaseModel):
         json_schema_extra={
             "example": {
                 "nombre": "Leones FC Modificado",
-                "provincia": "Córdoba",
-                "actualizado_por": "usuario1"       
+                "provincia": "Rio Negro",
+                "ciudad": "Bariloche",
+                "direccion": "Calle Nueva 456",
+                "telefono": "+54-2944895845",
+                "email": "nuevo@leonesfc.com"
             }
         }
     )
