@@ -60,6 +60,7 @@ from app.routers import (
     personas_router as personas,
     planteles_router as planteles,
     torneos_router as torneos,
+    inscripciones_torneos as inscripciones
 )
 
 
@@ -74,3 +75,4 @@ app.include_router(equipos)
 app.include_router(personas)
 app.include_router(planteles)
 app.include_router(torneos)
+app.include_router(inscripciones.router)

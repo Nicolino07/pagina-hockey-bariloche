@@ -1,50 +1,57 @@
-# routes/inscripciones.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models.inscripcion_torneo import InscripcionTorneo as InscripcionModel
-from app.schemas.inscripcion_torneo import InscripcionTorneo, InscripcionTorneoCreate
 
-router = APIRouter(prefix="/inscripciones", tags=["Inscripciones Torneo"])
+from app.database import get_db
+from app.dependencies.permissions import require_admin
+from app.models.usuario import Usuario
+from app.schemas.inscripcion_torneo import (
+    InscripcionTorneo,
+    InscripcionTorneoCreate,
+)
+from app.services import inscripciones_services
+
+
+router = APIRouter(
+    prefix="/torneos/{id_torneo}/inscripciones",
+    tags=["Inscripciones Torneo"],
+)
+
 
 @router.get("/", response_model=list[InscripcionTorneo])
-def get_inscripciones(db: Session = Depends(get_db)):
-    return db.query(InscripcionModel).all()
+def listar_inscripciones(
+    id_torneo: int,
+    db: Session = Depends(get_db),
+):
+    return inscripciones_services.listar_inscripciones_por_torneo(
+        db, id_torneo
+    )
 
-@router.get("/{id}", response_model=InscripcionTorneo)
-def get_inscripcion(id: int, db: Session = Depends(get_db)):
-    ins = db.query(InscripcionModel).filter(InscripcionModel.id == id).first()
-    if not ins:
-        raise HTTPException(status_code=404, detail="Inscripción no encontrada")
-    return ins
+@router.post(
+    "/",
+    response_model=InscripcionTorneo,
+    status_code=status.HTTP_201_CREATED,
+)
+def inscribir_equipo(
+    id_torneo: int,
+    data: InscripcionTorneoCreate,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_admin),
+):
+    return inscripciones_services.inscribir_equipo_en_torneo(
+        db=db,
+        id_torneo=id_torneo,
+        id_equipo=data.id_equipo,
+        current_user=current_user,
+    )
 
-@router.post("/", response_model=InscripcionTorneo)
-def create_inscripcion(data: InscripcionTorneoCreate, db: Session = Depends(get_db)):
-    nuevo = InscripcionModel(**data.dict())
-    db.add(nuevo)
-    db.commit()
-    db.refresh(nuevo)
-    return nuevo
 
-@router.put("/{id}", response_model=InscripcionTorneo)
-def update_inscripcion(id: int, data: InscripcionTorneoCreate, db: Session = Depends(get_db)):
-    ins = db.query(InscripcionModel).filter(InscripcionModel.id == id).first()
-    if not ins:
-        raise HTTPException(status_code=404, detail="Inscripción no encontrada")
-
-    for key, value in data.dict().items():
-        setattr(ins, key, value)
-
-    db.commit()
-    db.refresh(ins)
-    return ins
-
-@router.delete("/{id}")
-def delete_inscripcion(id: int, db: Session = Depends(get_db)):
-    ins = db.query(InscripcionModel).filter(InscripcionModel.id == id).first()
-    if not ins:
-        raise HTTPException(status_code=404, detail="Inscripción no encontrada")
-
-    db.delete(ins)
-    db.commit()
-    return {"detail": "Inscripción eliminada"}
+@router.delete("/{id_inscripcion}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_inscripcion(
+    id_torneo: int,
+    id_inscripcion: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_admin),
+):
+    inscripciones_services.eliminar_inscripcion(
+        db, id_torneo, id_inscripcion
+    )
