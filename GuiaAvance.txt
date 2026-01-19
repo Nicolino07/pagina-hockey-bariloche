@@ -7,7 +7,8 @@ comprobacion de genero en equipo/plantel/plantel_integrante LISTO
 
 PROXIMO: Inscripciones torneos
 
-
+    git commit -m "Listar inscripciones lista"
+    falta comprobar router para inscribir un equipo y borrar inscripciones
 
 
 
