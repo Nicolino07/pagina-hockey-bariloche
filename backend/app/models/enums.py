@@ -25,6 +25,13 @@ class RolPersonaTipo(str, enum.Enum):
     MEDICO = 'MEDICO'
     PREPARADOR_FISICO = 'PREPARADOR_FISICO'
 
+class EstadoPartido(str, enum.Enum):
+    """Estado en el que se encuentra un partido"""
+    BORRADOR = 'BORRADOR',
+    TERMINADO = 'TERMINADO'
+    SUSPENDIDO = 'SUSPENDIDO'
+    ANULADO = 'ANULADO'
+    REPROGRAMADO = 'REPROGRAMADO'
 
 class TipoTarjeta(str, enum.Enum):
     """Tipos de tarjeta disciplinaria"""

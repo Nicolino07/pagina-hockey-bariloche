@@ -72,10 +72,16 @@ EXECUTE FUNCTION fn_validar_arbitros_no_jugadores();
 -- RECÁLCULO DE POSICIONES
 -- =====================================================
 
-CREATE TRIGGER trg_recalcular_posiciones
-AFTER INSERT OR UPDATE OF goles_local, goles_visitante ON partido
+CREATE TRIGGER trg_recalcular_posiciones_estado
+AFTER UPDATE OF estado_partido
+ON partido
 FOR EACH ROW
+WHEN (
+    NEW.estado_partido = 'TERMINADO'
+    AND OLD.estado_partido IS DISTINCT FROM 'TERMINADO'
+)
 EXECUTE FUNCTION fn_recalcular_posiciones();
+
 
 -- =====================================================
 -- Triggers de auditoría

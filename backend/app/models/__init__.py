@@ -32,5 +32,6 @@ from .enums import (
     TipoFase,
     TipoUsuario,
     ReferenciaGol,
-    EstadoGol
+    EstadoGol,
+    EstadoPartido
 )

@@ -1,7 +1,7 @@
 from datetime import datetime, date, time
 from typing import Optional
-
-from app.models.mixins import AuditFieldsMixin, SoftDeleteMixin
+from app.models.enums import EstadoPartido
+from app.models.mixins import AuditFieldsMixin
 from sqlalchemy import (
     ForeignKey,
     Integer,
@@ -9,13 +9,14 @@ from sqlalchemy import (
     Date,
     Time,
     CheckConstraint,
-    UniqueConstraint
+    UniqueConstraint,
+    Enum
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 
 
-class Partido(Base, AuditFieldsMixin, SoftDeleteMixin):
+class Partido(Base, AuditFieldsMixin):
     __tablename__ = "partido"
 
     __table_args__ = (
@@ -105,6 +106,15 @@ class Partido(Base, AuditFieldsMixin, SoftDeleteMixin):
             "plantel_integrante.id_plantel_integrante",
             ondelete="SET NULL"
         )
+    )
+
+    estado_partido: Mapped[EstadoPartido] = mapped_column(
+        Enum(
+            EstadoPartido,
+            name="estado_partido",
+            native_enum=True
+        ),
+        nullable=False
     )
 
     # Mesa / organización

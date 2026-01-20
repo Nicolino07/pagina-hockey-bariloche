@@ -42,6 +42,18 @@ CREATE TYPE tipo_rol_persona AS ENUM (
   'DELEGADO'
 );
 
+-- ===============================================
+-- Estado de un partido
+-- ===============================================
+
+CREATE TYPE tipo_estado_partido AS ENUM (
+  'BORRADOR',
+  'TERMINADO',
+  'SUSPENDIDO',
+  'ANULADO',
+  'REPROGRAMADO'
+);
+
 -- =====================================================
 -- Tipo de tarjeta
 -- =====================================================

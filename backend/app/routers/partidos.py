@@ -1,53 +1,61 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+
 from app.database import get_db
-from app.models.partido import Partido as PartidoModel
-from app.schemas.partido import PartidoCreate, PartidoOut, PartidoUpdate
+from app.dependencies.permissions import require_admin
+from app.models.partido import Partido
+from app.schemas.partido import (
+    PartidoOut,
+    PlanillaPartidoCreate,
+)
+from app.services.partidos_services import crear_planilla_partido
 
-router = APIRouter(prefix="/partidos", tags=["Partidos"])
 
+router = APIRouter(
+    prefix="/partidos",
+    tags=["Partidos"],
+)
 
+# 🔓 Público
 @router.get("/", response_model=list[PartidoOut])
 def listar_partidos(db: Session = Depends(get_db)):
-    return db.query(PartidoModel).all()
-
-
-@router.post("/", response_model=PartidoOut, status_code=201)
-def crear_partido(data: PartidoCreate, db: Session = Depends(get_db)):
-    partido = PartidoModel(**data.dict())
-    db.add(partido)
-    db.commit()
-    db.refresh(partido)
-    return partido
-
+    return db.query(Partido).all()
 
 @router.get("/{id_partido}", response_model=PartidoOut)
 def obtener_partido(id_partido: int, db: Session = Depends(get_db)):
-    partido = db.query(PartidoModel).filter_by(id_partido=id_partido).first()
+    partido = db.get(Partido, id_partido)
     if not partido:
         raise HTTPException(404, "Partido no encontrado")
     return partido
 
+# 🔐 ADMIN / SUPERUSUARIO
+@router.post(
+    "/planilla",
+    response_model=PartidoOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def crear_planilla(
+    data: PlanillaPartidoCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    return crear_planilla_partido(db, data, current_user)
 
-@router.put("/{id_partido}", response_model=PartidoOut)
-def actualizar_partido(id_partido: int, data: PartidoUpdate, db: Session = Depends(get_db)):
-    partido = db.query(PartidoModel).filter_by(id_partido=id_partido).first()
+
+@router.delete("/{id_partido}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_partido(
+    id_partido: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    partido = db.get(Partido, id_partido)
     if not partido:
         raise HTTPException(404, "Partido no encontrado")
 
-    for key, value in data.dict(exclude_unset=True).items():
-        setattr(partido, key, value)
-
-    db.commit()
-    db.refresh(partido)
-    return partido
-
-
-@router.delete("/{id_partido}", status_code=204)
-def eliminar_partido(id_partido: int, db: Session = Depends(get_db)):
-    partido = db.query(PartidoModel).filter_by(id_partido=id_partido).first()
-    if not partido:
-        raise HTTPException(404, "Partido no encontrado")
+    if partido.estado_partido != "BORRADOR":
+        raise HTTPException(
+            400, "No se puede eliminar un partido terminado"
+        )
 
     db.delete(partido)
     db.commit()

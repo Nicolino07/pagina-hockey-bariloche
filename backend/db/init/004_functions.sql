@@ -158,7 +158,6 @@ BEGIN
         goles_a_favor = 0,
         goles_en_contra = 0
     WHERE id_torneo = p_id_torneo
-      AND borrado_en IS NULL;
 
     -- LOCAL
     UPDATE posicion pos
@@ -178,11 +177,9 @@ BEGIN
     FROM partido p
     JOIN inscripcion_torneo it
       ON it.id_inscripcion = p.id_inscripcion_local
-     AND it.borrado_en IS NULL
     WHERE p.id_torneo = p_id_torneo
-      AND p.borrado_en IS NULL
-      AND pos.id_equipo = it.id_equipo
-      AND pos.borrado_en IS NULL;
+      AND p.estado_partido = 'TERMINADO'
+      AND pos.id_equipo = it.id_equipo;
 
     -- VISITANTE
     UPDATE posicion pos
@@ -202,11 +199,9 @@ BEGIN
     FROM partido p
     JOIN inscripcion_torneo it
       ON it.id_inscripcion = p.id_inscripcion_visitante
-     AND it.borrado_en IS NULL
     WHERE p.id_torneo = p_id_torneo
-      AND p.borrado_en IS NULL
-      AND pos.id_equipo = it.id_equipo
-      AND pos.borrado_en IS NULL;
+      AND p.estado_partido = 'TERMINADO'
+      AND pos.id_equipo = it.id_equipo;
 END;
 $$;
 
@@ -215,10 +210,23 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    PERFORM recalcular_tabla_posiciones(NEW.id_torneo);
+    -- Caso 1: INSERT directamente TERMINADO
+    IF TG_OP = 'INSERT'
+       AND NEW.estado_partido = 'TERMINADO' THEN
+        PERFORM recalcular_tabla_posiciones(NEW.id_torneo);
+    END IF;
+
+    -- Caso 2: UPDATE que pasa a TERMINADO
+    IF TG_OP = 'UPDATE'
+       AND NEW.estado_partido = 'TERMINADO'
+       AND OLD.estado_partido IS DISTINCT FROM 'TERMINADO' THEN
+        PERFORM recalcular_tabla_posiciones(NEW.id_torneo);
+    END IF;
+
     RETURN NEW;
 END;
 $$;
+
 
 
 

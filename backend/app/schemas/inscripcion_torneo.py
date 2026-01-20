@@ -18,7 +18,7 @@ class InscripcionTorneoCreate(InscripcionTorneoBase):
             "example": {
                 "id_equipo": 3,
                 "id_torneo": 1,
-                "genero": "Masculino",
+                "genero": "MASCULINO",
                 "creado_por": "admin"
             }
         }
@@ -30,6 +30,7 @@ class InscripcionTorneoUpdate(BaseModel):
 class InscripcionTorneo(InscripcionTorneoBase):
     id_inscripcion: int
     fecha_inscripcion: date
+    fecha_baja: Optional [datetime] = None
 
     creado_en: datetime
     actualizado_en: Optional [datetime] = None
@@ -43,7 +44,7 @@ class InscripcionTorneo(InscripcionTorneoBase):
                 "id_inscripcion": 10,
                 "id_equipo": 3,
                 "id_torneo": 1,
-                "genero": "Masculino",
+                "genero": "MASCULINO",
                 "fecha_inscripcion": "2026-01-07",
                 "creado_en": "2026-01-07T10:00:00",
                 "actualizado_en": "2026-01-07T10:00:00",
@@ -52,3 +53,5 @@ class InscripcionTorneo(InscripcionTorneoBase):
             }
         }
     )
+
+

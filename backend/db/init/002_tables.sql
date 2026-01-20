@@ -168,10 +168,11 @@ CREATE TABLE IF NOT EXISTS inscripcion_torneo (
     id_torneo       INT NOT NULL 
         REFERENCES torneo(id_torneo) ON UPDATE CASCADE ON DELETE RESTRICT,
     fecha_inscripcion DATE DEFAULT CURRENT_DATE,
+    fecha_baja      TIMESTAMP DEFAULT NULL,
+
 
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP DEFAULT NULL,
-    borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100),
 
@@ -239,16 +240,24 @@ CREATE TABLE IF NOT EXISTS partido (
     observaciones  VARCHAR(1000),
     numero_fecha   INT,
 
+    estado_partido tipo_estado_partido DEFAULT 'BORRADOR',
+
     -- Auditoría
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP DEFAULT NULL,
-    borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100),
 
     -- Constraints
 
-    CONSTRAINT chk_equipos_distintos CHECK (id_inscripcion_local <> id_inscripcion_visitante),
+    CREATE UNIQUE INDEX partido_unq_equipo_fecha
+    ON partido (
+        id_torneo,
+        fecha,
+        LEAST(id_inscripcion_local, id_inscripcion_visitante),
+        GREATEST(id_inscripcion_local, id_inscripcion_visitante)
+    );
+
     CONSTRAINT chk_arbitros_distintos CHECK (
         id_arbitro1 IS DISTINCT FROM id_arbitro2
     ),

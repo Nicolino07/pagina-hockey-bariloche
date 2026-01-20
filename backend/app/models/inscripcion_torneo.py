@@ -12,9 +12,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
 from app.models.enums import GeneroTipo
-from app.models.mixins import AuditFieldsMixin, SoftDeleteMixin
+from app.models.mixins import AuditFieldsMixin
 
-class InscripcionTorneo(Base, AuditFieldsMixin, SoftDeleteMixin):
+class InscripcionTorneo(Base, AuditFieldsMixin):
     __tablename__ = "inscripcion_torneo"
 
     __table_args__ = (
@@ -43,6 +43,8 @@ class InscripcionTorneo(Base, AuditFieldsMixin, SoftDeleteMixin):
         default=date.today,
         nullable=False
     )
+
+    fecha_baja: Mapped[Optional[date]]
 
     # Relaciones (opcionales, pero recomendadas)
     equipo = relationship(

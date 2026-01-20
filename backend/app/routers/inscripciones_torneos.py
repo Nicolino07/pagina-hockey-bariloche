@@ -16,7 +16,7 @@ router = APIRouter(
     tags=["Inscripciones Torneo"],
 )
 
-
+# 🔓 Público
 @router.get("/", response_model=list[InscripcionTorneo])
 def listar_inscripciones(
     id_torneo: int,
@@ -31,6 +31,8 @@ def listar_inscripciones(
     response_model=InscripcionTorneo,
     status_code=status.HTTP_201_CREATED,
 )
+
+# 🔐 ADMIN / SUPERUSUARIO
 def inscribir_equipo(
     id_torneo: int,
     data: InscripcionTorneoCreate,
@@ -44,14 +46,22 @@ def inscribir_equipo(
         current_user=current_user,
     )
 
-
-@router.delete("/{id_inscripcion}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_inscripcion(
+# 🔐 ADMIN / SUPERUSUARIO
+@router.delete(
+    "/{id_equipo}/BAJA",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def dar_de_baja_inscripcion(
     id_torneo: int,
-    id_inscripcion: int,
+    id_equipo: int,
     db: Session = Depends(get_db),
     current_user: Usuario = Depends(require_admin),
 ):
-    inscripciones_services.eliminar_inscripcion(
-        db, id_torneo, id_inscripcion
+    inscripciones_services.dar_de_baja_inscripcion(
+        db=db,
+        id_torneo=id_torneo,
+        id_equipo=id_equipo,
+        current_user=current_user,
     )
+    db.commit()
+

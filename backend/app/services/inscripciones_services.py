@@ -5,7 +5,7 @@ from app.models.inscripcion_torneo import InscripcionTorneo
 from app.models.torneo import Torneo
 from app.models.equipo import Equipo
 from app.core.exceptions import ConflictError, NotFoundError, ValidationError
-
+from datetime import datetime
 
 def inscribir_equipo_en_torneo(
     db: Session,
@@ -58,7 +58,40 @@ def listar_inscripciones_por_torneo(
         db.query(InscripcionTorneo)
         .filter(
             InscripcionTorneo.id_torneo == id_torneo,
+            InscripcionTorneo.fecha_baja.is_(None),
             InscripcionTorneo.borrado_en.is_(None),
         )
         .all()
     )
+
+
+
+
+def dar_de_baja_inscripcion(
+    db: Session,
+    id_torneo: int,
+    id_equipo: int,
+    current_user,
+) -> InscripcionTorneo:
+
+    inscripcion = (
+        db.query(InscripcionTorneo)
+        .filter(
+            InscripcionTorneo.id_torneo == id_torneo,
+            InscripcionTorneo.id_equipo == id_equipo,
+            InscripcionTorneo.borrado_en.is_(None),
+        )
+        .first()
+    )
+
+    if not inscripcion:
+        raise NotFoundError(
+            "La inscripción no existe o ya fue dada de baja"
+        )
+
+    inscripcion.fecha_baja = datetime.utcnow()
+    inscripcion.actualizado_en = datetime.utcnow()
+    inscripcion.actualizado_por = current_user.username
+
+    return inscripcion
+

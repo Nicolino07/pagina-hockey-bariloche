@@ -19,3 +19,13 @@ FROM equipo e
 JOIN plantel pl ON e.id_equipo = pl.id_equipo
 JOIN plantel_integrante pi ON pl.id_plantel = pi.id_plantel
 JOIN persona per ON per.id_persona = pi.id_persona
+
+
+flujo de partido
+BEGIN
+  1) Crear partido (si no existe)
+  2) Crear participan_partido
+  3) Crear goles / tarjetas
+  4) Marcar partido TERMINADO
+  5) Recalcular posiciones
+COMMIT
