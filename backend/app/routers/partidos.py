@@ -4,12 +4,9 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies.permissions import require_admin
 from app.models.partido import Partido
-from app.schemas.partido import (
-    PartidoOut,
-    PlanillaPartidoCreate,
-)
+from app.schemas.partido import PartidoBase
+from app.schemas.planilla_partido import PlanillaPartidoCreate
 from app.services.partidos_services import crear_planilla_partido
-
 
 router = APIRouter(
     prefix="/partidos",
@@ -17,21 +14,23 @@ router = APIRouter(
 )
 
 # 🔓 Público
-@router.get("/", response_model=list[PartidoOut])
+@router.get("/", response_model=list[PartidoBase])
 def listar_partidos(db: Session = Depends(get_db)):
     return db.query(Partido).all()
 
-@router.get("/{id_partido}", response_model=PartidoOut)
+
+@router.get("/{id_partido}", response_model=PartidoBase)
 def obtener_partido(id_partido: int, db: Session = Depends(get_db)):
     partido = db.get(Partido, id_partido)
     if not partido:
         raise HTTPException(404, "Partido no encontrado")
     return partido
 
-# 🔐 ADMIN / SUPERUSUARIO
+
+# 🔐 ADMIN – carga de planilla completa
 @router.post(
     "/planilla",
-    response_model=PartidoOut,
+    response_model=PartidoBase,
     status_code=status.HTTP_201_CREATED,
 )
 def crear_planilla(

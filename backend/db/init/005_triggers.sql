@@ -67,20 +67,63 @@ AFTER INSERT OR UPDATE ON partido
 FOR EACH ROW
 EXECUTE FUNCTION fn_validar_arbitros_no_jugadores();
 
+-- No existen goles sin partido terminado 
+CREATE TRIGGER trg_validar_gol_partido
+BEFORE INSERT ON gol
+FOR EACH ROW
+EXECUTE FUNCTION fn_validar_gol_partido();
+
+-- Iniciar tabla en 0
+CREATE TRIGGER trg_init_posicion_inscripcion
+AFTER INSERT ON inscripcion_torneo
+FOR EACH ROW
+EXECUTE FUNCTION fn_init_posicion_por_inscripcion();
+
 
 -- =====================================================
 -- RECÁLCULO DE POSICIONES
 -- =====================================================
 
-CREATE TRIGGER trg_recalcular_posiciones_estado
-AFTER UPDATE OF estado_partido
-ON partido
+DROP TRIGGER IF EXISTS trg_recalcular_posiciones_partido ON partido;
+
+CREATE TRIGGER trg_recalcular_posiciones_partido
+AFTER UPDATE OF estado_partido ON partido
 FOR EACH ROW
 WHEN (
     NEW.estado_partido = 'TERMINADO'
     AND OLD.estado_partido IS DISTINCT FROM 'TERMINADO'
 )
 EXECUTE FUNCTION fn_recalcular_posiciones();
+
+
+CREATE OR REPLACE FUNCTION fn_recalcular_posiciones_por_gol()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_id_torneo INT;
+BEGIN
+    SELECT p.id_torneo
+    INTO v_id_torneo
+    FROM partido p
+    WHERE p.id_partido = COALESCE(NEW.id_partido, OLD.id_partido)
+      AND p.estado_partido = 'TERMINADO';
+
+    IF v_id_torneo IS NOT NULL THEN
+        PERFORM recalcular_tabla_posiciones(v_id_torneo);
+    END IF;
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+
+DROP TRIGGER IF EXISTS trg_recalcular_posiciones_gol ON gol;
+
+CREATE TRIGGER trg_recalcular_posiciones_gol
+AFTER INSERT OR UPDATE OR DELETE ON gol
+FOR EACH ROW
+EXECUTE FUNCTION fn_recalcular_posiciones_por_gol();
 
 
 -- =====================================================

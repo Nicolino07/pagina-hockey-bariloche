@@ -6,6 +6,7 @@ from sqlalchemy import text
 from app.models.partido import Partido
 from app.models.participan_partido import ParticipanPartido
 from app.models.gol import Gol
+from app.models.tarjeta import Tarjeta
 from app.models.plantel_integrante import PlantelIntegrante
 
 
@@ -14,7 +15,7 @@ def crear_planilla_partido(db: Session, data, current_user):
         # =========================
         # 1️⃣ Crear partido
         # =========================
-        partido = Partido(**data.partido)
+        partido = Partido(**data.partido.dict())
         partido.estado_partido = "BORRADOR"
         partido.creado_por = current_user.username
 
@@ -69,6 +70,35 @@ def crear_planilla_partido(db: Session, data, current_user):
                 )
             )
 
+    
+
+        # =========================
+        # 4️⃣ Cargar tarjetas
+        # =========================
+        for t in data.tarjetas:
+            id_pp = participantes_map.get(t.id_plantel_integrante)
+            if not id_pp:
+                raise HTTPException(
+                    400,
+                    f"El jugador {t.id_plantel_integrante} no participa del partido",
+                )
+
+            db.add(
+                Tarjeta(
+                    id_partido=partido.id_partido,
+                    id_participante_partido=id_pp,
+                    tipo=t.tipo,
+                    minuto=t.minuto,
+                    cuarto=t.cuarto,
+                    observaciones=t.observaciones,
+                    creado_por=current_user.username,
+                )
+            )
+
+
+
+        
+
         # se dispara el triggers para recalcular posiciones. 
         partido.estado_partido = "TERMINADO"
         db.flush()
@@ -76,6 +106,6 @@ def crear_planilla_partido(db: Session, data, current_user):
         db.commit()
         return partido
 
-    except SQLAlchemyError:
+    except Exception:
         db.rollback()
         raise

@@ -55,6 +55,5 @@ class PartidoUpdate(BaseModel):
     actualizado_por: Optional[str] = Field(None, max_length=100)
     
 class PartidoResultadoUpdate(BaseModel):
-    goles_local: int = Field(..., ge=0)
-    goles_visitante: int = Field(..., ge=0)
+ 
     actualizado_por: Optional[str] = Field(None, max_length=100)

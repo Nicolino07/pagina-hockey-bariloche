@@ -4,11 +4,10 @@ se puede crear un plantel pero no podemos agregar un integrante a un plantel
 comprobacion de genero en equipo/plantel/plantel_integrante LISTO
 
 
+AVANCE: carga de partido con goles y tarjetas funcionando, inicializacion de tabla de
+posiciones en 0 funcionando (detecta inscripcion),  
 
-PROXIMO: Inscripciones torneos
-
-    git commit -m "Listar inscripciones lista"
-    falta comprobar router para inscribir un equipo y borrar inscripciones
+PROXIMO: Armar primer front para el login + archivos necesarios + estructura
 
 
 
@@ -29,3 +28,59 @@ BEGIN
   4) Marcar partido TERMINADO
   5) Recalcular posiciones
 COMMIT
+
+
+obtener integrantes para los partidos 
+
+SELECT
+    pi.id_plantel_integrante,
+    per.id_persona,
+    per.nombre,
+    per.apellido,
+    pi.rol_en_plantel,
+    pi.numero_camiseta
+FROM inscripcion_torneo it
+JOIN equipo e
+    ON e.id_equipo = it.id_equipo
+JOIN plantel p
+    ON p.id_equipo = e.id_equipo
+    AND p.activo = true
+JOIN plantel_integrante pi
+    ON pi.id_plantel = p.id_plantel
+JOIN persona per
+    ON per.id_persona = pi.id_persona
+WHERE it.id_inscripcion = 4
+  AND pi.fecha_baja IS NULL
+ORDER BY pi.numero_camiseta;
+
+modo de uso vistas tarjetas. 
+
+Vista para tarjetas con detalles:
+
+Tarjetas de un torneo:
+
+SELECT *
+FROM vw_tarjetas_detalle_torneo
+WHERE id_torneo = 1
+ORDER BY apellido_persona, fecha_partido, minuto;
+
+
+Tarjetas de una persona:
+
+SELECT *
+FROM vw_tarjetas_detalle_torneo
+WHERE id_persona = 23;
+
+
+vista tarjetas_acumuladas 
+
+-- filtramos por torneo
+SELECT *
+FROM vw_tarjetas_acumuladas_torneo
+WHERE id_torneo = 1
+ORDER BY total_amarillas DESC;
+
+-- filtrar por acumulacion
+SELECT *
+FROM vw_tarjetas_acumuladas_torneo
+WHERE total_amarillas >= 3;

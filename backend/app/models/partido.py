@@ -72,18 +72,6 @@ class Partido(Base, AuditFieldsMixin):
         nullable=False
     )
 
-    goles_local: Mapped[int] = mapped_column(
-        Integer,
-        default=0,
-        nullable=False
-    )
-
-    goles_visitante: Mapped[int] = mapped_column(
-        Integer,
-        default=0,
-        nullable=False
-    )
-
     # Arbitraje
     id_arbitro1: Mapped[Optional[int]] = mapped_column(
         ForeignKey("persona.id_persona", ondelete="SET NULL")

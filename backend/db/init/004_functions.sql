@@ -148,7 +148,9 @@ RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Reinicio (solo posiciones activas)
+    -- =========================
+    -- 1️⃣ Reset tabla
+    -- =========================
     UPDATE posicion
     SET puntos = 0,
         partidos_jugados = 0,
@@ -157,78 +159,140 @@ BEGIN
         perdidos = 0,
         goles_a_favor = 0,
         goles_en_contra = 0
-    WHERE id_torneo = p_id_torneo
+    WHERE id_torneo = p_id_torneo;
 
-    -- LOCAL
+    -- =========================
+    -- 2️⃣ Recalcular desde partidos normalizados
+    -- =========================
     UPDATE posicion pos
     SET
-        partidos_jugados = partidos_jugados + 1,
-        goles_a_favor = goles_a_favor + p.goles_local,
-        goles_en_contra = goles_en_contra + p.goles_visitante,
-        ganados = ganados + (p.goles_local > p.goles_visitante)::int,
-        empatados = empatados + (p.goles_local = p.goles_visitante)::int,
-        perdidos = perdidos + (p.goles_local < p.goles_visitante)::int,
-        puntos = puntos +
-            CASE
-                WHEN p.goles_local > p.goles_visitante THEN 3
-                WHEN p.goles_local = p.goles_visitante THEN 1
-                ELSE 0
-            END
-    FROM partido p
-    JOIN inscripcion_torneo it
-      ON it.id_inscripcion = p.id_inscripcion_local
-    WHERE p.id_torneo = p_id_torneo
-      AND p.estado_partido = 'TERMINADO'
-      AND pos.id_equipo = it.id_equipo;
+        partidos_jugados = pos.partidos_jugados + x.partidos_jugados,
+        ganados           = pos.ganados           + x.ganados,
+        empatados         = pos.empatados         + x.empatados,
+        perdidos          = pos.perdidos          + x.perdidos,
+        goles_a_favor     = pos.goles_a_favor     + x.goles_a_favor,
+        goles_en_contra   = pos.goles_en_contra   + x.goles_en_contra,
+        puntos            = pos.puntos            + x.puntos
+    FROM (
+        SELECT
+            it.id_equipo,
+            COUNT(*) AS partidos_jugados,
+            SUM(CASE WHEN gf > gc THEN 1 ELSE 0 END) AS ganados,
+            SUM(CASE WHEN gf = gc THEN 1 ELSE 0 END) AS empatados,
+            SUM(CASE WHEN gf < gc THEN 1 ELSE 0 END) AS perdidos,
+            SUM(gf) AS goles_a_favor,
+            SUM(gc) AS goles_en_contra,
+            SUM(
+                CASE
+                    WHEN gf > gc THEN 3
+                    WHEN gf = gc THEN 1
+                    ELSE 0
+                END
+            ) AS puntos
+        FROM (
+            -- LOCAL
+            SELECT
+                p.id_torneo,
+                p.id_inscripcion_local   AS id_inscripcion,
+                r.goles_local            AS gf,
+                r.goles_visitante        AS gc
+            FROM vw_resultado_partido r
+            JOIN partido p ON p.id_partido = r.id_partido
+            WHERE p.estado_partido = 'TERMINADO'
 
-    -- VISITANTE
-    UPDATE posicion pos
-    SET
-        partidos_jugados = partidos_jugados + 1,
-        goles_a_favor = goles_a_favor + p.goles_visitante,
-        goles_en_contra = goles_en_contra + p.goles_local,
-        ganados = ganados + (p.goles_visitante > p.goles_local)::int,
-        empatados = empatados + (p.goles_visitante = p.goles_local)::int,
-        perdidos = perdidos + (p.goles_visitante < p.goles_local)::int,
-        puntos = puntos +
-            CASE
-                WHEN p.goles_visitante > p.goles_local THEN 3
-                WHEN p.goles_visitante = p.goles_local THEN 1
-                ELSE 0
-            END
-    FROM partido p
-    JOIN inscripcion_torneo it
-      ON it.id_inscripcion = p.id_inscripcion_visitante
-    WHERE p.id_torneo = p_id_torneo
-      AND p.estado_partido = 'TERMINADO'
-      AND pos.id_equipo = it.id_equipo;
+            UNION ALL
+
+            -- VISITANTE
+            SELECT
+                p.id_torneo,
+                p.id_inscripcion_visitante AS id_inscripcion,
+                r.goles_visitante          AS gf,
+                r.goles_local              AS gc
+            FROM vw_resultado_partido r
+            JOIN partido p ON p.id_partido = r.id_partido
+            WHERE p.estado_partido = 'TERMINADO'
+        ) partidos
+        JOIN inscripcion_torneo it
+          ON it.id_inscripcion = partidos.id_inscripcion
+        WHERE partidos.id_torneo = p_id_torneo
+        GROUP BY it.id_equipo
+    ) x
+    WHERE pos.id_torneo = p_id_torneo
+      AND pos.id_equipo = x.id_equipo;
 END;
 $$;
+
+
 
 CREATE OR REPLACE FUNCTION fn_recalcular_posiciones()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Caso 1: INSERT directamente TERMINADO
-    IF TG_OP = 'INSERT'
-       AND NEW.estado_partido = 'TERMINADO' THEN
-        PERFORM recalcular_tabla_posiciones(NEW.id_torneo);
-    END IF;
-
-    -- Caso 2: UPDATE que pasa a TERMINADO
+    -- SOLO cuando pasa a TERMINADO
     IF TG_OP = 'UPDATE'
-       AND NEW.estado_partido = 'TERMINADO'
-       AND OLD.estado_partido IS DISTINCT FROM 'TERMINADO' THEN
+       AND OLD.estado_partido IS DISTINCT FROM 'TERMINADO'
+       AND NEW.estado_partido = 'TERMINADO' THEN
+
         PERFORM recalcular_tabla_posiciones(NEW.id_torneo);
+
     END IF;
 
     RETURN NEW;
 END;
 $$;
 
+-- =================================================
+-- Prohibe goles sin partido TERMINADO
+-- =================================================
 
+CREATE OR REPLACE FUNCTION fn_validar_gol_partido()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM partido
+        WHERE id_partido = NEW.id_partido
+          AND estado_partido IN ('TERMINADO')
+    ) THEN
+        RAISE EXCEPTION 'No se pueden cargar goles en un partido no iniciado';
+    END IF;
 
+    RETURN NEW;
+END;
+$$;
+
+-- ====================================================
+-- Inicializa tabla de posiciones en 0
+-- ====================================================
+CREATE OR REPLACE FUNCTION fn_init_posicion_por_inscripcion()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO posicion (
+        id_torneo,
+        id_equipo,
+        puntos,
+        partidos_jugados,
+        ganados,
+        empatados,
+        perdidos,
+        goles_a_favor,
+        goles_en_contra
+    )
+    VALUES (
+        NEW.id_torneo,
+        NEW.id_equipo,
+        0, 0, 0, 0, 0, 0, 0
+    )
+    ON CONFLICT (id_torneo, id_equipo) DO NOTHING;
+
+    RETURN NEW;
+END;
+$$;
 
 -- =====================================================
 -- Función genérica de auditoría
@@ -239,7 +303,6 @@ $$;
 --   SET LOCAL app.ip
 --   SET LOCAL app.user_agent
 -- =====================================================
-
 CREATE OR REPLACE FUNCTION fn_auditoria_generica()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -248,7 +311,24 @@ DECLARE
     v_operacion   TEXT;
     v_user_id     INT;
 BEGIN
-    v_pk_column := TG_ARGV[0];
+    -- ===========================
+    -- OBTENER PK AUTOMÁTICAMENTE
+    -- ===========================
+    SELECT a.attname
+    INTO v_pk_column
+    FROM pg_index i
+    JOIN pg_attribute a
+      ON a.attrelid = i.indrelid
+     AND a.attnum = ANY(i.indkey)
+    WHERE i.indrelid = TG_RELID
+      AND i.indisprimary
+    LIMIT 1;
+
+    IF v_pk_column IS NULL THEN
+        RAISE EXCEPTION
+            'No se pudo determinar la PK para la tabla %',
+            TG_TABLE_NAME;
+    END IF;
 
     -- usuario desde contexto (puede ser NULL)
     v_user_id := current_setting('app.current_user_id', true)::INT;
@@ -257,7 +337,6 @@ BEGIN
     -- IGNORAR UPDATE SOLO ultimo_login EN USUARIO
     -- ===========================
     IF TG_OP = 'UPDATE'
-    
        AND to_jsonb(NEW) - ARRAY[
             'ultimo_login',
             'actualizado_en',
@@ -273,7 +352,9 @@ BEGIN
         RETURN NEW;
     END IF;
 
-    -- obtener PK según operación
+    -- ===========================
+    -- OBTENER ID REGISTRO (PK)
+    -- ===========================
     IF TG_OP = 'DELETE' THEN
         EXECUTE format(
             'SELECT ($1).%I::text',
@@ -290,7 +371,9 @@ BEGIN
         USING NEW;
     END IF;
 
-    -- detectar DELETE lógico
+    -- ===========================
+    -- DETECTAR DELETE LÓGICO
+    -- ===========================
     v_operacion :=
         CASE
             WHEN TG_OP = 'UPDATE'
@@ -302,6 +385,9 @@ BEGIN
             ELSE TG_OP
         END;
 
+    -- ===========================
+    -- INSERT AUDITORÍA
+    -- ===========================
     INSERT INTO auditoria_log (
         tabla_afectada,
         id_registro,
@@ -338,7 +424,6 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 
 
 COMMIT;

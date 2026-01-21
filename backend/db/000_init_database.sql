@@ -24,6 +24,8 @@
 \i /docker-entrypoint-initdb.d/seed/050_seed_torneos.sql
 \i /docker-entrypoint-initdb.d/seed/060_seed_planteles.sql
 \i /docker-entrypoint-initdb.d/seed/070_seed_usuarios.sql
+\i /docker-entrypoint-initdb.d/seed/080_seed_inscripcion.sql
+
 
 
 \echo '== Base inicializada correctamente =='

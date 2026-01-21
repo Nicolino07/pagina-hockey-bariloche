@@ -59,7 +59,7 @@ def listar_inscripciones_por_torneo(
         .filter(
             InscripcionTorneo.id_torneo == id_torneo,
             InscripcionTorneo.fecha_baja.is_(None),
-            InscripcionTorneo.borrado_en.is_(None),
+        
         )
         .all()
     )

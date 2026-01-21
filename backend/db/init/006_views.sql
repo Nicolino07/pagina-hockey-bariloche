@@ -59,12 +59,12 @@ SELECT
     p.id_torneo,
     p.fecha,
     p.horario,
+    p.estado_partido,
     el.id_equipo AS id_equipo_local,
     el.nombre AS equipo_local,
     ev.id_equipo AS id_equipo_visitante,
-    ev.nombre AS equipo_visitante,
-    p.goles_local,
-    p.goles_visitante
+    ev.nombre AS equipo_visitante
+
 FROM partido p
 JOIN inscripcion_torneo itl
   ON itl.id_inscripcion = p.id_inscripcion_local
@@ -74,6 +74,7 @@ JOIN inscripcion_torneo itv
   ON itv.id_inscripcion = p.id_inscripcion_visitante
 JOIN equipo ev
   ON ev.id_equipo = itv.id_equipo;
+
 
 
 -- =====================================================
@@ -92,6 +93,7 @@ SELECT
     pos.perdidos,
     pos.goles_a_favor,
     pos.goles_en_contra,
+    pos.diferencia_gol,
     pos.puntos
 FROM posicion pos
 JOIN torneo t
@@ -145,3 +147,150 @@ WHERE
          AND s.fecha_fin_suspension >= CURRENT_DATE)
     );
 
+-- =================================================
+-- vista resultados por partido 
+-- ================================================
+
+CREATE OR REPLACE VIEW vw_resultado_partido AS
+SELECT
+    p.id_partido,
+    p.id_torneo,
+    p.id_inscripcion_local,
+    p.id_inscripcion_visitante,
+
+    -- goles local
+    SUM(
+        CASE
+            WHEN (
+                it.id_inscripcion = p.id_inscripcion_local
+                AND NOT g.es_autogol
+            )
+            OR (
+                it.id_inscripcion = p.id_inscripcion_visitante
+                AND g.es_autogol
+            )
+            THEN 1
+            ELSE 0
+        END
+    ) AS goles_local,
+
+    -- goles visitante
+    SUM(
+        CASE
+            WHEN (
+                it.id_inscripcion = p.id_inscripcion_visitante
+                AND NOT g.es_autogol
+            )
+            OR (
+                it.id_inscripcion = p.id_inscripcion_local
+                AND g.es_autogol
+            )
+            THEN 1
+            ELSE 0
+        END
+    ) AS goles_visitante
+
+FROM partido p
+LEFT JOIN gol g
+  ON g.id_partido = p.id_partido
+LEFT JOIN participan_partido pp
+  ON pp.id_participante_partido = g.id_participante_partido
+LEFT JOIN plantel_integrante pi
+  ON pi.id_plantel_integrante = pp.id_plantel_integrante
+LEFT JOIN plantel pl
+  ON pl.id_plantel = pi.id_plantel
+LEFT JOIN inscripcion_torneo it
+  ON it.id_equipo = pl.id_equipo
+
+GROUP BY
+    p.id_partido,
+    p.id_torneo,
+    p.id_inscripcion_local,
+    p.id_inscripcion_visitante;
+
+
+-- =============================
+-- Vistas para tarjetas 
+-- =============================
+
+-- total acumuladas por torneo
+CREATE OR REPLACE VIEW vw_tarjetas_acumuladas_torneo AS
+SELECT
+    id_torneo,
+    torneo,
+
+    id_persona,
+    nombre_persona,
+    apellido_persona,
+
+    id_equipo,
+    equipo,
+
+    COUNT(*)                       AS total_tarjetas,
+    SUM(amarillas)                 AS total_amarillas,
+    SUM(rojas)                     AS total_rojas
+
+FROM vw_tarjetas_detalle_torneo
+GROUP BY
+    id_torneo,
+    torneo,
+    id_persona,
+    nombre_persona,
+    apellido_persona,
+    id_equipo,
+    equipo;
+
+-- Tarjetas mas detalles. 
+CREATE OR REPLACE VIEW vw_tarjetas_detalle_torneo AS
+SELECT
+    -- Torneo
+    tor.id_torneo,
+    tor.nombre              AS torneo,
+
+    -- Partido
+    p.id_partido,
+    p.fecha                 AS fecha_partido,
+    p.numero_fecha,
+
+    -- Persona
+    per.id_persona,
+    per.nombre              AS nombre_persona,
+    per.apellido            AS apellido_persona,
+
+    -- Rol / plantel
+    pi.id_plantel_integrante,
+    pi.rol_en_plantel,
+    pi.numero_camiseta,
+
+    -- Equipo
+    e.id_equipo,
+    e.nombre                AS equipo,
+
+    -- Tarjeta
+    t.id_tarjeta,
+    t.tipo                  AS tipo_tarjeta,
+    t.minuto,
+    t.cuarto,
+    t.observaciones,
+    t.estado_tarjeta,
+
+    -- Flags útiles
+    CASE WHEN t.tipo = 'AMARILLA' THEN 1 ELSE 0 END AS amarillas,
+    CASE WHEN t.tipo = 'ROJA' THEN 1 ELSE 0 END AS rojas
+
+FROM tarjeta t
+JOIN participan_partido pp
+    ON pp.id_participante_partido = t.id_participante_partido
+JOIN plantel_integrante pi
+    ON pi.id_plantel_integrante = pp.id_plantel_integrante
+JOIN persona per
+    ON per.id_persona = pi.id_persona
+JOIN plantel pl
+    ON pl.id_plantel = pi.id_plantel
+JOIN equipo e
+    ON e.id_equipo = pl.id_equipo
+JOIN partido p
+    ON p.id_partido = t.id_partido
+JOIN torneo tor
+    ON tor.id_torneo = p.id_torneo
+WHERE t.estado_tarjeta = 'VALIDA';

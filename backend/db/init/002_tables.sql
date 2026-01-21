@@ -220,9 +220,6 @@ CREATE TABLE IF NOT EXISTS partido (
     id_inscripcion_visitante INT NOT NULL
         REFERENCES inscripcion_torneo(id_inscripcion) ON DELETE RESTRICT,
 
-    goles_local    INT DEFAULT 0 CHECK (goles_local >= 0),
-    goles_visitante INT DEFAULT 0 CHECK (goles_visitante >= 0),
-
     -- Arbitraje
     id_arbitro1    INT REFERENCES persona(id_persona) ON DELETE SET NULL,
     id_arbitro2    INT REFERENCES persona(id_persona) ON DELETE SET NULL,
@@ -250,24 +247,28 @@ CREATE TABLE IF NOT EXISTS partido (
 
     -- Constraints
 
-    CREATE UNIQUE INDEX partido_unq_equipo_fecha
-    ON partido (
-        id_torneo,
-        fecha,
-        LEAST(id_inscripcion_local, id_inscripcion_visitante),
-        GREATEST(id_inscripcion_local, id_inscripcion_visitante)
-    );
-
     CONSTRAINT chk_arbitros_distintos CHECK (
-        id_arbitro1 IS DISTINCT FROM id_arbitro2
+        id_arbitro1 IS NULL
+        OR id_arbitro2 IS NULL
+        OR id_arbitro1 <> id_arbitro2
     ),
     CONSTRAINT chk_capitanes_distintos CHECK (
-        id_capitan_local IS DISTINCT FROM id_capitan_visitante
-    ),
-    CONSTRAINT partido_unq_equipo_fecha UNIQUE (
-        id_torneo, fecha, id_inscripcion_local, id_inscripcion_visitante
+        id_capitan_local IS NULL
+        OR id_capitan_visitante IS NULL
+        OR id_capitan_local <> id_capitan_visitante
     )
+
 );
+
+-- Restriccion partido unico. 
+CREATE UNIQUE INDEX partido_unq_equipo_fecha
+ON partido (
+    id_torneo,
+    fecha,
+    LEAST(id_inscripcion_local, id_inscripcion_visitante),
+    GREATEST(id_inscripcion_local, id_inscripcion_visitante)
+);
+
 
 -- ======================
 -- PARTICIPAN_PARTIDO
