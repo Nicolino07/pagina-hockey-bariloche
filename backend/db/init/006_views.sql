@@ -213,34 +213,7 @@ GROUP BY
 -- Vistas para tarjetas 
 -- =============================
 
--- total acumuladas por torneo
-CREATE OR REPLACE VIEW vw_tarjetas_acumuladas_torneo AS
-SELECT
-    id_torneo,
-    torneo,
-
-    id_persona,
-    nombre_persona,
-    apellido_persona,
-
-    id_equipo,
-    equipo,
-
-    COUNT(*)                       AS total_tarjetas,
-    SUM(amarillas)                 AS total_amarillas,
-    SUM(rojas)                     AS total_rojas
-
-FROM vw_tarjetas_detalle_torneo
-GROUP BY
-    id_torneo,
-    torneo,
-    id_persona,
-    nombre_persona,
-    apellido_persona,
-    id_equipo,
-    equipo;
-
--- Tarjetas mas detalles. 
+-- PRIMERO: Tarjetas con detalles (vista base)
 CREATE OR REPLACE VIEW vw_tarjetas_detalle_torneo AS
 SELECT
     -- Torneo
@@ -294,3 +267,28 @@ JOIN partido p
 JOIN torneo tor
     ON tor.id_torneo = p.id_torneo
 WHERE t.estado_tarjeta = 'VALIDA';
+
+-- LUEGO: Total acumuladas por torneo (depende de la vista anterior)
+CREATE OR REPLACE VIEW vw_tarjetas_acumuladas_torneo AS
+SELECT
+    id_torneo,
+    torneo,
+    id_persona,
+    nombre_persona,
+    apellido_persona,
+    id_equipo,
+    equipo,
+    COUNT(*)                       AS total_tarjetas,
+    SUM(amarillas)                 AS total_amarillas,
+    SUM(rojas)                     AS total_rojas
+FROM vw_tarjetas_detalle_torneo
+GROUP BY
+    id_torneo,
+    torneo,
+    id_persona,
+    nombre_persona,
+    apellido_persona,
+    id_equipo,
+    equipo;
+
+COMMIT;

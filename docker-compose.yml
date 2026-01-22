@@ -9,10 +9,8 @@ services:
     ports:
       - "5434:5432"
     volumes:
-       - postgres_data:/var/lib/postgresql/data
-       
-       - ./backend/db:/docker-entrypoint-initdb.d
-
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db:/docker-entrypoint-initdb.d
     networks:
       - hockey-network
 
@@ -43,6 +41,19 @@ services:
       - "8080:80"
     depends_on:
       - db
+    networks:
+      - hockey-network
+
+  frontend:
+    build: ./frontend
+    container_name: hockey_frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
     networks:
       - hockey-network
 

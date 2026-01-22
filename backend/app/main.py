@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.middleware import request_context_middleware
 from app.core.exceptions import AppError
@@ -22,6 +23,16 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(
     title="Hockey Bariloche API",
     version="1.1.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",  # frontend Vite
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # =====================================================
