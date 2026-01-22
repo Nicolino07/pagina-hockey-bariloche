@@ -1,6 +1,5 @@
 // src/auth/AuthContext.tsx
 import { createContext, useContext, useEffect, useState } from "react"
-import * as authApi from "../api/auth.api"
 
 type User = {
   id: number
@@ -12,8 +11,8 @@ type AuthContextType = {
   user: User | null
   token: string | null
   isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<void>
-  logout: () => Promise<void>
+  login: (token: string, user: User) => void
+  logout: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -22,7 +21,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
 
-  // 🔁 restaurar sesión al refrescar
+  // 🔁 Restaurar sesión al refrescar
   useEffect(() => {
     const storedToken = localStorage.getItem("access_token")
     const storedUser = localStorage.getItem("user")
@@ -33,22 +32,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [])
 
-  const login = async (email: string, password: string) => {
-    const data = await authApi.login(email, password)
+  const login = (token: string, user: User) => {
+    localStorage.setItem("access_token", token)
+    localStorage.setItem("user", JSON.stringify(user))
 
-    // ⚠️ asumimos que backend devuelve esto:
-    // { access_token, user }
-    localStorage.setItem("access_token", data.access_token)
-    localStorage.setItem("user", JSON.stringify(data.user))
-
-    setToken(data.access_token)
-    setUser(data.user)
+    setToken(token)
+    setUser(user)
   }
 
-  const logout = async () => {
-    await authApi.logout()
+  const logout = () => {
     localStorage.removeItem("access_token")
     localStorage.removeItem("user")
+
     setToken(null)
     setUser(null)
   }

@@ -1,7 +1,8 @@
 import { Routes, Route } from "react-router-dom"
-import Login from "./pages/Login"
-import Home from "./pages/Home"
-import ProtectedRoute from "./auth/ProtectedRoute"
+import Login from "./pages/login/Login"
+import Home from "./pages/home/Home"
+import { ProtectedRoute } from "./auth/ProtectedRoute"
+
 
 export default function App() {
   return (

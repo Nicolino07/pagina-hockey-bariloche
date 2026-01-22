@@ -19,6 +19,8 @@ yarn-debug.log*
 yarn-error.log*
 dist/
 build/
+.vite/
+
 
 # =====================
 # Python (si usás scripts)

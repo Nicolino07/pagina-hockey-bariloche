@@ -1,0 +1,11 @@
+.title {
+  color: var(--color-primary);
+}
+
+.subtitle {
+  color: var(--text-secondary);
+}
+
+.divider {
+  border-bottom: 1px solid var(--divider-color);
+}

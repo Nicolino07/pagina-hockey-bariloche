@@ -31,20 +31,24 @@ frontend/
 │   │   └── AuthLayout.tsx       # login
 │
 │   ├── pages/                   # 📄 páginas (routes)
-│   │   ├── Login.tsx
-│   │   ├── Home.tsx
-│   │   ├── Clubes.tsx
-│   │   ├── Equipos.tsx
-│   │   ├── Torneos.tsx
-│   │   ├── Partidos.tsx
-│   │   └── Posiciones.tsx
-│
+|   |   |
+|   │   ├── Login/
+|   │   │   ├── Login.tsx
+|   │   │   └── Login.module.css
+|   │   ├── Home/
+|   │   │   ├── Home.tsx
+|   │   │   └── Home.module.css
+|   │   ├── NotFound/
+|   │   │   ├── NotFound.tsx
+|   │   │   └── NotFound.module.css
+|   |
 │   ├── components/              # 🧩 componentes reutilizables
-│   │   ├── Sidebar.tsx
-│   │   ├── Header.tsx
-│   │   ├── DataTable.tsx
-│   │   ├── Loader.tsx
-│   │   └── ConfirmDialog.tsx
+|   │   ├── Button/
+|   │   │   ├── Button.tsx
+|   │   │   └── Button.module.css
+|   │   └── Navbar/
+|   │       ├── Navbar.tsx
+|   │       └── Navbar.module.css
 │
 │   ├── hooks/                   # ♻ lógica reutilizable
 │   │   ├── useFetch.ts
@@ -63,7 +67,9 @@ frontend/
 │   │   └── formatters.ts
 │
 │   ├── styles/                  # 🎨
-│   │   └── main.css
+│   ├── variables.css        ← colores, fuentes, spacing
+│   ├── globals.css          ← reset + estilos base
+│   └── layout.css           ← layout general (header, main, footer)
 │
 │   └── router.tsx               # definición de rutas
 │

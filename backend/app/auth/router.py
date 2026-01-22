@@ -20,6 +20,7 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
+    print("LOGIN REQUEST")
     access_token, refresh_token = login_user(
         db,
         form_data.username,

@@ -5,25 +5,20 @@ const api = axios.create({
   withCredentials: true, // 👈 necesario para cookies (refresh token)
 })
 
-// 👉 Request interceptor (access token)
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token")
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-
-// 👉 Response interceptor (401 → logout por ahora)
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
+  (error) => {
+    const isLogin = error.config?.url?.includes("/auth/login")
+
+    if (error.response?.status === 401 && !isLogin) {
       localStorage.removeItem("access_token")
+      localStorage.removeItem("user")
       window.location.href = "/login"
     }
+
     return Promise.reject(error)
   }
 )
+
 
 export default api

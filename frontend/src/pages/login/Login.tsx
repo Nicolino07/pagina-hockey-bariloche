@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { login as loginApi } from "../api/auth.api"
-import { useAuth } from "../auth/AuthContext"
-import { decodeJwt } from "../utils/jwt"
+import { login as loginApi } from "../../api/auth.api"
+import { useAuth } from "../../auth/AuthContext"
+import { decodeJwt } from "../../utils/jwt"
 
 export default function Login() {
   const navigate = useNavigate()
@@ -13,8 +13,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (loading) return   // 👈 CLAVE
+
     setLoading(true)
     setError(null)
 
@@ -36,6 +41,7 @@ export default function Login() {
       setLoading(false)
     }
   }
+
 
   return (
     <div style={{ maxWidth: 320, margin: "80px auto" }}>

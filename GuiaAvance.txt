@@ -6,8 +6,9 @@ comprobacion de genero en equipo/plantel/plantel_integrante LISTO
 
 AVANCE: carga de partido con goles y tarjetas funcionando, inicializacion de tabla de
 posiciones en 0 funcionando (detecta inscripcion),  
+Inicio de sesion y acceso a Panel principal listo
 
-PROXIMO: Armar primer front para el login + archivos necesarios + estructura
+PROXIMO: Conectar primeras funciones del back con el front o dar color. 
 
 
 
