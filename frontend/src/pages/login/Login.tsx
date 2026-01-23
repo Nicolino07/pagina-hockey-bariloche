@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { login as loginApi } from "../../api/auth.api"
 import { useAuth } from "../../auth/AuthContext"
 import { decodeJwt } from "../../utils/jwt"
+import styles from "./Login.module.css"
 
 export default function Login() {
   const navigate = useNavigate()
@@ -13,19 +14,15 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (loading) return   // 👈 CLAVE
+    if (loading) return
 
     setLoading(true)
     setError(null)
 
     try {
       const data = await loginApi(username, password)
-
       const payload = decodeJwt(data.access_token)
 
       login(data.access_token, {
@@ -34,39 +31,42 @@ export default function Login() {
         rol: payload.rol,
       })
 
-      navigate("/")
-    } catch (err) {
+      navigate("/admin")
+    } catch {
       setError("Usuario o contraseña incorrectos")
     } finally {
       setLoading(false)
     }
   }
 
-
   return (
-    <div style={{ maxWidth: 320, margin: "80px auto" }}>
-      <h1>Login</h1>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Login</h1>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          placeholder="Usuario"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <input
+            className={styles.input}
+            placeholder="Usuario"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
 
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+          <input
+            className={styles.input}
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
+          {error && <p className={styles.error}>{error}</p>}
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Ingresando..." : "Entrar"}
-        </button>
-      </form>
+          <button type="submit" disabled={loading} className={styles.button}>
+            {loading ? "Ingresando..." : "Entrar"}
+          </button>
+        </form>
+      </div>
     </div>
   )
 }

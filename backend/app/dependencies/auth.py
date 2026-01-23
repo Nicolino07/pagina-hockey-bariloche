@@ -20,7 +20,10 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
 ) -> Usuario:
-
+    
+    # debug 
+    # print("AUTH HEADER:", request.headers.get("authorization"))
+    #
     if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.club import Club, ClubCreate, ClubUpdate
 from app.services import clubes_services
-from app.dependencies.permissions import require_admin
+from app.dependencies.permissions import require_superuser
 from app.models.usuario import Usuario
 
 router = APIRouter(prefix="/clubes", tags=["Clubes"])
@@ -27,7 +27,7 @@ def obtener_club(id_club: int, db: Session = Depends(get_db)):
 def crear_club(
     data: ClubCreate,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(require_superuser),
 ):
     return clubes_services.crear_club(db, data, current_user)
 
@@ -38,7 +38,7 @@ def actualizar_club(
     id_club: int,
     data: ClubUpdate,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(require_superuser),
 ):
     return clubes_services.actualizar_club(
         db=db,
@@ -53,7 +53,7 @@ def actualizar_club(
 def eliminar_club(
     id_club: int,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(require_superuser),
 ):
     clubes_services.eliminar_club(db, id_club, current_user)
 
@@ -63,6 +63,6 @@ def eliminar_club(
 def restore_club(
     id_club: int,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(require_superuser),
 ):
     return clubes_services.restaurar_club(db, id_club, current_user)

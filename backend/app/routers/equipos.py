@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.equipo import Equipo as EquipoSchema, EquipoCreate, EquipoUpdate
 from app.services import equipos_services
-from app.dependencies.permissions import require_admin
+from app.dependencies.permissions import require_admin, require_superuser
 
 router = APIRouter(prefix="/equipos", tags=["Equipos"])
 
@@ -48,7 +48,7 @@ def actualizar_equipo(
     return equipos_services.actualizar_equipo(db, equipo_id, data, current_user)
 
 
-# 🔐 ADMIN / SUPERUSUARIO
+# 🔐 SUPERUSUARIO
 @router.delete("/{equipo_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_equipo(
     equipo_id: int,
@@ -57,11 +57,11 @@ def eliminar_equipo(
 ):
     equipos_services.eliminar_equipo(db, equipo_id, current_user)
 
-# 🔐 ADMIN / SUPERUSUARIO
+# 🔐 SUPERUSUARIO
 @router.post("/{equipo_id}/restore", response_model=EquipoSchema)
 def restore_equipo(
     equipo_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(require_admin),
+    current_user = Depends(require_superuser),
 ):
     return equipos_services.restaurar_equipo(db, equipo_id, current_user)

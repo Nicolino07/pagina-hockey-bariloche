@@ -1,0 +1,96 @@
+.container {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background-color: var(--bg-paper);
+  border: 1px solid var(--divider-color);
+  border-radius: 8px;
+  padding: 16px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card strong {
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.card span {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* 🔘 Botones */
+
+.primaryButton {
+  background-color: var(--color-primary);
+  color: var(--text-on-primary);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.primaryButton:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.linkButton:hover {
+  text-decoration: underline;
+}
+
+.dangerButton {
+  background: none;
+  border: none;
+  color: #c62828;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.dangerButton:hover {
+  text-decoration: underline;
+}
+
+.empty {
+  color: var(--text-secondary);
+  font-style: italic;
+}

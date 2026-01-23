@@ -41,3 +41,25 @@ def login(
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+@router.post("/refresh")
+def refresh(request: Request, response: Response, db: Session = Depends(get_db)):
+    access_token, new_refresh_token = refresh_access_token(db, request)
+
+    response.set_cookie(
+        key="refresh_token",
+        value=new_refresh_token,
+        httponly=True,
+        secure=True,
+        samesite="strict",
+        max_age=60 * 60 * 24 * 7,
+    )
+
+    return {"access_token": access_token}
+
+
+@router.post("/logout")
+def logout(request: Request, response: Response, db: Session = Depends(get_db)):
+    logout_user(db, request)
+    response.delete_cookie("refresh_token")
+    return {"ok": True}

@@ -1,4 +1,4 @@
-estructura recomendada (React + Vite + TS)
+estructura (React + Vite + TS)
 
 frontend/
 ├── Dockerfile
@@ -10,67 +10,68 @@ frontend/
 ├── src/
 │   ├── main.tsx                 # ReactDOM.createRoot
 │   ├── App.tsx                  # Router + Providers
-│
+│   |
 │   ├── api/                     # 🔌 comunicación backend
 │   │   ├── axios.ts             # instancia axios + interceptors
 │   │   ├── auth.api.ts          # login / logout / refresh
-│   │   ├── clubes.api.ts
-│   │   ├── equipos.api.ts
-│   │   ├── torneos.api.ts
-│   │   ├── partidos.api.ts
 │   │   └── index.ts
-│
+│   |
 │   ├── auth/                    # 🔐 sesión
 │   │   ├── AuthContext.tsx
-│   │   ├── useAuth.ts
 │   │   ├── ProtectedRoute.tsx
-│   │   └── ProtectedByRole.tsx
-│
+│   |
 │   ├── layouts/                 # 🧱 estructura visual
-│   │   ├── MainLayout.tsx       # sidebar + header
-│   │   └── AuthLayout.tsx       # login
-│
-│   ├── pages/                   # 📄 páginas (routes)
-|   |   |
-|   │   ├── Login/
-|   │   │   ├── Login.tsx
-|   │   │   └── Login.module.css
-|   │   ├── Home/
-|   │   │   ├── Home.tsx
-|   │   │   └── Home.module.css
-|   │   ├── NotFound/
-|   │   │   ├── NotFound.tsx
-|   │   │   └── NotFound.module.css
+│   │   ├── PublicLayout.tsx      
+│   │   ├── PublicLayout.module.css
+│   │   ├── AdminLayout.tsx
+│   │   ├── AdminLayout.module.css
+│   |
+|   ├── pages/
+|   |    ├── public/
+|   |    │   ├── home/
+|   |    │   │   ├── Home.tsx
+|   |    │   │   └── Home.module.css
+|   |    │   ├── clubes/
+|   |    │   │   ├── ClubPublic.tsx        # futuro
+|   |    │   │   └── ClubPublic.module.css
+
+|   |    │
+|   |    ├── admin/
+|   |    │   ├── panel/
+|   |    │   │   ├── PanelAdmin.tsx
+|   |    │   │   └── PanelAdmin.module.css
+|   |    │   ├── clubes/
+|   |    │   │   ├── Clubes.tsx
+|   |    │   │   ├── Clubes.module.css
+|   |    |   |   ├── ClubDetalle.tsx  
+|   |    |   |   └── ClubDetalle.module.css
+|   |    │   ├── equipos/
+|   |    |   │   ├── torneos/
+|   |    |   │   └── partidos/
+|   |    │
+|   |    ├── login/
+|   |        ├── Login.tsx
+|   |        └── Login.module.css
 |   |
 │   ├── components/              # 🧩 componentes reutilizables
-|   │   ├── Button/
-|   │   │   ├── Button.tsx
-|   │   │   └── Button.module.css
-|   │   └── Navbar/
+|   |   ├──club/
+|   |   |    ├── ClubCard.tsx
+|   |   |    ├── ClubCard.module.css
+|   │   ├── footer/
+|   │   │   ├── Footer.tsx
+|   │   │   └── Footer.module.css
+|   │   └── navbar/
 |   │       ├── Navbar.tsx
 |   │       └── Navbar.module.css
-│
-│   ├── hooks/                   # ♻ lógica reutilizable
-│   │   ├── useFetch.ts
-│   │   └── useDebounce.ts
-│
-│   ├── types/                   # 📦 tipado compartido
-│   │   ├── auth.ts
-│   │   ├── club.ts
-│   │   ├── equipo.ts
-│   │   ├── torneo.ts
-│   │   └── partido.ts
-│
+│   |
 │   ├── utils/                   # 🛠 helpers
 │   │   ├── jwt.ts               # decode JWT
-│   │   ├── permissions.ts       # helpers de rol
-│   │   └── formatters.ts
-│
+│   │   ├── permissions.ts       # helpers de rol -- sin implentar 
+│   │   └── formatters.ts          # sin implentar
+│   |
 │   ├── styles/                  # 🎨
 │   ├── variables.css        ← colores, fuentes, spacing
 │   ├── globals.css          ← reset + estilos base
-│   └── layout.css           ← layout general (header, main, footer)
-│
-│   └── router.tsx               # definición de rutas
+│   └── layout.css           ← layout general (header, main, footer) -- vacio
 │
 └── README.md

@@ -1,0 +1,104 @@
+.container {
+  padding: 1.5rem;
+  background-color: var(--bg-default);
+  min-height: 100%;
+}
+
+/* ───────── HEADER ───────── */
+
+.header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  align-items: center;
+
+  background-color: var(--bg-paper);
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--divider-color);
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: var(--color-secondary);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+}
+
+.title h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.city {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ───────── ACTIONS ───────── */
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actions button {
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.edit {
+  background-color: var(--color-primary);
+  color: var(--text-on-primary);
+}
+
+.delete {
+  background-color: var(--color-accent01);
+  color: var(--text-on-primary);
+}
+
+/* ───────── SECTIONS ───────── */
+
+.section {
+  margin-top: 2rem;
+  background-color: var(--bg-paper);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--divider-color);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.sectionHeader h2 {
+  font-size: 1.1rem;
+}
+
+.sectionHeader button {
+  background-color: var(--color-accent02);
+  color: var(--text-on-primary);
+  border: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.empty {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 1rem;
+}
