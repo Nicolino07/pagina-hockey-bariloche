@@ -5,11 +5,21 @@ from app.schemas.equipo import EquipoCreate, EquipoUpdate
 from app.core.exceptions import NotFoundError
 
 
-def listar_equipos(db: Session, nombre: str | None = None) -> list[Equipo]:
+def listar_equipos(
+        db: Session, 
+        nombre: str | None = None, 
+        id_club: int | None = None,
+        ) -> list[Equipo]:
+    
     query = db.query(Equipo)
+
+    query = db.query(Equipo).filter(Equipo.borrado_en.is_(None))
 
     if nombre:
         query = query.filter(Equipo.nombre.ilike(f"%{nombre}%"))
+
+    if id_club:
+        query = query.filter(Equipo.id_club == id_club)
 
     return query.all()
 

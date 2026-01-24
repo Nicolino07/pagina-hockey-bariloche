@@ -3,7 +3,6 @@
 .panel {
   min-height: calc(100vh - 120px); /* navbar + footer */
   padding: 32px;
-  background: #f6f6f6;
 }
 
 .header {

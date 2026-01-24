@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom"
 import NavbarAdmin from "../components/navbar/NavBarAdmin"
 import styles from "./AdminLayout.module.css"
+import Footer from "../components/footer/Footer"
 
 export default function AdminLayout() {
   return (
@@ -10,6 +11,8 @@ export default function AdminLayout() {
       <main className={styles.main}>
         <Outlet />
       </main>
+
+      <Footer />
     </div>
   )
 }

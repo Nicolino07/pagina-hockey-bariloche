@@ -13,10 +13,10 @@ router = APIRouter(prefix="/equipos", tags=["Equipos"])
 @router.get("/", response_model=list[EquipoSchema])
 def listar_equipos(
     nombre: str | None = None,
+    id_club: int | None = None,
     db: Session = Depends(get_db),
 ):
-    return equipos_services.listar_equipos(db, nombre)
-
+    return equipos_services.listar_equipos(db, nombre, id_club)
 
 # 🔓 Público
 @router.get("/{equipo_id}", response_model=EquipoSchema)
