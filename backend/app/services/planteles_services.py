@@ -6,6 +6,7 @@ from app.models.persona import Persona
 from app.models.plantel import Plantel
 from app.models.plantel_integrante import PlantelIntegrante
 from app.schemas.plantel_integrante import PlantelIntegranteCreate
+from app.models.persona_rol import PersonaRol
 from app.core.exceptions import (
     NotFoundError,
     ConflictError,
@@ -59,13 +60,20 @@ def agregar_integrante(
     if plantel.borrado_en is not None:
         raise ValidationError("No se puede modificar un plantel eliminado")
 
-    # ✅ VALIDACIÓN DE GÉNERO (solo si es JUGADOR)
+    # ✅ VALIDACIÓN DE GÉNERO/ROL (solo si es JUGADOR)
     validar_genero_para_jugador(
         db,
         id_plantel=id_plantel,
         id_persona=data.id_persona,
         rol_en_plantel=data.rol_en_plantel,
     )
+
+    validar_rol_persona(
+        db,
+        id_persona=data.id_persona,
+        rol_en_plantel=data.rol_en_plantel,
+    )
+
 
     existente = (
         db.query(PlantelIntegrante)
@@ -94,6 +102,29 @@ def agregar_integrante(
     db.flush()  # 🔥 genera id_integrante
 
     return integrante
+
+
+
+def validar_rol_persona(
+    db: Session,
+    *,
+    id_persona: int,
+    rol_en_plantel: str,
+):
+    rol_activo = (
+        db.query(PersonaRol)
+        .filter(
+            PersonaRol.id_persona == id_persona,
+            PersonaRol.rol == rol_en_plantel,
+            PersonaRol.fecha_hasta.is_(None),
+        )
+        .first()
+    )
+
+    if not rol_activo:
+        raise ValidationError(
+            f"La persona no tiene habilitado el rol {rol_en_plantel}"
+        )
 
 
 def dar_baja_integrante(

@@ -28,11 +28,11 @@ def obtener_persona(db: Session, persona_id: int) -> Persona:
 
 
 def crear_persona_con_rol(
-    db: Session,
-    persona_data: PersonaCreate,
-    rol_data: PersonaRolCreate,
-    current_user,
-) -> Persona:
+        db: Session,
+        persona_data: PersonaCreate,
+        rol_data: PersonaRolCreate,
+        current_user,
+    ) -> Persona:
 
     if rol_data.rol not in ROLES_VALIDOS:
         raise ValidationError(f"Rol inválido: {rol_data.rol}")
@@ -59,12 +59,44 @@ def crear_persona_con_rol(
         raise ConflictError("Ya existe una persona con ese DNI")
 
 
+def agregar_rol_a_persona(
+        db: Session,
+        id_persona: int,
+        rol: str,
+        current_user,
+    ):
+
+    existente = (
+        db.query(PersonaRol)
+        .filter(
+            PersonaRol.id_persona == id_persona,
+            PersonaRol.rol == rol,
+            PersonaRol.fecha_hasta.is_(None),
+        )
+        .first()
+    )
+
+    if existente:
+        return existente
+
+    nuevo = PersonaRol(
+        id_persona=id_persona,
+        rol=rol,
+        fecha_desde=date.today(),
+        creado_por=current_user.username,
+    )
+
+    db.add(nuevo)
+    return nuevo
+
+
 def actualizar_persona(
-    db: Session,
-    persona: Persona,
-    data: PersonaCreate,
-    current_user,
-) -> Persona:
+        db: Session,
+        persona: Persona,
+        data: PersonaCreate,
+        current_user,
+    ) -> Persona:
+    
     valores = data.model_dump(exclude_unset=True)
 
     for campo, valor in valores.items():

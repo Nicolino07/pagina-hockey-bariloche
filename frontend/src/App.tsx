@@ -4,6 +4,8 @@ import Home from "./pages/public/home/Home"
 import PanelAdmin from "./pages/admin/panel_admin/PanelAdmin"
 import Clubes from "./pages/admin/clubes/Clubes"
 import ClubDetalle from "./pages/admin/clubes/ClubDetalle"
+import EquipoDetalle from "./pages/admin/equipos/EquipoDetalle"
+
 
 import PublicLayout from "./layouts/PublicLayout"
 import AdminLayout from "./layouts/AdminLayout"
@@ -30,6 +32,8 @@ export default function App() {
         <Route path="/admin" element={<PanelAdmin />} />
         <Route path="/admin/clubes" element={<Clubes />} />
         <Route path="/admin/clubes/:id_club" element={<ClubDetalle />} />
+        <Route path="/admin/equipos/:idEquipo" element={<EquipoDetalle />} />
+
 
       </Route>
     </Routes>

@@ -1,110 +1,88 @@
 import { useEffect, useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams } from "react-router-dom"
 
 import styles from "./EquipoDetalle.module.css"
 
 import { getEquipoById } from "../../../api/equipos.api"
-import {
-  getPlantelActivoByEquipo,
-  createPlantel,
-  getIntegrantesByPlantel,
-} from "../../../api/planteles.api"
+import { getPlantelActivoByEquipo } from "../../../api/planteles.api"
+import { getIntegrantesByPlantel } from "../../../api/plantelIntegrantes.api"
 
 import type { Equipo } from "../../../types/equipo"
 import type { Plantel } from "../../../types/plantel"
 import type { PlantelIntegrante } from "../../../types/plantelIntegrante"
 
+import PlantelLista from "./PlantelLista"
+import PlantelAgregar from "./PlantelAgregar"
+
 export default function EquipoDetalle() {
-  const { id_equipo } = useParams<{ id_equipo: string }>()
-  const navigate = useNavigate()
+  const { idEquipo } = useParams<{ idEquipo: string }>()
 
   const [equipo, setEquipo] = useState<Equipo | null>(null)
   const [plantel, setPlantel] = useState<Plantel | null>(null)
   const [integrantes, setIntegrantes] = useState<PlantelIntegrante[]>([])
-  const [loading, setLoading] = useState(true)
+  const [mostrarAgregar, setMostrarAgregar] = useState(false)
 
   useEffect(() => {
-    if (!id_equipo) return
+    if (!idEquipo) return
 
-    const load = async () => {
-      const eq = await getEquipoById(Number(id_equipo))
-      setEquipo(eq)
+    getEquipoById(Number(idEquipo)).then(setEquipo)
 
-      const pl = await getPlantelActivoByEquipo(eq.id_equipo)
-      setPlantel(pl)
-
-      if (pl) {
-        const ints = await getIntegrantesByPlantel(pl.id_plantel)
-        setIntegrantes(ints)
+    getPlantelActivoByEquipo(Number(idEquipo)).then((p) => {
+      setPlantel(p)
+      if (p) {
+        getIntegrantesByPlantel(p.id_plantel).then(setIntegrantes)
       }
+    })
+  }, [idEquipo])
 
-      setLoading(false)
-    }
+  function recargarPlantel() {
+    if (!plantel) return
+    getIntegrantesByPlantel(plantel.id_plantel).then(setIntegrantes)
+  }
 
-    load()
-  }, [id_equipo])
-
-  if (loading) return <p>Cargando equipo…</p>
-  if (!equipo) return <p>Equipo no encontrado</p>
+  if (!equipo) return <p>Cargando equipo...</p>
 
   return (
-    <section className={styles.container}>
-      {/* ───────── HEADER ───────── */}
-      <header className={styles.header}>
-        <button onClick={() => navigate(-1)}>← Volver</button>
-        <h1>{equipo.nombre}</h1>
-        <span>
-          {equipo.categoria} · {equipo.genero}
-        </span>
-      </header>
+    <div className={styles.container}>
+      {/* 📌 Info del equipo */}
+      <section className={styles.card}>
+        <h2>{equipo.nombre}</h2>
+        <p>Categoría: {equipo.categoria}</p>
+        <p>Género: {equipo.genero}</p>
+      </section>
 
-      {/* ───────── PLANTEL ───────── */}
-      <section className={styles.section}>
-        <h2>Plantel</h2>
+      {/* 📋 Plantel */}
+      <section className={styles.card}>
+        <div className={styles.header}>
+          <h3>Plantel</h3>
+
+          {plantel && (
+            <button onClick={() => setMostrarAgregar(true)}>
+              ➕ Agregar integrante
+            </button>
+          )}
+        </div>
 
         {!plantel && (
-          <button
-            className={styles.primary}
-            onClick={async () => {
-              const nuevo = await createPlantel(equipo.id_equipo)
-              setPlantel(nuevo)
-              setIntegrantes([])
-            }}
-          >
-            Crear plantel
-          </button>
-        )}
-
-        {plantel && integrantes.length === 0 && (
-          <p className={styles.empty}>
-            El plantel no tiene integrantes
-          </p>
-        )}
-
-        {plantel && integrantes.length > 0 && (
-          <ul className={styles.list}>
-            {integrantes.map((i) => (
-              <li key={i.id_plantel_integrante}>
-                <strong>
-                  {i.persona?.apellido}, {i.persona?.nombre}
-                </strong>
-                <span>{i.rol_en_plantel}</span>
-              </li>
-            ))}
-          </ul>
+          <p>Este equipo aún no tiene plantel creado.</p>
         )}
 
         {plantel && (
-          <button
-            className={styles.secondary}
-            onClick={() =>
-              navigate(`/admin/planteles/${plantel.id_plantel}/agregar`)
-            }
-          >
-            Agregar integrante
-          </button>
+          <PlantelLista integrantes={integrantes} />
         )}
       </section>
-    </section>
+
+      {/* 🪟 Modal agregar */}
+      {mostrarAgregar && plantel && (
+        <PlantelAgregar
+          idPlantel={plantel.id_plantel}
+          onClose={() => setMostrarAgregar(false)}
+          onSuccess={() => {
+            setMostrarAgregar(false)
+            recargarPlantel()
+          }}
+        />
+      )}
+    </div>
   )
 }
