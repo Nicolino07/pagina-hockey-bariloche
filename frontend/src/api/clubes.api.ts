@@ -1,4 +1,4 @@
-import api from "./axios"
+import api from "./axiosAdmin"
 import type { Club, ClubCreate, ClubUpdate } from "../types/club"
 
 function mapClubFromApi(data: any): Club {

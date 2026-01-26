@@ -1,17 +1,18 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
 }
 
 .modal {
   background: white;
-  border-radius: 12px;
-  width: 400px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 500px;
   padding: 16px;
 }
 
@@ -22,5 +23,5 @@
 }
 
 .content {
-  margin-top: 16px;
+  margin-top: 12px;
 }

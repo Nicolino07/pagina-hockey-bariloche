@@ -4,3 +4,9 @@ from .persona import router as personas_router
 from .planteles import router as planteles_router
 from .torneos import router as torneos_router
 from .partidos import router as partidos_router
+from .vistas import router as vistas_router
+
+
+__all__ = [
+    "vistas_router",
+]

@@ -1,3 +1,4 @@
+// pages/admin/clubes/clubes.tsx
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import styles from "./Clubes.module.css"
@@ -12,12 +13,9 @@ export default function Clubes() {
 
   useEffect(() => {
     const loadClubes = async () => {
-      try {
-        const data = await getClubes()
-        setClubes(data)
-      } finally {
-        setLoading(false)
-      }
+      const data = await getClubes()
+      setClubes(data)
+      setLoading(false)
     }
 
     loadClubes()
@@ -31,17 +29,28 @@ export default function Clubes() {
     <section className={styles.container}>
       <header className={styles.header}>
         <h1>Clubes</h1>
-        <button onClick={() => navigate("/admin/clubes/nuevo")}>
+        <button
+          className={styles.primaryButton}
+          onClick={() => navigate("/admin/clubes/nuevo")}
+        >
           + Nuevo club
         </button>
       </header>
 
       <div className={styles.list}>
+        {clubes.length === 0 && (
+          <p className={styles.empty}>
+            No hay clubes cargados
+          </p>
+        )}
+
         {clubes.map((club) => (
           <ClubCard
             key={club.id_club}
             club={club}
-            onClick={(c) => navigate(`/admin/clubes/${c.id_club}`)}
+            onClick={() =>
+              navigate(`/admin/clubes/${club.id_club}`)
+            }
           />
         ))}
       </div>

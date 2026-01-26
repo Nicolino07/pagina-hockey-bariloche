@@ -14,6 +14,10 @@ frontend/
 │   ├── api/                     # 🔌 comunicación backend
 │   │   ├── axios.ts             # instancia axios + interceptors
 │   │   ├── auth.api.ts          # login / logout / refresh
+│   │   ├── clubes.api.ts             
+│   │   ├── equipos.api.ts          
+│   │   ├── personas.api.ts             
+│   │   ├── planteles.api.ts          
 │   │   └── index.ts
 │   |
 │   ├── auth/                    # 🔐 sesión
@@ -28,50 +32,74 @@ frontend/
 │   |
 |   ├── pages/
 |   |    ├── public/
-|   |    │   ├── home/
-|   |    │   │   ├── Home.tsx
-|   |    │   │   └── Home.module.css
-|   |    │   ├── clubes/
-|   |    │   │   ├── ClubPublic.tsx        # futuro
-|   |    │   │   └── ClubPublic.module.css
-
+|   |    │   └── home/
+|   |    │       ├── Home.tsx
+|   |    │       └── Home.module.css
 |   |    │
 |   |    ├── admin/
 |   |    │   ├── panel/
 |   |    │   │   ├── PanelAdmin.tsx
 |   |    │   │   └── PanelAdmin.module.css
 |   |    │   ├── clubes/
-|   |    │   │   ├── Clubes.tsx
-|   |    │   │   ├── Clubes.module.css
-|   |    |   |   ├── ClubDetalle.tsx  
-|   |    |   |   └── ClubDetalle.module.css
+|   |    │   │   ├── ClubDetalle.tsx        
+|   |    │   │   ├── ClubDetalle.module.css
+|   |    │   │   ├── Clubes.tsx        
+|   |    │   │   └── Clubes.module.css
 |   |    │   ├── equipos/
-|   |    |   │   ├── torneos/
-|   |    |   │   └── partidos/
+|   |    │   │   ├── EquipoDetalle.tsx        
+|   |    │   │   ├── EquipoDetalle.module.css
+|   |    │   │   ├── PlantelAgregar.tsx
+|   |    │   │   ├── PlantelForm.tsx        
+|   |    │   │   ├── PlantelLista.tsx
+|   |    │   │   ├── PlantelLista.module.css
 |   |    │
-|   |    ├── login/
+|   |    └── login/
 |   |        ├── Login.tsx
 |   |        └── Login.module.css
 |   |
 │   ├── components/              # 🧩 componentes reutilizables
-|   |   ├──club/
+|   |   ├──clubes/
 |   |   |    ├── ClubCard.tsx
 |   |   |    ├── ClubCard.module.css
+|   |   |    ├── ClubModal.tsx
+|   |   |    └── ClubModal.module.css
 |   │   ├── footer/
 |   │   │   ├── Footer.tsx
 |   │   │   └── Footer.module.css
 |   │   └── navbar/
 |   │       ├── Navbar.tsx
+|   |       ├── NavbarAdmin.tsx
 |   │       └── Navbar.module.css
 │   |
 │   ├── utils/                   # 🛠 helpers
-│   │   ├── jwt.ts               # decode JWT
-│   │   ├── permissions.ts       # helpers de rol -- sin implentar 
-│   │   └── formatters.ts          # sin implentar
-│   |
+│   │   └──  jwt.ts               # decode JWT
+|   |
 │   ├── styles/                  # 🎨
-│   ├── variables.css        ← colores, fuentes, spacing
-│   ├── globals.css          ← reset + estilos base
-│   └── layout.css           ← layout general (header, main, footer) -- vacio
-│
+|   │   ├── variables.css        ← colores, fuentes, spacing
+|   │   ├── globals.css          ← reset + estilos base
+|   │   └── layout.css           ← layout general (header, main, footer) -- vacio
+|   │
+|   └── types/
+|        ├── club.ts
+|        ├── enums.ts
+|        ├── equipo.ts
+|        ├── persona.ts
+|        ├── personaRol.ts
+|        ├── plantel.ts
+|        ├── plantelIntegrante.ts
+|        ├── plantelUI.ts
+|        └── layout.css      
 └── README.md
+
+
+frontend/src/
+├── config/
+│   ├── index.ts           # Configuración central
+│   ├── constants.ts       # Constantes de la app
+│   └── routes.ts          # Configuración de rutas
+├── api/
+│   ├── axiosPublic.ts
+│   ├── axiosAdmin.ts
+│   └── index.ts
+└── utils/
+    └── auth.ts

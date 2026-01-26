@@ -9,6 +9,7 @@ from app.schemas.plantel_integrante import (
 )
 from app.services import planteles_services
 from app.dependencies.permissions import require_admin, require_editor
+from app.core.exceptions import NotFoundError
 
 router = APIRouter(prefix="/planteles", tags=["Planteles"])
 
@@ -48,6 +49,31 @@ def agregar_integrante(
         data,
         current_user,
     )
+
+
+@router.get(
+    "/activo/{id_equipo}",
+    response_model=PlantelRead,
+    status_code=status.HTTP_200_OK,
+)
+def obtener_plantel_activo(
+    id_equipo: int,
+    db: Session = Depends(get_db),
+):
+    plantel = planteles_services.obtener_plantel_activo_por_equipo(db, id_equipo)
+
+    if not plantel:
+        raise NotFoundError("El equipo no tiene plantel activo")
+
+    return plantel
+
+@router.get("/{id_plantel}/integrantes", response_model=list[PlantelIntegranteRead])
+def listar_integrantes(
+    id_plantel: int,
+    db: Session = Depends(get_db),
+):
+    return planteles_services.listar_integrantes_activos(db, id_plantel)
+
 
 # 🔐 EDITOR / ADMIN
 @router.delete(

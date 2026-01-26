@@ -1,4 +1,4 @@
-import api from "./axios"
+import api from "./axiosAdmin"
 // src/api/plantelIntegrantes.api.ts
 
 import type {

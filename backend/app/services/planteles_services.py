@@ -156,6 +156,34 @@ def obtener_plantel(
 
     return plantel
 
+def obtener_plantel_activo_por_equipo(
+    db: Session,
+    id_equipo: int,
+) -> Plantel | None:
+
+    return (
+        db.query(Plantel)
+        .filter(
+            Plantel.id_equipo == id_equipo,
+            Plantel.activo.is_(True),
+            Plantel.borrado_en.is_(None),
+        )
+        .first()
+    )
+
+def listar_integrantes_activos(
+    db: Session,
+    id_plantel: int,
+):
+    return (
+        db.query(PlantelIntegrante)
+        .filter(
+            PlantelIntegrante.id_plantel == id_plantel,
+            PlantelIntegrante.fecha_baja.is_(None),
+        )
+        .all()
+    )
+
 
 def soft_delete_plantel(
     db: Session,

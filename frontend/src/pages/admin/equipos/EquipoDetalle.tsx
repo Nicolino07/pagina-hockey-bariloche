@@ -1,88 +1,148 @@
-import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
+import { useState, useEffect } from "react"
 
-import styles from "./EquipoDetalle.module.css"
+import { usePlantelActivo } from "../../../hooks/usePlantelActivo"
+import { getPersonasConRol } from "../../../api/vistas/personas.api"
+import { agregarIntegrantePlantel } from "../../../api/planteles.api"
 
-import { getEquipoById } from "../../../api/equipos.api"
-import { getPlantelActivoByEquipo } from "../../../api/planteles.api"
-import { getIntegrantesByPlantel } from "../../../api/plantelIntegrantes.api"
-
-import type { Equipo } from "../../../types/equipo"
-import type { Plantel } from "../../../types/plantel"
-import type { PlantelIntegrante } from "../../../types/plantelIntegrante"
+import type { PersonaConRol } from "../../../types/vistas"
+import type { TipoRolPersona } from "../../../types/enums"
 
 import PlantelLista from "./PlantelLista"
-import PlantelAgregar from "./PlantelAgregar"
+import Button from "../../../components/ui/button/Button"
+import Modal from "../../../components/ui/modal/Modal"
 
 export default function EquipoDetalle() {
   const { idEquipo } = useParams<{ idEquipo: string }>()
+  const equipoId = idEquipo ? Number(idEquipo) : undefined
 
-  const [equipo, setEquipo] = useState<Equipo | null>(null)
-  const [plantel, setPlantel] = useState<Plantel | null>(null)
-  const [integrantes, setIntegrantes] = useState<PlantelIntegrante[]>([])
-  const [mostrarAgregar, setMostrarAgregar] = useState(false)
+  const [modalType, setModalType] =
+    useState<"agregar" | "eliminar" | null>(null)
 
+  const [rol, setRol] =
+    useState<TipoRolPersona>("JUGADOR")
+
+  const [personas, setPersonas] =
+    useState<PersonaConRol[]>([])
+
+  const [loadingPersonas, setLoadingPersonas] =
+    useState(false)
+
+  const [mostrarCrear, setMostrarCrear] =
+    useState(false)
+
+  const {
+    integrantes,
+    plantelId,
+    loading,
+    error,
+    hasData,
+    refetch,
+  } = usePlantelActivo(equipoId)
+
+  // 🔄 cargar personas por rol
   useEffect(() => {
-    if (!idEquipo) return
+    if (modalType !== "agregar") return
 
-    getEquipoById(Number(idEquipo)).then(setEquipo)
+    setLoadingPersonas(true)
+    getPersonasConRol(rol)
+      .then(setPersonas)
+      .finally(() => setLoadingPersonas(false))
+  }, [rol, modalType])
 
-    getPlantelActivoByEquipo(Number(idEquipo)).then((p) => {
-      setPlantel(p)
-      if (p) {
-        getIntegrantesByPlantel(p.id_plantel).then(setIntegrantes)
-      }
-    })
-  }, [idEquipo])
-
-  function recargarPlantel() {
-    if (!plantel) return
-    getIntegrantesByPlantel(plantel.id_plantel).then(setIntegrantes)
-  }
-
-  if (!equipo) return <p>Cargando equipo...</p>
+  if (loading) return <p>Cargando plantel…</p>
+  if (error) return <p>{error}</p>
 
   return (
-    <div className={styles.container}>
-      {/* 📌 Info del equipo */}
-      <section className={styles.card}>
-        <h2>{equipo.nombre}</h2>
-        <p>Categoría: {equipo.categoria}</p>
-        <p>Género: {equipo.genero}</p>
-      </section>
+    <section>
+      <header>
+        <h2>Plantel</h2>
 
-      {/* 📋 Plantel */}
-      <section className={styles.card}>
-        <div className={styles.header}>
-          <h3>Plantel</h3>
+        <Button onClick={() => setModalType("agregar")}>
+          Agregar Persona
+        </Button>
 
-          {plantel && (
-            <button onClick={() => setMostrarAgregar(true)}>
-              ➕ Agregar integrante
-            </button>
-          )}
-        </div>
+        <Button
+          variant="danger"
+          onClick={() => setModalType("eliminar")}
+        >
+          Eliminar Persona
+        </Button>
+      </header>
 
-        {!plantel && (
-          <p>Este equipo aún no tiene plantel creado.</p>
-        )}
-
-        {plantel && (
-          <PlantelLista integrantes={integrantes} />
-        )}
-      </section>
-
-      {/* 🪟 Modal agregar */}
-      {mostrarAgregar && plantel && (
-        <PlantelAgregar
-          idPlantel={plantel.id_plantel}
-          onClose={() => setMostrarAgregar(false)}
-          onSuccess={() => {
-            setMostrarAgregar(false)
-            recargarPlantel()
-          }}
-        />
+      {hasData ? (
+        <PlantelLista integrantes={integrantes} />
+      ) : (
+        <p>Este equipo no tiene integrantes</p>
       )}
-    </div>
+
+      {/* MODAL AGREGAR */}
+      <Modal
+        open={modalType === "agregar"}
+        title="Agregar Persona"
+        onClose={() => {
+          setModalType(null)
+          setMostrarCrear(false)
+        }}
+      >
+        <label>
+          Rol:
+          <select
+            value={rol}
+            onChange={e =>
+              setRol(e.target.value as TipoRolPersona)
+            }
+          >
+            <option value="JUGADOR">Jugador</option>
+            <option value="ENTRENADOR">Entrenador</option>
+          </select>
+        </label>
+
+        <h4>Personas existentes</h4>
+
+        {loadingPersonas && <p>Cargando…</p>}
+
+        {!loadingPersonas && personas.length === 0 && (
+          <p>No hay personas con este rol</p>
+        )}
+
+        {personas.map(p => (
+          <div key={p.id_persona}>
+            {p.apellido}, {p.nombre}
+
+            <Button
+              disabled={!plantelId}
+              onClick={async () => {
+                if (!plantelId) return
+
+                await agregarIntegrantePlantel(
+                  plantelId,
+                  p.id_persona,
+                  rol // ✅ MISMO TIPO EN TODO EL SISTEMA
+                )
+
+                await refetch()
+                setModalType(null)
+              }}
+            >
+              Agregar
+            </Button>
+          </div>
+        ))}
+
+        <hr />
+
+        {!mostrarCrear ? (
+          <Button
+            variant="secondary"
+            onClick={() => setMostrarCrear(true)}
+          >
+            + Crear nueva persona
+          </Button>
+        ) : (
+          <p>⚠️ Crear persona se implementa luego</p>
+        )}
+      </Modal>
+    </section>
   )
 }

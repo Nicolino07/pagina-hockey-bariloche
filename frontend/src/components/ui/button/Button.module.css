@@ -1,12 +1,27 @@
 .button {
-  background-color: var(--color-primary);
-  color: var(--text-on-primary);
-  border: none;
-  padding: 0.5rem 1rem;
+  padding: 8px 14px;
   border-radius: 6px;
+  border: none;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.button:hover {
-  background-color: var(--color-primary-dark);
+.primary {
+  background: #2563eb;
+  color: white;
+}
+
+.secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.danger {
+  background: #dc5126;
+  color: white;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

@@ -171,9 +171,12 @@ ul {
   cursor: pointer;
   transition: all 0.3s ease;
   border: 2px solid transparent;
+  will-change: transform;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+
+  overflow: hidden; /* 👈 CLAVE */
 }
 
 .equipoItem:hover {
@@ -205,6 +208,38 @@ ul {
   font-size: 1.5rem;
   line-height: 0;
 }
+
+.equipoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.plantelWrapper {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--divider-color);
+
+  width: 100%;
+  box-sizing: border-box;
+
+  border-radius: 8px;       /* 👈 ACÁ */
+  overflow: hidden;         /* 👈 ACÁ */
+
+  animation: fadeSlide 0.25s ease;
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 
 /* LOADING STATES */
 .container p:first-of-type {

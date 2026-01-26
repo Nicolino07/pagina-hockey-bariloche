@@ -208,6 +208,34 @@ GROUP BY
     p.id_inscripcion_local,
     p.id_inscripcion_visitante;
 
+-- ==========================================
+-- vista Integrantes de un plantel activo
+-- ==========================================
+
+CREATE VIEW vw_plantel_activo_integrantes AS
+SELECT
+    p.id_equipo,
+    pl.id_plantel,
+    pi.id_plantel_integrante,
+
+    pi.rol_en_plantel,
+    pi.numero_camiseta,
+    pi.fecha_alta,
+    pi.fecha_baja,
+
+    per.id_persona,
+    per.nombre,
+    per.apellido,
+    per.documento
+FROM plantel pl
+JOIN plantel_integrante pi ON pi.id_plantel = pl.id_plantel
+JOIN persona per ON per.id_persona = pi.id_persona
+JOIN equipo p ON p.id_equipo = pl.id_equipo
+WHERE
+    pl.activo = true
+    AND pi.fecha_baja IS NULL;
+
+
 
 -- =============================
 -- Vistas para tarjetas 

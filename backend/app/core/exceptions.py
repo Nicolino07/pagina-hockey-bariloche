@@ -29,6 +29,7 @@ class AuthorizationError(AppError):
     message = "Permisos insuficientes"
 
 
+
 # =========================
 # Dominio / Negocio
 # =========================

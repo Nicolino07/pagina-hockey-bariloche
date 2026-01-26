@@ -1,10 +1,27 @@
 // api/equipos.api.ts
-import api from "./axios"
+
+// src/api/equipos.api.ts
+import axiosAdmin from './axiosAdmin' // ← Cambia esto
+
+export function getEquipoById(id: number) {
+  return axiosAdmin  // ← Usa axiosAdmin
+    .get<Equipo>(`/equipos/${id}`)
+    .then(res => res.data)
+}
+
+export function createEquipo(equipoData: EquipoCreate) {
+  return axiosAdmin  // ← Usa axiosAdmin
+    .post<Equipo>('/equipos', equipoData)
+    .then(res => res.data)
+}
+
+// ... resto de funciones
+import api from "./axiosAdmin"
 import type { Equipo, EquipoCreate, EquipoUpdate } from "../types/equipo"
 
 function mapEquipoFromApi(data: any): Equipo {
   return {
-    id_equipo: data.id_equipo,
+    id_equipo: data.id_equipo ?? data.id,
     nombre: data.nombre,
     id_club: data.id_club,
     categoria: data.categoria,
@@ -31,16 +48,6 @@ export async function getEquiposByClub(id_club: number): Promise<Equipo[]> {
   return res.data.map(mapEquipoFromApi)
 }
 
-
-export async function getEquipoById(id_equipo: number): Promise<Equipo> {
-  const res = await api.get(`/equipos/${id_equipo}`)
-  return mapEquipoFromApi(res.data)
-}
-
-export async function createEquipo(payload: EquipoCreate): Promise<Equipo> {
-  const res = await api.post("/equipos", payload)
-  return mapEquipoFromApi(res.data)
-}
 
 export async function updateEquipo(
   id_equipo: number,

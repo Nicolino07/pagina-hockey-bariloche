@@ -1,72 +1,125 @@
-// src/auth/AuthContext.tsx
-import { createContext, useContext, useEffect, useState } from "react"
+// frontend/src/auth/AuthContext.tsx
+import { createContext, useContext, useState, useEffect } from 'react'
+import type { ReactNode } from 'react'
 
-type User = {
+import { authUtils } from '../utils/auth'
+import { decodeJwt } from '../utils/jwt'
+
+
+interface User {
   id: number
-  email: string
+  username: string
   rol: string
+  email?: string
 }
 
-type AuthContextType = {
+interface AuthContextType {
   user: User | null
-  token: string | null
   isAuthenticated: boolean
-  login: (token: string, user: User) => void
+  login: (token: string, userData: Partial<User>) => void
   logout: () => void
+  isLoading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // 🔁 Restaurar sesión al refrescar
+  // Inicializar auth desde localStorage
   useEffect(() => {
-    const storedToken = localStorage.getItem("access_token")
-    const storedUser = localStorage.getItem("user")
+    const initAuth = () => {
+      const token = authUtils.getAccessToken()
+      
+      if (token && authUtils.isAuthenticated()) {
+        try {
+          const payload = decodeJwt(token)
+          const storedUser = authUtils.getUser()
+          
+          if (payload && storedUser) {
+            setUser({
+              id: Number(payload.sub),
+              username: payload.username,
+              rol: payload.rol,
+              ...storedUser
+            })
+          }
+        } catch (error) {
+          console.error('❌ Error inicializando auth:', error)
+          authUtils.clearAuth()
+        }
+      }
+      
+      setIsLoading(false)
+      
+      // Iniciar chequeo de token (si está autenticado)
+      if (authUtils.isAuthenticated()) {
+        authUtils.scheduleTokenCheck()
+      }
+    }
+    
+    initAuth()
 
-    if (storedToken && storedUser) {
-      setToken(storedToken)
-      setUser(JSON.parse(storedUser))
+    // Cleanup
+    return () => {
+      authUtils.clearTokenCheck()
     }
   }, [])
 
-  const login = (token: string, user: User) => {
-    localStorage.setItem("access_token", token)
-    localStorage.setItem("user", JSON.stringify(user))
-
-    setToken(token)
-    setUser(user)
+  const login = (token: string, userData: Partial<User>) => {
+    const payload = decodeJwt(token)
+    if (!payload) throw new Error('Token inválido')
+    
+    const userInfo: User = {
+      id: Number(payload.sub),
+      username: payload.username,
+      rol: payload.rol,
+      ...userData
+    }
+    
+    authUtils.setAuthData(token, userInfo)
+    setUser(userInfo)
   }
 
-  const logout = () => {
-    localStorage.removeItem("access_token")
-    localStorage.removeItem("user")
-
-    setToken(null)
+  const logout = async () => {
+    // Primero intentar logout en backend
+    try {
+      const { logout: apiLogout } = await import('../api/auth.api')
+      await apiLogout()
+    } catch (error) {
+      console.warn('⚠️ Error en logout backend:', error)
+    }
+    
+    // Siempre limpiar frontend
+    authUtils.clearAuth()
     setUser(null)
+    
+    // Redirigir a login
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login'
+    }
+  }
+
+  const value: AuthContextType = {
+    user,
+    isAuthenticated: !!user,
+    login,
+    logout,
+    isLoading
   }
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isAuthenticated: !!token,
-        login,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )
 }
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error("useAuth debe usarse dentro de AuthProvider")
+  if (context === undefined) {
+    throw new Error('useAuth debe usarse dentro de AuthProvider')
   }
   return context
 }

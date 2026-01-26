@@ -1,5 +1,7 @@
 // src/types/plantel.ts
 
+import type { PlantelIntegrante } from "./plantelIntegrante"
+
 export type Plantel = {
   id_plantel: number
   id_equipo: number
@@ -9,6 +11,8 @@ export type Plantel = {
   creado_en: string
   actualizado_en?: string | null
   borrado_en?: string | null
+
+  integrantes?: PlantelIntegrante[]  
 }
 
 export type PlantelCreate = {

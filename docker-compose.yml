@@ -45,17 +45,27 @@ services:
       - hockey-network
 
   frontend:
-    build: ./frontend
+    image: hockey_frontend_dev   # 👈 IMPORTANTE (ver punto 2)
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: hockey_frontend
     volumes:
       - ./frontend:/app
       - /app/node_modules
     ports:
       - "5173:5173"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - VITE_FORCE_POLLING=true
+    stdin_open: true
+    tty: true
     depends_on:
       - api
     networks:
       - hockey-network
+
 
 volumes:
   postgres_data:

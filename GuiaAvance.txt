@@ -85,3 +85,7 @@ ORDER BY total_amarillas DESC;
 SELECT *
 FROM vw_tarjetas_acumuladas_torneo
 WHERE total_amarillas >= 3;
+
+
+
+http://localhost:5173/admin/equipos/2

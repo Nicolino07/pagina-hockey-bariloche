@@ -72,8 +72,12 @@ from app.routers import (
     planteles_router as planteles,
     torneos_router as torneos,
     inscripciones_torneos as inscripciones,
-    partidos_router as partido
+    partidos_router as partido,
+    vistas_router as vistas
 )
+
+
+
 
 
 @app.get("/")
@@ -89,3 +93,4 @@ app.include_router(planteles)
 app.include_router(torneos)
 app.include_router(inscripciones.router)
 app.include_router(partido)
+app.include_router(vistas)

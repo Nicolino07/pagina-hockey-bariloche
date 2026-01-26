@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom"
 import Login from "./pages/login/Login"
 import Home from "./pages/public/home/Home"
-import PanelAdmin from "./pages/admin/panel_admin/PanelAdmin"
+import PanelAdmin from "./pages/admin/panel/PanelAdmin"
 import Clubes from "./pages/admin/clubes/Clubes"
 import ClubDetalle from "./pages/admin/clubes/ClubDetalle"
 import EquipoDetalle from "./pages/admin/equipos/EquipoDetalle"

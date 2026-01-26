@@ -1,0 +1,25 @@
+.container {
+  padding: 2rem;
+}
+
+.backButton {
+  margin-bottom: 1rem;
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.title {
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+}
+
+.loading,
+.error,
+.empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+}

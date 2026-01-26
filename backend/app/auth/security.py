@@ -1,46 +1,42 @@
+# backend/app/auth/security.py
 from passlib.context import CryptContext
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import jwt
-import os
 import secrets
 from hashlib import sha256
+from typing import Optional
 
-JWT_SECRET = os.getenv("JWT_SECRET")
-JWT_ALGORITHM = "HS256"
-JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", 30))
+from app.core.config import settings
 
 pwd_context = CryptContext(
     schemes=["argon2"],
     deprecated="auto"
 )
-if not JWT_SECRET:
-    raise RuntimeError("JWT_SECRET no definido")
+
+def _utc_timestamp(dt: datetime) -> int:
+    return int(dt.replace(tzinfo=timezone.utc).timestamp())
 
 
-def hash_password(password: str) -> str:
-    """
-    Hashea una contraseña en texto plano usando Argon2id
-    """
-    return pwd_context.hash(password)
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """
-    Verifica una contraseña contra su hash
-    """
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def create_access_token(data: dict) -> str:
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=JWT_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+    now = datetime.utcnow()
+    expire = now + (expires_delta or settings.access_token_expire_timedelta)
+
+    to_encode.update({
+        "exp": _utc_timestamp(expire),
+        "iat": _utc_timestamp(now),
+        "type": "access",
+    })
+
+    return jwt.encode(
+        to_encode,
+        settings.JWT_SECRET,
+        algorithm=settings.JWT_ALGORITHM,
+    )
 
 
-REFRESH_EXPIRE_DAYS = 14
-
-def generate_refresh_token() -> str:
+def generate_refresh_token_value() -> str:
     return secrets.token_urlsafe(64)
 
 
@@ -48,5 +44,9 @@ def hash_refresh_token(token: str) -> str:
     return sha256(token.encode()).hexdigest()
 
 
-def refresh_expiration() -> datetime:
-    return datetime.utcnow() + timedelta(days=REFRESH_EXPIRE_DAYS)
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
