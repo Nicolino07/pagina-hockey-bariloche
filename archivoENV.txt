@@ -211,7 +211,7 @@ VITE_LOG_LEVEL=trace
 VITE_ENABLE_REDUX_DEVTOOLS=true
 
 ---------------------------------------------------------------------------------------------------------
-# frontend/.env.production
+# frontend/.env.produccion
 
 # API Configuration
 VITE_API_URL=https://api.tudominio.com

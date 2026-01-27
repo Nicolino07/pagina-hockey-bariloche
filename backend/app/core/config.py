@@ -10,13 +10,13 @@ class Settings(BaseSettings):
         extra="allow",
     )
 
-    DATABASE_URL: str
+    database_url: str
 
-    JWT_SECRET: str
-    JWT_ALGORITHM: str = "HS256"
+    jwt_secret: str
+    jwt_algorithm: str = "HS256"
 
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+    access_token_expire_minutes: int = 1440
+    refresh_token_expire_days: int = 30
 
     @property
     def access_token_expire_timedelta(self) -> timedelta:

@@ -1,13 +1,17 @@
+
 from fastapi import FastAPI
+from sqlalchemy.exc import IntegrityError  
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from fastapi.middleware.cors import CORSMiddleware
 
+
 from app.core.middleware import request_context_middleware
 from app.core.exceptions import AppError
 from app.core.exception_handlers import (
     app_error_handler,
+    integrity_error_handler,
     unhandled_exception_handler,
 )
 from app.core.error_response import error_response
@@ -44,20 +48,24 @@ app.state.limiter = limiter
 # =====================================================
 # Exception handlers globales
 # =====================================================
-
-# 🔹 Errores de dominio
-app.add_exception_handler(AppError, app_error_handler)
-
-# 🔹 Errores inesperados
-app.add_exception_handler(Exception, unhandled_exception_handler)
-
-
 async def rate_limit_handler(request, exc):
     return error_response(
         status_code=429,
         code="RATE_LIMIT_EXCEEDED",
         message="Demasiadas solicitudes",
     )
+
+# 🔹 Errores de dominio
+app.add_exception_handler(AppError, app_error_handler)
+
+# 🔹 Errores de integridad de base de datos
+app.add_exception_handler(IntegrityError, integrity_error_handler)
+
+# 🔹 Errores de límite de tasa
+app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
+
+# 🔹 Errores inesperados (SIEMPRE AL FINAL)
+app.add_exception_handler(Exception, unhandled_exception_handler)
 
 
 # =====================================================

@@ -115,14 +115,27 @@ export default function EquipoDetalle() {
               onClick={async () => {
                 if (!plantelId) return
 
-                await agregarIntegrantePlantel(
-                  plantelId,
-                  p.id_persona,
-                  rol // ✅ MISMO TIPO EN TODO EL SISTEMA
-                )
+                try {
+                  await agregarIntegrantePlantel(
+                    plantelId,
+                    p.id_persona,
+                    rol
+                  )
 
-                await refetch()
-                setModalType(null)
+                  await refetch()
+                  setModalType(null)
+
+                } catch (err: any) {
+                  if (err.status === 409) {
+                    alert(
+                      "Esta persona no puede agregarse a este plantel (regla del sistema)"
+                    )
+                    return
+                  }
+
+                  alert("Error inesperado al agregar persona")
+                  console.error(err)
+                }
               }}
             >
               Agregar

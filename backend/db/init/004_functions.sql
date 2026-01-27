@@ -223,25 +223,6 @@ END;
 $$;
 
 
-
-CREATE OR REPLACE FUNCTION fn_recalcular_posiciones()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    -- SOLO cuando pasa a TERMINADO
-    IF TG_OP = 'UPDATE'
-       AND OLD.estado_partido IS DISTINCT FROM 'TERMINADO'
-       AND NEW.estado_partido = 'TERMINADO' THEN
-
-        PERFORM recalcular_tabla_posiciones(NEW.id_torneo);
-
-    END IF;
-
-    RETURN NEW;
-END;
-$$;
-
 -- =================================================
 -- Prohibe goles sin partido TERMINADO
 -- =================================================
@@ -293,15 +274,8 @@ BEGIN
     RETURN NEW;
 END;
 $$;
-
 -- =====================================================
--- Función genérica de auditoría
--- =====================================================
--- Registra INSERT / UPDATE / DELETE
--- Usa contexto de sesión seteado por backend:
---   SET LOCAL app.usuario
---   SET LOCAL app.ip
---   SET LOCAL app.user_agent
+-- Función genérica de auditoría (CORREGIDA)
 -- =====================================================
 CREATE OR REPLACE FUNCTION fn_auditoria_generica()
 RETURNS TRIGGER AS $$
@@ -310,6 +284,8 @@ DECLARE
     v_id_registro TEXT;
     v_operacion   TEXT;
     v_user_id     INT;
+    v_ip_address  TEXT;
+    v_user_agent  TEXT;
 BEGIN
     -- ===========================
     -- OBTENER PK AUTOMÁTICAMENTE
@@ -330,26 +306,50 @@ BEGIN
             TG_TABLE_NAME;
     END IF;
 
-    -- usuario desde contexto (puede ser NULL)
-    v_user_id := current_setting('app.current_user_id', true)::INT;
+    -- ===========================
+    -- OBTENER DATOS DE CONTEXTO (con manejo de errores)
+    -- ===========================
+    BEGIN
+        v_user_id := current_setting('app.current_user_id', true)::INT;
+    EXCEPTION WHEN OTHERS THEN
+        v_user_id := NULL;
+    END;
+
+    BEGIN
+        v_ip_address := current_setting('app.ip_address', true);
+    EXCEPTION WHEN OTHERS THEN
+        v_ip_address := NULL;
+    END;
+
+    BEGIN
+        v_user_agent := current_setting('app.user_agent', true);
+    EXCEPTION WHEN OTHERS THEN
+        v_user_agent := NULL;
+    END;
 
     -- ===========================
-    -- IGNORAR UPDATE SOLO ultimo_login EN USUARIO
+    -- IGNORAR UPDATE SOLO DE CAMPOS DE AUDITORÍA
     -- ===========================
-    IF TG_OP = 'UPDATE'
-       AND to_jsonb(NEW) - ARRAY[
+    IF TG_OP = 'UPDATE' THEN
+        -- Remover campos de auditoría para comparación
+        IF (to_jsonb(NEW) - ARRAY[
             'ultimo_login',
             'actualizado_en',
-            'actualizado_por'
-        ]
-        =
-        to_jsonb(OLD) - ARRAY[
+            'actualizado_por',
+            'borrado_en',
+            'creado_en',
+            'creado_por'
+        ]) =
+        (to_jsonb(OLD) - ARRAY[
             'ultimo_login',
             'actualizado_en',
-            'actualizado_por'
-        ]
-    THEN
-        RETURN NEW;
+            'actualizado_por',
+            'borrado_en',
+            'creado_en',
+            'creado_por'
+        ]) THEN
+            RETURN NEW;
+        END IF;
     END IF;
 
     -- ===========================
@@ -395,7 +395,7 @@ BEGIN
         valores_anteriores,
         valores_nuevos,
         id_usuario,
-        ip_address,
+        ip_address,           -- Tipo INET
         user_agent
     )
     VALUES (
@@ -413,8 +413,8 @@ BEGIN
             ELSE NULL
         END,
         v_user_id,
-        current_setting('app.ip_address', true)::inet,
-        current_setting('app.user_agent', true)
+        v_ip_address::inet,   -- CAST explícito a INET
+        v_user_agent
     );
 
     IF TG_OP = 'DELETE' THEN
@@ -425,5 +425,338 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- =====================================================
+-- FUNCIONES DE VALIDACIÓN DE ROL ÚNICO POR CLUB
+-- =====================================================
+
+-- =====================================================
+-- FUNCIÓN: validar_rol_unico_por_club
+-- Propósito: Valida que una persona no tenga el mismo rol en clubes diferentes
+-- =====================================================
+CREATE OR REPLACE FUNCTION validar_rol_unico_por_club(
+    p_id_persona INT,
+    p_rol tipo_rol_persona,
+    p_id_club_destino INT,
+    p_excluir_id_plantel_integrante INT DEFAULT NULL
+)
+RETURNS VARCHAR
+LANGUAGE plpgsql
+STABLE
+AS $$
+DECLARE
+    v_club_conflicto_nombre VARCHAR(100);
+    v_equipo_conflicto_nombre VARCHAR(100);
+    v_categoria_conflicto tipo_categoria;
+    v_fecha_alta_conflicto DATE;
+    v_mensaje VARCHAR;
+BEGIN
+    -- Buscar si ya existe el mismo rol en otro club
+    SELECT 
+        c.nombre,
+        eq.nombre,
+        eq.categoria,
+        pi.fecha_alta
+    INTO 
+        v_club_conflicto_nombre,
+        v_equipo_conflicto_nombre,
+        v_categoria_conflicto,
+        v_fecha_alta_conflicto
+    FROM plantel_integrante pi
+    JOIN plantel pl ON pi.id_plantel = pl.id_plantel
+    JOIN equipo eq ON pl.id_equipo = eq.id_equipo
+    JOIN club c ON eq.id_club = c.id_club
+    WHERE pi.id_persona = p_id_persona
+    AND pi.rol_en_plantel = p_rol                     -- Mismo rol
+    AND eq.id_club != p_id_club_destino              -- Club diferente
+    AND pi.fecha_baja IS NULL                        -- Solo activos
+    AND pl.activo = true                             -- Plantel activo
+    AND pi.id_plantel_integrante != COALESCE(p_excluir_id_plantel_integrante, -1)  -- Excluir actualización
+    LIMIT 1;
+
+    -- Si encontramos conflicto, construir mensaje descriptivo
+    IF v_club_conflicto_nombre IS NOT NULL THEN
+        v_mensaje := format(
+            'La persona ya tiene el rol "%s" activo en otro club. ' ||
+            'Detalles del conflicto: ' ||
+            'Club: %s, ' ||
+            'Equipo: %s (%s), ' ||
+            'Fecha de alta: %s. ' ||
+            'Regla: No se puede tener el mismo rol en clubes diferentes.',
+            p_rol,
+            v_club_conflicto_nombre,
+            v_equipo_conflicto_nombre,
+            v_categoria_conflicto,
+            v_fecha_alta_conflicto
+        );
+        RETURN v_mensaje;
+    END IF;
+
+    -- No hay conflicto
+    RETURN NULL;
+END;
+$$;
+
+-- =====================================================
+-- FUNCIÓN: obtener_club_desde_plantel
+-- Propósito: Helper para obtener el club desde un ID de plantel
+-- =====================================================
+CREATE OR REPLACE FUNCTION obtener_club_desde_plantel(p_id_plantel INT)
+RETURNS INT
+LANGUAGE plpgsql
+STABLE
+AS $$
+DECLARE
+    v_id_club INT;
+BEGIN
+    SELECT e.id_club INTO v_id_club
+    FROM plantel p
+    JOIN equipo e ON p.id_equipo = e.id_equipo
+    WHERE p.id_plantel = p_id_plantel;
+    
+    RETURN v_id_club;
+END;
+$$;
+
+-- =====================================================
+-- FUNCIÓN: obtener_persona_roles_activos
+-- Propósito: Obtener todos los roles activos de una persona por club
+-- =====================================================
+CREATE OR REPLACE FUNCTION obtener_persona_roles_activos(p_id_persona INT)
+RETURNS TABLE (
+    club_id INT,
+    club_nombre VARCHAR(100),
+    rol tipo_rol_persona,
+    equipo_nombre VARCHAR(100),
+    categoria tipo_categoria,
+    plantel_activo BOOLEAN,
+    fecha_alta DATE,
+    fecha_baja DATE
+)
+LANGUAGE plpgsql
+STABLE
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        c.id_club as club_id,
+        c.nombre as club_nombre,
+        pi.rol_en_plantel as rol,
+        e.nombre as equipo_nombre,
+        e.categoria as categoria,
+        pl.activo as plantel_activo,
+        pi.fecha_alta,
+        pi.fecha_baja
+    FROM plantel_integrante pi
+    JOIN plantel pl ON pi.id_plantel = pl.id_plantel
+    JOIN equipo e ON pl.id_equipo = e.id_equipo
+    JOIN club c ON e.id_club = c.id_club
+    WHERE pi.id_persona = p_id_persona
+    AND pi.fecha_baja IS NULL  -- Solo activos
+    ORDER BY c.nombre, pi.rol_en_plantel, e.categoria;
+END;
+$$;
+
+-- =====================================================
+-- FUNCIÓN: puede_agregar_rol_plantel
+-- Propósito: Verificar si se puede agregar un rol a una persona en un plantel
+-- =====================================================
+CREATE OR REPLACE FUNCTION puede_agregar_rol_plantel(
+    p_id_persona INT,
+    p_rol tipo_rol_persona,
+    p_id_plantel INT
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+STABLE
+AS $$
+DECLARE
+    v_id_club_destino INT;
+    v_mensaje_validacion VARCHAR;
+    v_roles_actuales JSONB;
+BEGIN
+    -- Obtener el club destino
+    v_id_club_destino := obtener_club_desde_plantel(p_id_plantel);
+    
+    -- Validar regla de rol único por club
+    v_mensaje_validacion := validar_rol_unico_por_club(
+        p_id_persona,
+        p_rol,
+        v_id_club_destino
+    );
+    
+    -- Obtener roles actuales para información
+    SELECT JSONB_AGG(
+        JSONB_BUILD_OBJECT(
+            'club', c.nombre,
+            'rol', pi.rol_en_plantel,
+            'equipo', e.nombre,
+            'categoria', e.categoria,
+            'activo', pl.activo
+        )
+    ) INTO v_roles_actuales
+    FROM plantel_integrante pi
+    JOIN plantel pl ON pi.id_plantel = pl.id_plantel
+    JOIN equipo e ON pl.id_equipo = e.id_equipo
+    JOIN club c ON e.id_club = c.id_club
+    WHERE pi.id_persona = p_id_persona
+    AND pi.fecha_baja IS NULL;
+    
+    -- Si no hay roles actuales, inicializar array vacío
+    IF v_roles_actuales IS NULL THEN
+        v_roles_actuales := '[]'::JSONB;
+    END IF;
+    
+    -- Retornar resultado completo
+    RETURN JSONB_BUILD_OBJECT(
+        'valido', v_mensaje_validacion IS NULL,
+        'mensaje', COALESCE(v_mensaje_validacion, 'Puede agregar el rol.'),
+        'conflicto', v_mensaje_validacion IS NOT NULL,
+        'id_club_destino', v_id_club_destino,
+        'roles_actuales', v_roles_actuales
+    );
+END;
+$$;
+
+-- =====================================================
+-- FUNCIÓN: fn_plantel_integrante_validar_rol_unico
+-- Propósito: Función combinada para validar rol en plantel y rol único por club
+-- =====================================================
+CREATE OR REPLACE FUNCTION fn_plantel_integrante_validar_rol_unico()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_id_club_destino INT;
+    v_mensaje_error VARCHAR;
+BEGIN
+    -- 1. Validar que el rol existe en persona_rol (validación original)
+    IF NOT EXISTS (
+        SELECT 1
+        FROM persona_rol pr
+        WHERE pr.id_persona = NEW.id_persona
+          AND pr.rol = NEW.rol_en_plantel
+          AND (pr.fecha_hasta IS NULL OR pr.fecha_hasta >= NEW.fecha_alta)
+    ) THEN
+        RAISE EXCEPTION
+            'La persona % no está habilitada para el rol %',
+            NEW.id_persona, NEW.rol_en_plantel;
+    END IF;
+
+    -- 2. Validar regla de rol único por club (nueva validación)
+    SELECT e.id_club INTO v_id_club_destino
+    FROM plantel p
+    JOIN equipo e ON p.id_equipo = e.id_equipo
+    WHERE p.id_plantel = NEW.id_plantel;
+    
+    v_mensaje_error := validar_rol_unico_por_club(
+        NEW.id_persona,
+        NEW.rol_en_plantel,
+        v_id_club_destino,
+        CASE 
+            WHEN TG_OP = 'UPDATE' THEN OLD.id_plantel_integrante 
+            ELSE NULL 
+        END
+    );
+    
+    IF v_mensaje_error IS NOT NULL THEN
+        RAISE EXCEPTION '%', v_mensaje_error
+        USING HINT = 'Para tener este rol en este club, primero debe dar de baja el mismo rol en otro club.';
+    END IF;
+    
+    RETURN NEW;
+END;
+$$;
+
+-- =====================================================
+-- FUNCIÓN: fn_recalcular_posiciones_por_gol
+-- =====================================================
+CREATE OR REPLACE FUNCTION fn_recalcular_posiciones_por_gol()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_id_torneo INT;
+BEGIN
+    SELECT p.id_torneo
+    INTO v_id_torneo
+    FROM partido p
+    WHERE p.id_partido = COALESCE(NEW.id_partido, OLD.id_partido)
+      AND p.estado_partido = 'TERMINADO';
+
+    IF v_id_torneo IS NOT NULL THEN
+        PERFORM recalcular_tabla_posiciones(v_id_torneo);
+    END IF;
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+-- =====================================================
+-- FUNCIÓN: fn_recalcular_posiciones
+-- =====================================================
+CREATE OR REPLACE FUNCTION fn_recalcular_posiciones()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF TG_OP = 'UPDATE'
+       AND OLD.estado_partido IS DISTINCT FROM 'TERMINADO'
+       AND NEW.estado_partido = 'TERMINADO' THEN
+
+        PERFORM recalcular_tabla_posiciones(NEW.id_torneo);
+
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+
+
+-- =====================================================
+-- FUNCIONES ADICIONALES PARA NUEVAS TABLAS
+-- =====================================================
+
+-- Función para validar refresh_token (añadir al final del archivo 004_functions.sql)
+CREATE OR REPLACE FUNCTION fn_validar_refresh_token()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NEW.expires_at < CURRENT_TIMESTAMP THEN
+        RAISE EXCEPTION 'Refresh token expirado';
+    END IF;
+    
+    IF NEW.revoked = TRUE THEN
+        RAISE EXCEPTION 'Refresh token revocado';
+    END IF;
+    
+    RETURN NEW;
+END;
+$$;
+
+-- Función para validar fixture_partido (añadir al final del archivo 004_functions.sql)
+CREATE OR REPLACE FUNCTION fn_validar_fixture_partido()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_mismo_club BOOLEAN;
+BEGIN
+    -- Verificar si ambos equipos son del mismo club
+    SELECT (e1.id_club = e2.id_club)
+    INTO v_mismo_club
+    FROM equipo e1
+    JOIN equipo e2 ON e2.id_equipo = NEW.id_equipo_visitante
+    WHERE e1.id_equipo = NEW.id_equipo_local;
+    
+    -- Opcional: Permitir o no partidos entre equipos del mismo club
+    -- IF v_mismo_club THEN
+    --     RAISE EXCEPTION 'No se pueden programar partidos entre equipos del mismo club en el fixture';
+    -- END IF;
+    
+    RETURN NEW;
+END;
+$$;
 
 COMMIT;

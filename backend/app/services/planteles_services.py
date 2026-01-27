@@ -45,12 +45,14 @@ def crear_plantel(
     return plantel
 
 
-def agregar_integrante(
+def crear_integrante(
+    *,
     db: Session,
-    id_plantel: int,
     data: PlantelIntegranteCreate,
     current_user,
 ) -> PlantelIntegrante:
+
+    id_plantel = data.id_plantel
 
     plantel = db.get(Plantel, id_plantel)
 
@@ -73,7 +75,6 @@ def agregar_integrante(
         id_persona=data.id_persona,
         rol_en_plantel=data.rol_en_plantel,
     )
-
 
     existente = (
         db.query(PlantelIntegrante)
@@ -99,7 +100,7 @@ def agregar_integrante(
     )
 
     db.add(integrante)
-    db.flush()  # 🔥 genera id_integrante
+    db.flush()  # 🔥 genera id_plantel_integrante
 
     return integrante
 
@@ -127,7 +128,7 @@ def validar_rol_persona(
         )
 
 
-def dar_baja_integrante(
+def baja_integrante(
     db: Session,
     id_integrante: int,
     current_user,
@@ -170,6 +171,17 @@ def obtener_plantel_activo_por_equipo(
         )
         .first()
     )
+
+def listar_integrantes_por_plantel(db: Session, id_plantel: int):
+    return (
+        db.query(PlantelIntegrante)
+        .filter(
+            PlantelIntegrante.id_plantel == id_plantel,
+            PlantelIntegrante.fecha_baja.is_(None),
+        )
+        .all()
+    )
+
 
 def listar_integrantes_activos(
     db: Session,

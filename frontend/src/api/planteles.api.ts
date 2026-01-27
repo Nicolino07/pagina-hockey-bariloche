@@ -38,20 +38,31 @@ export async function getIntegrantesByPlantel(
 
 // 🔹 Agregar integrante a un plantel (EDITOR / ADMIN)
 
-
 export async function agregarIntegrantePlantel(
-  idPlantel: number,
-  idPersona: number,
+  plantelId: number,
+  personaId: number,
   rol: TipoRolPersona
 ) {
-  return api.post(
-    `/planteles/${idPlantel}/integrantes`,
-    {
-      id_persona: idPersona,
+  const res = await fetch(`/planteles/${plantelId}/integrantes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id_persona: personaId,
       rol,
+    }),
+  })
+
+  if (!res.ok) {
+    const error = await res.json()
+    throw {
+      status: res.status,
+      ...error,
     }
-  )
+  }
 }
+
+
+
 
 // 🔹 Dar de baja un integrante (EDITOR / ADMIN)
 export async function deleteIntegrante(

@@ -1,5 +1,7 @@
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
+from fastapi import Request, Response
 
 from app.database import get_db
 from app.schemas.plantel import PlantelCreate, PlantelRead
@@ -11,8 +13,14 @@ from app.services import planteles_services
 from app.dependencies.permissions import require_admin, require_editor
 from app.core.exceptions import NotFoundError
 
-router = APIRouter(prefix="/planteles", tags=["Planteles"])
+router = APIRouter(
+    prefix="/planteles",
+    tags=["Planteles - Integrantes"]
+)
 
+@router.options("/integrantes")
+async def options_integrantes(request: Request):
+    return Response(status_code=204)
 
 # 🔐 ADMIN
 @router.post(
@@ -33,22 +41,21 @@ def crear_plantel(
 
 # 🔐 EDITOR / ADMIN
 @router.post(
-    "/{id_plantel}/integrantes",
+    "/integrantes",
     response_model=PlantelIntegranteRead,
     status_code=status.HTTP_201_CREATED,
 )
-def agregar_integrante(
-    id_plantel: int,
+def crear_integrante(
     data: PlantelIntegranteCreate,
     db: Session = Depends(get_db),
     current_user=Depends(require_editor),
 ):
-    return planteles_services.agregar_integrante(
-        db,
-        id_plantel,
-        data,
-        current_user,
+    return planteles_services.crear_integrante(
+        db=db,
+        data=data,
+        current_user=current_user,
     )
+
 
 
 @router.get(
@@ -67,12 +74,19 @@ def obtener_plantel_activo(
 
     return plantel
 
-@router.get("/{id_plantel}/integrantes", response_model=list[PlantelIntegranteRead])
+@router.get(
+    "/{id_plantel}/integrantes",
+    response_model=list[PlantelIntegranteRead],
+)
 def listar_integrantes(
     id_plantel: int,
     db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
 ):
-    return planteles_services.listar_integrantes_activos(db, id_plantel)
+    return planteles_services.listar_integrantes_por_plantel(
+        db=db,
+        id_plantel=id_plantel,
+    )
 
 
 # 🔐 EDITOR / ADMIN
@@ -85,8 +99,8 @@ def baja_integrante(
     db: Session = Depends(get_db),
     current_user=Depends(require_editor),
 ):
-    planteles_services.dar_baja_integrante(
-        db,
-        id_integrante,
-        current_user,
+    planteles_services.baja_integrante(
+        db=db,
+        id_integrante=id_integrante,
+        current_user=current_user,
     )

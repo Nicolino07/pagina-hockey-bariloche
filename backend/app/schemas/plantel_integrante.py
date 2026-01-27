@@ -14,20 +14,12 @@ class PlantelIntegranteBase(BaseModel):
     fecha_baja: Optional[date] = None
 
 
-class PlantelIntegranteCreate(PlantelIntegranteBase):
+class PlantelIntegranteCreate(BaseModel):
+    id_plantel: int = Field(..., gt=0)
+    id_persona: int = Field(..., gt=0)
+    rol_en_plantel: RolPersonaTipo
+    numero_camiseta: Optional[int] = Field(None, gt=0)
     creado_por: Optional[str] = Field(None, max_length=100)
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "id_plantel": 10,
-                "id_persona": 55,
-                "rol_en_plantel": "JUGADOR",
-                "numero_camiseta": 9,
-                "creado_por": "admin"
-            }
-        }
-    )
 
 
 class PlantelIntegranteUpdate(BaseModel):
