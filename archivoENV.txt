@@ -1,0 +1,242 @@
+backen:
+
+# ============================================
+# APP CONFIGURATION
+# ============================================
+APP_NAME=Hockey Bariloche API
+APP_VERSION=1.1.0
+ENVIRONMENT=development
+DEBUG=True
+API_HOST=0.0.0.0
+API_PORT=8000
+API_PREFIX=/api
+
+# ============================================
+# DATABASE
+# ============================================
+DATABASE_URL=postgresql://hockey_user:hockey1234@db:5432/hockey_db
+DB_POOL_SIZE=20
+DB_MAX_OVERFLOW=40
+
+# ============================================
+# JWT & SECURITY (DEVELOPMENT)
+# ============================================
+# IMPORTANTE: Cambiar en producción!
+SECRET_KEY=cambiar-esta-clave-en-produccion-usar-una-muy-larga-y-segura
+JWT_SECRET=cambiar-esta-clave-en-produccion-usar-una-diferente-a-SECRET_KEY
+JWT_ALGORITHM=HS256
+
+# Desarrollo: tiempos largos para facilitar desarrollo
+ACCESS_TOKEN_EXPIRE_MINUTES=1440        # 24 horas (en minutos)
+REFRESH_TOKEN_EXPIRE_DAYS=30            # 30 días
+
+# Producción (comentar en desarrollo):
+# ACCESS_TOKEN_EXPIRE_MINUTES=15        # 15 minutos
+# REFRESH_TOKEN_EXPIRE_DAYS=7           # 7 días
+
+# ============================================
+# SECURITY POLICIES
+# ============================================
+MAX_LOGIN_ATTEMPTS=5
+LOGIN_BLOCK_MINUTES=15
+PASSWORD_MIN_LENGTH=8
+REQUIRE_PASSWORD_COMPLEXITY=True
+
+# ============================================
+# CORS (Cross-Origin Resource Sharing)
+# ============================================
+CORS_ALLOW_ORIGINS=http://localhost:5173,http://localhost:3000
+CORS_ALLOW_CREDENTIALS=True
+
+# ============================================
+# COOKIES
+# ============================================
+COOKIE_SECURE=False           # True en producción (HTTPS)
+COOKIE_SAMESITE=lax
+COOKIE_HTTPONLY=True
+COOKIE_DOMAIN=localhost
+
+# ============================================
+# RATE LIMITING
+# ============================================
+RATE_LIMIT_ENABLED=True
+RATE_LIMIT_DEFAULT=100/hour
+RATE_LIMIT_AUTH=10/minute
+
+# ============================================
+# LOGGING
+# ============================================
+LOG_LEVEL=INFO
+LOG_FILE=app.log
+LOG_FORMAT=json
+
+# ============================================
+# FEATURE FLAGS
+# ============================================
+ENABLE_SWAGGER=True
+ENABLE_METRICS=True
+ENABLE_HEALTH_CHECKS=True
+
+---------------------------------------------------------------------------------------------
+.env.produccion
+
+# ============================================
+# PRODUCTION SETTINGS
+# ============================================
+
+# ============================================
+# APP CONFIGURATION
+# ============================================
+APP_NAME=Hockey Bariloche API
+APP_VERSION=1.1.0
+ENVIRONMENT=production
+DEBUG=False
+API_HOST=0.0.0.0
+API_PORT=8000
+API_PREFIX=/api
+
+# ============================================
+# DATABASE
+# ============================================
+DATABASE_URL=postgresql://hockey_user:hockey1234@db:5432/hockey_db
+DB_POOL_SIZE=20
+DB_MAX_OVERFLOW=40
+
+# ============================================
+# JWT & SECURITY
+# ============================================
+
+SECRET_KEY=$(openssl rand -hex 32)
+JWT_SECRET=$(openssl rand -hex 32)
+JWT_ALGORITHM=HS256
+
+# Producion: tiempos cortos mas seguros
+ACCESS_TOKEN_EXPIRE_MINUTES=15          # 15 minutos
+REFRESH_TOKEN_EXPIRE_DAYS=7             # 7 días
+        
+
+
+# ============================================
+# SECURITY POLICIES
+# ============================================
+MAX_LOGIN_ATTEMPTS=5
+LOGIN_BLOCK_MINUTES=15
+PASSWORD_MIN_LENGTH=8
+REQUIRE_PASSWORD_COMPLEXITY=True
+
+# ============================================
+# CORS (Cross-Origin Resource Sharing)
+# ============================================
+CORS_ALLOW_ORIGINS=https://tudominio.com
+CORS_ALLOW_CREDENTIALS=True
+
+# ============================================
+# COOKIES
+# ============================================
+COOKIE_SECURE=True
+COOKIE_SAMESITE=strict
+COOKIE_HTTPONLY=True
+COOKIE_DOMAIN=localhost
+
+# ============================================
+# RATE LIMITING
+# ============================================
+RATE_LIMIT_ENABLED=True
+RATE_LIMIT_DEFAULT=100/hour
+RATE_LIMIT_AUTH=10/minute
+
+# ============================================
+# LOGGING
+# ============================================
+LOG_LEVEL=INFO
+LOG_FILE=app.log
+LOG_FORMAT=json
+
+# ============================================
+# FEATURE FLAGS
+# ============================================
+ENABLE_SWAGGER=True
+ENABLE_METRICS=True
+ENABLE_HEALTH_CHECKS=True
+
+
+------------------------------------------------------------------------------------------------
+frontend
+
+# frontend/.env (archivo principal)
+VITE_API_URL=http://localhost:8000
+VITE_APP_NAME=Hockey Bariloche
+VITE_APP_ENV=development
+VITE_ENABLE_DEBUG=true
+-------------------------------------------------------------------------------------------------
+# frontend/.env.development
+
+# API Configuration
+VITE_API_URL=http://localhost:8000
+VITE_API_TIMEOUT=10000
+VITE_API_PREFIX=/api
+
+# App Configuration
+VITE_APP_NAME=Hockey Bariloche
+VITE_APP_VERSION=1.0.0
+VITE_APP_ENV=development
+
+# Features
+VITE_ENABLE_DEBUG=true
+VITE_ENABLE_LOGGING=true
+VITE_LOG_LEVEL=debug
+
+# Auth
+VITE_TOKEN_REFRESH_THRESHOLD=5  # minutos antes de expirar
+VITE_TOKEN_CHECK_INTERVAL=60    # segundos entre chequeos
+
+# UI/UX
+VITE_DEFAULT_LANGUAGE=es
+VITE_THEME=light
+VITE_ENABLE_TOUR=true
+
+# Analytics (development/test keys)
+VITE_GOOGLE_ANALYTICS_ID=UA-XXXXX-X
+
+---------------------------------------------------------------------------------------------------
+# frontend/.env.local
+# Este archivo NO se sube a git, solo para config local
+
+
+# O para desarrollo local
+# VITE_API_URL=http://localhost:8000
+
+# Debug específico
+VITE_LOG_LEVEL=trace
+VITE_ENABLE_REDUX_DEVTOOLS=true
+
+---------------------------------------------------------------------------------------------------------
+# frontend/.env.production
+
+# API Configuration
+VITE_API_URL=https://api.tudominio.com
+VITE_API_TIMEOUT=15000
+VITE_API_PREFIX=/api/v1
+
+# App Configuration
+VITE_APP_NAME=Hockey Bariloche
+VITE_APP_VERSION=1.0.0
+VITE_APP_ENV=production
+
+# Features
+VITE_ENABLE_DEBUG=false
+VITE_ENABLE_LOGGING=false
+VITE_LOG_LEVEL=error
+
+# Auth
+VITE_TOKEN_REFRESH_THRESHOLD=5  # minutos antes de expirar
+VITE_TOKEN_CHECK_INTERVAL=120   # segundos entre chequeos
+
+# UI/UX
+VITE_DEFAULT_LANGUAGE=es
+VITE_THEME=system
+VITE_ENABLE_TOUR=false
+
+# Analytics (production keys)
+VITE_GOOGLE_ANALYTICS_ID=UA-REAL-ID-HERE
+VITE_SENTRY_DSN=https://xxx@yyy.ingest.sentry.io/zzz
