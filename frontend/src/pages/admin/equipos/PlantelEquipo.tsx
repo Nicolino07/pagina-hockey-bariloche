@@ -2,12 +2,12 @@ import { usePlantelActivo } from "../../../hooks/usePlantelActivo"
 import PlantelLista from "../equipos/PlantelLista"
 
 type Props = {
-  equipoId: number
+  id_equipo: number
 }
 
-export default function PlantelEquipo({ equipoId }: Props) {
+export default function PlantelEquipo({ id_equipo }: Props) {
   const { integrantes, loading, error, hasData } =
-    usePlantelActivo(equipoId)
+    usePlantelActivo(id_equipo)
 
   if (loading) return <p>Cargando plantel…</p>
   if (error) return <p>{error}</p>

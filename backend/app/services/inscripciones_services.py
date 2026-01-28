@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-
+from sqlalchemy import text
 from app.models.inscripcion_torneo import InscripcionTorneo
 from app.models.torneo import Torneo
 from app.models.equipo import Equipo
@@ -95,3 +95,15 @@ def dar_de_baja_inscripcion(
 
     return inscripcion
 
+
+
+def listar_inscripciones_por_torneo(db, id_torneo: int):
+    query = text("""
+        SELECT *
+        FROM vw_inscripciones_torneo_detalle
+        WHERE id_torneo = :id_torneo
+        ORDER BY nombre_club, nombre_equipo
+    """)
+
+    result = db.execute(query, {"id_torneo": id_torneo})
+    return result.mappings().all()

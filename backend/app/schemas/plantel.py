@@ -1,3 +1,4 @@
+# backend/app/schemas/plantel.py
 from datetime import date, datetime
 from typing import Optional
 

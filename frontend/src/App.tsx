@@ -5,11 +5,13 @@ import PanelAdmin from "./pages/admin/panel/PanelAdmin"
 import Clubes from "./pages/admin/clubes/Clubes"
 import ClubDetalle from "./pages/admin/clubes/ClubDetalle"
 import EquipoDetalle from "./pages/admin/equipos/EquipoDetalle"
-
+import TorneosAdmin from "./pages/admin/torneos/TorneosAdmin"
+import TorneoDetalle from "./pages/admin/torneos/TorneoDetalle"
 
 import PublicLayout from "./layouts/PublicLayout"
 import AdminLayout from "./layouts/AdminLayout"
 import { ProtectedRoute } from "./auth/ProtectedRoute"
+
 
 export default function App() {
   return (
@@ -32,8 +34,9 @@ export default function App() {
         <Route path="/admin" element={<PanelAdmin />} />
         <Route path="/admin/clubes" element={<Clubes />} />
         <Route path="/admin/clubes/:id_club" element={<ClubDetalle />} />
-        <Route path="/admin/equipos/:idEquipo" element={<EquipoDetalle />} />
-
+        <Route path="/admin/equipos/:id_equipo" element={<EquipoDetalle />} />
+        <Route path="/admin/torneos" element={<TorneosAdmin />} />
+        <Route path="/admin/torneos/:idTorneo" element={<TorneoDetalle />} />
 
       </Route>
     </Routes>

@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react"
 import { getPlantelActivoPorEquipo } from "../api/vistas/plantel.api"
-
 import type { PlantelActivoIntegrante } from "../types/vistas"
 
-export function usePlantelActivo(equipoId?: number) {
+export function usePlantelActivo(id_equipo?: number) {
   const [integrantes, setIntegrantes] =
     useState<PlantelActivoIntegrante[]>([])
 
-  const [plantelId, setPlantelId] =
+  const [id_plantel, setIdPlantel] =
     useState<number | null>(null)
 
   const [loading, setLoading] =
@@ -17,20 +16,19 @@ export function usePlantelActivo(equipoId?: number) {
     useState<string | null>(null)
 
   const fetchData = async () => {
-    if (!equipoId) return
+    if (!id_equipo) return
 
     setLoading(true)
     setError(null)
 
     try {
       const data =
-        await getPlantelActivoPorEquipo(equipoId)
+        await getPlantelActivoPorEquipo(id_equipo)
 
       setIntegrantes(data)
 
-      // 👇 si la vista devuelve plantel_id
       if (data.length > 0) {
-        setPlantelId(data[0].id_plantel)
+        setIdPlantel(data[0].id_plantel)
       }
     } catch (e) {
       setError("Error cargando plantel")
@@ -41,11 +39,11 @@ export function usePlantelActivo(equipoId?: number) {
 
   useEffect(() => {
     fetchData()
-  }, [equipoId])
+  }, [id_equipo])
 
   return {
     integrantes,
-    plantelId,
+    id_plantel, // 👈 volvemos al nombre correcto
     loading,
     error,
     hasData: integrantes.length > 0,

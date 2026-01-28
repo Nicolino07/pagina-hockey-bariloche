@@ -7,8 +7,12 @@ comprobacion de genero en equipo/plantel/plantel_integrante LISTO
 AVANCE: carga de partido con goles y tarjetas funcionando, inicializacion de tabla de
 posiciones en 0 funcionando (detecta inscripcion),  
 Inicio de sesion y acceso a Panel principal listo
+pagina de clubes y equipos admin lista(casi)
+creando pagina admin para torneos
 
-PROXIMO: Conectar primeras funciones del back con el front o dar color. 
+PROXIMO: siguir desarrolo de torneos y toda su logica de edicion
+crear seccion para agregar nuevos usuario/panel de usuario donde mdifcar contraseña
+
 
 
 
@@ -88,4 +92,3 @@ WHERE total_amarillas >= 3;
 
 
 
-http://localhost:5173/admin/equipos/2

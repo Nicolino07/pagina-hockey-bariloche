@@ -15,6 +15,7 @@ SELECT
     p.nombre,
     p.apellido,
     p.documento,
+    p.genero,
     pr.rol,
     pr.fecha_desde,
     pr.fecha_hasta
@@ -318,5 +319,33 @@ GROUP BY
     apellido_persona,
     id_equipo,
     equipo;
+
+    
+-- =======================================================
+-- vista de torneos activos + detalles
+-- =======================================================
+
+CREATE OR REPLACE VIEW vw_inscripciones_torneo_detalle AS
+SELECT
+    it.id_inscripcion,
+    it.id_torneo,
+    it.id_equipo,
+
+    e.nombre        AS nombre_equipo,
+    e.categoria     AS categoria_equipo,
+    e.genero        AS genero_equipo,
+
+    c.id_club,
+    c.nombre        AS nombre_club,
+
+    it.fecha_inscripcion,
+    it.fecha_baja
+
+FROM inscripcion_torneo it
+JOIN equipo e ON e.id_equipo = it.id_equipo
+JOIN club c   ON c.id_club   = e.id_club
+WHERE it.fecha_baja IS NULL;
+
+
 
 COMMIT;

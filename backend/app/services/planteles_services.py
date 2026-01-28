@@ -1,4 +1,7 @@
+# backend/app/services/planteles_services.py
 from datetime import date
+from sqlalchemy.exc import DBAPIError
+
 from sqlalchemy.orm import Session
 
 from app.models.equipo import Equipo
@@ -100,7 +103,22 @@ def crear_integrante(
     )
 
     db.add(integrante)
-    db.flush()  # 🔥 genera id_plantel_integrante
+
+    try:
+        db.flush()  # 🔥 ejecuta el trigger
+    except DBAPIError as e:
+        db.rollback()
+
+        mensaje = str(e.orig).lower() if e.orig else str(e).lower()
+
+        if "rol" in mensaje and "otro club" in mensaje:
+            raise ConflictError(
+                "La persona ya tiene ese rol activo en otro club"
+            )
+
+        raise ValidationError(
+            "No se pudo crear el integrante del plantel"
+        )
 
     return integrante
 

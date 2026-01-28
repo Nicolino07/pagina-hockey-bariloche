@@ -1,4 +1,4 @@
-
+# backend/app/routers/planteles.py
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from fastapi import Request, Response

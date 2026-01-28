@@ -1,5 +1,5 @@
 // src/types/vistas.ts
-import type { TipoRolPersona } from "./enums"
+import type { TipoGenero, TipoRolPersona } from "./enums"
 
 export interface PlantelActivoIntegrante {
   id_equipo: number
@@ -23,4 +23,5 @@ export interface PersonaConRol {
   apellido: string
   id_rol: number
   rol_codigo: TipoRolPersona
+  genero: TipoGenero   // 👈 esta línea
 }

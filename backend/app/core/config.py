@@ -20,11 +20,11 @@ class Settings(BaseSettings):
 
     @property
     def access_token_expire_timedelta(self) -> timedelta:
-        return timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
+        return timedelta(minutes=self.access_token_expire_minutes)
 
     @property
     def refresh_token_expire_timedelta(self) -> timedelta:
-        return timedelta(days=self.REFRESH_TOKEN_EXPIRE_DAYS)
+        return timedelta(days=self.refresh_token_expire_days)
 
 
 settings = Settings()

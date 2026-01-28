@@ -9,7 +9,7 @@ from app.schemas.inscripcion_torneo import (
     InscripcionTorneoCreate,
 )
 from app.services import inscripciones_services
-
+from app.schemas.vistas import InscripcionTorneoDetalle
 
 router = APIRouter(
     prefix="/torneos/{id_torneo}/inscripciones",
@@ -17,7 +17,10 @@ router = APIRouter(
 )
 
 # 🔓 Público
-@router.get("/", response_model=list[InscripcionTorneo])
+@router.get(
+    "/",
+    response_model=list[InscripcionTorneoDetalle]
+)
 def listar_inscripciones(
     id_torneo: int,
     db: Session = Depends(get_db),
@@ -25,6 +28,7 @@ def listar_inscripciones(
     return inscripciones_services.listar_inscripciones_por_torneo(
         db, id_torneo
     )
+
 
 @router.post(
     "/",
@@ -64,4 +68,6 @@ def dar_de_baja_inscripcion(
         current_user=current_user,
     )
     db.commit()
+
+
 

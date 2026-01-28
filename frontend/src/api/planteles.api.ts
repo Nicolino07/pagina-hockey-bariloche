@@ -1,6 +1,7 @@
 // src/api/planteles.api.ts
 import type { TipoRolPersona } from "../types/enums"
 import api from "./axiosAdmin"
+import axiosAdmin from "./axiosAdmin"
 import type { Plantel } from "../types/plantel"
 import type {
   PlantelIntegrante,
@@ -39,34 +40,26 @@ export async function getIntegrantesByPlantel(
 // 🔹 Agregar integrante a un plantel (EDITOR / ADMIN)
 
 export async function agregarIntegrantePlantel(
-  plantelId: number,
-  personaId: number,
-  rol: TipoRolPersona
+  id_plantel: number,
+  id_persona: number,
+  rol_en_plantel: TipoRolPersona,
+  numero_camiseta?: number
 ) {
-  const res = await fetch(`/planteles/${plantelId}/integrantes`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      id_persona: personaId,
-      rol,
-    }),
+  return axiosAdmin.post("/planteles/integrantes", {
+    id_plantel,
+    id_persona,
+    rol_en_plantel,
+    numero_camiseta,
   })
-
-  if (!res.ok) {
-    const error = await res.json()
-    throw {
-      status: res.status,
-      ...error,
-    }
-  }
 }
 
 
 
-
-// 🔹 Dar de baja un integrante (EDITOR / ADMIN)
-export async function deleteIntegrante(
+// 🔹 Dar de baja un integrante (ADMIN)
+export async function bajaIntegrantePlantel(
   id_integrante: number
 ): Promise<void> {
-  await api.delete(`/planteles/integrantes/${id_integrante}`)
+  await axiosAdmin.delete(
+    `/planteles/integrantes/${id_integrante}`
+  )
 }

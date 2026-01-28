@@ -119,7 +119,19 @@ export default function ClubDetalle() {
                       className={styles.edit}
                       onClick={(e) => {
                         e.stopPropagation()
-                        navigate(`/admin/equipos/${equipo.id_equipo}`)
+                        navigate(
+                          `/admin/equipos/${equipo.id_equipo}`,
+                          {
+                            state: {
+                              clubNombre: club.nombre,
+                              clubId: club.id_club,
+                              equipoNombre: equipo.nombre,
+                              categoria: equipo.categoria,
+                              generoEquipo: equipo.genero,
+                             
+                            },
+                          }
+                        )
                       }}
                     >
                       Editar
@@ -129,7 +141,7 @@ export default function ClubDetalle() {
                   {/* PLANTEL */}
                   {abierto && (
                     <div className={styles.plantelWrapper}>
-                      <PlantelEquipo equipoId={equipo.id_equipo} />
+                      <PlantelEquipo id_equipo={equipo.id_equipo} />
                     </div>
                   )}
                 </li>
