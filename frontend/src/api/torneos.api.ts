@@ -1,37 +1,86 @@
 import api from "./axiosAdmin"
-import type { Torneo } from "../types/torneo"
+import type { Torneo, TorneoCreate } from "../types/torneo"
+import type { InscripcionTorneoDetalle} from "../types/inscripcion"
 
-export async function getTorneos(): Promise<Torneo[]> {
-  const { data } = await api.get<Torneo[]>("/torneos")
-  return data
+
+// LISTAR
+export async function listarTorneos(): Promise<Torneo[]> {
+  const res = await api.get<Torneo[]>("/torneos")
+  return res.data
 }
 
-export const getInscripcionesTorneo = async (idTorneo: number) => {
-  const { data } = await api.get(
-    `/torneos/${idTorneo}/inscripciones`
+// DETALLE
+export async function getTorneo(id: number): Promise<Torneo> {
+  const res = await api.get<Torneo>(`/torneos/${id}`)
+  return res.data
+}
+
+
+// 🔐 ADMIN
+export async function crearTorneo(
+  data: TorneoCreate
+): Promise<Torneo> {
+  const response = await api.post("/torneos", data)
+  return response.data
+}
+
+// =======================
+// LISTAR INSCRIPCIONES
+// GET /torneos/{id}/inscripciones/
+// =======================
+export const listarInscripcionesTorneo = async (
+  id_torneo: number
+): Promise<InscripcionTorneoDetalle[]> => {
+  const res = await api.get<InscripcionTorneoDetalle[]>(
+    `/torneos/${id_torneo}/inscripciones/`
   )
-  return data
+  return res.data
 }
 
-export const darBajaInscripcion = async (
+
+// =======================
+// INSCRIBIR EQUIPO
+// POST /torneos/{id}/inscripciones/
+// BODY: { id_equipo }
+// =======================
+export const inscribirEquipoTorneo = (
   idTorneo: number,
   idEquipo: number
-) => {
+) =>
+  api.post(`/torneos/${idTorneo}/inscripciones/`, {
+    id_equipo: idEquipo,
+  })
+
+
+
+// =======================
+// DAR DE BAJA
+// DELETE /torneos/{id}/inscripciones/{id_equipo}/BAJA
+// =======================
+export const darDeBajaEquipoTorneo = async (
+  id_torneo: number,
+  id_equipo: number
+): Promise<void> => {
   await api.delete(
-    `/torneos/${idTorneo}/inscripciones/${idEquipo}/BAJA`
+    `/torneos/${id_torneo}/inscripciones/${id_equipo}/BAJA`
   )
 }
 
-export const inscribirEquipo = async (
-  idTorneo: number,
-  idEquipo: number
-) => {
-  await api.post(
-    `/torneos/${idTorneo}/inscripciones`,
-    { id_equipo: idEquipo }
-  )
+
+// 🗑 Soft delete
+export async function eliminarTorneo(id_torneo: number) {
+  const { data } = await api.delete(`/torneos/${id_torneo}`)
+  return data
 }
 
-export function getTorneoById(idTorneo: number) {
-  return api.get<Torneo>(`/torneos/${idTorneo}`)
+// 🏁 Finalizar torneo
+export async function finalizarTorneo(
+  id_torneo: number,
+  fecha_fin?: string
+): Promise<Torneo> {
+  const { data } = await api.post(
+    `/torneos/${id_torneo}/finalizar`,
+    fecha_fin ? { fecha_fin } : null
+  )
+  return data
 }

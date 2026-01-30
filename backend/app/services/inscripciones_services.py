@@ -14,36 +14,53 @@ def inscribir_equipo_en_torneo(
     current_user,
 ) -> InscripcionTorneo:
 
-    torneo = db.get(Torneo, id_torneo)
-    if not torneo:
-        raise NotFoundError("El torneo no existe")
-
-    equipo = db.get(Equipo, id_equipo)
-    if not equipo:
-        raise NotFoundError("El equipo no existe")
-
-    # Regla CLAVE
-    if equipo.genero != torneo.genero:
-        raise ValidationError(
-            "El género del equipo no coincide con el del torneo"
+    inscripcion_activa = (
+        db.query(InscripcionTorneo)
+        .filter(
+            InscripcionTorneo.id_torneo == id_torneo,
+            InscripcionTorneo.id_equipo == id_equipo,
+            InscripcionTorneo.fecha_baja.is_(None),
         )
+        .first()
+    )
 
-    inscripcion = InscripcionTorneo(
+    if inscripcion_activa:
+        raise ValidationError("El equipo ya está inscripto en el torneo")
+
+    inscripcion_baja = (
+        db.query(InscripcionTorneo)
+        .filter(
+            InscripcionTorneo.id_torneo == id_torneo,
+            InscripcionTorneo.id_equipo == id_equipo,
+            InscripcionTorneo.fecha_baja.isnot(None),
+        )
+        .first()
+    )
+
+    # 🟡 Reactivar
+    if inscripcion_baja:
+        inscripcion_baja.fecha_baja = None
+        inscripcion_baja.actualizado_en = datetime.utcnow()
+        inscripcion_baja.actualizado_por = current_user.username
+
+        db.commit()
+        db.refresh(inscripcion_baja)
+        return inscripcion_baja
+
+    # 🔵 Crear nueva
+    nueva = InscripcionTorneo(
         id_torneo=id_torneo,
         id_equipo=id_equipo,
         creado_por=current_user.username,
     )
 
-    db.add(inscripcion)
+    db.add(nueva)
+    db.commit()
+    db.refresh(nueva)
 
-    try:
-        db.flush()
-    except IntegrityError:
-        raise ConflictError(
-            "El equipo ya está inscripto en este torneo"
-        )
+    return nueva
 
-    return inscripcion
+
 
 def listar_inscripciones_por_torneo(
     db: Session,
@@ -79,7 +96,7 @@ def dar_de_baja_inscripcion(
         .filter(
             InscripcionTorneo.id_torneo == id_torneo,
             InscripcionTorneo.id_equipo == id_equipo,
-            InscripcionTorneo.borrado_en.is_(None),
+            InscripcionTorneo.fecha_baja.is_(None),  # 👈 clave
         )
         .first()
     )
@@ -92,6 +109,9 @@ def dar_de_baja_inscripcion(
     inscripcion.fecha_baja = datetime.utcnow()
     inscripcion.actualizado_en = datetime.utcnow()
     inscripcion.actualizado_por = current_user.username
+
+    db.commit()        # 👈 importante
+    db.refresh(inscripcion)
 
     return inscripcion
 

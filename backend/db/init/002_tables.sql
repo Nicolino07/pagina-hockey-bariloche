@@ -91,6 +91,55 @@ CREATE TABLE IF NOT EXISTS persona_rol (
 );
 
 -- ======================
+-- FICHAJE_ROL
+-- ======================
+CREATE TABLE IF NOT EXISTS fichaje_rol (
+    id_fichaje_rol INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    
+    -- Relación tríada: persona - club - rol
+    id_persona INT NOT NULL 
+        REFERENCES persona(id_persona) ON UPDATE CASCADE ON DELETE CASCADE,
+    id_club INT NOT NULL 
+        REFERENCES club(id_club) ON UPDATE CASCADE ON DELETE RESTRICT,
+    rol tipo_rol_persona NOT NULL,
+    
+    -- Temporalidad
+    fecha_inicio DATE NOT NULL DEFAULT CURRENT_DATE,
+    fecha_fin DATE,
+    
+    -- Estado simple
+    activo BOOLEAN DEFAULT TRUE,
+    
+    -- Auditoría
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMP DEFAULT NULL,
+    borrado_en TIMESTAMP DEFAULT NULL,
+    creado_por VARCHAR(100),
+    actualizado_por VARCHAR(100),
+    
+    -- Constraints
+    CHECK (fecha_fin IS NULL OR fecha_fin > fecha_inicio),
+    
+    -- Restricción: Una persona no puede tener el MISMO rol activo en DOS clubes diferentes
+    CONSTRAINT unq_persona_rol_activo_uniclub 
+        UNIQUE NULLS NOT DISTINCT (
+            id_persona,
+            rol,
+            (CASE WHEN activo = TRUE AND fecha_fin IS NULL 
+                  THEN 1 ELSE NULL END)
+        ),
+    
+    -- Pero SÍ puede tener DIFERENTES roles en DIFERENTES clubes
+    CONSTRAINT unq_persona_club_rol_activo 
+        UNIQUE NULLS NOT DISTINCT (
+            id_persona,
+            id_club,
+            rol,
+            (CASE WHEN activo = TRUE THEN 1 ELSE NULL END)
+        )
+);
+
+-- ======================
 -- PLANTEL
 -- ======================
 

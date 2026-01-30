@@ -346,6 +346,63 @@ JOIN equipo e ON e.id_equipo = it.id_equipo
 JOIN club c   ON c.id_club   = e.id_club
 WHERE it.fecha_baja IS NULL;
 
+-- =======================================================
+-- jugadores por club
+-- =======================================================
 
+-- Vista: Jugadores por club
+CREATE OR REPLACE VIEW vista_jugadores_club AS
+SELECT 
+    c.id_club,
+    c.nombre as club_nombre,
+    p.id_persona,
+    p.nombre,
+    p.apellido,
+    p.documento,
+    p.fecha_nacimiento,
+    p.genero,
+    fr.fecha_inicio as fecha_fichaje,
+    fr.creado_en,
+    -- Último plantel activo
+    (SELECT pl.nombre 
+     FROM plantel_integrante pi
+     JOIN plantel pl ON pi.id_plantel = pl.id_plantel
+     WHERE pi.id_persona = p.id_persona
+       AND pi.rol_en_plantel = 'JUGADOR'
+       AND pi.fecha_baja IS NULL
+       AND pl.activo = TRUE
+       AND pl.id_equipo IN (SELECT id_equipo FROM equipo WHERE id_club = c.id_club)
+     LIMIT 1) as plantel_actual
+FROM fichaje_rol fr
+JOIN club c ON fr.id_club = c.id_club
+JOIN persona p ON fr.id_persona = p.id_persona
+WHERE fr.rol = 'JUGADOR'
+  AND fr.activo = TRUE
+  AND c.borrado_en IS NULL
+  AND p.borrado_en IS NULL
+ORDER BY c.nombre, p.apellido, p.nombre;
+
+-- Vista: Personas disponibles para fichar (no tienen rol activo en ningún club)
+CREATE OR REPLACE VIEW vista_personas_disponibles_fichaje AS
+SELECT 
+    p.id_persona,
+    p.nombre,
+    p.apellido,
+    p.documento,
+    pr.rol,
+    pr.fecha_desde,
+    pr.fecha_hasta
+FROM persona p
+JOIN persona_rol pr ON p.id_persona = pr.id_persona
+WHERE (pr.fecha_hasta IS NULL OR pr.fecha_hasta >= CURRENT_DATE)
+  AND p.borrado_en IS NULL
+  AND NOT EXISTS (
+      SELECT 1 FROM fichaje_rol fr
+      WHERE fr.id_persona = p.id_persona
+        AND fr.rol = pr.rol
+        AND fr.activo = TRUE
+        AND fr.fecha_fin IS NULL
+  )
+ORDER BY p.apellido, p.nombre, pr.rol;
 
 COMMIT;

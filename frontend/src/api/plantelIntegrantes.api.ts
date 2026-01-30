@@ -1,11 +1,14 @@
-import api from "./axiosAdmin"
+
 // src/api/plantelIntegrantes.api.ts
 
+import type { TipoRolPersona } from "../constants/enums"
 import type {
   PlantelIntegrante,
-  PlantelIntegranteCreate,
 } from "../types/plantelIntegrante"
+import api from "./axiosAdmin"
 
+
+// 📄 Listar integrantes
 export async function getIntegrantesByPlantel(
   id_plantel: number
 ): Promise<PlantelIntegrante[]> {
@@ -15,21 +18,28 @@ export async function getIntegrantesByPlantel(
   return res.data
 }
 
+// ➕ Crear integrante
 export async function agregarIntegrante(
-  id_plantel: number,
-  data: PlantelIntegranteCreate
-): Promise<PlantelIntegrante> {
+  data: {
+    id_plantel: number
+    id_persona: number
+    rol_en_plantel: TipoRolPersona
+    numero_camiseta?: number | null
+  }
+) {
   const res = await api.post(
-    `/planteles/${id_plantel}/integrantes`,
+    "/planteles/integrantes",
     data
   )
   return res.data
 }
 
+
+// ❌ Baja integrante
 export async function darBajaIntegrante(
   id_integrante: number
 ): Promise<void> {
-  await api.post(
-    `/plantel-integrantes/${id_integrante}/baja`
+  await api.delete(
+    `/planteles/integrantes/${id_integrante}`
   )
 }

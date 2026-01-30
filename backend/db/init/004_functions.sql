@@ -5,6 +5,147 @@
 
 BEGIN;
 
+
+CREATE OR REPLACE FUNCTION validar_antes_de_agregar_a_plantel()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_id_club INT;
+    v_tiene_fichaje_activo BOOLEAN;
+    v_tiene_rol_en_otro_club BOOLEAN;
+BEGIN
+    -- Obtener club del plantel
+    SELECT c.id_club INTO v_id_club
+    FROM plantel pl
+    JOIN equipo e ON pl.id_equipo = e.id_equipo
+    JOIN club c ON e.id_club = c.id_club
+    WHERE pl.id_plantel = NEW.id_plantel;
+    
+    -- Verificar que tenga fichaje activo en este club con este rol
+    SELECT EXISTS (
+        SELECT 1 FROM fichaje_rol
+        WHERE id_persona = NEW.id_persona
+          AND id_club = v_id_club
+          AND rol = NEW.rol_en_plantel
+          AND activo = TRUE
+          AND fecha_fin IS NULL
+    ) INTO v_tiene_fichaje_activo;
+    
+    IF NOT v_tiene_fichaje_activo THEN
+        RAISE EXCEPTION 
+            'La persona % no está fichada como % en este club. '
+            'Primero debe ficharla.',
+            (SELECT nombre || ' ' || apellido FROM persona WHERE id_persona = NEW.id_persona),
+            NEW.rol_en_plantel;
+    END IF;
+    
+    -- Verificar que no tenga el mismo rol activo en otro club
+    IF NEW.fecha_baja IS NULL THEN
+        SELECT EXISTS (
+            SELECT 1 FROM fichaje_rol
+            WHERE id_persona = NEW.id_persona
+              AND rol = NEW.rol_en_plantel
+              AND activo = TRUE
+              AND fecha_fin IS NULL
+              AND id_club != v_id_club
+        ) INTO v_tiene_rol_en_otro_club;
+        
+        IF v_tiene_rol_en_otro_club THEN
+            RAISE EXCEPTION 
+                'La persona ya tiene el rol % activo en otro club. '
+                'No puede tener el mismo rol en dos clubes simultáneamente.',
+                NEW.rol_en_plantel;
+        END IF;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- ======================================================
+-- FUNCIONES DE SINCRONIZACIÓN ENTRE PLANTEL Y FICHAJE_ROL
+-- ======================================================
+CREATE OR REPLACE FUNCTION sincronizar_fichaje_desde_plantel()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_id_club INT;
+BEGIN
+    -- Solo procesar UPDATEs (los INSERTs ya fueron validados)
+    IF TG_OP = 'UPDATE' THEN
+        -- Obtener club del plantel
+        SELECT c.id_club INTO v_id_club
+        FROM plantel pl
+        JOIN equipo e ON pl.id_equipo = e.id_equipo
+        JOIN club c ON e.id_club = c.id_club
+        WHERE pl.id_plantel = NEW.id_plantel;
+        
+        -- Dar de baja en fichaje
+        IF NEW.fecha_baja IS NOT NULL AND OLD.fecha_baja IS NULL THEN
+            PERFORM dar_baja_fichaje(
+                NEW.id_persona,
+                v_id_club,
+                NEW.rol_en_plantel,
+                NEW.fecha_baja
+            );
+        
+        -- Reactivar fichaje
+        ELSIF NEW.fecha_baja IS NULL AND OLD.fecha_baja IS NOT NULL THEN
+            PERFORM crear_fichaje(
+                NEW.id_persona,
+                v_id_club,
+                NEW.rol_en_plantel,
+                CURRENT_DATE
+            );
+        END IF;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
+-- 0. VALIDAR EQUIPO VS TORNEO
+-- =====================================================
+
+CREATE OR REPLACE FUNCTION fn_validar_equipo_vs_torneo()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_cat_equipo   tipo_categoria;
+    v_gen_equipo   tipo_genero;
+    v_cat_torneo   tipo_categoria;
+    v_gen_torneo   tipo_genero;
+BEGIN
+    -- Datos del equipo
+    SELECT categoria, genero
+    INTO v_cat_equipo, v_gen_equipo
+    FROM equipo
+    WHERE id_equipo = NEW.id_equipo;
+
+    -- Datos del torneo
+    SELECT categoria, genero
+    INTO v_cat_torneo, v_gen_torneo
+    FROM torneo
+    WHERE id_torneo = NEW.id_torneo;
+
+    IF v_cat_equipo IS NULL OR v_cat_torneo IS NULL THEN
+        RAISE EXCEPTION 'Equipo o torneo inexistente';
+    END IF;
+
+    IF v_cat_equipo <> v_cat_torneo
+       OR v_gen_equipo <> v_gen_torneo THEN
+        RAISE EXCEPTION
+            'Inscripción inválida: equipo (%/% ) no coincide con torneo (%/%)',
+            v_cat_equipo, v_gen_equipo,
+            v_cat_torneo, v_gen_torneo
+        USING HINT = 'La categoría y el género del equipo deben coincidir con el torneo';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
 -- =====================================================
 -- 1. TIMESTAMP AUTOMÁTICO
 -- =====================================================

@@ -11,10 +11,9 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
-from app.models.enums import GeneroTipo
-from app.models.mixins import AuditFieldsMixin
 
-class InscripcionTorneo(Base, AuditFieldsMixin):
+
+class InscripcionTorneo(Base):
     __tablename__ = "inscripcion_torneo"
 
     __table_args__ = (

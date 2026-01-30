@@ -30,6 +30,12 @@ BEFORE UPDATE ON persona_rol
 FOR EACH ROW
 EXECUTE FUNCTION fn_set_actualizado_en();
 
+CREATE TRIGGER trg_fichaje_rol_actualizado
+BEFORE UPDATE ON fichaje_rol
+FOR EACH ROW
+EXECUTE FUNCTION fn_set_actualizado_en();       
+
+
 CREATE TRIGGER trg_plantel_actualizado
 BEFORE UPDATE ON plantel
 FOR EACH ROW
@@ -71,6 +77,18 @@ EXECUTE FUNCTION fn_set_actualizado_en();
 -- VALIDACIONES DE DOMINIO
 -- =====================================================
 
+-- Trigger 1: Validar ANTES de insertar en plantel_integrante
+DROP TRIGGER IF EXISTS trg_validar_antes_de_agregar_a_plantel ON plantel_integrante;
+CREATE TRIGGER trg_validar_antes_de_agregar_a_plantel
+BEFORE INSERT ON plantel_integrante
+FOR EACH ROW EXECUTE FUNCTION validar_antes_de_agregar_a_plantel();
+
+-- Trigger 2: Sincronizar fichaje después de actualizar plantel_integrante
+DROP TRIGGER IF EXISTS trg_sincronizar_fichaje_desde_plantel ON plantel_integrante;
+CREATE TRIGGER trg_sincronizar_fichaje_desde_plantel
+AFTER UPDATE ON plantel_integrante
+FOR EACH ROW EXECUTE FUNCTION sincronizar_fichaje_desde_plantel();
+
 -- Validación COMBINADA: Rol en plantel + Rol único por club
 DROP TRIGGER IF EXISTS trg_validar_rol_en_plantel ON plantel_integrante;
 
@@ -78,6 +96,14 @@ CREATE TRIGGER trg_plantel_integrante_validaciones
 BEFORE INSERT OR UPDATE ON plantel_integrante
 FOR EACH ROW
 EXECUTE FUNCTION fn_plantel_integrante_validar_rol_unico();
+
+-- validar que el equipo inscrito en el torneo coincida 
+-- con la categoría y género del torneo
+CREATE TRIGGER trg_validar_equipo_vs_torneo
+BEFORE INSERT OR UPDATE ON inscripcion_torneo
+FOR EACH ROW
+EXECUTE FUNCTION fn_validar_equipo_vs_torneo();
+
 
 -- Capitanes
 CREATE TRIGGER trg_validar_capitanes

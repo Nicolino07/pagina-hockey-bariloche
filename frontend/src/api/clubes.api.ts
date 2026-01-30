@@ -28,7 +28,7 @@ export async function getClubById(id: number): Promise<Club> {
 }
 
 // 🔐 ADMIN
-export async function createClub(payload: ClubCreate): Promise<Club> {
+export async function crearClub(payload: ClubCreate): Promise<Club> {
   const res = await api.post("/clubes/", payload)
   return mapClubFromApi(res.data)
 }

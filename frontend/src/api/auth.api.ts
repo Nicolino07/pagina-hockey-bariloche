@@ -1,6 +1,5 @@
 // frontend/src/api/auth.api.ts
 import axiosAdmin from './axiosAdmin'
-import config from './config/index'
 import { authUtils } from '../utils/auth'
 import type { LoginResponse, RefreshResponse } from '../types/auth'
 

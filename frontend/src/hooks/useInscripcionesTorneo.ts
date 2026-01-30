@@ -1,36 +1,45 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import {
-  getInscripcionesTorneo,
-  darBajaInscripcion,
+  listarInscripcionesTorneo,
+  darDeBajaEquipoTorneo,
 } from "../api/torneos.api"
 
-export function useInscripcionesTorneo(idTorneo?: number) {
-  const [inscripciones, setInscripciones] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+import type { InscripcionTorneoDetalle } from "../types/inscripcion"
+
+export function useInscripcionesTorneo(id_torneo?: number) {
+  const [inscripciones, setInscripciones] =
+    useState<InscripcionTorneoDetalle[]>([])
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchData = async () => {
-    if (!idTorneo) return
+  const fetchData = useCallback(async () => {
+    if (!id_torneo) return
+
     try {
       setLoading(true)
-      const data = await getInscripcionesTorneo(idTorneo)
+      setError(null)
+
+      const data = await listarInscripcionesTorneo(id_torneo)
       setInscripciones(data)
-    } catch {
-      setError("Error al cargar inscripciones")
+    } catch (e: any) {
+      setError(
+        e.response?.data?.message ?? "Error al cargar inscripciones"
+      )
     } finally {
       setLoading(false)
     }
-  }
+  }, [id_torneo])
 
   const baja = async (idEquipo: number) => {
-    if (!idTorneo) return
-    await darBajaInscripcion(idTorneo, idEquipo)
-    fetchData()
+    if (!id_torneo) return
+
+    await darDeBajaEquipoTorneo(id_torneo, idEquipo)
+    await fetchData()
   }
 
   useEffect(() => {
     fetchData()
-  }, [idTorneo])
+  }, [fetchData])
 
   return {
     inscripciones,

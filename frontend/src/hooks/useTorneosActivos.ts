@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react"
-import { getTorneos } from "../api/torneos.api"
+// src/hooks/useTorneosActivos.ts
+import { listarTorneos } from "../api/torneos.api"
 import type { Torneo } from "../types/torneo"
+import { useEffect, useState, useCallback } from "react"
 
 
 export function useTorneosActivos() {
@@ -8,14 +9,26 @@ export function useTorneosActivos() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    getTorneos()
-      .then(data => {
-        setTorneos(data.filter(t => t.activo))
-      })
-      .catch(() => setError("Error al cargar torneos"))
-      .finally(() => setLoading(false))
+  const fetchTorneos = useCallback(async () => {
+    try {
+      setLoading(true)
+      const data = await listarTorneos()
+      setTorneos(data)
+    } catch {
+      setError("Error al cargar torneos")
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  return { torneos, loading, error }
+  useEffect(() => {
+    fetchTorneos()
+  }, [fetchTorneos])
+
+  return {
+    torneos,
+    loading,
+    error,
+    refetch: fetchTorneos,
+  }
 }

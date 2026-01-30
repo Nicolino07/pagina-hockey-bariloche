@@ -2,10 +2,10 @@ BEGIN;
 
 -- Damas
 INSERT INTO equipo (id_club, nombre, categoria, genero, creado_por) VALUES
-(1,  'Nahuel Damas', 'A','FEMENINO', 'seed'),
-(2, 'Andino Damas', 'A','FEMENINO', 'seed'),
-(3, 'Lagos Damas', 'A','FEMENINO', 'seed'),
-(4, 'Patagonia Damas', 'A', 'FEMENINO', 'seed');
+(1,  'Nahuel Damas', 'B','FEMENINO', 'seed'),
+(2, 'Andino Damas', 'B','FEMENINO', 'seed'),
+(3, 'Lagos Damas', 'B','FEMENINO', 'seed'),
+(4, 'Patagonia Damas', 'B', 'FEMENINO', 'seed');
 
 -- Caballeros
 

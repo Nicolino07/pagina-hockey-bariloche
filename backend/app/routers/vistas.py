@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List, Optional
-from datetime import date
+from datetime import date, datetime
 
 from app.database import get_db
 from app.schemas.vistas import PlantelActivoIntegrante, PersonaConRol
@@ -146,6 +146,8 @@ def obtener_personas_con_roles(
     summary="Buscar jugadores",
     description="Busca jugadores por nombre, apellido o documento",
 )
+
+
 def buscar_jugadores(
     q: str = Query(
         ..., 

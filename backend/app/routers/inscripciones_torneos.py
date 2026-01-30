@@ -5,7 +5,7 @@ from app.database import get_db
 from app.dependencies.permissions import require_admin
 from app.models.usuario import Usuario
 from app.schemas.inscripcion_torneo import (
-    InscripcionTorneo,
+    InscripcionTorneoAction,
     InscripcionTorneoCreate,
 )
 from app.services import inscripciones_services
@@ -32,7 +32,7 @@ def listar_inscripciones(
 
 @router.post(
     "/",
-    response_model=InscripcionTorneo,
+    response_model=InscripcionTorneoAction,
     status_code=status.HTTP_201_CREATED,
 )
 

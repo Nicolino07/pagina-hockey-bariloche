@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
+import { getTorneo } from "../api/torneos.api"
 import type { Torneo } from "../types/torneo"
-import { getTorneoById } from "../api/torneos.api"
 
 export function useTorneo(idTorneo?: number) {
   const [torneo, setTorneo] = useState<Torneo | null>(null)
@@ -12,8 +12,8 @@ export function useTorneo(idTorneo?: number) {
 
     setLoading(true)
 
-    getTorneoById(idTorneo)
-      .then(res => setTorneo(res.data))
+    getTorneo(idTorneo)
+      .then(setTorneo)
       .catch(() => setError("Error al cargar el torneo"))
       .finally(() => setLoading(false))
   }, [idTorneo])

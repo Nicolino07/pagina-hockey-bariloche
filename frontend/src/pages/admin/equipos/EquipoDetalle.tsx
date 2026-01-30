@@ -1,77 +1,50 @@
-import { useParams, useLocation } from "react-router-dom"
+import { useParams, useLocation, useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
 
 import { usePlantelActivo } from "../../../hooks/usePlantelActivo"
 
-import { getPersonasConRol } from "../../../api/vistas/personas.api"
-import { agregarIntegrantePlantel, bajaIntegrantePlantel } from "../../../api/planteles.api"
+import {
+  getPersonasConRol,
+} from "../../../api/vistas/personas.api"
+import {
+  bajaIntegrantePlantel,
+} from "../../../api/planteles.api"
 
 import type { PersonaConRol } from "../../../types/vistas"
-import type { TipoRolPersona, TipoGenero} from "../../../types/enums"
+import type { TipoRolPersona, TipoGenero } from "../../../constants/enums"
 
 import PlantelLista from "./PlantelLista"
 import Button from "../../../components/ui/button/Button"
 import Modal from "../../../components/ui/modal/Modal"
 
 import styles from "./EquipoDetalle.module.css"
+import { agregarIntegrante } from "../../../api/plantelIntegrantes.api"
 
 export default function EquipoDetalle() {
+  const navigate = useNavigate()
 
-  // URL params
-  const { id_equipo } =
-    useParams<{ id_equipo: string, nombreEquipo: string }>()
-
-  const equipoId = id_equipo
-    ? Number(id_equipo)
-    : undefined
-
-  // modal
-  const [modalType, setModalType] =
-    useState<"agregar" | "eliminar" | null>(null)
-
-  // rol
-  const [rol, setRol] =
-    useState<TipoRolPersona>("JUGADOR")
-
-  // personas
-  const [personas, setPersonas] =
-    useState<PersonaConRol[]>([])
-
-  const [loadingPersonas, setLoadingPersonas] =
-    useState(false)
-
-  const [mostrarCrear, setMostrarCrear] =
-    useState(false)
-
-  const [integranteAEliminar, setIntegranteAEliminar] =
-    useState<{
-      id_integrante: number
-      nombre: string
-    } | null>(null)
-
-
-  // 🔍 filtros
-  const [busqueda, setBusqueda] =
-    useState("")
-
-  const [genero, setGenero] =
-    useState<"TODOS" | TipoGenero>("TODOS")
-  
+  // =====================
+  // URL
+  // =====================
+  const { id_equipo } = useParams<{ id_equipo: string }>()
+  const equipoId = id_equipo ? Number(id_equipo) : undefined
 
   const location = useLocation()
   const {
-  clubNombre,
-  equipoNombre,
-  categoria,
-  generoEquipo,
-} = (location.state || {}) as {
-  clubNombre?: string
-  equipoNombre?: string
-  categoria?: string
-  generoEquipo?: string
-}
+    clubNombre,
+    equipoNombre,
+    categoria,
+    generoEquipo,
+  } = (location.state || {}) as {
+    clubNombre?: string
+    equipoNombre?: string
+    categoria?: string
+    generoEquipo?: string
+  }
 
-  // plantel activo
+  // =====================
+  // Plantel activo
+  // =====================
   const {
     integrantes,
     id_plantel,
@@ -81,13 +54,38 @@ export default function EquipoDetalle() {
     refetch,
   } = usePlantelActivo(equipoId)
 
-  useEffect(() => {
-    if (personas.length > 0) {
-      console.log("👀 genero real:", personas[0].genero)
-    }
-  }, [personas])
+  // =====================
+  // Modales
+  // =====================
+  const [modalType, setModalType] =
+    useState<"agregar" | "eliminar" | null>(null)
 
-  // 🔄 cargar personas por rol
+  const [integranteAEliminar, setIntegranteAEliminar] =
+    useState<{
+      id_integrante: number
+      nombre: string
+    } | null>(null)
+
+  // =====================
+  // Personas
+  // =====================
+  const [rol, setRol] =
+    useState<TipoRolPersona>("JUGADOR")
+
+  const [personas, setPersonas] =
+    useState<PersonaConRol[]>([])
+
+  const [loadingPersonas, setLoadingPersonas] =
+    useState(false)
+
+  // filtros
+  const [busqueda, setBusqueda] = useState("")
+  const [genero, setGenero] =
+    useState<"TODOS" | TipoGenero>("TODOS")
+
+  // =====================
+  // Cargar personas
+  // =====================
   useEffect(() => {
     if (modalType !== "agregar") return
 
@@ -97,7 +95,6 @@ export default function EquipoDetalle() {
       .finally(() => setLoadingPersonas(false))
   }, [rol, modalType])
 
-  // 🧠 filtrado frontend
   const personasFiltradas = personas.filter(p => {
     const texto =
       `${p.nombre} ${p.apellido}`.toLowerCase()
@@ -106,8 +103,7 @@ export default function EquipoDetalle() {
       texto.includes(busqueda.toLowerCase())
 
     const matchGenero =
-    genero === "TODOS" || p.genero === genero
-
+      genero === "TODOS" || p.genero === genero
 
     return matchBusqueda && matchGenero
   })
@@ -117,7 +113,14 @@ export default function EquipoDetalle() {
 
   return (
     <section>
+      {/* ================= HEADER ================= */}
       <header className={styles.header}>
+        <Button
+          variant="secondary"
+          onClick={() => navigate(-1)}
+        >
+          ← Volver
+        </Button>
 
         <h1 className={styles.club}>
           {clubNombre ?? "Club"}
@@ -131,18 +134,18 @@ export default function EquipoDetalle() {
           {categoria ?? "Categoría"}
         </h2>
 
-
         <div className={styles.actions}>
           <Button onClick={() => setModalType("agregar")}>
             Agregar Persona
           </Button>
-
         </div>
       </header>
 
+      {/* ================= PLANTEL ================= */}
       {hasData ? (
         <PlantelLista
           integrantes={integrantes}
+          editable={true}
           onEliminar={(i) => {
             setIntegranteAEliminar({
               id_integrante: i.id_plantel_integrante,
@@ -161,12 +164,10 @@ export default function EquipoDetalle() {
         title="Agregar Persona"
         onClose={() => {
           setModalType(null)
-          setMostrarCrear(false)
           setBusqueda("")
           setGenero("TODOS")
         }}
       >
-        {/* rol */}
         <label className={styles.rolSelector}>
           Rol:
           <select
@@ -180,7 +181,6 @@ export default function EquipoDetalle() {
           </select>
         </label>
 
-        {/* 🔍 filtros */}
         <div className={styles.filtros}>
           <input
             type="text"
@@ -192,31 +192,22 @@ export default function EquipoDetalle() {
           <select
             value={genero}
             onChange={e =>
-              setGenero(
-                e.target.value as "TODOS" | TipoGenero
-              )
+              setGenero(e.target.value as any)
             }
           >
             <option value="TODOS">Todos</option>
             <option value="MASCULINO">Masculino</option>
             <option value="FEMENINO">Femenino</option>
           </select>
-
         </div>
-
-        <h4>Personas existentes</h4>
 
         {loadingPersonas && <p>Cargando…</p>}
 
         {!loadingPersonas &&
           personasFiltradas.length === 0 && (
-            <p>
-              No hay personas que coincidan con el
-              filtro
-            </p>
+            <p>No hay personas que coincidan</p>
           )}
 
-        {/* 👇 lista scrolleable */}
         <div className={styles.personasList}>
           {personasFiltradas.map(p => (
             <div
@@ -233,33 +224,30 @@ export default function EquipoDetalle() {
                   if (!id_plantel) return
 
                   try {
-                    await agregarIntegrantePlantel(
+                    await agregarIntegrante({
                       id_plantel,
-                      p.id_persona,
-                      rol
-                    )
+                      id_persona: p.id_persona,
+                      rol_en_plantel: rol,
+                    })
 
                     await refetch()
                     setModalType(null)
 
                   } catch (err: any) {
-                    console.log(
-                      "🔥 ERROR BACKEND:",
-                      err?.response?.data
-                    )
+                    console.error("❌ Error completo:", err)
+                    console.error("❌ Response data:", err?.response?.data)
 
-                    if (err.status === 409) {
-                      alert(
-                        "Esta persona no puede agregarse a este plantel (regla del sistema)"
-                      )
+                    const backendError = err?.response?.data?.error
+
+                    if (backendError?.message) {
+                      alert(backendError.message)
                       return
                     }
 
-                    alert(
-                      "Error inesperado al agregar persona"
-                    )
-                    console.error(err)
+                    alert("Error al agregar la persona")
                   }
+
+
                 }}
               >
                 Agregar
@@ -267,26 +255,11 @@ export default function EquipoDetalle() {
             </div>
           ))}
         </div>
-
-        <hr />
-
-        {!mostrarCrear ? (
-          <Button
-            variant="secondary"
-            onClick={() => setMostrarCrear(true)}
-          >
-            + Crear nueva persona
-          </Button>
-        ) : (
-          <p>⚠️ Crear persona se implementa luego</p>
-        )}
       </Modal>
 
-
-      {/* ================= MODAL Eliminar ================= */}
-
+      {/* ================= MODAL ELIMINAR ================= */}
       <Modal
-        open={modalType === "eliminar" && !!integranteAEliminar}
+        open={modalType === "eliminar"}
         title="Eliminar integrante"
         onClose={() => {
           setModalType(null)
@@ -294,7 +267,7 @@ export default function EquipoDetalle() {
         }}
       >
         <p>
-          ¿Seguro que querés dar de baja a{" "}
+          ¿Dar de baja a{" "}
           <strong>
             {integranteAEliminar?.nombre}
           </strong>
@@ -317,30 +290,19 @@ export default function EquipoDetalle() {
             onClick={async () => {
               if (!integranteAEliminar) return
 
-              try {
-                await bajaIntegrantePlantel(
-                  integranteAEliminar.id_integrante
-                )
+              await bajaIntegrantePlantel(
+                integranteAEliminar.id_integrante
+              )
 
-                await refetch()   // 🔄 recargar plantel
-                setModalType(null)
-                setIntegranteAEliminar(null)
-
-              } catch (err: any) {
-                console.error("🔥 Error baja integrante", err)
-
-                alert(
-                  err?.response?.data?.detail ||
-                    "Error al eliminar integrante"
-                )
-              }
+              await refetch()
+              setModalType(null)
+              setIntegranteAEliminar(null)
             }}
           >
             Confirmar baja
           </Button>
         </div>
       </Modal>
-
     </section>
   )
 }

@@ -10,9 +10,9 @@ Inicio de sesion y acceso a Panel principal listo
 pagina de clubes y equipos admin lista(casi)
 creando pagina admin para torneos
 
-PROXIMO: siguir desarrolo de torneos y toda su logica de edicion
-crear seccion para agregar nuevos usuario/panel de usuario donde mdifcar contraseña
-
+PROXIMO: refactorice DB.. el sistema no corre, revisar sintaxis de tablas 
+revisar el orden de seed. y luego reacomodar backend a lo trabajado. con 
+la tabla fichaje_rol
 
 
 
