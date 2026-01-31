@@ -41,4 +41,4 @@ INSERT INTO fichaje_rol (id_persona, id_club, rol) VALUES
 (37, 4, 'JUGADOR'),
 (38, 4, 'JUGADOR'),
 (39, 4, 'JUGADOR'),
-(40, 4, 'JUGADOR'),
+(40, 4, 'JUGADOR');

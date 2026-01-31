@@ -96,48 +96,53 @@ CREATE TABLE IF NOT EXISTS persona_rol (
 CREATE TABLE IF NOT EXISTS fichaje_rol (
     id_fichaje_rol INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     
-    -- Relación tríada: persona - club - rol
     id_persona INT NOT NULL 
         REFERENCES persona(id_persona) ON UPDATE CASCADE ON DELETE CASCADE,
     id_club INT NOT NULL 
         REFERENCES club(id_club) ON UPDATE CASCADE ON DELETE RESTRICT,
+
+    id_persona_rol INT NOT NULL
+        REFERENCES persona_rol(id_persona_rol) ON UPDATE CASCADE ON DELETE RESTRICT,
+
     rol tipo_rol_persona NOT NULL,
     
-    -- Temporalidad
     fecha_inicio DATE NOT NULL DEFAULT CURRENT_DATE,
     fecha_fin DATE,
     
-    -- Estado simple
     activo BOOLEAN DEFAULT TRUE,
     
-    -- Auditoría
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT NULL,
     borrado_en TIMESTAMP DEFAULT NULL,
     creado_por VARCHAR(100),
     actualizado_por VARCHAR(100),
     
-    -- Constraints
     CHECK (fecha_fin IS NULL OR fecha_fin > fecha_inicio),
-    
-    -- Restricción: Una persona no puede tener el MISMO rol activo en DOS clubes diferentes
-    CONSTRAINT unq_persona_rol_activo_uniclub 
-        UNIQUE NULLS NOT DISTINCT (
-            id_persona,
-            rol,
-            (CASE WHEN activo = TRUE AND fecha_fin IS NULL 
-                  THEN 1 ELSE NULL END)
-        ),
-    
-    -- Pero SÍ puede tener DIFERENTES roles en DIFERENTES clubes
-    CONSTRAINT unq_persona_club_rol_activo 
-        UNIQUE NULLS NOT DISTINCT (
-            id_persona,
-            id_club,
-            rol,
-            (CASE WHEN activo = TRUE THEN 1 ELSE NULL END)
-        )
+
+    CHECK (
+        (activo = TRUE AND fecha_fin IS NULL)
+        OR
+        (activo = FALSE)
+    )
+
 );
+
+
+    -- Una persona NO puede tener el mismo rol activo en dos clubes distintos
+CREATE UNIQUE INDEX unq_persona_rol_activo_uniclub
+ON fichaje_rol (id_persona, rol)
+WHERE activo = TRUE AND fecha_fin IS NULL;
+
+-- Una persona NO puede repetir el mismo rol activo en el mismo club
+CREATE UNIQUE INDEX unq_persona_club_rol_activo
+ON fichaje_rol (id_persona, id_club, rol)
+WHERE activo = TRUE;
+
+COMMENT ON INDEX unq_persona_rol_activo_uniclub IS
+'Evita que una persona tenga el mismo rol activo en más de un club';
+
+COMMENT ON INDEX unq_persona_club_rol_activo IS
+'Evita duplicar rol activo para una persona dentro del mismo club';
 
 -- ======================
 -- PLANTEL
@@ -148,14 +153,36 @@ CREATE TABLE IF NOT EXISTS plantel (
     id_plantel      INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_equipo       INT NOT NULL 
         REFERENCES equipo(id_equipo) ON UPDATE CASCADE ON DELETE RESTRICT,
-    fecha_creacion  DATE DEFAULT CURRENT_DATE,
-    activo          BOOLEAN DEFAULT TRUE,
+    
+    -- IDENTIFICACIÓN (OBLIGATORIO)
+    nombre          VARCHAR(100) NOT NULL CHECK (nombre <> ''),
+    temporada       VARCHAR(10) NOT NULL,  -- '2024' o '2024-2025'
+    
+    -- DESCRIPCIÓN (OPCIONAL)
+    descripcion     TEXT,
+    
+    -- TEMPORALIDAD
+    fecha_apertura  DATE DEFAULT CURRENT_DATE NOT NULL,
+    fecha_cierre    DATE,
+    
+    -- ESTADO Y JERARQUÍA
+    activo          BOOLEAN DEFAULT TRUE NOT NULL,
 
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP DEFAULT NULL,
     borrado_en      TIMESTAMP DEFAULT NULL,
     creado_por      VARCHAR(100),
-    actualizado_por VARCHAR(100)
+    actualizado_por VARCHAR(100),
+
+        -- CONSTRAINTS
+    CONSTRAINT chk_plantel_temporada_formato 
+        CHECK (temporada ~ '^[0-9]{4}(-[0-9]{4})?$'),
+    
+    CONSTRAINT chk_plantel_fechas_validas 
+        CHECK (fecha_cierre IS NULL OR fecha_cierre >= fecha_apertura),
+    
+    CONSTRAINT chk_plantel_cierre_si_inactivo 
+        CHECK (activo = TRUE OR fecha_cierre IS NOT NULL)
 
 );
 
