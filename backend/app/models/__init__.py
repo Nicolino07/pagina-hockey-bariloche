@@ -18,6 +18,7 @@ from .refresh_token import RefreshToken
 from .inscripcion_torneo import InscripcionTorneo
 from .auditoria_log import AuditoriaLog
 from .mixins import AuditFieldsMixin, SoftDeleteMixin
+from .fichaje_rol import FichajeRol
 from .base import Base
 
 # Exportar todos los ENUMs 

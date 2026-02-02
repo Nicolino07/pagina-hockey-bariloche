@@ -34,10 +34,11 @@ def crear_plantel(
     current_user=Depends(require_admin),
 ):
     return planteles_services.crear_plantel(
-        db,
-        data.id_equipo,
-        current_user,
+        db=db,
+        data=data,
+        current_user=current_user,
     )
+
 
 # 🔐 EDITOR / ADMIN
 @router.post(

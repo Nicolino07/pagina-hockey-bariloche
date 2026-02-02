@@ -6,6 +6,10 @@
 BEGIN;
 
 
+-- =====================================================
+-- 0. VALIDAR ANTES DE AGREGAR A PLANTEL
+-- =====================================================
+
 CREATE OR REPLACE FUNCTION validar_antes_de_agregar_a_plantel()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -62,46 +66,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 
--- ======================================================
--- FUNCIONES DE SINCRONIZACIÓN ENTRE PLANTEL Y FICHAJE_ROL
--- ======================================================
-CREATE OR REPLACE FUNCTION sincronizar_fichaje_desde_plantel()
-RETURNS TRIGGER AS $$
-DECLARE
-    v_id_club INT;
-BEGIN
-    -- Solo procesar UPDATEs (los INSERTs ya fueron validados)
-    IF TG_OP = 'UPDATE' THEN
-        -- Obtener club del plantel
-        SELECT c.id_club INTO v_id_club
-        FROM plantel pl
-        JOIN equipo e ON pl.id_equipo = e.id_equipo
-        JOIN club c ON e.id_club = c.id_club
-        WHERE pl.id_plantel = NEW.id_plantel;
-        
-        -- Dar de baja en fichaje
-        IF NEW.fecha_baja IS NOT NULL AND OLD.fecha_baja IS NULL THEN
-            PERFORM dar_baja_fichaje(
-                NEW.id_persona,
-                v_id_club,
-                NEW.rol_en_plantel,
-                NEW.fecha_baja
-            );
-        
-        -- Reactivar fichaje
-        ELSIF NEW.fecha_baja IS NULL AND OLD.fecha_baja IS NOT NULL THEN
-            PERFORM crear_fichaje(
-                NEW.id_persona,
-                v_id_club,
-                NEW.rol_en_plantel,
-                CURRENT_DATE
-            );
-        END IF;
-    END IF;
-    
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
 
 -- =====================================================
 -- 0. VALIDAR EQUIPO VS TORNEO

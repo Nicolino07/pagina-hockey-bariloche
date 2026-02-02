@@ -40,6 +40,24 @@ INSERT INTO persona_rol (id_persona, rol) VALUES
 (37,'JUGADOR'),
 (38,'JUGADOR'),
 (39,'JUGADOR'),
-(40,'JUGADOR');
+(40,'JUGADOR'),
+
+-- DTs
+
+(41,'DT'),
+(42,'DT'),
+(43,'DT'),
+(44,'DT'),
+(45,'DT'),
+(46,'DT'),
+(47,'DT'),
+(48,'DT'),
+
+-- Arbitros
+
+(49,'ARBITRO'),
+(50,'ARBITRO'),
+(51,'ARBITRO'),
+(52,'ARBITRO');
 
 COMMIT;

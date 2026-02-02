@@ -34,7 +34,7 @@ CREATE TYPE tipo_categoria AS ENUM (
 -- =====================================================
 CREATE TYPE tipo_rol_persona AS ENUM (
   'JUGADOR',
-  'ENTRENADOR',
+  'DT',
   'ARBITRO',
   'ASISTENTE',
   'MEDICO',

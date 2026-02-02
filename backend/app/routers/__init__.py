@@ -5,6 +5,7 @@ from .planteles import router as planteles_router
 from .torneos import router as torneos_router
 from .partidos import router as partidos_router
 from .vistas import router as vistas_router
+from .fichajes import router as fichajes_router
 
 
 __all__ = [

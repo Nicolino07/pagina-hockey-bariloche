@@ -1,5 +1,6 @@
 # backend/app/services/planteles_services.py
 from datetime import date, datetime
+from app.schemas.plantel import PlantelCreate
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
@@ -17,15 +18,18 @@ from app.core.exceptions import (
 
 
 def crear_plantel(
+    *,
     db: Session,
-    id_equipo: int,
+    data: PlantelCreate,
     current_user,
 ) -> Plantel:
 
+    # ❌ no permitir más de un plantel activo por equipo
     existente = (
         db.query(Plantel)
         .filter(
-            Plantel.id_equipo == id_equipo,
+            Plantel.id_equipo == data.id_equipo,
+            Plantel.activo.is_(True),
             Plantel.borrado_en.is_(None),
         )
         .first()
@@ -33,11 +37,17 @@ def crear_plantel(
 
     if existente:
         raise ConflictError(
-            "Ya existe un plantel para ese equipo"
+            "Ya existe un plantel activo para ese equipo"
         )
 
     plantel = Plantel(
-        id_equipo=id_equipo,
+        id_equipo=data.id_equipo,
+        nombre=data.nombre,
+        temporada=data.temporada,
+        descripcion=data.descripcion,
+        fecha_apertura=data.fecha_apertura or date.today(),
+        fecha_cierre=data.fecha_cierre,
+        activo=data.activo,
         creado_por=current_user.username,
     )
 
@@ -45,6 +55,7 @@ def crear_plantel(
     db.flush()  # genera id_plantel
 
     return plantel
+
 
 
 def crear_integrante(

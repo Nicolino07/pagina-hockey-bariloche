@@ -18,6 +18,7 @@ class CategoriaTipo(str, enum.Enum):
 class RolPersonaTipo(str, enum.Enum):
     """Rol global de una persona en el sistema"""
     JUGADOR = 'JUGADOR'
+    DT = 'DT'
     ENTRENADOR = 'ENTRENADOR'
     ARBITRO = 'ARBITRO' 
     DELEGADO = 'DELEGADO'

@@ -1,7 +1,7 @@
 # app/schemas/vistas.py
 
 from pydantic import BaseModel
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 from datetime import date
 from app.models.enums import RolPersonaTipo, GeneroTipo
 
@@ -10,7 +10,7 @@ class PlantelActivoIntegrante(BaseModel):
     id_plantel: int
     id_plantel_integrante: int
 
-    rol_en_plantel: RolPersonaTipo
+    rol_en_plantel: str  
     numero_camiseta: Optional[int]
 
     fecha_alta: date
@@ -57,6 +57,27 @@ class InscripcionTorneoDetalle(BaseModel):
 
     fecha_inscripcion: date
     fecha_baja: Optional[date] = None
+
+    class Config:
+        from_attributes = True
+
+# vista club_personas_roles
+
+class ClubPersonaRolOut(BaseModel):
+    id_persona: int
+    nombre: str
+    apellido: str
+    documento: Optional[int]
+
+    rol: RolPersonaTipo
+    origen_rol: Literal["FICHAJE", "PLANTEL"]
+
+    id_equipo: Optional[int]
+    id_plantel: Optional[int]
+
+    fecha_inicio: date
+    fecha_fin: Optional[date]
+    activo: bool
 
     class Config:
         from_attributes = True

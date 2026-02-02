@@ -405,4 +405,65 @@ WHERE (pr.fecha_hasta IS NULL OR pr.fecha_hasta >= CURRENT_DATE)
   )
 ORDER BY p.apellido, p.nombre, pr.rol;
 
+-- =======================================================
+-- vista club-personas-roles (desde fichaje y plantel)
+-- =======================================================
+
+CREATE OR REPLACE VIEW vw_club_personas_roles AS
+
+-- =========================
+-- ROLES DESDE FICHAJE
+-- =========================
+SELECT
+    fr.id_club,
+    p.id_persona,
+    p.nombre,
+    p.apellido,
+    p.documento,
+
+    fr.rol,
+    'FICHAJE'::text AS origen_rol,
+
+    NULL::INT AS id_equipo,
+    NULL::INT AS id_plantel,
+
+    fr.fecha_inicio,
+    fr.fecha_fin,
+    fr.activo
+FROM fichaje_rol fr
+JOIN persona p ON p.id_persona = fr.id_persona
+WHERE fr.borrado_en IS NULL
+
+UNION ALL
+
+-- =========================
+-- ROLES DESDE PLANTEL
+-- =========================
+SELECT
+    c.id_club,
+    p.id_persona,
+    p.nombre,
+    p.apellido,
+    p.documento,
+
+    CASE
+        WHEN pi.rol_en_plantel = 'DT' THEN 'ENTRENADOR'
+        ELSE pi.rol_en_plantel
+    END AS rol,
+
+    'PLANTEL'::text AS origen_rol,
+
+    e.id_equipo,
+    pl.id_plantel,
+
+    pi.fecha_alta AS fecha_inicio,
+    pi.fecha_baja AS fecha_fin,
+    (pi.fecha_baja IS NULL) AS activo
+FROM plantel_integrante pi
+JOIN plantel pl ON pl.id_plantel = pi.id_plantel
+JOIN equipo e ON e.id_equipo = pl.id_equipo
+JOIN club c ON c.id_club = e.id_club
+JOIN persona p ON p.id_persona = pi.id_persona;
+
+
 COMMIT;

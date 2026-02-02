@@ -9,6 +9,8 @@ from datetime import date, datetime
 from app.database import get_db
 from app.schemas.vistas import PlantelActivoIntegrante, PersonaConRol
 from app.services import vistas_services
+from app.models.vistas import ClubPersonaRol
+from app.schemas.vistas import ClubPersonaRolOut
 
 router = APIRouter(
     prefix="/vistas",
@@ -18,6 +20,8 @@ router = APIRouter(
         500: {"description": "Error interno del servidor"}
     }
 )
+
+
 
 
 @router.get(
@@ -391,3 +395,19 @@ def health_check_vistas(db: Session = Depends(get_db)):
         "vistas": resultados,
         "status": "OK" if all(r["status"] == "OK" for r in resultados.values()) else "ERROR"
     }
+
+
+@router.get(
+    "/club/{id_club}/personas",
+    response_model=list[ClubPersonaRolOut]
+)
+def obtener_personas_club(
+    id_club: int,
+    db: Session = Depends(get_db),
+):
+    return (
+        db.query(ClubPersonaRol)
+        .filter(ClubPersonaRol.id_club == id_club)
+        .order_by(ClubPersonaRol.apellido)
+        .all()
+    )

@@ -83,11 +83,6 @@ CREATE TRIGGER trg_validar_antes_de_agregar_a_plantel
 BEFORE INSERT ON plantel_integrante
 FOR EACH ROW EXECUTE FUNCTION validar_antes_de_agregar_a_plantel();
 
--- Trigger 2: Sincronizar fichaje después de actualizar plantel_integrante
-DROP TRIGGER IF EXISTS trg_sincronizar_fichaje_desde_plantel ON plantel_integrante;
-CREATE TRIGGER trg_sincronizar_fichaje_desde_plantel
-AFTER UPDATE ON plantel_integrante
-FOR EACH ROW EXECUTE FUNCTION sincronizar_fichaje_desde_plantel();
 
 -- Validación COMBINADA: Rol en plantel + Rol único por club
 DROP TRIGGER IF EXISTS trg_validar_rol_en_plantel ON plantel_integrante;

@@ -82,7 +82,8 @@ from app.routers import (
     torneos_router as torneos,
     inscripciones_torneos as inscripciones,
     partidos_router as partido,
-    vistas_router as vistas
+    vistas_router as vistas,
+    fichajes_router as fichajes,
 )
 
 
@@ -103,3 +104,4 @@ app.include_router(torneos)
 app.include_router(inscripciones.router)
 app.include_router(partido)
 app.include_router(vistas)
+app.include_router(fichajes)
