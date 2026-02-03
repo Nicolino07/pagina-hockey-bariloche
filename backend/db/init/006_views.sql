@@ -445,17 +445,10 @@ SELECT
     p.nombre,
     p.apellido,
     p.documento,
-
-    CASE
-        WHEN pi.rol_en_plantel = 'DT' THEN 'ENTRENADOR'
-        ELSE pi.rol_en_plantel
-    END AS rol,
-
+    pi.rol_en_plantel AS rol,
     'PLANTEL'::text AS origen_rol,
-
     e.id_equipo,
     pl.id_plantel,
-
     pi.fecha_alta AS fecha_inicio,
     pi.fecha_baja AS fecha_fin,
     (pi.fecha_baja IS NULL) AS activo

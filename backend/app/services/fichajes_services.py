@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 
 from app.models.fichaje_rol import FichajeRol
+from app.models.persona_rol import PersonaRol 
 from app.core.exceptions  import ValidationError, NotFoundError
 
 
@@ -16,13 +17,25 @@ def crear_fichaje(
     creado_por: str | None,
 ) -> FichajeRol:
 
-    # Validar que no exista fichaje activo duplicado
+    # 1️⃣ Buscar persona_rol válido
+    persona_rol = db.scalar(
+        select(PersonaRol).where(
+            PersonaRol.id_persona == id_persona,
+            PersonaRol.rol == rol,
+            PersonaRol.fecha_hasta.is_(None),
+        )
+    )
+
+    if not persona_rol:
+        raise ValidationError(
+            f"La persona no tiene asignado el rol {rol}"
+        )
+
+    # 2️⃣ Evitar fichaje activo duplicado
     existe = db.scalar(
-        select(FichajeRol)
-        .where(
-            FichajeRol.id_persona == id_persona,
+        select(FichajeRol).where(
+            FichajeRol.id_persona_rol == persona_rol.id_persona_rol,
             FichajeRol.id_club == id_club,
-            FichajeRol.rol == rol,
             FichajeRol.activo == True,
             FichajeRol.fecha_fin.is_(None),
             FichajeRol.borrado_en.is_(None),
@@ -30,11 +43,15 @@ def crear_fichaje(
     )
 
     if existe:
-        raise ValidationError("La persona ya tiene un fichaje activo para ese rol en el club")
+        raise ValidationError(
+            "La persona ya tiene un fichaje activo para ese rol en el club"
+        )
 
+    # 3️⃣ Crear fichaje (🔥 ahora sí completo)
     fichaje = FichajeRol(
         id_persona=id_persona,
         id_club=id_club,
+        id_persona_rol=persona_rol.id_persona_rol,  # 🔑 CLAVE
         rol=rol,
         fecha_inicio=fecha_inicio,
         activo=True,
@@ -45,6 +62,7 @@ def crear_fichaje(
     db.flush()
 
     return fichaje
+
 
 
 def dar_baja_fichaje(
@@ -62,6 +80,10 @@ def dar_baja_fichaje(
 
     if not fichaje.activo:
         raise ValidationError("El fichaje ya está dado de baja")
+    
+    if fichaje.fecha_fin is not None:
+        raise ValidationError("El fichaje ya tiene fecha de fin")
+
 
     fichaje.fecha_fin = fecha_fin
     fichaje.activo = False
