@@ -30,7 +30,7 @@ export type TipoCategoria = typeof CATEGORIAS[number]
 // =====================
 export const ROLES_PERSONA = [
   "JUGADOR",
-  "ENTRENADOR",
+  "DT",
   "ARBITRO",
   "ASISTENTE",
   "MEDICO",

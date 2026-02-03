@@ -1,6 +1,6 @@
 import { useState } from "react"
-import { crearPersonaConRol } from "../../../api/personas.api"
-import type { TipoRolPersona } from "../../../types/enums"
+import { crearPersona } from "../../../api/personas.api"
+import type { TipoRolPersona } from "../../../constants/enums"
 
 type Props = {
   plantelId: number
@@ -30,7 +30,7 @@ export default function AgregarPersonaModal({
     setLoading(true)
 
     try {
-      await crearPersonaConRol({
+      await crearPersona({
         nombre,
         apellido,
         dni,
@@ -85,7 +85,7 @@ export default function AgregarPersonaModal({
           }
         >
           <option value="JUGADOR">Jugador</option>
-          <option value="ENTRENADOR">Entrenador</option>
+          <option value="DT">DT</option>
           <option value="ARBITRO">Árbitro</option>
         </select>
       </div>

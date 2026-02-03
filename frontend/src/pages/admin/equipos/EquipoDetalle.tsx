@@ -1,22 +1,13 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
-
 import { usePlantelActivo } from "../../../hooks/usePlantelActivo"
-
-import {
-  getPersonasConRol,
-} from "../../../api/vistas/personas.api"
-import {
-  bajaIntegrantePlantel,
-} from "../../../api/planteles.api"
-
+import {getPersonasConRol} from "../../../api/vistas/personas.api"
+import {bajaIntegrantePlantel} from "../../../api/planteles.api"
 import type { PersonaConRol } from "../../../types/vistas"
 import type { TipoRolPersona, TipoGenero } from "../../../constants/enums"
-
 import PlantelLista from "./PlantelLista"
 import Button from "../../../components/ui/button/Button"
 import Modal from "../../../components/ui/modal/Modal"
-
 import styles from "./EquipoDetalle.module.css"
 import { agregarIntegrante } from "../../../api/plantelIntegrantes.api"
 

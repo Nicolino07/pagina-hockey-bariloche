@@ -1,9 +1,9 @@
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, Field, ConfigDict
-
 from app.models.enums import GeneroTipo
+from app.schemas.persona_rol import PersonaRol, PersonaRolCreate
 
 class PersonaBase(BaseModel):
     documento: Optional[int] = Field(None, gt=0)
@@ -34,6 +34,11 @@ class PersonaCreate(PersonaBase):
             }
         }
     )
+    
+class PersonaAltaConRol(BaseModel):
+    persona: PersonaCreate
+    rol: PersonaRolCreate
+
 
 class PersonaUpdate(BaseModel):
     nombre: Optional[str] = Field(None, min_length=1, max_length=100)
@@ -65,3 +70,6 @@ class PersonaRead(PersonaBase):
     actualizado_por: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
+
+class PersonaConRolesActivos(PersonaBase):
+    roles: List[PersonaRol] = []

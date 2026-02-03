@@ -1,9 +1,8 @@
 from datetime import datetime, date
 from typing import Optional
-
 from app.models.mixins import AuditFieldsMixin, SoftDeleteMixin
-from sqlalchemy import String, Date, Integer, CheckConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Date, Integer, CheckConstraint, Index
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
 from app.models.enums import GeneroTipo
@@ -16,6 +15,9 @@ class Persona(Base, AuditFieldsMixin, SoftDeleteMixin):
         CheckConstraint("documento > 0", name="chk_persona_documento_valido"),
         CheckConstraint("nombre <> ''", name="chk_persona_nombre_no_vacio"),
         CheckConstraint("apellido <> ''", name="chk_persona_apellido_no_vacio"),
+        Index("ix_persona_documento", "documento"),
+        Index("ix_persona_apellido", "apellido"),
+        Index("ix_persona_email", "email"),
     )
 
     id_persona: Mapped[int] = mapped_column(primary_key=True)
@@ -44,4 +46,10 @@ class Persona(Base, AuditFieldsMixin, SoftDeleteMixin):
     telefono: Mapped[Optional[str]] = mapped_column(String(20))
     email: Mapped[Optional[str]] = mapped_column(String(100))
     direccion: Mapped[Optional[str]] = mapped_column(String(200))
+
+    roles = relationship(
+        "PersonaRol",
+        back_populates="persona",
+        cascade="all, delete-orphan"
+    )
 

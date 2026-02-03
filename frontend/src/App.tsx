@@ -11,6 +11,8 @@ import TorneoDetalle from "./pages/admin/torneos/TorneoDetalle"
 import PublicLayout from "./layouts/PublicLayout"
 import AdminLayout from "./layouts/AdminLayout"
 import { ProtectedRoute } from "./auth/ProtectedRoute"
+import Personas from "./pages/admin/personas/Personas"
+import PersonaDetalle from "./pages/admin/personas/PersonaDetalle"
 
 
 export default function App() {
@@ -38,6 +40,8 @@ export default function App() {
         <Route path="/admin/equipos/:id_equipo" element={<EquipoDetalle />} />
         <Route path="/admin/torneos" element={<TorneosAdmin />} />
         <Route path="/admin/torneos/:idTorneo" element={<TorneoDetalle />} />
+        <Route path="/admin/personas" element={<Personas />} />
+        <Route path="/admin/personas/:id_persona" element={<PersonaDetalle />} />
 
       </Route>
     </Routes>

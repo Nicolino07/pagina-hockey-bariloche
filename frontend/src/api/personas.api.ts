@@ -1,13 +1,16 @@
 import api from "./axiosAdmin"
-import type { Persona } from "../types/persona"
-import type { TipoRolPersona } from "../types/enums"
+import type {
+  Persona,
+  PersonaAltaConRol,
+  PersonaConRolesActivos,
+} from "../types/persona"
 import type { PersonaConRol } from "../types/vistas"
 
 /* =========================
-   PERSONAS BÁSICAS
+   PERSONAS (ABM)
 ========================= */
 
-export async function listarPersonas(): Promise<Persona[]> {
+export async function getPersonas(): Promise<Persona[]> {
   const res = await api.get("/personas")
   return res.data
 }
@@ -20,31 +23,43 @@ export async function getPersonaById(
 }
 
 /* =========================
-   PERSONAS + ROL
+   PERSONAS + ROLES
 ========================= */
 
 /**
- * Trae personas filtradas por rol
- * (para el modal de "Agregar persona")
+ * Personas con roles activos
+ * Opcionalmente filtradas por club
  */
-export async function getPersonasConRol(
-  rol: TipoRolPersona
-): Promise<PersonaConRol[]> {
-  const res = await api.get("/personas", {
-    params: { rol },
+export async function getPersonasConRolesActivos(
+  params?: {
+    idClub?: number
+    idPersona?: number
+  }
+): Promise<PersonaConRolesActivos[]> {
+  const res = await api.get("/personas/roles-activos", {
+    params: {
+      id_club: params?.idClub,
+      id_persona: params?.idPersona,
+    },
   })
   return res.data
 }
 
+
 /**
- * Crea una persona y la asocia a un plantel con un rol
+ * Crear persona + rol inicial
  */
-export async function crearPersonaConRol(data: {
-  nombre: string
-  apellido: string
-  dni: string
-  rol: TipoRolPersona
-  id_plantel: number
-}): Promise<void> {
-  await api.post("/personas", data)
+export async function crearPersona(
+  data: PersonaAltaConRol
+): Promise<Persona> {
+  const res = await api.post("/personas", data)
+  return res.data
+}
+/**
+ * Quitar rol a persona
+ */
+export async function quitarRolPersona(
+  id_persona_rol: number
+): Promise<void> {
+  await api.delete(`/persona-roles/${id_persona_rol}`)
 }

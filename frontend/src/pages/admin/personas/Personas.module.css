@@ -1,0 +1,110 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ======================
+   Header
+====================== */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+/* ======================
+   Botón primario
+====================== */
+.primaryButton {
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.primaryButton:hover {
+  background-color: var(--color-primary-dark);
+}
+
+/* ======================
+   Acciones iniciales
+====================== */
+.actions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Botón secundario */
+.secondaryButton {
+  background-color: var(--bg-paper);
+  border: 1px solid var(--divider-color);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.secondaryButton:hover {
+  border-color: var(--color-primary);
+}
+
+/* ======================
+   Estados
+====================== */
+.empty {
+  text-align: center;
+  color: #777;
+  font-size: 0.95rem;
+}
+
+/* ======================
+   Tabla
+====================== */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--bg-paper);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--divider-color);
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ======================
+   Links
+====================== */
+.nameLink {
+  color: var(--color-primary);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.nameLink:hover {
+  text-decoration: underline;
+}

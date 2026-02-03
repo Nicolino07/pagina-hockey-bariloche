@@ -1,5 +1,6 @@
 // src/types/vistas.ts
-import type { TipoGenero, TipoRolPersona } from "./enums"
+import type { Key, ReactNode } from "react"
+import type { TipoGenero, TipoRolPersona } from "../constants/enums"
 
 export interface PlantelActivoIntegrante {
   id_equipo: number
@@ -18,10 +19,15 @@ export interface PlantelActivoIntegrante {
 }
 
 export interface PersonaConRol {
+  rol: ReactNode
+  id_persona_rol: Key | null | undefined
   id_persona: number
   nombre: string
   apellido: string
   id_rol: number
   rol_codigo: TipoRolPersona
   genero: TipoGenero   // 👈 esta línea
+  nombre_club?: string | null
+  fecha_desde?: string | null
+  fecha_hasta?: string | null
 }

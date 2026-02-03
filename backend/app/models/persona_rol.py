@@ -1,8 +1,8 @@
 from datetime import date, datetime
 from typing import Optional
-
+from sqlalchemy.ext.hybrid import hybrid_property
 from app.models.mixins import AuditFieldsMixin
-from sqlalchemy import Date, ForeignKey, CheckConstraint
+from sqlalchemy import Date, ForeignKey, CheckConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -17,7 +17,12 @@ class PersonaRol(Base, AuditFieldsMixin):
             "fecha_hasta IS NULL OR fecha_hasta > fecha_desde",
             name="chk_persona_rol_fechas_validas"
         ),
+        Index("ix_persona_rol_persona", "id_persona"),
+        Index("ix_persona_rol_rol", "rol"),
+        Index("ix_persona_rol_activo", "id_persona", "rol", "fecha_hasta"),
     )
+
+
 
     id_persona_rol: Mapped[int] = mapped_column(primary_key=True)
 
@@ -40,4 +45,9 @@ class PersonaRol(Base, AuditFieldsMixin):
 
 
     # Relaciones (opcional pero recomendable)
-    persona = relationship("Persona", backref="roles")
+    persona = relationship("Persona", back_populates="roles")
+
+
+    @hybrid_property
+    def activo(self) -> bool:
+        return self.fecha_hasta is None
