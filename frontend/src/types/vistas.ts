@@ -18,7 +18,7 @@ export interface PlantelActivoIntegrante {
   documento: number
 }
 
-export interface PersonaConRol {
+export interface PersonaRolVista {
   rol: ReactNode
   id_persona_rol: Key | null | undefined
   id_persona: number
@@ -30,4 +30,12 @@ export interface PersonaConRol {
   nombre_club?: string | null
   fecha_desde?: string | null
   fecha_hasta?: string | null
+}
+
+
+export interface PersonaConRolesVista {
+  id_persona: number
+  nombre: string
+  apellido: string
+  roles: PersonaRolVista[]
 }

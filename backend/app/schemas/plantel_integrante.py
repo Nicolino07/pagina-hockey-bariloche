@@ -9,6 +9,7 @@ from app.models.enums import RolPersonaTipo
 class PlantelIntegranteBase(BaseModel):
     id_plantel: int = Field(..., gt=0)
     id_persona: int = Field(..., gt=0)
+    id_fichaje_rol: int = Field(..., gt=0)
     rol_en_plantel: RolPersonaTipo
     numero_camiseta: Optional[int] = Field(None, gt=0)
     fecha_alta: Optional[date] = None
@@ -18,6 +19,7 @@ class PlantelIntegranteBase(BaseModel):
 class PlantelIntegranteCreate(BaseModel):
     id_plantel: int = Field(..., gt=0)
     id_persona: int = Field(..., gt=0)
+    id_fichaje_rol: int = Field(..., gt=0)
     rol_en_plantel: RolPersonaTipo
     numero_camiseta: Optional[int] = Field(None, gt=0)
     creado_por: Optional[str] = Field(None, max_length=100)

@@ -459,4 +459,77 @@ JOIN club c ON c.id_club = e.id_club
 JOIN persona p ON p.id_persona = pi.id_persona;
 
 
+
+-- =====================================================
+-- Vista: v_personas_roles_clubes
+-- Propósito: Mostrar personas con sus roles y clubes actuales
+--            para la visualización en frontend
+-- =====================================================
+
+CREATE OR REPLACE VIEW v_personas_roles_clubes AS
+SELECT 
+    p.id_persona,
+    p.nombre,
+    p.apellido,
+    pr.rol,
+    -- Información del fichaje
+    fr.activo AS fichaje_activo,
+    fr.fecha_inicio AS fecha_fichaje,
+    fr.fecha_fin AS fecha_fin_fichaje,
+    -- Información del club
+    c.id_club,
+    c.nombre AS nombre_club,
+    c.provincia AS provincia_club,
+    c.ciudad AS ciudad_club,
+    -- Estado del fichaje para mostrar
+    CASE 
+        WHEN fr.activo = TRUE AND fr.fecha_fin IS NULL 
+            THEN c.nombre  -- Fichado activamente
+        ELSE 'Sin fichar'  -- No tiene fichaje activo
+    END AS estado_fichaje,
+    -- Para ordenación
+    ROW_NUMBER() OVER (PARTITION BY p.id_persona ORDER BY 
+        CASE 
+            WHEN fr.activo = TRUE AND fr.fecha_fin IS NULL THEN 1
+            ELSE 2
+        END,
+        fr.fecha_inicio DESC
+    ) AS orden_roles
+
+FROM persona p
+INNER JOIN persona_rol pr ON p.id_persona = pr.id_persona
+    AND pr.fecha_hasta IS NULL  -- Solo roles activos
+LEFT JOIN fichaje_rol fr ON pr.id_persona_rol = fr.id_persona_rol
+    AND fr.activo = TRUE  -- Solo fichajes activos
+    AND fr.fecha_fin IS NULL
+LEFT JOIN club c ON fr.id_club = c.id_club
+WHERE p.borrado_en IS NULL
+  AND pr.fecha_desde <= CURRENT_DATE  -- Rol vigente
+  AND (pr.fecha_hasta IS NULL OR pr.fecha_hasta >= CURRENT_DATE);
+
+-- =====================================================
+-- Vista: v_personas_frontend
+-- Propósito: Vista simplificada para el frontend
+-- Formato: Nombre, Apellido, Rol → Estado Fichaje
+-- =====================================================
+
+CREATE OR REPLACE VIEW v_personas_frontend AS
+SELECT 
+    p.nombre,
+    p.apellido,
+    pr.rol,
+    COALESCE(c.nombre, 'Sin fichar') AS club_asignado,
+    -- Para agrupar por persona
+    p.id_persona
+FROM persona p
+INNER JOIN persona_rol pr ON p.id_persona = pr.id_persona
+    AND pr.fecha_hasta IS NULL  -- Solo roles activos
+LEFT JOIN fichaje_rol fr ON pr.id_persona_rol = fr.id_persona_rol
+    AND fr.activo = TRUE  -- Solo fichajes activos
+    AND fr.fecha_fin IS NULL
+LEFT JOIN club c ON fr.id_club = c.id_club
+WHERE p.borrado_en IS NULL
+ORDER BY p.apellido, p.nombre, pr.rol;
+
+
 COMMIT;

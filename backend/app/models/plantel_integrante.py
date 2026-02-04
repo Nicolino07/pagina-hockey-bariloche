@@ -28,6 +28,11 @@ class PlantelIntegrante(Base, AuditFieldsMixin):
         nullable=False
     )
 
+    id_fichaje_rol: Mapped[int] = mapped_column(
+        ForeignKey("fichaje_rol.id_fichaje_rol", onupdate="CASCADE", ondelete="SET NULL"),
+        nullable=False
+    )
+    
     rol_en_plantel: Mapped[RolPersonaTipo] = mapped_column(nullable=False)
 
     numero_camiseta: Mapped[Optional[int]]

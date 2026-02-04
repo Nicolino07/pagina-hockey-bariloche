@@ -91,4 +91,25 @@ FROM vw_tarjetas_acumuladas_torneo
 WHERE total_amarillas >= 3;
 
 
+-- personas con sus roles y fichajes
+-- Para mostrar los datos exactamente como los necesitas:
+SELECT 
+    nombre,
+    apellido,
+    rol,
+    club_asignado
+FROM v_personas_frontend
+ORDER BY apellido, nombre;
 
+-- O agrupados por persona:
+SELECT 
+    p.nombre || ' ' || p.apellido AS persona,
+    STRING_AGG(
+        '• ' || vf.rol || ' → ' || vf.club_asignado,
+        E'\n  '
+        ORDER BY vf.rol
+    ) AS roles_y_clubes
+FROM persona p
+JOIN v_personas_frontend vf ON p.id_persona = vf.id_persona
+GROUP BY p.id_persona, p.nombre, p.apellido
+ORDER BY p.apellido, p.nombre;

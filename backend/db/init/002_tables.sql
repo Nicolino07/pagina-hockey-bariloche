@@ -196,6 +196,8 @@ CREATE TABLE IF NOT EXISTS plantel_integrante (
         REFERENCES plantel(id_plantel) ON UPDATE CASCADE ON DELETE RESTRICT,
     id_persona            INT NOT NULL 
         REFERENCES persona(id_persona) ON UPDATE CASCADE ON DELETE RESTRICT,
+    id_fichaje_rol INT NOT NULL
+        REFERENCES fichaje_rol(id_fichaje_rol) ON UPDATE CASCADE ON DELETE SET NULL,
     rol_en_plantel        tipo_rol_persona NOT NULL,
     numero_camiseta       INT CHECK (numero_camiseta > 0),
     fecha_alta            DATE NOT NULL DEFAULT CURRENT_DATE,

@@ -1,12 +1,9 @@
-import type { TipoRolPersona } from "./enums"
-
-export type PersonaRol = {
+// src/types/personaRol.ts
+export interface PersonaRol {
   id_persona_rol: number
-  id_persona: number
-  rol: TipoRolPersona
+  rol: string
   fecha_desde: string
   fecha_hasta?: string | null
-
-  creado_en: string
-  actualizado_en?: string | null
 }
+
+

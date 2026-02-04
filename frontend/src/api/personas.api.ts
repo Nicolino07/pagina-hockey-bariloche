@@ -1,14 +1,8 @@
-import api from "./axiosAdmin"
-import type {
-  Persona,
-  PersonaAltaConRol,
-  PersonaConRolesActivos,
-} from "../types/persona"
-import type { PersonaConRol } from "../types/vistas"
+// src/api/personas.api.ts
 
-/* =========================
-   PERSONAS (ABM)
-========================= */
+import api from "./axiosAdmin"
+import type { Persona } from "../types/persona"
+import type { PersonaConRolesVista } from "../types/vistas"
 
 export async function getPersonas(): Promise<Persona[]> {
   const res = await api.get("/personas")
@@ -22,20 +16,12 @@ export async function getPersonaById(
   return res.data
 }
 
-/* =========================
-   PERSONAS + ROLES
-========================= */
-
-/**
- * Personas con roles activos
- * Opcionalmente filtradas por club
- */
 export async function getPersonasConRolesActivos(
   params?: {
     idClub?: number
     idPersona?: number
   }
-): Promise<PersonaConRolesActivos[]> {
+): Promise<PersonaConRolesVista[]> {
   const res = await api.get("/personas/roles-activos", {
     params: {
       id_club: params?.idClub,
@@ -45,19 +31,6 @@ export async function getPersonasConRolesActivos(
   return res.data
 }
 
-
-/**
- * Crear persona + rol inicial
- */
-export async function crearPersona(
-  data: PersonaAltaConRol
-): Promise<Persona> {
-  const res = await api.post("/personas", data)
-  return res.data
-}
-/**
- * Quitar rol a persona
- */
 export async function quitarRolPersona(
   id_persona_rol: number
 ): Promise<void> {

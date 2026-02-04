@@ -1,35 +1,31 @@
 import { useParams } from "react-router-dom"
 import { useEffect, useState } from "react"
+
 import {
   getPersonaById,
-  getRolesActivosPersona,
+  getPersonasConRolesActivos,
   quitarRolPersona,
 } from "../../../api/personas.api"
+
 import type { Persona } from "../../../types/persona"
-import type { PersonaConRol } from "../../../types/vistas"
-import style from "./PersonaDetalle.module.css"
+import type { PersonaRolVista } from "../../../types/vistas"
 
 export default function PersonaDetalle() {
   const { id_persona } = useParams<{ id_persona: string }>()
 
   const [persona, setPersona] = useState<Persona | null>(null)
-  const [roles, setRoles] = useState<PersonaConRol[]>([])
+  const [roles, setRoles] = useState<PersonaRolVista[]>([])
   const [loading, setLoading] = useState(true)
 
   async function handleQuitarRol(id_persona_rol: number) {
     if (!confirm("¿Quitar este rol?")) return
 
-    try {
-      await quitarRolPersona(id_persona_rol)
-      setRoles((prev) =>
-        prev.filter((r) => r.id_persona_rol !== id_persona_rol)
-      )
-    } catch (error) {
-      alert("No se pudo quitar el rol")
-    }
-  }
+    await quitarRolPersona(id_persona_rol)
 
-  console.log("PARAM:", id_persona)
+    setRoles((prev) =>
+      prev.filter((r) => r.id_persona_rol !== id_persona_rol)
+    )
+  }
 
   useEffect(() => {
     if (!id_persona) {
@@ -39,11 +35,11 @@ export default function PersonaDetalle() {
 
     Promise.all([
       getPersonaById(Number(id_persona)),
-      getRolesActivosPersona(Number(id_persona)),
+      getPersonasConRolesActivos({ idPersona: Number(id_persona) }),
     ])
-      .then(([persona, roles]) => {
+      .then(([persona, personasConRoles]) => {
         setPersona(persona)
-        setRoles(roles)
+        setRoles(personasConRoles[0]?.roles ?? [])
       })
       .finally(() => setLoading(false))
   }, [id_persona])
@@ -56,11 +52,8 @@ export default function PersonaDetalle() {
       <h1>
         {persona.nombre} {persona.apellido}
       </h1>
-      <p>DNI: {persona.documento}</p>
 
       <h2>Roles activos</h2>
-
-      <button>+ Agregar rol</button>
 
       {roles.length === 0 ? (
         <p>La persona no tiene roles activos</p>
@@ -79,11 +72,16 @@ export default function PersonaDetalle() {
               <tr key={rol.id_persona_rol}>
                 <td>{rol.rol}</td>
                 <td>{rol.nombre_club ?? "-"}</td>
-                <td>{rol.fecha_desde ?? "-"}</td>
+                <td>{rol.fecha_desde}</td>
                 <td>
-                  <button onClick={() => handleQuitarRol(rol.id_persona_rol)}>
+                  <button
+                    onClick={() => {
+                      void handleQuitarRol(rol.id_persona_rol as number)
+                    }}
+                  >
                     Quitar
                   </button>
+
                 </td>
               </tr>
             ))}
