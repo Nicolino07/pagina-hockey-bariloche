@@ -18,6 +18,8 @@ export interface Persona {
   borrado_en?: string | null
 }
 
+export type PersonaFormData = Omit<Persona, "id_persona" | "creado_en" | "actualizado_en" | "borrado_en">;
+
 export interface PersonaAltaConRol {
   persona: Omit<Persona, "id_persona">
   rol: {
