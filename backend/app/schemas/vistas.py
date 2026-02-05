@@ -81,3 +81,15 @@ class ClubPersonaRolOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+# Vista personas_roles_clubes
+class PersonaRolClubRead(BaseModel):
+    id_persona: int
+    nombre: str
+    apellido: str
+    rol: str | None
+    estado_fichaje: str
+    nombre_club: str | None
+
+    class Config:
+        from_attributes = True

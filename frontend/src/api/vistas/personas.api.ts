@@ -1,10 +1,10 @@
 import axiosAdmin from "../axiosAdmin"
-import type { PersonaConRol } from "../../types/vistas"
-import type { TipoRolPersona } from "../../types/enums"
+import type { PersonaRolVista } from "../../types/vistas"
+import type { TipoRolPersona } from "../../constants/enums"
 
 export async function getPersonasConRol(
   rol: TipoRolPersona
-): Promise<PersonaConRol[]> {
+): Promise<PersonaRolVista[]> {
   const response = await axiosAdmin.get(
     "/vistas/personas-con-roles",
     {

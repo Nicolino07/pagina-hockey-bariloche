@@ -1,101 +1,59 @@
-import { Link } from "react-router-dom"
-import { useState } from "react"
+import { useNavigate } from "react-router-dom" // 1. Importar el hook
 import styles from "./Personas.module.css"
-import { getPersonas } from "../../../api/personas.api"
-import type { Persona } from "../../../types/persona"
-import style from "./Personas.module.css"
+import { Link } from "react-router-dom"
+import { usePersonaConRoles } from "../../../hooks/usePersonaConRoles"
 
 export default function Personas() {
-  const [personas, setPersonas] = useState<Persona[]>([])
-  const [buscado, setBuscado] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const { personas, loading, error } = usePersonaConRoles()
+  const navigate = useNavigate() // 2. Inicializar navigate
 
-  async function handleBuscar() {
-    setLoading(true)
-    setBuscado(true)
-
-    try {
-      const data = await getPersonas()
-      setPersonas(data)
-    } finally {
-      setLoading(false)
-    }
-  }
+  if (loading) return <p className={styles.loading}>Cargando personas...</p>
+  if (error) return <p className={styles.error}>{error}</p>
 
   return (
     <div className={styles.container}>
-      {/* ================= HEADER ================= */}
       <header className={styles.header}>
         <h1>Personas</h1>
-
         <Link to="/admin/personas/nueva" className={styles.primaryButton}>
           + Nueva persona
         </Link>
       </header>
 
-      {/* ================= OPCIONES ================= */}
-      <section className={styles.actions}>
-        <button
-          onClick={handleBuscar}
-          className={styles.secondaryButton}
-          disabled={loading}
-        >
-          {loading ? "Buscando..." : "Ver personas"}
-        </button>
-      </section>
+      <div className={styles.list}>
+        {personas.map(persona => (
+          /* 3. Evento onClick en la tarjeta */
+          <div 
+            key={persona.id_persona} 
+            className={styles.personaCard}
+            onClick={() => navigate(`/admin/personas/${persona.id_persona}`)}
+            role="button"
+            tabIndex={0}
+          >
+            <div className={styles.personaMain}>
+              <span className={styles.iconUser}>👤</span>
+              <h3>{persona.nombre} {persona.apellido}</h3>
+            </div>
 
-      {/* ================= CONTENIDO ================= */}
-      <section className={styles.content}>
-        {!buscado && (
-          <p className={styles.emptyState}>
-            Usá las opciones para buscar o crear personas.
-          </p>
-        )}
+            <div className={styles.rolesContainer}>
+              {persona.roles.map((rol, index) => (
+                <div key={index} className={styles.rolRow}>
+                  <span className={styles.rolName}>
+                    {rol.rol === 'JUGADOR' ? '🏑' : '🏁'} {rol.rol}
+                  </span>
 
-        {buscado && !loading && personas.length === 0 && (
-          <p className={styles.emptyState}>
-            No se encontraron personas.
-          </p>
-        )}
+                  <span className={`${styles.badge} ${styles[rol.estado_fichaje.toLowerCase().replace('_', '')]}`}>
+                    {rol.estado_fichaje.replace('_', ' ')}
+                  </span>
 
-        {buscado && personas.length > 0 && (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>DNI</th>
-                <th>Email</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {personas.map((p) => (
-                <tr key={p.id_persona}>
-                  <td>
-                    <Link
-                      to={`/admin/personas/${p.id_persona}`}
-                      className={styles.nameLink}
-                      title="Ver detalle"
-                    >
-                      {p.nombre} {p.apellido}
-                    </Link>
-                  </td>
-                  <td>{p.documento ?? "-"}</td>
-                  <td>{p.email ?? "-"}</td>
-                  <td>
-                    <Link
-                      to={`/admin/personas/${p.id_persona}/editar`}
-                    >
-                      Editar
-                    </Link>
-                  </td>
-                </tr>
+                  <span className={styles.clubName}>
+                    🏢 {rol.clubes.length > 0 ? rol.clubes[0].nombre_club : '--'}
+                  </span>
+                </div>
               ))}
-            </tbody>
-          </table>
-        )}
-      </section>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

@@ -1,9 +1,11 @@
 // src/types/personaRol.ts
-export interface PersonaRol {
-  id_persona_rol: number
+
+// types/personaRol.ts
+export interface PersonaRolRow {
+  id_persona: number
+  nombre: string
+  apellido: string
   rol: string
-  fecha_desde: string
-  fecha_hasta?: string | null
+  estado_fichaje: "FICHADO" | "SIN_FICHAR"
+  nombre_club: string | null
 }
-
-

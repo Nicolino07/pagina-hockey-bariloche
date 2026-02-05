@@ -24,3 +24,23 @@ export interface PersonaAltaConRol {
     rol: string
   }
 }
+
+
+export type PersonaRolClub = {
+  id_persona: number
+  nombre: string
+  apellido: string
+  rol: string
+
+  fichaje_activo: boolean | null
+  fecha_fichaje: string | null
+  fecha_fin_fichaje: string | null
+
+  id_club: number | null
+  nombre_club: string | null
+  provincia_club: string | null
+  ciudad_club: string | null
+
+  estado_fichaje: "FICHADO" | "SIN_FICHAR"
+  orden_roles: number
+}

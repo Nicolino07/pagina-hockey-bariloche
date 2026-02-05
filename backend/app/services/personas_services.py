@@ -1,6 +1,8 @@
+# backend/app/services/personas_services.py
 from datetime import date
 from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import select, and_
+from sqlalchemy import select, text
+
 from app.models.persona import Persona
 from app.models.persona_rol import PersonaRol
 from app.schemas.persona import PersonaCreate, PersonaUpdate
@@ -242,3 +244,9 @@ def eliminar_persona(
     persona.actualizado_por = current_user.username
 
     db.commit()
+
+
+def listar_personas_roles_clubes(db: Session):
+    return db.execute(
+        text("SELECT * FROM v_personas_roles_clubes")
+    ).mappings().all()

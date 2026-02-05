@@ -1,15 +1,20 @@
+## backend/app/routers/persona.py
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from typing import List
 from typing import Optional
 from fastapi import Query
 from app.database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 from app.dependencies.permissions import require_admin, require_editor
+from app.schemas.vistas import PersonaRolClubRead
 from app.schemas.persona import (
     PersonaRead,
     PersonaUpdate,
     PersonaAltaConRol,
     PersonaConRolesActivos,
+
 )
 from app.schemas.persona_rol import PersonaRolCreate, PersonaRol
 from app.services import personas_services
@@ -32,6 +37,21 @@ def listar_personas(
     current_user=Depends(require_editor),
 ):
     return personas_services.listar_personas(db)
+
+# =========================
+# GET /personas/roles vista
+# =========================
+
+
+@router.get(
+    "/roles-clubes",
+    response_model=list[PersonaRolClubRead],
+)
+def listar_personas_roles_clubes(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    return personas_services.listar_personas_roles_clubes(db)
 
 
 # =========================

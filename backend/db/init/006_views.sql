@@ -468,6 +468,7 @@ JOIN persona p ON p.id_persona = pi.id_persona;
 CREATE OR REPLACE VIEW v_personas_roles_clubes AS
 SELECT 
     p.id_persona,
+    pr.id_persona_rol,
     p.nombre,
     p.apellido,
     pr.rol,

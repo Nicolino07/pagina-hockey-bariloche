@@ -1,7 +1,9 @@
 // src/api/personas.api.ts
 
 import api from "./axiosAdmin"
-import type { Persona } from "../types/persona"
+import axiosAdmin from "./axiosAdmin"
+
+import type { Persona, PersonaRolClub } from "../types/persona"
 import type { PersonaConRolesVista } from "../types/vistas"
 
 export async function getPersonas(): Promise<Persona[]> {
@@ -30,9 +32,28 @@ export async function getPersonasConRolesActivos(
   })
   return res.data
 }
-
+// =========================================
+// quitarRolPersona
+// =========================================
 export async function quitarRolPersona(
   id_persona_rol: number
 ): Promise<void> {
   await api.delete(`/persona-roles/${id_persona_rol}`)
+}
+
+
+// Nueva función para obtener personas con roles y detalles de clubes
+
+
+export async function getPersonasConRoles() {
+  const res = await axiosAdmin.get<PersonaRolClub[]>(
+    "/personas/roles-clubes"
+  )
+  return res.data
+}
+
+// Nueva función para actualizar una persona
+export async function updatePersona(id: number, data: Partial<Persona>) {
+  const response = await axiosAdmin.put(`/personas/${id}`, data);
+  return response.data;
 }

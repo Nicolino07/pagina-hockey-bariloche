@@ -1,0 +1,215 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--bg-default);
+  padding-bottom: 15px;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.backButton:hover {
+  background-color: var(--bg-default);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: var(--text-primary);
+}
+
+.idBadge {
+  background: var(--bg-default);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+/* Sección de Tabla */
+.content {
+  background: var(--bg-paper);
+  border: 1px solid var(--divider-color);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.sectionHeader h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  color: var(--color-secondary);
+}
+
+.addButton {
+  background-color: var(--bg-default);
+  border: 1px solid var(--divider-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addButton:hover {
+  background-color: #eee;
+}
+
+/* Tabla Estilizada */
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 2px solid var(--bg-default);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--bg-default);
+}
+
+.rolCell {
+  color: var(--color-primary);
+}
+
+.deleteButton {
+  background-color: #fff1f0;
+  color: #cf1322;
+  border: 1px solid #ffa39e;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deleteButton:hover {
+  background-color: #cf1322;
+  color: white;
+}
+
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #eee;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #f5f5f5;
+  padding-bottom: 10px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+}
+
+.formGroup input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+}
+
+.formGroup input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background-color: white;
+}
+
+.formGroup input:disabled {
+  background-color: #f5f5f5;
+  color: #888;
+  cursor: not-allowed;
+  border-color: #eee;
+}
+
+.saveButton {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cancelButton {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 10px;
+}
