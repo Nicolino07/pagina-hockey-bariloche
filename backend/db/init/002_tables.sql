@@ -117,13 +117,15 @@ CREATE TABLE IF NOT EXISTS fichaje_rol (
     creado_por VARCHAR(100),
     actualizado_por VARCHAR(100),
     
-    CHECK (fecha_fin IS NULL OR fecha_fin > fecha_inicio),
+    CONSTRAINT chk_fichaje_fechas_validas
+        CHECK (fecha_fin IS NULL OR fecha_fin >= fecha_inicio),
 
-    CHECK (
-        (activo = TRUE AND fecha_fin IS NULL)
-        OR
-        (activo = FALSE)
-    )
+    CONSTRAINT chk_fichaje_activo_fecha_fin
+        CHECK (
+            (activo = TRUE AND fecha_fin IS NULL)
+            OR
+            (activo = FALSE AND fecha_fin IS NOT NULL)
+        )
 
 );
 
@@ -196,7 +198,7 @@ CREATE TABLE IF NOT EXISTS plantel_integrante (
         REFERENCES plantel(id_plantel) ON UPDATE CASCADE ON DELETE RESTRICT,
     id_persona            INT NOT NULL 
         REFERENCES persona(id_persona) ON UPDATE CASCADE ON DELETE RESTRICT,
-    id_fichaje_rol INT NOT NULL
+    id_fichaje_rol INT 
         REFERENCES fichaje_rol(id_fichaje_rol) ON UPDATE CASCADE ON DELETE SET NULL,
     rol_en_plantel        tipo_rol_persona NOT NULL,
     numero_camiseta       INT CHECK (numero_camiseta > 0),

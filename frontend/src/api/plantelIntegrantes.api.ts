@@ -24,6 +24,7 @@ export async function agregarIntegrante(
     id_plantel: number
     id_persona: number
     rol_en_plantel: TipoRolPersona
+    id_fichaje_rol: number;
     numero_camiseta?: number | null
   }
 ) {

@@ -65,26 +65,9 @@ def get_fichajes_por_club(
     solo_activos: bool = True, 
     db: Session = Depends(get_db)
 ):
-    # Realizamos la consulta uniendo FichajeRol con Persona
-    query = (
-        db.query(
-            FichajeRol.id_fichaje_rol,
-            FichajeRol.id_persona,
-            FichajeRol.rol,
-            FichajeRol.fecha_inicio,
-            FichajeRol.fecha_fin,
-            FichajeRol.activo,
-            Persona.nombre.label("persona_nombre"),
-            Persona.apellido.label("persona_apellido")
-        )
-        .join(Persona, FichajeRol.id_persona == Persona.id_persona)
-        .filter(FichajeRol.id_club == id_club)
+    # solo llamamos al servicio
+    return fichajes_services.obtener_fichajes_club(
+        db=db, 
+        id_club=id_club, 
+        solo_activos=solo_activos
     )
-
-    if solo_activos:
-        query = query.filter(FichajeRol.activo == True)
-
-    results = query.all()
-    
-    # SQLAlchemy devuelve tuplas, FastAPI las convertirá al esquema FichajeConPersona
-    return results

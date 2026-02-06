@@ -4,7 +4,10 @@ from sqlalchemy import select
 
 from app.models.fichaje_rol import FichajeRol
 from app.models.persona_rol import PersonaRol 
-from app.core.exceptions  import ValidationError, NotFoundError
+from app.core.exceptions  import ValidationError
+from app.models.persona import Persona
+from app.models.plantel_integrante import PlantelIntegrante
+from fastapi import HTTPException, status
 
 
 def crear_fichaje(
@@ -65,50 +68,62 @@ def crear_fichaje(
 
 
 
-def dar_baja_fichaje(
-    *,
-    db: Session,
-    id_fichaje_rol: int,
-    fecha_fin: date,
-    actualizado_por: str | None,
-) -> FichajeRol:
-
-    fichaje = db.get(FichajeRol, id_fichaje_rol)
-
-    if not fichaje or fichaje.borrado_en is not None:
-        raise NotFoundError("Fichaje no encontrado")
-
-    if not fichaje.activo:
-        raise ValidationError("El fichaje ya está dado de baja")
-    
-    if fichaje.fecha_fin is not None:
-        raise ValidationError("El fichaje ya tiene fecha de fin")
-
-
-    fichaje.fecha_fin = fecha_fin
-    fichaje.activo = False
-    fichaje.actualizado_por = actualizado_por
-
-    fichaje.activo = False
-    db.commit() # <--- Esto DEBE ir antes del return
-    return {"message": "Baja exitosa"}
-
-
-def obtener_fichajes_por_club(
-    *,
-    db: Session,
-    id_club: int,
-    solo_activos: bool = True,
-):
-    query = select(FichajeRol).where(
-        FichajeRol.id_club == id_club,
-        FichajeRol.borrado_en.is_(None),
+def obtener_fichajes_club(db: Session, id_club: int, solo_activos: bool = True):
+    query = (
+        db.query(
+            FichajeRol.id_fichaje_rol,
+            FichajeRol.id_persona,
+            FichajeRol.rol,
+            FichajeRol.fecha_inicio,
+            FichajeRol.fecha_fin,
+            FichajeRol.activo,
+            Persona.nombre.label("persona_nombre"),
+            Persona.apellido.label("persona_apellido")
+        )
+        .join(Persona, FichajeRol.id_persona == Persona.id_persona)
+        .filter(FichajeRol.id_club == id_club)
     )
 
     if solo_activos:
-        query = query.where(
-            FichajeRol.activo == True,
-            FichajeRol.fecha_fin.is_(None),
-        )
+        query = query.filter(FichajeRol.activo == True)
 
-    return db.scalars(query).all()
+    return query.all()
+
+def dar_baja_fichaje(db: Session, id_fichaje_rol: int, fecha_fin: date, actualizado_por: str):
+    # 1. Obtener el fichaje
+    fichaje = db.query(FichajeRol).filter(FichajeRol.id_fichaje_rol == id_fichaje_rol).first()
+    
+    if not fichaje:
+        raise HTTPException(status_code=404, detail="Fichaje no encontrado")
+
+    try:
+        # 2. Actualizar el fichaje a inactivo
+        fichaje.activo = False
+        fichaje.fecha_fin = fecha_fin
+        fichaje.actualizado_por = actualizado_por
+
+        # 3. CASCADA LÓGICA: 
+        # Buscamos si esta persona está en algún plantel usando este fichaje específico
+        # y que aún no tenga fecha de baja.
+        integrantes_activos = db.query(PlantelIntegrante).filter(
+            PlantelIntegrante.id_fichaje_rol == id_fichaje_rol,
+            PlantelIntegrante.fecha_baja == None
+        ).all()
+
+        for integrante in integrantes_activos:
+            integrante.fecha_baja = fecha_fin
+            integrante.actualizado_por = actualizado_por
+            # Aquí podrías incluso disparar una lógica de 'activo = False' si tuvieras ese campo en plantel_integrante
+
+        db.commit()
+        db.refresh(fichaje)
+        return fichaje
+
+    except Exception as e:
+        db.rollback()
+        # Esto te dirá exactamente qué constraint falló en la consola
+        print(f"Error en DB: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Conflicto de integridad: {str(e)}"
+        )

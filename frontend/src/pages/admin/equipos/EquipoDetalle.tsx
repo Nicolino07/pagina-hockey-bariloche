@@ -1,23 +1,26 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { usePlantelActivo } from "../../../hooks/usePlantelActivo"
-// Cambiamos la API a una que filtre por club
-import { getFichajesByClub} from "../../../api/fichajes.api" 
-import { bajaIntegrantePlantel } from "../../../api/planteles.api"
-import { agregarIntegrante } from "../../../api/plantelIntegrantes.api"
+import {getPersonasConRol} from "../../../api/vistas/personas.api"
+import {bajaIntegrantePlantel} from "../../../api/planteles.api"
+import type { PersonaConRol } from "../../../types/vistas"
 import type { TipoRolPersona, TipoGenero } from "../../../constants/enums"
 import PlantelLista from "./PlantelLista"
 import Button from "../../../components/ui/button/Button"
 import Modal from "../../../components/ui/modal/Modal"
 import styles from "./EquipoDetalle.module.css"
+import { agregarIntegrante } from "../../../api/plantelIntegrantes.api"
 
 export default function EquipoDetalle() {
   const navigate = useNavigate()
+
+  // =====================
+  // URL
+  // =====================
   const { id_equipo } = useParams<{ id_equipo: string }>()
   const equipoId = id_equipo ? Number(id_equipo) : undefined
 
   const location = useLocation()
-  // 1. Extraemos id_club del state enviado desde ClubDetalle
   const {
     id_club,
     clubNombre,
@@ -31,6 +34,9 @@ export default function EquipoDetalle() {
     categoria?: string
     generoEquipo?: string
   }
+  console.log("Datos del State:", { id_club, clubNombre, equipoNombre });
+  const { id_equipo } = useParams<{ id_equipo: string }>()
+  const equipoId = id_equipo ? Number(id_equipo) : undefined
 
   const {
     integrantes,
@@ -40,54 +46,82 @@ export default function EquipoDetalle() {
     refetch,
   } = usePlantelActivo(equipoId)
 
-  const [modalType, setModalType] = useState<"agregar" | "eliminar" | null>(null)
-  const [integranteAEliminar, setIntegranteAEliminar] = useState<{id_integrante: number, nombre: string} | null>(null)
+  // =====================
+  // Modales
+  // =====================
+  const [modalType, setModalType] =
+    useState<"agregar" | "eliminar" | null>(null)
 
-  // ESTADOS PARA EL MODAL DE AGREGAR
-  const [rol, setRol] = useState<TipoRolPersona>("JUGADOR")
-  const [fichados, setFichados] = useState<any[]>([]) // Personas fichadas en el club
-  const [loadingFichados, setLoadingFichados] = useState(false)
+  const [integranteAEliminar, setIntegranteAEliminar] =
+    useState<{
+      id_integrante: number
+      nombre: string
+    } | null>(null)
+
+  // =====================
+  // Personas
+  // =====================
+  const [rol, setRol] =
+    useState<TipoRolPersona>("JUGADOR")
+
+  const [personas, setPersonas] =
+    useState<PersonaConRol[]>([])
+
+  const [loadingPersonas, setLoadingPersonas] =
+    useState(false)
+
+  // filtros
   const [busqueda, setBusqueda] = useState("")
+  const [genero, setGenero] =
+    useState<"TODOS" | TipoGenero>("TODOS")
 
-
-  // 2. CARGAR SOLO PERSONAS FICHADAS EN ESTE CLUB
+  // =====================
+  // Cargar personas
+  // =====================
   useEffect(() => {
     if (modalType !== "agregar" || !id_club) return
 
-    setLoadingFichados(true)
-    getFichajesByClub(Number(id_club))
-      .then(setFichados)
-      .catch(err => console.error("Error cargando fichados:", err))
-      .finally(() => setLoadingFichados(false))
-  }, [id_club, modalType])
+    setLoadingPersonas(true)
+    getPersonasConRol(rol)
+      .then(setPersonas)
+      .finally(() => setLoadingPersonas(false))
+  }, [rol, modalType])
 
-  // 3. FILTRADO LOCAL (Busqueda y Género)
-  const fichadosFiltrados = fichados.filter(f => {
-    // IMPORTANTE: Adaptar según los nombres de campos que devuelva tu vista de fichajes
-    const nombreCompleto = `${f.persona_nombre} ${f.persona_apellido}`.toLowerCase()
-    const matchBusqueda = nombreCompleto.includes(busqueda.toLowerCase())
-  
-    const matchRol = f.rol === rol // Solo mostrar los que están fichados con el rol seleccionado
-    return matchBusqueda  && matchRol
+  const personasFiltradas = personas.filter(p => {
+    const texto =
+      `${p.nombre} ${p.apellido}`.toLowerCase()
+
+    const matchBusqueda =
+      texto.includes(busqueda.toLowerCase())
+
+    const matchGenero =
+      genero === "TODOS" || p.genero === genero
+
+    return matchBusqueda && matchGenero
   })
 
   if (loading) return <p>Cargando plantel…</p>
   if (error) return <p>{error}</p>
-
+  console.log("Datos del State antes del render:", { id_club, clubNombre, equipoNombre });
   return (
     <section>
       <header className={styles.header}>
         <Button variant="secondary" onClick={() => navigate(-1)}>← Volver</Button>
         <h1 className={styles.club}>{clubNombre ?? "Club"}</h1>
         <h2 className={styles.equipo}>
-          {equipoNombre ?? "Equipo"} · {generoEquipo} · {categoria}
+          {equipoNombre ?? "Equipo"}
+          {" · "}
+          {generoEquipo ?? "Género"}
+          {" · "}
+          {categoria ?? "Categoría"}
         </h2>
         <div className={styles.actions}>
           <Button onClick={() => setModalType("agregar")}>Agregar Persona</Button>
         </div>
       </header>
 
-      {integrantes.length > 0 ? (
+      {/* ================= PLANTEL ================= */}
+      {hasData ? (
         <PlantelLista
           integrantes={integrantes}
           editable={true}
@@ -106,72 +140,137 @@ export default function EquipoDetalle() {
       {/* MODAL AGREGAR */}
       <Modal
         open={modalType === "agregar"}
-        title="Agregar al Plantel"
-        onClose={() => { setModalType(null); setBusqueda(""); }}
+        title="Agregar Persona"
+        onClose={() => {
+          setModalType(null)
+          setBusqueda("")
+          setGenero("TODOS")
+        }}
       >
-        <div className={styles.modalFilters}>
-          <label>
-            Rol en plantel:
-            <select value={rol} onChange={e => setRol(e.target.value as TipoRolPersona)}>
-              <option value="JUGADOR">Jugador</option>
-              <option value="ENTRENADOR">Entrenador</option>
-              <option value="DT">DT</option>
-              <option value="PREPARADOR_FISICO">Preparador Físico</option>
-            </select>
-          </label>
-          <input 
-            type="text" 
-            placeholder="Buscar por nombre..." 
-            value={busqueda} 
-            onChange={e => setBusqueda(e.target.value)} 
+        <label className={styles.rolSelector}>
+          Rol:
+          <select
+            value={rol}
+            onChange={e =>
+              setRol(e.target.value as TipoRolPersona)
+            }
+          >
+            <option value="JUGADOR">Jugador</option>
+            <option value="ENTRENADOR">Entrenador</option>
+          </select>
+        </label>
+
+        <div className={styles.filtros}>
+          <input
+            type="text"
+            placeholder="Buscar por nombre o apellido"
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
           />
         </div>
 
-        {loadingFichados ? <p>Cargando personas del club...</p> : (
-          <div className={styles.personasList}>
-            {fichadosFiltrados.map(f => (
-              <div key={f.id_fichaje_rol} className={styles.personaItem}>
-                <span>{f.persona_apellido}, {f.persona_nombre} <small>({f.rol})</small></span>
+        {loadingPersonas && <p>Cargando…</p>}
 
-                  <Button
-                    onClick={async () => {
-                        try {
-                          const payload = {
-                            // Forzamos que sean números para evitar el error de validación
-                            id_plantel: Number(id_plantel),
-                            id_fichaje_rol: Number(f.id_fichaje_rol),
-                            id_persona: Number(f.id_persona),
-                            rol_en_plantel: rol, // Este es el string "JUGADOR" o "ENTRENADOR"
-                            creado_por: "admin"
-                          };
+        {!loadingPersonas &&
+          personasFiltradas.length === 0 && (
+            <p>No hay personas que coincidan</p>
+          )}
 
-                          console.log("📤 Enviando datos finales:", payload);
-                          
-                          const response = await agregarIntegrante(payload);
-                          console.log("✅ Respuesta servidor:", response);
+        <div className={styles.personasList}>
+          {personasFiltradas.map(p => (
+            <div
+              key={p.id_persona}
+              className={styles.personaItem}
+            >
+              <span>
+                {p.apellido}, {p.nombre}
+              </span>
 
-                          await refetch();
-                          setModalType(null);
-                        } catch (err: any) {
-                          // Si el error es 400 o 500, el backend suele enviar el motivo real aquí
-                          console.error("❌ Error Detallado:", err.response?.data);
-                          
-                          const msg = err.response?.data?.error?.message || "Error al agregar";
-                          alert(msg);
-                        }
-                      }
-                    
-                  >
-                    Agregar
-                  </Button>
-              </div>
-            ))}
-            {fichadosFiltrados.length === 0 && <p>No se encontraron personas fichadas con este rol.</p>}
-          </div>
-        )}
+              <Button
+                disabled={!id_plantel}
+                onClick={async () => {
+                  if (!id_plantel) return
+
+                  try {
+                    await agregarIntegrante({
+                      id_plantel,
+                      id_persona: p.id_persona,
+                      rol_en_plantel: rol,
+                    })
+
+                    await refetch()
+                    setModalType(null)
+
+                  } catch (err: any) {
+                    console.error("❌ Error completo:", err)
+                    console.error("❌ Response data:", err?.response?.data)
+
+                    const backendError = err?.response?.data?.error
+
+                    if (backendError?.message) {
+                      alert(backendError.message)
+                      return
+                    }
+
+                    alert("Error al agregar la persona")
+                  }
+
+
+                }}
+              >
+                Agregar
+              </Button>
+            </div>
+          ))}
+        </div>
       </Modal>
 
-      {/* MODAL ELIMINAR (Se mantiene igual) */}
+      {/* ================= MODAL ELIMINAR ================= */}
+      <Modal
+        open={modalType === "eliminar"}
+        title="Eliminar integrante"
+        onClose={() => {
+          setModalType(null)
+          setIntegranteAEliminar(null)
+        }}
+      >
+        <p>
+          ¿Dar de baja a{" "}
+          <strong>
+            {integranteAEliminar?.nombre}
+          </strong>
+          ?
+        </p>
+
+        <div className={styles.modalActions}>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setModalType(null)
+              setIntegranteAEliminar(null)
+            }}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            variant="danger"
+            onClick={async () => {
+              if (!integranteAEliminar) return
+
+              await bajaIntegrantePlantel(
+                integranteAEliminar.id_integrante
+              )
+
+              await refetch()
+              setModalType(null)
+              setIntegranteAEliminar(null)
+            }}
+          >
+            Confirmar baja
+          </Button>
+        </div>
+      </Modal>
     </section>
   )
 }
