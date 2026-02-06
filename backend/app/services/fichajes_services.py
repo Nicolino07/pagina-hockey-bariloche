@@ -89,7 +89,9 @@ def dar_baja_fichaje(
     fichaje.activo = False
     fichaje.actualizado_por = actualizado_por
 
-    return fichaje
+    fichaje.activo = False
+    db.commit() # <--- Esto DEBE ir antes del return
+    return {"message": "Baja exitosa"}
 
 
 def obtener_fichajes_por_club(

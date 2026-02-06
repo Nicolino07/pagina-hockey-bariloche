@@ -27,3 +27,14 @@ class FichajeRolRead(FichajeRolBase):
     activo: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+# En tus schemas/fichajes.py
+class FichajeConPersona(BaseModel):
+    id_fichaje_rol: int
+    id_persona: int
+    rol: str
+    fecha_inicio: date
+    fecha_fin: Optional[date]
+    activo: bool
+    persona_nombre: str  # <--- Agregamos esto
+    persona_apellido: str # <--- Agregamos esto

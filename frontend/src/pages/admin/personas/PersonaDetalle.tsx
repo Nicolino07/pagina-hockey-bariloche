@@ -6,6 +6,7 @@ import type { Persona } from "../../../types/persona";
 import { usePersonaConRoles } from "../../../hooks/usePersonaConRoles";
 import axiosAdmin from "../../../api/axiosAdmin"; 
 import PersonaForm from "./PersonaForm";
+import Button from "../../../components/ui/button/Button";
 
 export default function PersonaDetalle() {
   const { id_persona } = useParams<{ id_persona: string }>();
@@ -104,7 +105,10 @@ export default function PersonaDetalle() {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.titleSection}>
-          <button className={styles.backButton} onClick={() => navigate(-1)}>← Volver</button>
+
+          <Button
+           className={styles.backButton} onClick={() => navigate(-1)}>← Volver
+          </Button>
           <h1>Detalle de Persona</h1>
           <span className={styles.idBadge}>ID: {id_persona}</span>
         </div>

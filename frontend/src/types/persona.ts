@@ -1,5 +1,4 @@
 // src/types/persona.ts
-// src/types/persona.ts
 
 import type { TipoGenero } from "../constants/enums"
 
@@ -32,6 +31,7 @@ export type PersonaRolClub = {
   id_persona: number
   nombre: string
   apellido: string
+  genero?: string
   rol: string
 
   fichaje_activo: boolean | null

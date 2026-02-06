@@ -46,3 +46,4 @@ export async function updateClub(
 export async function deleteClub(id: number): Promise<void> {
   await api.delete(`/clubes/${id}`)
 }
+

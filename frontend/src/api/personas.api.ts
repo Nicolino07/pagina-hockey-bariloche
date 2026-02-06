@@ -32,6 +32,9 @@ export async function getPersonasConRolesActivos(
   })
   return res.data
 }
+
+
+
 // =========================================
 // quitarRolPersona
 // =========================================
@@ -57,3 +60,23 @@ export async function updatePersona(id: number, data: Partial<Persona>) {
   const response = await axiosAdmin.put(`/personas/${id}`, data);
   return response.data;
 }
+
+
+export const createPersonaConRol = async (personaData: any, rol: string) => {
+  const payload = {
+    persona: {
+      ...personaData,
+      // Normalizamos el género aquí para que el componente esté limpio
+      genero: personaData.genero === "F" ? "FEMENINO" : 
+              personaData.genero === "M" ? "MASCULINO" : "OTRO",
+      documento: personaData.documento ? Number(personaData.documento) : null,
+    },
+    rol: {
+      rol: rol,
+      fecha_desde: new Date().toISOString().split('T')[0]
+    }
+  };
+
+  const response = await axiosAdmin.post("/personas", payload);
+  return response.data;
+};

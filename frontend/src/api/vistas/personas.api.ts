@@ -17,3 +17,5 @@ export async function getPersonasConRol(
 
   return Array.isArray(response.data) ? response.data : []
 }
+
+

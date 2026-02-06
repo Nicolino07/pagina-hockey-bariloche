@@ -1,254 +1,48 @@
-/* ======================
-   Layout general
-====================== */
-.container {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
 
-/* ======================
-   Header principal
-====================== */
-.header {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 16px;
-}
 
-.backButton {
-  background: none;
-  border: none;
-  color: #555;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
+.container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+.header { display: flex; align-items: center; gap: 20px; margin-bottom: 2rem; }
+.backButton { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; }
+.titleInfo h1 { margin: 0; font-size: 2.5rem; color: #1a1a1a; }
+.cityBadge { background: #e9ecef; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem; color: #495057; }
 
-.backButton:hover {
-  text-decoration: underline;
-}
+.actionBar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 1rem; }
+.actionButtons { display: flex; gap: 10px; }
 
-.title {
-  display: flex;
-  flex-direction: column;
-}
+/* FICHADOS SECTION */
+.fichadosSection { background: #f8f9fa; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+.filterTabs { display: flex; gap: 10px; margin-bottom: 1.5rem; background: #edeff1; padding: 5px; border-radius: 8px; width: fit-content; }
+.tab { padding: 6px 16px; border: none; background: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; color: #666; }
+.activeTab { background: white; color: #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-.title h1 {
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 600;
-}
+.fichadosGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+.fichadoCard { background: white; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+.fichadoName { display: block; font-weight: 700; color: #2c3e50; margin-bottom: 5px; }
+.fichadoTags { display: flex; gap: 8px; align-items: center; }
+.rolTag { font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; font-weight: 800; }
+.JUGADOR { background: #e3f2fd; color: #1976d2; }
+.DT { background: #f3e5f5; color: #7b1fa2; }
+.dateTag { font-size: 0.75rem; color: #95a5a6; }
 
-.city {
-  font-size: 0.9rem;
-  color: #777;
-}
+.btnBaja { background: #fff5f5; border: 1px solid #feb2b2; color: #c53030; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+.btnBaja:hover { background: #c53030; color: white; }
 
-/* ======================
-   Acciones club
-====================== */
-.actions {
-  display: flex;
-  gap: 8px;
-}
+/* EQUIPOS SECTION */
+.equiposList { display: flex; flex-direction: column; gap: 12px; }
+.equipoItem { border: 1px solid #eee; border-radius: 10px; overflow: hidden; background: white; }
+.equipoHeader { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+.equipoHeader:hover { background: #fafafa; }
+.equipoName { font-size: 1.1rem; font-weight: 600; color: #333; display: block; }
+.equipoMeta { font-size: 0.85rem; color: #777; }
+.manageBtn { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; margin-right: 15px; }
 
-.edit {
-  background-color: var(--color-primary);
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.edit:hover {
-  background-color: var(--color-primary-dark);
-}
-
-.delete {
-  background-color: #e74c3c;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.delete:hover {
-  background-color: #c0392b;
-}
-
-/* ======================
-   Secciones
-====================== */
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.sectionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.sectionHeader h2 {
-  margin: 0;
-  font-size: 1.3rem;
-}
-
-.sectionHeader button {
-  background-color: var(--color-primary);
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.sectionHeader button:hover {
-  background-color: var(--color-primary-dark);
-}
-
-/* ======================
-   Estados
-====================== */
-.empty {
-  padding: 16px;
-  text-align: center;
-  color: #777;
-  background-color: #f6f6f6;
-  border-radius: 8px;
-}
-
-/* ======================
-   Lista de equipos
-====================== */
-.equiposList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.equipoItem {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-/* ======================
-   Header equipo
-====================== */
-.equipoHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 14px;
-  cursor: pointer;
-  background-color: #fafafa;
-}
-
-.equipoHeader:hover {
-  background-color: #f0f0f0;
-}
-
-.equipoMeta {
-  font-size: 0.85rem;
-  color: #666;
-}
-
-/* ======================
-   Plantel
-====================== */
-.plantelWrapper {
-  padding: 16px;
-  background-color: #fff;
-  border-top: 1px solid #e0e0e0;
-}
-
-/* ======================
-   Formulario (Modal crear equipo)
-====================== */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Campo */
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #444;
-}
-
-.field input,
-.field select {
-  padding: 8px 10px;
-  font-size: 0.9rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  outline: none;
-}
-
-.field input:focus,
-.field select:focus {
-  border-color: var(--color-primary);
-}
-
-/* ======================
-   Acciones del formulario
-====================== */
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.cancel {
-  background-color: #eee;
-  color: #333;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.cancel:hover {
-  background-color: #ddd;
-}
-
-.submit {
-  background-color: var(--color-primary);
-  color: #fff;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.submit:hover {
-  background-color: var(--color-primary-dark);
-}
-
-.submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+/* MODALS */
+.modalForm { display: flex; flex-direction: column; gap: 15px; min-width: 400px; padding: 10px; }
+.formGroup { display: flex; flex-direction: column; gap: 5px; position: relative; }
+.formGroup label { font-size: 0.9rem; font-weight: 600; color: #555; }
+.formGroup input, .formGroup select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 8px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.dropdownItem { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+.dropdownItem:hover { background: #f0f7ff; }
+.modalActions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }

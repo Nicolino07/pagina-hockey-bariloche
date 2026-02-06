@@ -10,9 +10,23 @@ Inicio de sesion y acceso a Panel principal listo
 pagina de clubes y equipos admin lista(casi)
 creando pagina admin para torneos
 
-PROXIMO: refactorice DB.. el sistema no corre, revisar sintaxis de tablas 
-revisar el orden de seed. y luego reacomodar backend a lo trabajado. con 
-la tabla fichaje_rol
+PROXIMO: error el 409 Conflict persiste incluso con un fichaje "limpio" (ID 49).
+ Si esa persona no está en un plantel, el conflicto tiene que estar en la base de datos,
+  específicamente en cómo estamos enviando la fecha o cómo el backend está procesando el 
+  booleano activo.
+
+Ese error suele saltar cuando una restricción CHECK de SQL dice: "No, esto que intentas 
+guardar rompe mis reglas".
+
+Sospechosos principales:
+Formato de Fecha: SQL a veces es quisquilloso con las strings de fecha.
+
+La restricción CHECK: Si el backend actualiza la fecha pero no el campo activo (o viceversa),
+ la base de datos rechaza el cambio.
+
+Hagamos una prueba de "Fuerza Bruta" para entender el error
+Vamos a modificar tu función en el Backend (Python/FastAPI) para ver qué está pasando.
+Lo más probable es que necesites asegurar que ambos campos cambien en la misma transacción:
 
 
 

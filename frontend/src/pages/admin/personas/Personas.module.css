@@ -74,7 +74,7 @@
 .personaMain {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   margin-bottom: 2px;
 }
 
@@ -109,7 +109,7 @@
   min-width: 110px;
   font-weight: 600;
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
 .badge {
@@ -121,8 +121,8 @@
 }
 
 .clubName {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+  font-size: 1rem;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis; /* Si el nombre del club es muy largo, no rompe la fila */
@@ -131,29 +131,100 @@
 /* Colores de estados (más suaves para no cansar la vista en listas largas) */
 .fichado {
   color: #2e7d32;
-  font-weight: 700;
+  font-style: italic;
+  font-weight: 600;
 }
 
 .sinfichar {
-  color: #9e9e9e;
+  color: #414040;
   font-style: italic;
+  font-weight: 600;
+  font-size: 0.85rem;
 }
-/* Nombre del Club */
-.clubName {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
+
 
 /* Estados de carga y error */
 .loading, .error {
   padding: 40px;
   text-align: center;
   font-weight: 500;
+  font-size: 0.85rem;
 }
 
 .error {
   color: #c0392b;
   background-color: #fdecea;
   border-radius: 8px;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6); /* Fondo oscurecido */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modalContent {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  position: relative;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1rem;
+}
+
+.closeX {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.closeX:hover {
+  color: #000;
+}
+
+.toolbar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 250px;
+  padding: 0.6rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.filterSelect {
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
 }
