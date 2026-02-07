@@ -6,6 +6,7 @@ export type PlantelIntegrante = {
   id_plantel_integrante: number
   id_plantel: number
   id_persona: number
+  id_fichaje_rol: number
   rol_en_plantel: TipoRolPersona
   numero_camiseta?: number | null
   fecha_alta: string
@@ -16,6 +17,7 @@ export type PlantelIntegrante = {
 export type PlantelIntegranteCreate = {
   id_plantel: number
   id_persona: number
+  id_fichaje_rol: number
   rol_en_plantel: TipoRolPersona
   numero_camiseta?: number | null
 }

@@ -1,5 +1,5 @@
 // src/api/planteles.api.ts
-import type { TipoRolPersona } from "../types/enums"
+import type { TipoRolPersona } from "../constants/enums"
 import api from "./axiosAdmin"
 import axiosAdmin from "./axiosAdmin"
 import type { Plantel } from "../types/plantel"
@@ -42,12 +42,14 @@ export async function getIntegrantesByPlantel(
 export async function agregarIntegrantePlantel(
   id_plantel: number,
   id_persona: number,
+  id_fichaje_rol: number,
   rol_en_plantel: TipoRolPersona,
   numero_camiseta?: number
 ) {
-  return axiosAdmin.post("/planteles/integrantes", {
+  return api.post("/planteles/integrantes", {
     id_plantel,
     id_persona,
+    id_fichaje_rol,
     rol_en_plantel,
     numero_camiseta,
   })

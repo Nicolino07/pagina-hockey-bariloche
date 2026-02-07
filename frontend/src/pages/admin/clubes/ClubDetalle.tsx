@@ -212,13 +212,30 @@ export default function ClubDetalle() {
           <div className={styles.equiposList}>
             {equipos.map((equipo) => (
               <div key={equipo.id_equipo} className={styles.equipoItem}>
-                <div className={styles.equipoHeader} onClick={() => setEquipoAbierto(equipoAbierto === equipo.id_equipo ? null : equipo.id_equipo)}>
+                <div 
+                  className={styles.equipoHeader} 
+                  onClick={() => setEquipoAbierto(equipoAbierto === equipo.id_equipo ? null : equipo.id_equipo)}
+                >
                   <div className={styles.equipoInfo}>
                     <span className={styles.equipoName}>{equipo.nombre}</span>
                     <span className={styles.equipoMeta}>{equipo.categoria} · {equipo.genero}</span>
                   </div>
                   <div className={styles.equipoActions}>
-                    <button className={styles.manageBtn} onClick={(e) => { e.stopPropagation(); navigate(`/admin/equipos/${equipo.id_equipo}`, { state: { clubNombre: club.nombre, clubId: club.id_club }}); }}>
+                    <button 
+                      className={styles.manageBtn}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        navigate(`/admin/equipos/${equipo.id_equipo}`, { 
+                          state: { 
+                            clubNombre: club.nombre, 
+                            id_club: club.id_club,       // <--- El ID que necesitaba el hijo
+                            equipoNombre: equipo.nombre, 
+                            categoria: equipo.categoria,
+                            generoEquipo: equipo.genero
+                          }
+                        }); 
+                      }}
+                    >
                       Gestionar
                     </button>
                     <span className={styles.arrow}>{equipoAbierto === equipo.id_equipo ? '▲' : '▼'}</span>
