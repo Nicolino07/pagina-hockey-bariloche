@@ -1,3 +1,4 @@
+// ClubDetalle.tsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./ClubDetalle.module.css";
@@ -7,7 +8,7 @@ import Button from "../../../components/ui/button/Button";
 import { crearEquipo, getEquiposByClub } from "../../../api/equipos.api";
 import { getClubById } from "../../../api/clubes.api";
 import { usePersonaConRoles } from "../../../hooks/usePersonaConRoles";
-import { crearFichaje, getFichajesByClub, darBajaFichaje } from "../../../api/fichajes.api";
+import { crearFichaje, getFichajesPorClub, darBajaFichaje } from "../../../api/fichajes.api";
 
 import type { Club } from "../../../types/club";
 import type { Equipo, EquipoCreate } from "../../../types/equipo";
@@ -49,7 +50,7 @@ export default function ClubDetalle() {
   const cargarFichajes = async () => {
     if (!id_club) return;
     try {
-      const data = await getFichajesByClub(Number(id_club), true);
+      const data = await getFichajesPorClub(Number(id_club), true);
       setFichajes(data);
     } catch (err) { console.error("Error cargando fichajes", err); }
   };
@@ -221,7 +222,21 @@ export default function ClubDetalle() {
                     <span className={styles.equipoMeta}>{equipo.categoria} · {equipo.genero}</span>
                   </div>
                   <div className={styles.equipoActions}>
-                    <button className={styles.manageBtn} onClick={(e) => { e.stopPropagation(); navigate(`/admin/equipos/${equipo.id_equipo}`, { state: { clubNombre: club.nombre, clubId: club.id_club }}); }}>
+                    <button 
+                      className={styles.manageBtn} 
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        navigate(`/admin/equipos/${equipo.id_equipo}`, { 
+                          state: { 
+                            id_club: club.id_club, // <-- Cambiado de clubId a id_club
+                            clubNombre: club.nombre,
+                            equipoNombre: equipo.nombre, // Asegúrate de pasar estos también si los usas
+                            categoria: equipo.categoria,
+                            generoEquipo: equipo.genero
+                          }
+                        }); 
+                      }}
+                    >
                       Gestionar
                     </button>
                     <span className={styles.arrow}>{equipoAbierto === equipo.id_equipo ? '▲' : '▼'}</span>

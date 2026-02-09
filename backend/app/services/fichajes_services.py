@@ -78,7 +78,8 @@ def obtener_fichajes_club(db: Session, id_club: int, solo_activos: bool = True):
             FichajeRol.fecha_fin,
             FichajeRol.activo,
             Persona.nombre.label("persona_nombre"),
-            Persona.apellido.label("persona_apellido")
+            Persona.apellido.label("persona_apellido"),
+            Persona.documento.label("persona_documento")
         )
         .join(Persona, FichajeRol.id_persona == Persona.id_persona)
         .filter(FichajeRol.id_club == id_club)

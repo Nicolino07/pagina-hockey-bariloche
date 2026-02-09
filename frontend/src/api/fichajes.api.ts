@@ -15,6 +15,30 @@ export const crearFichaje = async (data: {
   return response.data;
 };
 
+
+/**
+ * Obtiene todos los fichajes de un club específico.
+ * @param solo_activos Si es true, solo trae los que no tienen fecha_fin.
+ */
+export const getFichajesPorClub = async (id_club: number, solo_activos = true) => {
+  const response = await api.get(`/fichajes/club/${id_club}`, {
+    params: { solo_activos },
+  });
+  return response.data;
+};
+
+
+export const getFichajesActivosPorClubYRol = async (
+  id_club: number,
+  rol: string
+): Promise<any[]> => {
+  const response = await api.get(
+    `/fichajes/club/${id_club}/rol/${rol}/activos`
+  )
+  return response.data
+}
+
+
 /**
  * Da de baja un fichaje existente (borrado lógico).
  */
@@ -28,16 +52,5 @@ export const darBajaFichaje = async (
   const response = await api.patch(`/fichajes/${id_fichaje_rol}/baja`,
     data
   );
-  return response.data;
-};
-
-/**
- * Obtiene todos los fichajes de un club específico.
- * @param solo_activos Si es true, solo trae los que no tienen fecha_fin.
- */
-export const getFichajesByClub = async (id_club: number, solo_activos = true) => {
-  const response = await api.get(`/fichajes/club/${id_club}`, {
-    params: { solo_activos },
-  });
   return response.data;
 };

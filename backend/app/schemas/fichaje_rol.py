@@ -1,9 +1,7 @@
 from datetime import date
 from typing import Optional
-
 from pydantic import BaseModel, Field, ConfigDict
 from app.models.enums import RolPersonaTipo
-
 
 class FichajeRolBase(BaseModel):
     id_persona: int = Field(..., gt=0)
@@ -28,13 +26,23 @@ class FichajeRolRead(FichajeRolBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-# En tus schemas/fichajes.py
+
+
 class FichajeConPersona(BaseModel):
     id_fichaje_rol: int
     id_persona: int
+    id_club: int
+    id_persona_rol: int
     rol: str
     fecha_inicio: date
-    fecha_fin: Optional[date]
+    fecha_fin: Optional[date] = None
     activo: bool
-    persona_nombre: str  # <--- Agregamos esto
-    persona_apellido: str # <--- Agregamos esto
+    
+    # Datos de la persona
+    persona_nombre: str
+    persona_apellido: str
+    persona_genero: str
+    persona_documento: int
+    
+    class Config:
+        from_attributes = True

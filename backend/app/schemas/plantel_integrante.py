@@ -16,13 +16,14 @@ class PlantelIntegranteBase(BaseModel):
     fecha_baja: Optional[date] = None
 
 
+# backend/app/schemas/plantel_integrante.py
+
 class PlantelIntegranteCreate(BaseModel):
-    id_plantel: int = Field(..., gt=0)
-    id_persona: int = Field(..., gt=0)
-    id_fichaje_rol: int = Field(..., gt=0)
+    id_plantel: int
+    id_persona: int
+    id_fichaje_rol: int  # 🆕 Ahora es obligatorio
     rol_en_plantel: RolPersonaTipo
-    numero_camiseta: Optional[int] = Field(None, gt=0)
-    creado_por: Optional[str] = Field(None, max_length=100)
+    numero_camiseta: Optional[int] = None
 
 
 class PlantelIntegranteUpdate(BaseModel):
