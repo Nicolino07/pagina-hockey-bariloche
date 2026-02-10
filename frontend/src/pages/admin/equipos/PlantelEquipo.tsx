@@ -8,7 +8,7 @@ type Props = {
 }
 
 export default function PlantelEquipo({ id_equipo }: Props) {
-  const { integrantes, loading, error, hasData } =
+  const { integrantes, loading, error, hasPlantel } =
     usePlantelActivo(id_equipo)
 
 
@@ -20,7 +20,7 @@ export default function PlantelEquipo({ id_equipo }: Props) {
 
   if (loading) return <p>Cargando plantel…</p>
   if (error) return <p>{error}</p>
-  if (!hasData) return <p>Este equipo no tiene integrantes</p>
+  if (!hasPlantel) return <p>Este equipo no tiene integrantes</p>
 
   return (
     <>

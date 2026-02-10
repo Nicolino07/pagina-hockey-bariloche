@@ -48,39 +48,27 @@ export default function EquipoDetalle() {
 
   const { integrantes, id_plantel, loading, refetch } = usePlantelActivo(equipoId);
 
-  // Estados de UI
-  const [modalType, setModalType] = useState<"agregar" | "eliminar" | "editar" | "crear_plantel" | null>(null);
+  const [modalType, setModalType] = useState<"agregar" | "eliminar" | "crear_plantel" | null>(null);
   const [rolSeleccionado, setRolSeleccionado] = useState<string>("JUGADOR");
   const [busqueda, setBusqueda] = useState("");
   const [genero, setGenero] = useState<string>("TODOS");
   
-  // Estados de Datos
   const [fichajes, setFichajes] = useState<FichajeActivo[]>([]);
   const [loadingFichajes, setLoadingFichajes] = useState(false);
-  const [integranteAEliminar, setIntegranteAEliminar] = useState<{id_integrante: number, nombre: string} | null>(null);
-
-  // Estado para la creación del plantel inicial
+  const [integranteAEliminar, setIntegranteAEliminar] = useState<{id: number, nombreCompleto: string} | null>(null);
   const [nuevoPlantelData, setNuevoPlantelData] = useState({
-    nombre: `Plantel ${equipoNombre} ${new Date().getFullYear()}`,
+    nombre: `Plantel ${equipoNombre || ''} ${new Date().getFullYear()}`,
     temporada: new Date().getFullYear().toString(),
   });
 
-  // --- LÓGICA DE TRADUCCIÓN DE DATOS ---
   const tienePlantelCreado = id_plantel !== null;
   
-  // 1. Filtramos y mapeamos para que PlantelLista reciba lo que espera (nombre, apellido, documento)
-  const integrantesMapeados = useMemo(() => {
-    return integrantes
-      .filter(i => i.id_persona !== null) // Solo los que son personas reales
-      .map(i => ({
-        ...i,
-        nombre: i.nombre_persona,    // Traducción para PlantelLista
-        apellido: i.apellido_persona, // Traducción para PlantelLista
-        documento: i.documento_persona // Traducción para PlantelLista
-      }));
+  // Mapeo limpio asegurando que existan los datos mínimos para la lista
+  const integrantesValidos = useMemo(() => {
+    if (!integrantes) return [];
+    return integrantes.filter(i => i.id_plantel_integrante !== null);
   }, [integrantes]);
 
-  // 1. Sincronizar género con el del equipo
   useEffect(() => {
     if (modalType === "agregar" && generoEquipo) {
       const g = generoEquipo.toUpperCase();
@@ -88,56 +76,64 @@ export default function EquipoDetalle() {
     }
   }, [modalType, generoEquipo]);
 
-  // 2. Cargar fichajes del club
   useEffect(() => {
+    // Verificamos que exista id_club antes de disparar la carga
     if (modalType !== "agregar" || !id_club) return;
+
     const cargarFichajes = async () => {
       setLoadingFichajes(true);
       try {
-        const data = await getFichajesPorClub(id_club, true);
+        // Usamos id_club que viene del state de ClubDetalle
+        const data = await getFichajesPorClub(Number(id_club), true);
         setFichajes(data);
-      } catch (err) {
-        console.error("Error al cargar fichajes:", err);
-      } finally {
-        setLoadingFichajes(false);
+      } catch (err) { 
+        console.error("Error al cargar fichajes del club:", err); 
+      } finally { 
+        setLoadingFichajes(false); 
       }
-    };
-    cargarFichajes();
-  }, [modalType, id_club]);
 
-  // 3. Filtrado de fichajes para el buscador
+      console.log({
+        clubRecibido: id_club,
+        fichajesEncontrados: fichajes.length,
+        plantelActual: id_plantel,
+        generoFiltro: genero
+      });
+    };
+
+  cargarFichajes();
+}, [modalType, id_club]); // Se dispara cuando se abre el modal O cambia el id_club
+
   const fichajesFiltrados = useMemo(() => {
     return fichajes.filter((f) => {
+      // 1. Coincidencia de Rol (Siempre obligatoria)
       const matchRol = f.rol === rolSeleccionado;
-      const matchGenero = genero === "TODOS" || f.persona_genero?.toUpperCase() === genero.toUpperCase();
+
+      // 2. Coincidencia de Género (SÓLO si es JUGADOR)
+      // Si el rol NO es jugador, matchGenero siempre será true.
+      const esJugador = rolSeleccionado === "JUGADOR";
+      const matchGenero = !esJugador || 
+                          genero === "TODOS" || 
+                          f.persona_genero?.toUpperCase() === genero.toUpperCase();
+
+      // 3. Coincidencia de Búsqueda (Texto)
       const searchLower = busqueda.toLowerCase();
-      const nombreCompleto = `${f.persona_nombre} ${f.persona_apellido}`.toLowerCase();
-      const matchBusqueda = nombreCompleto.includes(searchLower) || f.persona_documento?.toString().includes(searchLower);
+      const matchBusqueda = `${f.persona_nombre} ${f.persona_apellido}`.toLowerCase().includes(searchLower) || 
+                            f.persona_documento?.toString().includes(searchLower);
+
       return matchRol && matchGenero && matchBusqueda;
     });
   }, [fichajes, rolSeleccionado, genero, busqueda]);
 
-  const handleOpenAdd = () => {
-    if (!tienePlantelCreado) setModalType("crear_plantel");
-    else setModalType("agregar");
-  };
+  const handleOpenAdd = () => !tienePlantelCreado ? setModalType("crear_plantel") : setModalType("agregar");
 
   const handleCrearPlantelInicial = async () => {
     if (!equipoId) return;
     try {
-      await createPlantel({
-        ...nuevoPlantelData,
-        id_equipo: equipoId,
-        activo: true,
-        creado_por: "Nico_super"
-      });
+      await createPlantel({ ...nuevoPlantelData, id_equipo: equipoId, activo: true, creado_por: "admin" });
       await refetch();
       setModalType("agregar"); 
     } catch (err: any) {
-      if (err.response?.status === 409) {
-        await refetch();
-        setModalType("agregar");
-      }
+      if (err.response?.status === 409) { await refetch(); setModalType("agregar"); }
     }
   };
 
@@ -152,9 +148,18 @@ export default function EquipoDetalle() {
       });
       await refetch();
       setModalType(null);
-      setBusqueda("");
+    } catch (err: any) { alert(err.response?.data?.detail || "Error al agregar"); }
+  };
+
+  const handleBajaConfirmada = async () => {
+    if (!integranteAEliminar?.id) return;
+    try {
+      await bajaIntegrantePlantel(integranteAEliminar.id);
+      await refetch();
+      setModalType(null);
+      setIntegranteAEliminar(null);
     } catch (err: any) {
-      alert("Error: " + (err.response?.data?.detail || "No se pudo agregar"));
+      alert(`No se pudo eliminar: ${err.response?.data?.detail || "Error del servidor"}`);
     }
   };
 
@@ -171,63 +176,51 @@ export default function EquipoDetalle() {
         <Button onClick={handleOpenAdd}>+ Agregar Integrante</Button>
       </header>
 
-      {integrantesMapeados.length > 0 ? (
+      {integrantesValidos.length > 0 ? (
         <div className={styles.plantelSection}>
             <PlantelLista 
-                integrantes={integrantesMapeados} 
-                editable={true} 
-                onEliminar={(i) => {
-                    setIntegranteAEliminar({ 
-                        id_integrante: i.id_plantel_integrante, 
-                        nombre: `${i.nombre} ${i.apellido}` 
-                    });
-                    setModalType("eliminar");
-                }} 
+              integrantes={integrantesValidos} 
+              editable={true} 
+              onEliminar={(i) => {
+                if (i.id_plantel_integrante) {
+                  setIntegranteAEliminar({ 
+                    id: i.id_plantel_integrante,
+                    nombreCompleto: `${i.nombre_persona} ${i.apellido_persona}`,
+                  });
+                  setModalType("eliminar");
+                }
+              }}
             />
         </div>
       ) : (
         <div className={styles.emptyCard}>
-            {tienePlantelCreado ? (
-              <>
-                <p>El plantel está configurado pero aún no tiene integrantes.</p>
-                <small>Haz clic en "Agregar Integrante" para comenzar.</small>
-              </>
-            ) : (
-              <>
-                <p>No hay integrantes en el plantel activo.</p>
-                <small>El equipo aún no tiene un plantel configurado.</small>
-              </>
-            )}
+            <p>{tienePlantelCreado ? "El plantel no tiene integrantes aún." : "No hay un plantel configurado."}</p>
+            <small>Usa el botón superior para empezar.</small>
         </div>
       )}
 
-      {/* --- LOS MODALES SE MANTIENEN IGUAL --- */}
+      {/* Modal Crear Plantel */}
       <Modal open={modalType === "crear_plantel"} title="Iniciar Nuevo Plantel" onClose={() => setModalType(null)}>
         <div className={styles.formContainer}>
-          <div className={styles.field}>
-            <label>Nombre del Plantel</label>
+          <div className={styles.field}><label>Nombre</label>
             <input type="text" value={nuevoPlantelData.nombre} onChange={(e) => setNuevoPlantelData({...nuevoPlantelData, nombre: e.target.value})} />
           </div>
-          <div className={styles.field}>
-            <label>Temporada</label>
+          <div className={styles.field}><label>Temporada</label>
             <input type="text" value={nuevoPlantelData.temporada} onChange={(e) => setNuevoPlantelData({...nuevoPlantelData, temporada: e.target.value})} />
           </div>
           <div className={styles.modalActions}>
              <Button variant="secondary" onClick={() => setModalType(null)}>Cancelar</Button>
-             <Button onClick={handleCrearPlantelInicial}>Crear y Continuar</Button>
+             <Button onClick={handleCrearPlantelInicial}>Crear Plantel</Button>
           </div>
         </div>
       </Modal>
 
+      {/* Modal Agregar */}
       <Modal open={modalType === "agregar"} title="Fichajes Disponibles" onClose={() => setModalType(null)}>
         <div className={styles.filters}>
-          <div className={styles.row}>
-            <select value={rolSeleccionado} onChange={(e) => setRolSeleccionado(e.target.value)}>
-              {Object.entries(ROL_LABELS).map(([val, label]) => (
-                <option key={val} value={val}>{label}</option>
-              ))}
-            </select>
-          </div>
+          <select value={rolSeleccionado} onChange={(e) => setRolSeleccionado(e.target.value)}>
+            {Object.entries(ROL_LABELS).map(([val, label]) => <option key={val} value={val}>{label}</option>)}
+          </select>
           <input type="text" placeholder="Buscar..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className={styles.searchInput} />
         </div>
         <div className={styles.scrollList}>
@@ -235,6 +228,7 @@ export default function EquipoDetalle() {
             <div key={f.id_fichaje_rol} className={styles.personaCard}>
               <div className={styles.personaInfo}>
                 <span className={styles.personaName}>{f.persona_apellido}, {f.persona_nombre}</span>
+                <small>DNI: {f.persona_documento}</small>
               </div>
               <Button onClick={() => handleAgregar(f)}>Agregar</Button>
             </div>
@@ -242,17 +236,12 @@ export default function EquipoDetalle() {
         </div>
       </Modal>
 
+      {/* Modal Eliminar */}
       <Modal open={modalType === "eliminar"} title="Confirmar Baja" onClose={() => setModalType(null)}>
-        <p>¿Quitar a <strong>{integranteAEliminar?.nombre}</strong>?</p>
+        <p>¿Estás seguro de que deseas quitar a <strong>{integranteAEliminar?.nombreCompleto}</strong>?</p>
         <div className={styles.modalActions}>
           <Button variant="secondary" onClick={() => setModalType(null)}>Cancelar</Button>
-          <Button variant="danger" onClick={async () => {
-             if(integranteAEliminar) {
-               await bajaIntegrantePlantel(integranteAEliminar.id_integrante);
-               await refetch();
-               setModalType(null);
-             }
-          }}>Confirmar</Button>
+          <Button variant="danger" onClick={handleBajaConfirmada}>Confirmar Baja</Button>
         </div>
       </Modal>
     </section>

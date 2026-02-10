@@ -53,7 +53,7 @@ SELECT
     per.id_persona,
     per.nombre AS nombre_persona,
     per.apellido AS apellido_persona,
-    per.documento
+    per.documento 
 FROM plantel pl
 JOIN equipo e ON e.id_equipo = pl.id_equipo
 LEFT JOIN plantel_integrante pi ON pi.id_plantel = pl.id_plantel AND pi.fecha_baja IS NULL

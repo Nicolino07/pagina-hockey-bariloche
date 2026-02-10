@@ -15,10 +15,15 @@ export interface PlantelActivoIntegrante {
   id_persona?: number | null;
   nombre_persona?: string | null;
   apellido_persona?: string | null;
+  documento?: number | null;
   rol_en_plantel?: string | null;
   numero_camiseta?: number | null;
   id_plantel_integrante?: number | null;
+  rol_en_palntel?: string | null;
+  fecha_alta?: string | null; 
+  fecha_baja?: string | null;
 }
+
 
 // lista de personas con roles completa
 export interface PersonasRolesVista {

@@ -21,6 +21,7 @@ export type PersonaAgrupada = {
   id_persona: number
   nombre: string
   apellido: string
+  documento?: number
   roles: RolPersona[]
 }
 
@@ -66,8 +67,12 @@ export function usePersonaConRoles(options?: UsePersonaOptions) { // <-- Añadim
           id_persona: item.id_persona,
           nombre: item.nombre,
           apellido: item.apellido,
+          // CORRECCIÓN: Usamos 'documento' o 'persona_documento' según lo que envíe el backend
+          // Si en el JSON de la red ves "persona_documento", usa ese.
+          documento: (item as any).persona_documento || (item as any).documento, 
           roles: [],
-        }
+        };
+
       }
 
       const persona = map[item.id_persona]

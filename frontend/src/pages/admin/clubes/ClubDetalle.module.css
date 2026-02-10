@@ -46,3 +46,54 @@
 .dropdownItem { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
 .dropdownItem:hover { background: #f0f7ff; }
 .modalActions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+
+
+
+.selectorScrollable {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  max-height: 250px; /* Altura fija para el scroll */
+  overflow-y: auto;
+  background: #fdfdfd;
+}
+
+.selectorItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.selectorItem:hover {
+  background-color: #f0f7ff;
+}
+
+.selectedItem {
+  background-color: #e3f2fd;
+  border-left: 5px solid #007bff;
+}
+
+.itemName {
+  display: block;
+  font-weight: 600;
+  color: #333;
+}
+
+.itemDni {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.checkIcon {
+  color: #007bff;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.stickySearch {
+  border: 2px solid #007bff; /* Resaltar el buscador */
+  margin-bottom: 5px;
+}

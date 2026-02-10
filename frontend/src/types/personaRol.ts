@@ -5,6 +5,7 @@ export interface PersonaRolRow {
   id_persona: number
   nombre: string
   apellido: string
+  documento: number
   rol: string
   estado_fichaje: "FICHADO" | "SIN_FICHAR"
   nombre_club: string | null

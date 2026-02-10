@@ -4,7 +4,7 @@ import api from "./axiosAdmin"
 import axiosAdmin from "./axiosAdmin"
 
 import type { Persona, PersonaRolClub } from "../types/persona"
-import type { PersonaConRolesVista } from "../types/vistas"
+import type { PersonaConRoles } from "../types/vistas"
 
 export async function getPersonas(): Promise<Persona[]> {
   const res = await api.get("/personas")
@@ -23,7 +23,7 @@ export async function getPersonasConRolesActivos(
     idClub?: number
     idPersona?: number
   }
-): Promise<PersonaConRolesVista[]> {
+): Promise<PersonaConRoles[]> {
   const res = await api.get("/personas/roles-activos", {
     params: {
       id_club: params?.idClub,

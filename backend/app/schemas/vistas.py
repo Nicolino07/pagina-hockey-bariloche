@@ -83,11 +83,15 @@ class PlantelActivoIntegrante(BaseModel):
     plantel_activo: bool
     
     # Estos deben ser Optional (pueden ser None)
+    id_plantel_integrante: Optional[int] = None
     id_persona: Optional[int] = None
     nombre_persona: Optional[str] = None
     apellido_persona: Optional[str] = None
+    documento: Optional[int] = None
     rol_en_plantel: Optional[str] = None
     numero_camiseta: Optional[int] = None
+    fecha_alta: Optional[date] = None
+    fecha_baja: Optional[date] = None
 
     class Config:
         from_attributes = True

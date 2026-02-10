@@ -50,7 +50,6 @@ REVOKE ALL ON usuario FROM hockey_app;
 GRANT SELECT
 ON
     vw_persona_roles,
-    vw_plantel_integrantes,
     vw_fixture_partidos,
     vw_tabla_posiciones,
     vw_suspensiones_activas
