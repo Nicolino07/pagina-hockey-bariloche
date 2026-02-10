@@ -1,21 +1,23 @@
-// src/types/vistas.ts
+// frontend/src/types/vistas.ts
 import type { Key, ReactNode } from "react"
 import type { TipoGenero, TipoRolPersona } from "../constants/enums"
 
+
+
 export interface PlantelActivoIntegrante {
-  id_equipo: number
-  id_plantel: number
-  id_plantel_integrante: number
+  id_plantel: number;
+  id_equipo: number;
+  nombre_plantel: string;
+  temporada: string;
+  plantel_activo: boolean;
 
-  rol_en_plantel: TipoRolPersona
-  numero_camiseta: number | null
-  fecha_alta: string
-  fecha_baja: string | null
-
-  id_persona: number
-  nombre: string
-  apellido: string
-  documento: number
+  // Estos campos son opcionales porque el plantel puede estar vacío
+  id_persona?: number | null;
+  nombre_persona?: string | null;
+  apellido_persona?: string | null;
+  rol_en_plantel?: string | null;
+  numero_camiseta?: number | null;
+  id_plantel_integrante?: number | null;
 }
 
 // lista de personas con roles completa

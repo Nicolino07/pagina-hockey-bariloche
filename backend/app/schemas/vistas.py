@@ -5,25 +5,6 @@ from typing import Literal, Optional, Union
 from datetime import date
 from app.models.enums import RolPersonaTipo, GeneroTipo
 
-class PlantelActivoIntegrante(BaseModel):
-    id_equipo: int
-    id_plantel: int
-    id_plantel_integrante: int
-
-    rol_en_plantel: str  
-    numero_camiseta: Optional[int]
-
-    fecha_alta: date
-    fecha_baja: Optional[date]
-
-    id_persona: int
-    nombre: str
-    apellido: str
-    documento: Optional[int]
-
-    class Config:
-        from_attributes = True
-
 
 class PersonaConRol(BaseModel):
     """Schema para la vista vw_persona_roles"""
@@ -90,6 +71,23 @@ class PersonaRolClubRead(BaseModel):
     rol: str | None
     estado_fichaje: str
     nombre_club: str | None
+
+    class Config:
+        from_attributes = True
+
+class PlantelActivoIntegrante(BaseModel):
+    id_plantel: int
+    id_equipo: int
+    nombre_plantel: str
+    temporada: str
+    plantel_activo: bool
+    
+    # Estos deben ser Optional (pueden ser None)
+    id_persona: Optional[int] = None
+    nombre_persona: Optional[str] = None
+    apellido_persona: Optional[str] = None
+    rol_en_plantel: Optional[str] = None
+    numero_camiseta: Optional[int] = None
 
     class Config:
         from_attributes = True

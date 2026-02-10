@@ -7,6 +7,17 @@ import type {
   PlantelIntegrante,
 } from "../types/plantelIntegrante"
 
+// 🔹 Definir la interfaz según tu SQL
+export interface CreatePlantelDTO {
+  id_equipo: number;
+  nombre: string;
+  temporada: string; // Formato 'YYYY' o 'YYYY-YYYY'
+  descripcion?: string;
+  fecha_apertura?: string; // ISO Date string
+  activo: boolean;
+  creado_por?: string;
+}
+
 // 🔹 Obtener plantel activo de un equipo
 export async function getPlantelActivoByEquipo(
   id_equipo: number
@@ -17,14 +28,13 @@ export async function getPlantelActivoByEquipo(
   return data
 }
 
-// 🔹 Crear plantel (ADMIN)
+
+// 🔹 Crear plantel (ADMIN) - Actualizado
 export async function createPlantel(
-  id_equipo: number
+  payload: CreatePlantelDTO
 ): Promise<Plantel> {
-  const { data } = await api.post<Plantel>("/planteles", {
-    id_equipo,
-  })
-  return data
+  const { data } = await api.post<Plantel>("/planteles/", payload);
+  return data;
 }
 
 // 🔹 Listar integrantes de un plantel

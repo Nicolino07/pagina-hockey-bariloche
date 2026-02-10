@@ -25,30 +25,40 @@ LEFT JOIN persona_rol pr
 
 
 -- =====================================================
--- 2. PLANTELES CON INTEGRANTES
+-- 2. PLANTEL detallado
 -- =====================================================
 
-CREATE OR REPLACE VIEW vw_plantel_integrantes AS
+
+CREATE OR REPLACE VIEW vw_plantel_detallado AS
 SELECT
+    -- Datos del Plantel
     pl.id_plantel,
+    pl.nombre AS nombre_plantel,
+    pl.temporada,
+    pl.activo AS plantel_activo,
+    pl.borrado_en AS plantel_borrado_en,
+    
+    -- Datos del Equipo
     e.id_equipo,
     e.nombre AS nombre_equipo,
+    
+    -- Datos del Integrante (pueden ser NULL)
     pi.id_plantel_integrante,
-    pi.id_persona,
-    p.nombre,
-    p.apellido,
     pi.rol_en_plantel,
     pi.numero_camiseta,
     pi.fecha_alta,
-    pi.fecha_baja
+    pi.fecha_baja,
+    
+    -- Datos de la Persona (pueden ser NULL)
+    per.id_persona,
+    per.nombre AS nombre_persona,
+    per.apellido AS apellido_persona,
+    per.documento
 FROM plantel pl
-JOIN equipo e
-  ON e.id_equipo = pl.id_equipo
-JOIN plantel_integrante pi
-  ON pi.id_plantel = pl.id_plantel
-JOIN persona p
-  ON p.id_persona = pi.id_persona;
-
+JOIN equipo e ON e.id_equipo = pl.id_equipo
+LEFT JOIN plantel_integrante pi ON pi.id_plantel = pl.id_plantel AND pi.fecha_baja IS NULL
+LEFT JOIN persona per ON per.id_persona = pi.id_persona
+WHERE pl.borrado_en IS NULL;
 
 -- =====================================================
 -- 3. FIXTURE DE PARTIDOS
@@ -209,32 +219,7 @@ GROUP BY
     p.id_inscripcion_local,
     p.id_inscripcion_visitante;
 
--- ==========================================
--- vista Integrantes de un plantel activo
--- ==========================================
 
-CREATE VIEW vw_plantel_activo_integrantes AS
-SELECT
-    p.id_equipo,
-    pl.id_plantel,
-    pi.id_plantel_integrante,
-
-    pi.rol_en_plantel,
-    pi.numero_camiseta,
-    pi.fecha_alta,
-    pi.fecha_baja,
-
-    per.id_persona,
-    per.nombre,
-    per.apellido,
-    per.documento
-FROM plantel pl
-JOIN plantel_integrante pi ON pi.id_plantel = pl.id_plantel
-JOIN persona per ON per.id_persona = pi.id_persona
-JOIN equipo p ON p.id_equipo = pl.id_equipo
-WHERE
-    pl.activo = true
-    AND pi.fecha_baja IS NULL;
 
 
 

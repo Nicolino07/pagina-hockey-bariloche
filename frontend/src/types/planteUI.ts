@@ -7,3 +7,4 @@ export type PlantelPorRol = {
   entrenadores: PlantelIntegrante[]
   cuerpoTecnico: PlantelIntegrante[]
 }
+

@@ -151,7 +151,6 @@ COMMENT ON INDEX unq_persona_club_rol_activo IS
 -- ======================
 
 CREATE TABLE IF NOT EXISTS plantel (
-
     id_plantel      INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_equipo       INT NOT NULL 
         REFERENCES equipo(id_equipo) ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -176,7 +175,7 @@ CREATE TABLE IF NOT EXISTS plantel (
     creado_por      VARCHAR(100),
     actualizado_por VARCHAR(100),
 
-        -- CONSTRAINTS
+    -- CONSTRAINTS
     CONSTRAINT chk_plantel_temporada_formato 
         CHECK (temporada ~ '^[0-9]{4}(-[0-9]{4})?$'),
     
@@ -184,9 +183,17 @@ CREATE TABLE IF NOT EXISTS plantel (
         CHECK (fecha_cierre IS NULL OR fecha_cierre >= fecha_apertura),
     
     CONSTRAINT chk_plantel_cierre_si_inactivo 
-        CHECK (activo = TRUE OR fecha_cierre IS NOT NULL)
+        CHECK (activo = TRUE OR fecha_cierre IS NOT NULL),
 
+    -- Restricción para evitar duplicar la misma temporada en el mismo equipo
+    CONSTRAINT uq_equipo_temporada 
+        UNIQUE (id_equipo, temporada)
 );
+
+-- Garantiza que solo exista UN plantel activo por equipo
+CREATE UNIQUE INDEX idx_solamente_un_plantel_activo 
+ON plantel (id_equipo) 
+WHERE (activo = true AND borrado_en IS NULL);
 
 -- ======================
 -- PLANTEL_INTEGRANTE

@@ -21,3 +21,4 @@ export type PlantelIntegranteCreate = {
   rol_en_plantel: TipoRolPersona
   numero_camiseta?: number | null
 }
+
