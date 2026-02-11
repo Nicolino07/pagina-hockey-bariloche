@@ -9,7 +9,7 @@ from app.models.enums import TipoTarjeta
 # ---------------------------
 class PartidoPlanillaCreate(BaseModel):
     id_torneo: int
-    id_fase: int | None = None
+    id_fase: Optional[int] = None
 
     fecha: date
     horario: time | None = None
@@ -17,16 +17,15 @@ class PartidoPlanillaCreate(BaseModel):
     id_inscripcion_local: int
     id_inscripcion_visitante: int
 
-    id_arbitro1: int | None = None
-    id_arbitro2: int | None = None
+    id_arbitro1: Optional[int] = None
+    id_arbitro2: Optional[int] = None
 
-    id_capitan_local: int | None = None
-    id_capitan_visitante: int | None = None
+    id_capitan_local: Optional[int] = None
+    id_capitan_visitante: Optional[int] = None
 
     ubicacion: str | None = None
-    observaciones: str | None = None
-    numero_fecha: int | None = None
-
+    observaciones: Optional[str] = None
+    numero_fecha: Optional[int] = None
 
 
 # ---------------------------

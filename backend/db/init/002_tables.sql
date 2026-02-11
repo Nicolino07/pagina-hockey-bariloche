@@ -322,7 +322,7 @@ CREATE TABLE IF NOT EXISTS partido (
     -- Ubicación y observaciones
     ubicacion      VARCHAR(200),
     observaciones  VARCHAR(1000),
-    numero_fecha   INT,
+    numero_fecha   INT DEFAULT NULL,
 
     estado_partido tipo_estado_partido DEFAULT 'BORRADOR',
 

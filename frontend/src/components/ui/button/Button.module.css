@@ -1,27 +1,76 @@
+
+
 .button {
-  padding: 8px 14px;
-  border-radius: 6px;
-  border: none;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500; /* Un poco más fino para que no se vea tosco en botones chicos */
+  border-radius: 4px; /* Bordes un poco más rectos/técnicos */
   cursor: pointer;
-}
-
-.primary {
-  background: #2563eb;
-  color: white;
-}
-
-.secondary {
-  background: #e5e7eb;
-  color: #111827;
-}
-
-.danger {
-  background: #dc5126;
-  color: white;
+  transition: all 0.2s ease;
+  border: 1px solid transparent; /* El borde base */
+  outline: none;
 }
 
 .button:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+}
+
+
+/* --- TAMAÑOS MÁS PEQUEÑOS --- */
+.sm {
+  padding: 2px 8px;      /* Muy compacto */
+  font-size: 0.75rem;    /* 12px aprox */
+}
+
+.md {
+  padding: 6px 12px;     /* Estándar de sistema */
+  font-size: 0.85rem;    /* 13.6px aprox */
+}
+
+.lg {
+  padding: 10px 20px;    /* Destacado pero no gigante */
+  font-size: 0.95rem;    /* 15.2px aprox */
+}
+
+/* --- VARIANTES CON BORDE --- */
+.primary {
+  background-color: #2563eb;
+  border-color: #1d4ed8;
+  color: white;
+}
+.primary:hover:not(:disabled) {
+  background-color: #1d4ed8;
+  border-color: #1e40af;
+}
+
+.secondary {
+  background-color: #64748b;
+  color: white;
+}
+.secondary:hover:not(:disabled) {
+  background-color: #475569;
+}
+
+
+.outline {
+  background-color: white;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+.outline:hover:not(:disabled) {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+
+
+
+.danger {
+  background-color: #b35a11;
+  color: white;
+}
+.danger:hover:not(:disabled) {
+  background-color: #b91c1c;
 }

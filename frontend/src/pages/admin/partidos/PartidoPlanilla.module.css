@@ -1,0 +1,32 @@
+/* En PartidoPlanilla.module.css */
+
+.camiseta {
+  display: inline-block;
+  width: 25px;
+  font-weight: 800;
+  color: #2563eb;
+  font-size: 0.8rem;
+}
+
+.nombre {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.025em;
+  color: #1e293b;
+}
+
+.playerItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid #e2e8f0; /* Borde sutil por cada jugador */
+  border-radius: 4px;
+  margin-bottom: 2px;
+  background: white;
+}
+
+.playerItem:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}

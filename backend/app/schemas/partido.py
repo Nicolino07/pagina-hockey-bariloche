@@ -4,18 +4,18 @@ from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 class PartidoBase(BaseModel):
-    id_torneo: int = Field(..., gt=0)
+    id_torneo: Optional[int] = None
     id_fase: Optional[int] = None
 
     fecha: Optional[date] = None
     horario: Optional[time] = None
 
-    id_inscripcion_local: int = Field(..., gt=0)
-    id_inscripcion_visitante: int = Field(..., gt=0)
+    id_inscripcion_local: Optional[int] = None
+    id_inscripcion_visitante: Optional[int] = None
 
     ubicacion: Optional[str] = Field(None, max_length=200)
     observaciones: Optional[str] = Field(None, max_length=1000)
-    numero_fecha: Optional[int] = Field(None, gt=0)
+    numero_fecha: Optional[int] = None
 
 class PartidoCreate(PartidoBase):
     creado_por: Optional[str] = Field(None, max_length=100)

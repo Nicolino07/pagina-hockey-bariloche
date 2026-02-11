@@ -262,6 +262,7 @@ SELECT
     t.estado_tarjeta,
 
     -- Flags útiles
+    CASE WHEN t.tipo = 'VERDE' THEN 1 ELSE 0 END AS verdes,
     CASE WHEN t.tipo = 'AMARILLA' THEN 1 ELSE 0 END AS amarillas,
     CASE WHEN t.tipo = 'ROJA' THEN 1 ELSE 0 END AS rojas
 
@@ -293,6 +294,7 @@ SELECT
     id_equipo,
     equipo,
     COUNT(*)                       AS total_tarjetas,
+    SUM(verdes)                    AS total_verdes,
     SUM(amarillas)                 AS total_amarillas,
     SUM(rojas)                     AS total_rojas
 FROM vw_tarjetas_detalle_torneo

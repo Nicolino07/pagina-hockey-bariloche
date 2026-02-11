@@ -66,6 +66,8 @@ def crear_planilla_partido(db: Session, data, current_user):
                     id_participante_partido=id_pp,
                     minuto=g.minuto,
                     cuarto=g.cuarto,
+                    referecia_gol=g.referencia_gol,
+                    es_autogol=g.es_autogol,
                     creado_por=current_user.username,
                 )
             )

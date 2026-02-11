@@ -133,6 +133,7 @@ export default function Clubes() {
     <>
       <section className={styles.container}>
         <header className={styles.header}>
+          <Button onClick={() => navigate("/admin")}>← Volver</Button>
           <h1>Clubes</h1>
           <Button
             className={styles.primaryButton}

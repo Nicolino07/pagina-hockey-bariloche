@@ -1,5 +1,5 @@
 // frontend/src/types/inscripcion.ts
-import type { TipoCategoria, TipoGenero } from "./enums"
+import type { TipoCategoria, TipoGenero } from "../constants/enums"
 
 export interface InscripcionTorneo {
   id_inscripcion: number

@@ -158,7 +158,7 @@ export default function ClubDetalle() {
   return (
     <section className={styles.container}>
       <header className={styles.header}>
-        <button className={styles.backButton} onClick={() => navigate("/admin/clubes")}>← Volver</button>
+        <Button onClick={() => navigate("/admin/clubes")}>← Volver</Button>
         <div className={styles.titleInfo}>
           <h1>{club.nombre}</h1>
           <span className={styles.cityBadge}>{club.ciudad}</span>

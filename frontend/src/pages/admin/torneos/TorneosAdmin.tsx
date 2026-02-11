@@ -53,6 +53,7 @@ export default function TorneosAdmin() {
   return (
     <section className={styles.section}>
       <header className={styles.header}>
+        <Button onClick={() => navigate("/admin")}>← Volver</Button>
         <h2 className={styles.title}>Torneos activos</h2>
         <Button onClick={() => setMostrarForm(true)}>
           ➕ Crear torneo
