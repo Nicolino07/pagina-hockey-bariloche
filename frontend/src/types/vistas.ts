@@ -47,3 +47,14 @@ export interface PersonaConRoles {
   apellido: string
   roles: PersonasRolesVista[]
 }
+
+
+export interface PersonasArbitro {
+
+  id_persona_rol: number
+  nombre: string
+  apellido: string
+  documento?: number | null
+  rol: TipoRolPersona
+
+}

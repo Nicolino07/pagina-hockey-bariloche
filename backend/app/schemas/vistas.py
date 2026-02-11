@@ -95,3 +95,15 @@ class PlantelActivoIntegrante(BaseModel):
 
     class Config:
         from_attributes = True
+
+class PersonasArbitro(BaseModel):
+    
+    id_persona_rol: int
+    nombre: str
+    apellido: str
+    documento: Optional[int] = None
+    rol: RolPersonaTipo
+
+    class Config:
+        from_attributes = True
+

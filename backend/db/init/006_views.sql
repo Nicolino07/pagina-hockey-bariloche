@@ -530,5 +530,21 @@ LEFT JOIN club c ON fr.id_club = c.id_club
 WHERE p.borrado_en IS NULL
 ORDER BY p.apellido, p.nombre, pr.rol;
 
+-- ====================================
+-- vista para obtener arbitros activos
+-- ====================================
+
+CREATE VIEW vista_arbitros_activos AS
+SELECT 
+    pr.id_persona_rol as id, 
+    p.nombre, 
+    p.apellido, 
+    p.documento, 
+    pr.rol 
+FROM persona p
+JOIN persona_rol pr ON p.id_persona = pr.id_persona
+WHERE pr.rol = 'ARBITRO' 
+  AND pr.fecha_hasta IS NULL;
+
 
 COMMIT;

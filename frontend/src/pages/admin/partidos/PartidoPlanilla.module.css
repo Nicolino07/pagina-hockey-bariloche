@@ -1,32 +1,219 @@
-/* En PartidoPlanilla.module.css */
+/* PartidoPlanilla.module.css */
 
-.camiseta {
-  display: inline-block;
-  width: 25px;
-  font-weight: 800;
-  color: #2563eb;
-  font-size: 0.8rem;
+.container {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: var(--text-color);
 }
 
-.nombre {
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.025em;
-  color: #1e293b;
+.container h1 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+}
+
+/* SECCIONES GENERALES */
+.section {
+  background: var(--bg-paper);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.gridForm {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.gridForm:last-child {
+  margin-bottom: 0;
+}
+
+.gridForm select, 
+.gridForm input {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--primary-color);
+  color: var(--text-color);
+  font-size: 0.9rem;
+}
+
+.vs {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+  padding: 0 0.5rem;
+}
+
+/* COLUMNAS DE JUGADORES */
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.column {
+  background: var(--bg-paper);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.column h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  text-align: center;
+  color: var(--primary-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.playerList {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
 }
 
 .playerItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
-  border: 1px solid #e2e8f0; /* Borde sutil por cada jugador */
-  border-radius: 4px;
-  margin-bottom: 2px;
-  background: white;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.2s;
 }
 
 .playerItem:hover {
-  border-color: #cbd5e1;
-  background: #f8fafc;
+  background: rgba(var(--primary-rgb), 0.05);
+}
+
+.playerText {
+  flex: 1;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* INCIDENCIAS (Goles y Tarjetas) */
+.incidencias {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.eventSection {
+  background: var(--bg-paper);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.headerRow h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.eventRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  align-items: center;
+  background: var(--bg-card);
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.eventRow select,
+.eventRow input {
+  padding: 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-color);
+  font-size: 0.85rem;
+}
+
+.eventRow input[type="number"] {
+  width: 60px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.deleteBtn {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.deleteBtn:hover {
+  background: #cc0000;
+}
+
+/* OBSERVACIONES Y FOOTER */
+.textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-color);
+  resize: vertical;
+  font-family: inherit;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.empty {
+  text-align: center;
+  opacity: 0.5;
+  padding: 1rem;
+  font-style: italic;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .columns, .incidencias {
+    grid-template-columns: 1fr;
+  }
+  
+  .gridForm {
+    flex-direction: column;
+  }
 }

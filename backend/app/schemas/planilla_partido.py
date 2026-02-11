@@ -23,6 +23,9 @@ class PartidoPlanillaCreate(BaseModel):
     id_capitan_local: Optional[int] = None
     id_capitan_visitante: Optional[int] = None
 
+    juez_mesa_local: Optional[str] = None
+    juez_mesa_visitante: Optional[str] = None
+
     ubicacion: str | None = None
     observaciones: Optional[str] = None
     numero_fecha: Optional[int] = None

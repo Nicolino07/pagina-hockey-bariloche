@@ -7,7 +7,7 @@ from typing import List, Optional
 from datetime import date, datetime
 
 from app.database import get_db
-from app.schemas.vistas import PlantelActivoIntegrante
+from app.schemas.vistas import PlantelActivoIntegrante, PersonasArbitro
 
 
 router = APIRouter(
@@ -63,3 +63,23 @@ def obtener_plantel_activo_por_equipo(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error al obtener el plantel detallado: {str(e)}"
         )
+    
+@router.get(
+    "/persona-arbitro/",
+    response_model=List[PersonasArbitro],
+    summary="Obtener arbitros activos",
+    description="Devuelve todos los arbitros activos",
+)
+def obtener_arbitros(
+    db: Session = Depends(get_db),
+):
+    # Aquí debes consultar la vista de la base de datos
+    # Asumiendo que tu vista se llama "vista_arbitros_activos"
+    arbitros = db.execute(
+        text("SELECT * FROM vista_arbitros_activos")
+    ).fetchall()
+    
+    # O si usas SQLAlchemy ORM con un modelo mapeado a la vista:
+    # arbitros = db.query(VistaArbitros).all()
+    
+    return arbitros
