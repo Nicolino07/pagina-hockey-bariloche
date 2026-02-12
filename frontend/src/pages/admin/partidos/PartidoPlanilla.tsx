@@ -163,9 +163,13 @@ export default function PartidoPlanilla() {
               <option key={t.id_torneo} value={t.id_torneo}>{t.nombre} - {t.genero} - {t.categoria}</option>
             ))}
           </select>
+
+          <input type="number" placeholder="N° Fecha" value={partidoInfo.numero_fecha} onChange={e => setPartidoInfo({...partidoInfo, numero_fecha: e.target.value})} />
+        </div>
+
+        <div className={styles.gridForm}>
           <input type="date" value={partidoInfo.fecha} onChange={e => setPartidoInfo({...partidoInfo, fecha: e.target.value})} />
           <input type="time" value={partidoInfo.horario} onChange={e => setPartidoInfo({...partidoInfo, horario: e.target.value})} />
-          <input type="number" placeholder="N° Fecha" value={partidoInfo.numero_fecha} onChange={e => setPartidoInfo({...partidoInfo, numero_fecha: e.target.value})} />
         </div>
 
         <div className={styles.gridForm}>

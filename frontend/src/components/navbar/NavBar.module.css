@@ -37,14 +37,14 @@
 }
 
 .button {
-  background-color: var(--color-accent05);
+  background-color: var(--boton-oscuro);
   color: var(--text-primary);
   border: none;
-  padding: 6px 12px;
+  padding: 7px 15px;
   border-radius: 4px;
   cursor: pointer;
 }
 
 .button:hover {
-  background-color: var(--color-accent04);
+  background-color: var(--color-accent02);
 }

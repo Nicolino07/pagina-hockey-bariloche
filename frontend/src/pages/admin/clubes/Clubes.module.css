@@ -19,6 +19,12 @@
   font-weight: 600;
 }
 
+.botones {
+  display: flex;
+  gap: 12px; 
+}
+
+
 /* ======================
    Botón primario
 ====================== */

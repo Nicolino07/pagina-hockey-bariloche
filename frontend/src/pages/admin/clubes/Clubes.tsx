@@ -111,36 +111,19 @@ export default function Clubes() {
     return <p>Cargando clubes…</p>
   }
 
-  if (error) {
-    return (
-      <section className={styles.container}>
-        <header className={styles.header}>
-          <h1>Clubes</h1>
-          <Button
-            className={styles.primaryButton}
-            onClick={() => setShowModal(true)}
-          >
-            + Nuevo club
-          </Button>
-        </header>
-
-        <p className={styles.error}>{error}</p>
-      </section>
-    )
-  }
-
   return (
     <>
       <section className={styles.container}>
         <header className={styles.header}>
-          <Button onClick={() => navigate("/admin")}>← Volver</Button>
+          
           <h1>Clubes</h1>
-          <Button
-            className={styles.primaryButton}
-            onClick={() => setShowModal(true)}
-          >
+           <div className={styles.botones}>
+            <Button className={styles.primaryButton} onClick={() => setShowModal(true)}>
             + Nuevo club
-          </Button>
+            </Button>
+            <Button onClick={() => navigate("/admin")}>← Volver</Button>
+          </div>
+
         </header>
 
         <div className={styles.list}>

@@ -536,7 +536,7 @@ ORDER BY p.apellido, p.nombre, pr.rol;
 
 CREATE VIEW vista_arbitros_activos AS
 SELECT 
-    pr.id_persona_rol as id, 
+    pr.id_persona_rol, 
     p.nombre, 
     p.apellido, 
     p.documento, 

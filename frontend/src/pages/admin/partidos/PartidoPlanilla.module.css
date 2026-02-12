@@ -1,6 +1,7 @@
 /* PartidoPlanilla.module.css */
 
 .container {
+  background-color: aliceblue;
   padding: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
@@ -10,13 +11,13 @@
 .container h1 {
   font-size: 1.8rem;
   margin-bottom: 1.5rem;
-  border-bottom: 2px solid var(--primary-color);
+  border-bottom: 2px solid var(--color-primary);
   padding-bottom: 0.5rem;
 }
 
 /* SECCIONES GENERALES */
 .section {
-  background: var(--bg-paper);
+
   padding: 1.5rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;
@@ -39,16 +40,17 @@
   flex: 1;
   padding: 0.75rem;
   border-radius: 6px;
-  border: 1px solid var(--border-color);
-  background: var(--primary-color);
+  border: 2px solid var(--color-intermedio);
+  background: var(--color-casilla-clara);
   color: var(--text-color);
   font-size: 0.9rem;
+  
 }
 
 .vs {
   font-weight: bold;
   font-size: 1.2rem;
-  color: var(--primary-color);
+  color: var(--text-primary);
   padding: 0 0.5rem;
 }
 
@@ -61,7 +63,7 @@
 }
 
 .column {
-  background: var(--bg-paper);
+  background: var(--color-casilla-clara);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1rem;
@@ -72,15 +74,17 @@
   margin-bottom: 1rem;
   font-size: 1.1rem;
   text-align: center;
-  color: var(--primary-color);
+  color: var(--text-primary);
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 0.5rem;
 }
 
 .playerList {
+  background-color: aliceblue;
   max-height: 300px;
   overflow-y: auto;
   padding-right: 0.5rem;
+  border-radius: 0.5rem;
 }
 
 .playerItem {
@@ -93,7 +97,7 @@
 }
 
 .playerItem:hover {
-  background: rgba(var(--primary-rgb), 0.05);
+  background: rgba(var(--color-primary-rgb), 0.05);
 }
 
 .playerText {
@@ -113,7 +117,7 @@
 }
 
 .eventSection {
-  background: var(--bg-paper);
+  background: aliceblue;
   padding: 1rem;
   border-radius: 8px;
   border: 1px solid var(--border-color);
@@ -132,11 +136,12 @@
 }
 
 .eventRow {
+  background-color: var(--color-casilla-clara);
+  display: flex;
   display: flex;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
   align-items: center;
-  background: var(--bg-card);
   padding: 0.5rem;
   border-radius: 6px;
   border: 1px solid var(--border-color);
@@ -147,7 +152,7 @@
   padding: 0.4rem;
   border-radius: 4px;
   border: 1px solid var(--border-color);
-  background: var(--bg-input);
+  background: var(--color-casilla-clara);
   color: var(--text-color);
   font-size: 0.85rem;
 }
@@ -186,7 +191,7 @@
   padding: 1rem;
   border-radius: 8px;
   border: 1px solid var(--border-color);
-  background: var(--bg-input);
+  background: var(--color-casilla-clara);
   color: var(--text-color);
   resize: vertical;
   font-family: inherit;

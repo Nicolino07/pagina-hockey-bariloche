@@ -158,10 +158,13 @@ export default function ClubDetalle() {
   return (
     <section className={styles.container}>
       <header className={styles.header}>
-        <Button onClick={() => navigate("/admin/clubes")}>← Volver</Button>
+
         <div className={styles.titleInfo}>
           <h1>{club.nombre}</h1>
           <span className={styles.cityBadge}>{club.ciudad}</span>
+        </div>
+        <div className={styles.botones}>
+          <Button onClick={() => navigate("/admin/clubes")}>← Volver</Button>
         </div>
       </header>
 

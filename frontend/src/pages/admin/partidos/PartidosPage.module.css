@@ -11,6 +11,11 @@
   margin-bottom: 2rem;
 }
 
+.botones {
+  display: flex;
+  gap: 12px; 
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

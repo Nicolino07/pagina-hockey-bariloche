@@ -31,6 +31,7 @@ export default function PartidosPage() {
           <h1>Gestión de Partidos</h1>
           <p>Administra los encuentros y carga los resultados oficiales.</p>
         </div>
+        <div className={styles.botones}>
         <Button 
           variant="primary" 
           onClick={() => navigate("/admin/partidos/nueva-planilla")}
@@ -38,6 +39,10 @@ export default function PartidosPage() {
         >
           + Cargar Planilla
         </Button>
+
+        <Button onClick={() => navigate("/admin")}>← Volver</Button>
+        </div>
+        
       </header>
 
       <section className={styles.stats}>

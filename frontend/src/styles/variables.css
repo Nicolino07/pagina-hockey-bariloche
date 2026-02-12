@@ -1,12 +1,26 @@
 /* frontend/src/styles/variables.css */
 :root {
-  /* 🎯 Primary (TUS COLORES - NO CAMBIADOS) */
-  --color-primary: #607d8b;
-  --color-secondary: #333e83;
+  /* 🎯 Primary */
+  --color-primary: #dcf0fa;
+  --color-secondary: #84cdee;
   --color-intermedio: #010207cc;
 
-  /* 🎨 OPCIONES DE ACCENT (elige una) */
+  /*Colores para formularios */
+  --color-casilla-oscura: #838383;
+  --color-casilla-clara: #0e465833;
+
+    /* 📝 Text (TUS COLORES) */
+  --text-primary: #212121;
+  --text-secondary: #757575;
+  --text-on-primary: #ffffff;
   
+   /* 📏 UI */
+  --divider-color: #bdbdbd;
+  --border-color: black;
+  --boton-oscuro: #5b869b;
+
+  /* 🎨 OPCIONES DE ACCENT (elige una) */
+ 
   /* 1. CORAL SUAVE (mi recomendación principal) */
   --color-accent01: #ff8a65;
   
@@ -22,13 +36,7 @@
   /* 5. VERDE BOTELLA (elegante y contrastante) */
   --color-accent05: #689f38;
   
-  /* 📝 Text (TUS COLORES) */
-  --text-primary: #212121;
-  --text-secondary: #757575;
-  --text-on-primary: #ffffff;
-  
-  /* 📏 UI */
-  --divider-color: #bdbdbd;
+ 
   
   /* 🧱 Backgrounds */
   --bg-default: #f5f5f5;
