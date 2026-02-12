@@ -58,3 +58,17 @@ export interface PersonasArbitro {
   rol: TipoRolPersona
 
 }
+
+
+export interface FilaPosiciones {
+  id_equipo: number;
+  equipo: string; // Antes era nombre_equipo
+  partidos_jugados: number; // Antes era pj
+  ganados: number; // Antes era pg
+  empatados: number; // Antes era pe
+  perdidos: number; // Antes era pp
+  goles_a_favor: number; // Antes era gf
+  goles_en_contra: number; // Antes era gc
+  diferencia_gol: number; // Antes era dif
+  puntos: number;
+}

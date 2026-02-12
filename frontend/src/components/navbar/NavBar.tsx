@@ -15,7 +15,7 @@ export default function Navbar() {
     <header className={styles.navbar}>
       {/* 🔹 IZQUIERDA */}
       <div className={styles.left}>
-        <Link to="/" className={styles.link}>
+        <Link to="/public/torneos" className={styles.link}>
           Torneos
         </Link>
 
@@ -26,6 +26,11 @@ export default function Navbar() {
         <Link to="/" className={styles.link}>
           Estadísticas
         </Link>
+
+        <Link to="/public/posiciones" className={styles.link}>
+          Posiciones
+        </Link>
+
       </div>
 
       {/* 🔹 DERECHA */}

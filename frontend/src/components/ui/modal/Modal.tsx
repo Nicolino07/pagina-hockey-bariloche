@@ -7,6 +7,7 @@ interface ModalProps {
   title?: string
   children: ReactNode
   onClose: () => void
+  titleClassName?: string 
 }
 
 export default function Modal({
@@ -14,23 +15,22 @@ export default function Modal({
   title,
   children,
   onClose,
+  titleClassName, 
 }: ModalProps) {
   if (!open) return null
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
-      <div
-        className={styles.modal}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <header className={styles.header}>
-          <h3>{title}</h3>
-          <button onClick={onClose}>✕</button>
+          {/* Combinamos la clase base con la que venga por prop */}
+          <h3 className={`${styles.defaultTitle} ${titleClassName || ""}`}>
+            {title}
+          </h3>
+          <button onClick={onClose} className={styles.closeBtn}>✕</button>
         </header>
 
-        <div className={styles.content}>
-          {children}
-        </div>
+        <div className={styles.content}>{children}</div>
       </div>
     </div>
   )

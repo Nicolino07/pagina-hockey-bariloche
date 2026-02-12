@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { useState } from "react"
 import { useInscripcionesTorneo } from "../../../hooks/useInscripcionesTorneo"
 import InscripcionesTorneoLista from "./InscripcionesTorneoLista"
@@ -11,7 +11,7 @@ import styles from "./TorneoDetalle.module.css"
 export default function TorneoDetalle() {
   const { idTorneo } = useParams<{ idTorneo: string }>()
   const torneoId = Number(idTorneo)
-
+  const navigate = useNavigate();
   const { torneo, loading: loadingTorneo } = useTorneo(torneoId)
   const {
     inscripciones,
@@ -41,10 +41,13 @@ export default function TorneoDetalle() {
             {new Date(torneo.fecha_inicio).getFullYear()}
           </p>
         </div>
-
-        <Button onClick={() => setOpen(true)}>
+        <div className={styles.botones}>
+          <Button onClick={() => setOpen(true)}>
           ➕ Inscribir equipo
-        </Button>
+          </Button>
+          <Button onClick={() => navigate("/admin/torneos")}>← Volver</Button>
+        </div>
+   
       </header>
 
       {/* LISTA */}

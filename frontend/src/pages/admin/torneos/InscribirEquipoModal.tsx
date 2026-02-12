@@ -42,7 +42,12 @@ export default function InscribirEquipoModal({
   if (loading) return <p>Cargando equipos…</p>
 
   return (
-    <Modal open={true} title="Inscribir equipo" onClose={onClose}>
+    <Modal 
+      open={true} 
+      title="Inscribir equipo" 
+      onClose={onClose}
+      titleClassName={styles.modalTitulo} 
+    >
       <ul className={styles.list}>
         {equiposFiltrados.map((e: Equipo) => {
           const yaInscripto = inscripciones.some(

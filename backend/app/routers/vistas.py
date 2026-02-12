@@ -7,7 +7,7 @@ from typing import List, Optional
 from datetime import date, datetime
 
 from app.database import get_db
-from app.schemas.vistas import PlantelActivoIntegrante, PersonasArbitro
+from app.schemas.vistas import PlantelActivoIntegrante, PersonasArbitro, PosicionSchema
 
 
 router = APIRouter(
@@ -83,3 +83,22 @@ def obtener_arbitros(
     # arbitros = db.query(VistaArbitros).all()
     
     return arbitros
+
+@router.get("/torneos/{id_torneo}/posiciones", response_model=List[PosicionSchema])
+def get_tabla_posiciones(id_torneo: int, db: Session = Depends(get_db)):
+    try:
+        # Consultamos la vista directamente
+        query = text("""
+            SELECT * FROM vw_tabla_posiciones 
+            WHERE id_torneo = :id_torneo
+        """)
+        
+        result = db.execute(query, {"id_torneo": id_torneo}).mappings().all()
+        
+        if not result:
+            return [] # O podrías lanzar una 404 si el torneo no existe
+            
+        return result
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail="Error al obtener la tabla")

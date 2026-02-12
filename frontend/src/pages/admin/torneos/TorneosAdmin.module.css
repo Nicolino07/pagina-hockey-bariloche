@@ -11,6 +11,16 @@
   margin-bottom: 24px;
 }
 
+.header h2 {
+  color: var(--text-primary);
+}
+
+.botones {
+  display: flex;
+  gap: 12px;
+}
+
+
 .title {
   font-size: 1.4rem;
   font-weight: 600;

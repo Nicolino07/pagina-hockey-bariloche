@@ -16,6 +16,9 @@ import PersonaDetalle from "./pages/admin/personas/PersonaDetalle"
 import PartidosPage from "./pages/admin/partidos/PartidosPage"
 import PartidoPlanilla from "./pages/admin/partidos/PartidoPlanilla"
 
+import PosicionesPage from "./pages/public/posiciones/PosicionesPage"
+import TorneosPage from "./pages/public/torneos/TorneosPage"
+
 
 export default function App() {
   return (
@@ -25,7 +28,11 @@ export default function App() {
 
       {/* 🌍 Público */}
       <Route element={<PublicLayout />}>
+
         <Route path="/" element={<Home />} />
+        <Route path="/public/posiciones" element={<PosicionesPage />} />
+        <Route path="/public/torneos" element={<TorneosPage />} />
+
       </Route>
 
       {/* 🔐 Admin */}

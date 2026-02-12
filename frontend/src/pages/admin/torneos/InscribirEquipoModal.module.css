@@ -1,3 +1,8 @@
+
+.modalTitulo {
+  color: var(--text-primary);
+}
+
 .list {
   list-style: none;
   padding: 0;

@@ -12,14 +12,19 @@
   margin-bottom: 24px;
 }
 
+.botones {
+  display: flex;
+  gap: 12px;
+}
+
 .title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--color-secondary);
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .meta {
   font-size: 0.95rem;
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }

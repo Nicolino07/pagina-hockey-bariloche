@@ -6,6 +6,23 @@ from datetime import date
 from app.models.enums import RolPersonaTipo, GeneroTipo
 
 
+class PosicionSchema(BaseModel):
+    id_torneo: int
+    torneo: str
+    id_equipo: int
+    equipo: str
+    partidos_jugados: int
+    ganados: int
+    empatados: int
+    perdidos: int
+    goles_a_favor: int
+    goles_en_contra: int
+    diferencia_gol: int
+    puntos: int
+
+    class Config:
+        from_attributes = True # Para que funcione bien con ORMs como SQLAlchemy
+
 class PersonaConRol(BaseModel):
     """Schema para la vista vw_persona_roles"""
     id_persona: int

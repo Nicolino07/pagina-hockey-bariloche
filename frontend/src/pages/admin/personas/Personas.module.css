@@ -21,7 +21,7 @@
 
 /* Botón "Nueva Persona" */
 .primaryButton {
-  background-color: var(--color-primary);
+  background-color: var(--boton-oscuro);
   color: var(--text-on-primary);
   text-decoration: none;
   padding: 8px 16px;
@@ -78,6 +78,7 @@
   margin-bottom: 2px;
 }
 
+
 .iconUser {
   font-size: 0.9rem;
   opacity: 0.6;
@@ -87,7 +88,7 @@
   margin: 0;
   font-size: 0.95rem; /* Fuente más pequeña */
   font-weight: 700;
-  color: var(--color-secondary);
+  color: var(--text-primary);
 }
 
 /* Contenedor de los roles (Debajo del nombre) */
@@ -223,6 +224,7 @@
 }
 
 .filterSelect {
+  background: var(--color-secondary);
   padding: 0.6rem;
   border: 1px solid #ddd;
   border-radius: 4px;

@@ -22,10 +22,6 @@ export default function NavbarAdmin() {
           Clubes
         </Link>
 
-        <Link to="/admin/equipos" className={styles.link}>
-          Equipos
-        </Link>
-
         <Link to="/admin/torneos" className={styles.link}>
           Torneos
         </Link>
@@ -33,6 +29,11 @@ export default function NavbarAdmin() {
         <Link to="/admin/partidos" className={styles.link}>
           Partidos
         </Link>
+
+        <Link to="/admin/personas" className={styles.link}>
+          Personas
+        </Link>
+
       </div>
 
       <div className={styles.right}>

@@ -56,9 +56,6 @@ export default function Personas() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <Button className={styles.backButton} onClick={() => navigate(-1)}>
-          ← volver
-        </Button>
         <h1>Personas</h1>
         <div className={styles.toolbar}>
           <input 
@@ -84,6 +81,10 @@ export default function Personas() {
           <button className={styles.primaryButton} onClick={() => setIsModalOpen(true)}>
             + Nueva persona
           </button>
+            <Button className={styles.backButton} onClick={() => navigate(-1)}>
+            ← volver
+            </Button>
+
         </div>
       </header>
 
