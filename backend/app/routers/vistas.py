@@ -7,7 +7,15 @@ from typing import List, Optional
 from datetime import date, datetime
 
 from app.database import get_db
-from app.schemas.vistas import PlantelActivoIntegrante, PersonasArbitro, PosicionSchema
+from app.schemas.vistas import (
+    PlantelActivoIntegrante, 
+    PersonasArbitro, 
+    PosicionSchema, 
+    TarjetaDetalle,
+    TarjetaAcumulada,
+    GoleadorTorneo
+)
+
 
 
 router = APIRouter(
@@ -102,3 +110,70 @@ def get_tabla_posiciones(id_torneo: int, db: Session = Depends(get_db)):
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Error al obtener la tabla")
+    
+
+@router.get("/tarjetas/", response_model=List[TarjetaDetalle])
+def get_tarjetas_filtradas(
+    id_torneo: Optional[int] = None,
+    id_equipo: Optional[int] = None,
+    id_persona: Optional[int] = None,
+    db: Session = Depends(get_db)
+):
+    # Base de la consulta
+    query_str = "SELECT * FROM vw_tarjetas_detalle_torneo WHERE 1=1"
+    params = {}
+
+    # Filtros dinámicos
+    if id_torneo:
+        query_str += " AND id_torneo = :id_torneo"
+        params["id_torneo"] = id_torneo
+    
+    if id_equipo:
+        query_str += " AND id_equipo = :id_equipo"
+        params["id_equipo"] = id_equipo
+
+    if id_persona:
+        query_str += " AND id_persona = :id_persona"
+        params["id_persona"] = id_persona
+
+    # Orden predeterminado por fecha de partido
+    query_str += " ORDER BY fecha_partido DESC"
+
+    result = db.execute(text(query_str), params).mappings().all()
+    return result
+
+
+@router.get("/tarjetas-acumuladas", response_model=List[TarjetaAcumulada])
+def get_tarjetas_acumuladas(
+    id_torneo: Optional[int] = None,
+    id_equipo: Optional[int] = None,
+    db: Session = Depends(get_db)
+):
+    query_str = "SELECT * FROM vw_tarjetas_acumuladas_torneo WHERE 1=1"
+    params = {}
+
+    if id_torneo:
+        query_str += " AND id_torneo = :id_torneo"
+        params["id_torneo"] = id_torneo
+    
+    if id_equipo:
+        query_str += " AND id_equipo = :id_equipo"
+        params["id_equipo"] = id_equipo
+
+    # Ordenamos por las más graves primero
+    query_str += " ORDER BY total_rojas DESC, total_amarillas DESC"
+
+    result = db.execute(text(query_str), params).mappings().all()
+    return result
+
+
+@router.get("/goleadores/{id_torneo}", response_model=List[GoleadorTorneo])
+def get_goleadores_torneo(id_torneo: int, db: Session = Depends(get_db)):
+    query = text("""
+        SELECT * FROM v_goleadores_torneo 
+        WHERE id_torneo = :id_torneo 
+        ORDER BY goles_netos_en_torneo DESC
+        LIMIT 10
+    """)
+    result = db.execute(query, {"id_torneo": id_torneo}).mappings().all()
+    return result

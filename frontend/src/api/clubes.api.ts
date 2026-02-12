@@ -1,5 +1,7 @@
 import api from "./axiosAdmin"
+import AxiosPublic from "./axiosPublic"
 import type { Club, ClubCreate, ClubUpdate } from "../types/club"
+import type {Equipo} from "../types/equipo"
 
 function mapClubFromApi(data: any): Club {
   return {
@@ -17,16 +19,23 @@ function mapClubFromApi(data: any): Club {
 
 // 🔓 Público
 export async function getClubes(): Promise<Club[]> {
-  const res = await api.get("/clubes/")
+  const res = await AxiosPublic.get("/clubes/")
   return res.data.map(mapClubFromApi)
 }
 
 // 🔓 Público
 export async function getClubById(id: number): Promise<Club> {
-  const res = await api.get(`/clubes/${id}`)
+  const res = await AxiosPublic.get(`/clubes/${id}`)
   return mapClubFromApi(res.data)
 }
+// 🔓 Público
+export async function listarEquiposPorClub(idClub: number): Promise<Equipo[]> {
+  const res = await AxiosPublic.get(`/clubes/${idClub}/equipos/`)
+  return res.data
+}
 
+
+// ---------------- Rutas Admin ------------------------------------
 // 🔐 ADMIN
 export async function crearClub(payload: ClubCreate): Promise<Club> {
   const res = await api.post("/clubes/", payload)

@@ -19,7 +19,7 @@ export default function Navbar() {
           Torneos
         </Link>
 
-        <Link to="/" className={styles.link}>
+        <Link to="/public/clubes" className={styles.link}>
           Clubes
         </Link>
 

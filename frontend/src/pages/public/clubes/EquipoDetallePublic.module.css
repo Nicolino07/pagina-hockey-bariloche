@@ -1,0 +1,127 @@
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.header {
+  margin-bottom: 40px;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.equipoTitleBlock {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.title {
+  font-size: 2.5rem;
+  color: #0f172a;
+  margin: 0;
+}
+
+.badge {
+  background: #dcfce7;
+  color: #166534;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 40px;
+}
+
+@media (max-width: 850px) {
+  .mainGrid { grid-template-columns: 1fr; }
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  margin-bottom: 25px;
+  color: #1e293b;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 10px;
+}
+
+.jugadoresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 15px;
+}
+
+.playerCard {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: transform 0.2s;
+}
+
+.playerCard:hover {
+  transform: scale(1.02);
+  border-color: #2563eb;
+}
+
+.numberBadge {
+  width: 40px;
+  height: 40px;
+  background: #1e293b;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.playerName {
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.playerRole {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.infoCard {
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.infoCard h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.infoCard p {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 10px 0;
+}

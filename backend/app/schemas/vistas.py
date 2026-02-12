@@ -3,7 +3,7 @@
 from pydantic import BaseModel
 from typing import Literal, Optional, Union
 from datetime import date
-from app.models.enums import RolPersonaTipo, GeneroTipo
+from app.models.enums import RolPersonaTipo, GeneroTipo, TipoTarjeta
 
 
 class PosicionSchema(BaseModel):
@@ -124,3 +124,56 @@ class PersonasArbitro(BaseModel):
     class Config:
         from_attributes = True
 
+##
+# Vista para tarjetas historial
+
+class TarjetaDetalle(BaseModel):
+    id_torneo: int
+    torneo: str
+    id_partido: int
+    fecha_partido: date
+    numero_fecha: int
+    id_persona: int
+    nombre_persona: str
+    apellido_persona: str
+    id_equipo: int
+    equipo: str
+    tipo_tarjeta: TipoTarjeta  # VERDE, AMARILLA, ROJA
+    minuto: Optional[int]
+    verdes: int
+    amarillas: int
+    rojas: int
+
+    class Config:
+        from_attributes = True
+
+class TarjetaAcumulada(BaseModel):
+    id_torneo: int
+    torneo: str
+    id_persona: int
+    nombre_persona: str
+    apellido_persona: str
+    id_equipo: int
+    equipo: str
+    total_tarjetas: int
+    total_verdes: int
+    total_amarillas: int
+    total_rojas: int
+
+    class Config:
+        from_attributes = True
+
+
+
+class GoleadorTorneo(BaseModel):
+    id_persona: int
+    nombre: str
+    apellido: str
+    nombre_equipo: str
+    goles_en_torneo: int
+    goles_netos_en_torneo: int
+    goles_totales_carrera: int
+    ranking_en_torneo: int
+
+    class Config:
+        from_attributes = True

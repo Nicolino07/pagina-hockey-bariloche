@@ -72,3 +72,30 @@ export interface FilaPosiciones {
   diferencia_gol: number; // Antes era dif
   puntos: number;
 }
+
+export interface TarjetaAcumulada {
+
+  id_torneo: number;
+  torneo: string;
+  id_persona: number;
+  nombre_persona: string;
+  apellido_persona: string;
+  id_equipo: number;
+  equipo: string;
+  total_tarjetas: number;
+  total_verdes: number;
+  total_amarillas: number;
+  total_rojas: number;
+
+}
+
+export interface GoleadorTorneo {
+  id_persona: number;
+  nombre: string;
+  apellido: string;
+  nombre_equipo: string;
+  goles_en_torneo: number;
+  goles_netos_en_torneo: number;
+  goles_totales_carrera: number;
+  ranking_en_torneo: number;
+}

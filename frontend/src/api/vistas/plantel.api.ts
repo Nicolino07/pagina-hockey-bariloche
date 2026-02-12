@@ -1,6 +1,5 @@
 // frontend/src/api/vistas.api.ts
-import axiosAdmin from '../axiosAdmin'
-
+import AxiosPublic from '../axiosPublic'
 import type { PlantelActivoIntegrante } from '../../types/vistas'
 
 // Modifica vistas.api.ts para debug EXTREMO
@@ -10,7 +9,7 @@ export async function getPlantelActivoPorEquipo(idEquipo: number): Promise<Plant
   try {
     console.log(`🔍 [2/5] Haciendo request a: /vistas/plantel-activo/${idEquipo}`)
     
-    const response = await axiosAdmin.get(`/vistas/plantel-activo/${idEquipo}`)
+    const response = await AxiosPublic.get(`/vistas/plantel-activo/${idEquipo}`)
     
     console.log(`✅ [3/5] RESPONSE RECIBIDA:`, {
       status: response.status,

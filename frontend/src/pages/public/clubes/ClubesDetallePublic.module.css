@@ -1,0 +1,115 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.clubHeader {
+  background: white;
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  margin-bottom: 40px;
+  border: 1px solid #f1f5f9;
+}
+
+.mainInfo {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.logoGrande {
+  width: 120px;
+  height: 120px;
+  background: #2563eb;
+  color: white;
+  border-radius: 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 900;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+}
+
+.clubName {
+  font-size: 2.2rem;
+  color: #0f172a;
+  margin: 0;
+}
+
+.localidad {
+  color: #64748b;
+  font-size: 1.1rem;
+  margin-top: 5px;
+}
+
+.sectionHeader {
+  margin-bottom: 30px;
+}
+
+.title {
+  font-size: 1.5rem;
+  color: #1e293b;
+}
+
+.equiposGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.equipoCard {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.equipoCard:hover {
+  border-color: #2563eb;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+}
+
+.categoriaBadge {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.equipoNombre {
+  margin: 15px 0;
+  font-size: 1.2rem;
+  color: #1e293b;
+}
+
+.equipoFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.backBtn {
+  margin-top: 40px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.backBtn:hover {
+  color: #0f172a;
+  text-decoration: underline;
+}
