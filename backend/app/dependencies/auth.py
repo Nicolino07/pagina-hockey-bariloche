@@ -1,3 +1,4 @@
+# backend/app/dependencies/auth.py
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session

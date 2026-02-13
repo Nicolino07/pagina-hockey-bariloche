@@ -12,3 +12,8 @@ passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
 passlib[argon2]
 argon2-cffi
+
+# Para validación de emails en Pydantic
+email-validator
+resend
+

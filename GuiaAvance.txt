@@ -4,11 +4,15 @@ se puede crear un plantel pero no podemos agregar un integrante a un plantel
 comprobacion de genero en equipo/plantel/plantel_integrante LISTO
 
 
-AVANCE: carga de partido con goles y tarjetas funcionando, inicializacion de tabla de
-posiciones en 0 funcionando (detecta inscripcion),  
-Inicio de sesion y acceso a Panel principal listo
-pagina de clubes y equipos admin lista(casi)
-creando pagina admin para torneos
+AVANCE: 
+
+# ========================================
+# MAIL & FRONTEND
+#=========================================
+
+RESEND_API_KEY=re_dK5zayVy_Awg1S1zgSaEmh7UKznDqjEBx
+FRONTEND_URL=http://localhost:5173
+
 
 PROXIMO: arreglar error en agregar pesona a un equipo. 
 

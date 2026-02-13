@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     jwt_secret: str
     jwt_algorithm: str = "HS256"
 
+    resend_api_key: str
+    frontend_url: str = "http://localhost:3000"
+
     access_token_expire_minutes: int = 1440
     refresh_token_expire_days: int = 30
 

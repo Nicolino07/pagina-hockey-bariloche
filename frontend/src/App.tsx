@@ -21,6 +21,7 @@ import TorneosPage from "./pages/public/torneos/TorneosPage"
 import ClubesPage from "./pages/public/clubes/ClubesPage"
 import ClubesDetallePublic from "./pages/public/clubes/ClubesDetallePublic"
 import EquipoDetallePublic from "./pages/public/clubes/EquipoDetallePublic"
+import CompletarRegistro from './pages/login/CompletarRegistro'; // El nombre que le pongas
 
 
 export default function App() {
@@ -31,6 +32,9 @@ export default function App() {
 
       {/* 🌍 Público */}
       <Route element={<PublicLayout />}>
+
+        <Route path="/completar-registro" element={<CompletarRegistro />} />
+
         <Route path="/" element={<Home />} />
         <Route path="/public/posiciones" element={<PosicionesPage />} />
         <Route path="/public/torneos" element={<TorneosPage />} />

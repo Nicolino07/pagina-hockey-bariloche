@@ -16,17 +16,19 @@ pwd_context = CryptContext(
 def _utc_timestamp(dt: datetime) -> int:
     return int(dt.replace(tzinfo=timezone.utc).timestamp())
 
-
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
 
     now = datetime.utcnow()
     expire = now + (expires_delta or settings.access_token_expire_timedelta)
 
+    # Solo ponemos "access" si el diccionario NO trae ya un "type"
+    token_type = to_encode.get("type", "access")
+
     to_encode.update({
         "exp": _utc_timestamp(expire),
         "iat": _utc_timestamp(now),
-        "type": "access",
+        "type": token_type, # <--- Ahora es dinámico
     })
 
     return jwt.encode(
@@ -34,7 +36,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         settings.jwt_secret,
         algorithm=settings.jwt_algorithm,
     )
-
 
 def generate_refresh_token_value() -> str:
     return secrets.token_urlsafe(64)
