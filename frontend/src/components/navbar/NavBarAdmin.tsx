@@ -15,7 +15,7 @@ export default function NavbarAdmin() {
     <header className={styles.navbar}>
       <div className={styles.left}>
         <Link to="/admin" className={styles.link}>
-          Panel
+          Panel Principal
         </Link>
 
         <Link to="/admin/clubes" className={styles.link}>
@@ -33,6 +33,11 @@ export default function NavbarAdmin() {
         <Link to="/admin/personas" className={styles.link}>
           Personas
         </Link>
+
+        <Link to="/login/usuarios" className="nav-item">
+          👥 Gestionar Staff
+        </Link>
+      
 
       </div>
 

@@ -22,46 +22,53 @@ import ClubesPage from "./pages/public/clubes/ClubesPage"
 import ClubesDetallePublic from "./pages/public/clubes/ClubesDetallePublic"
 import EquipoDetallePublic from "./pages/public/clubes/EquipoDetallePublic"
 import CompletarRegistro from './pages/login/CompletarRegistro'; // El nombre que le pongas
-
+import Unauthorized from "./pages/error/Unauthorized"
+import GestionUsuarios from "./pages/login/GestionUsuarios";
 
 export default function App() {
   return (
     
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
 
       {/* 🌍 Público */}
       <Route element={<PublicLayout />}>
 
         <Route path="/completar-registro" element={<CompletarRegistro />} />
-
         <Route path="/" element={<Home />} />
         <Route path="/public/posiciones" element={<PosicionesPage />} />
         <Route path="/public/torneos" element={<TorneosPage />} />
-        
-        {/* Capa 1: Listado de Clubes */}
         <Route path="/public/clubes" element={<ClubesPage />} />
-        
-        {/* Capa 2: Detalle del Club (Selector de equipos) */}
         <Route path="/public/clubes/:id_club" element={<ClubesDetallePublic />} />
-        
-        {/* Capa 3: Detalle del Equipo (Plantel) 
-            IMPORTANTE: La ruta debe coincidir exactamente con el link */}
         <Route 
           path="/public/clubes/:id_club/equipos/:id_equipo" 
           element={<EquipoDetallePublic />} 
         />
       </Route>
 
-      {/* 🔐 Admin (se mantiene igual) */}
+      {/* 🔐 Admin - Acceso General (Editores, Admins, Superusers) */}
       <Route
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['EDITOR', 'ADMIN', 'SUPERUSUARIO']}>
             <AdminLayout />
           </ProtectedRoute>
         }
       >
         <Route path="/admin" element={<PanelAdmin />} />
+        <Route path="/admin/partidos" element={<PartidosPage />} />
+        <Route path="/admin/partidos/:id_partido" element={<PartidoPlanilla />} />
+
+      </Route>
+
+      {/* 🔐 Admin - Solo Gestión Estructural (Admins y Superusers) */}
+      <Route
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'SUPERUSUARIO']}>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="/admin/clubes" element={<Clubes />} />
         <Route path="/admin/clubes/:id_club" element={<ClubDetalle />} />
         <Route path="/admin/equipos/:id_equipo" element={<EquipoDetalle />} />
@@ -69,11 +76,21 @@ export default function App() {
         <Route path="/admin/torneos/:idTorneo" element={<TorneoDetalle />} />
         <Route path="/admin/personas" element={<Personas />} />
         <Route path="/admin/personas/:id_persona" element={<PersonaDetalle />} />
-        <Route path="/admin/partidos" element={<PartidosPage />} />
-        <Route path="/admin/partidos/:id_partido" element={<PartidoPlanilla />} />
-       {/*<Route path="/partidos/:id" element={<PartidoDetalle />} />*/}
-
       </Route>
+
+      {/* 🔐 Superusers */}
+      <Route
+        element={
+          <ProtectedRoute allowedRoles={['SUPERUSUARIO']}>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/login/usuarios" element={<GestionUsuarios />} />
+  
+      </Route>
+      
     </Routes>
+  
   )
 }

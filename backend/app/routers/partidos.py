@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.dependencies.permissions import require_admin
+from app.dependencies.permissions import require_admin, require_editor
 from app.models.partido import Partido
 from app.schemas.partido import PartidoBase
 from app.schemas.planilla_partido import PlanillaPartidoCreate
@@ -27,7 +27,7 @@ def obtener_partido(id_partido: int, db: Session = Depends(get_db)):
     return partido
 
 
-# 🔐 ADMIN – carga de planilla completa
+# 🔐 ADMIN/ EDITOR – carga de planilla completa
 @router.post(
     "/planilla",
     response_model=PartidoBase,
@@ -36,7 +36,7 @@ def obtener_partido(id_partido: int, db: Session = Depends(get_db)):
 def crear_planilla(
     data: PlanillaPartidoCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(require_admin),
+    current_user=Depends(require_editor),
 ):
     return crear_planilla_partido(db, data, current_user)
 

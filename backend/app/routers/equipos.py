@@ -53,7 +53,7 @@ def actualizar_equipo(
 def eliminar_equipo(
     equipo_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(require_admin),
+    current_user = Depends(require_superuser),
 ):
     equipos_services.eliminar_equipo(db, equipo_id, current_user)
 
