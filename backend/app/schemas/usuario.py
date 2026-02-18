@@ -4,18 +4,6 @@ from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 from app.models.enums import TipoUsuario
 
-class UsuarioCreate(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr
-    password: str = Field(..., min_length=8)
-    tipo: TipoUsuario = TipoUsuario.LECTOR
-    creado_por: Optional[str] = None
-
-class UsuarioUpdate(BaseModel):
-    email: Optional[EmailStr] = None
-    tipo: Optional[TipoUsuario] = None
-    activo: Optional[bool] = None
-    actualizado_por: Optional[str] = None
 
 class Usuario(BaseModel):
     id_usuario: int
@@ -29,6 +17,19 @@ class Usuario(BaseModel):
     actualizado_en: Optional [datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+class UsuarioCreate(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+    tipo: TipoUsuario = TipoUsuario.LECTOR
+    creado_por: Optional[str] = None
+
+class UsuarioUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    tipo: Optional[TipoUsuario] = None
+    activo: Optional[bool] = None
+    actualizado_por: Optional[str] = None
     
 ## opcional autenticacion interna
 class UsuarioAuthInterno(BaseModel):

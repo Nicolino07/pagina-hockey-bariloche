@@ -165,15 +165,14 @@ class TarjetaAcumulada(BaseModel):
 
 
 
+from typing import Optional
+
 class GoleadorTorneo(BaseModel):
     id_persona: int
     nombre: str
     apellido: str
     nombre_equipo: str
-    goles_en_torneo: int
+    goles_en_torneo: Optional[int] = 0  # Permite que sea None o dale un default
     goles_netos_en_torneo: int
-    goles_totales_carrera: int
+    goles_totales_carrera: Optional[int] = 0
     ranking_en_torneo: int
-
-    class Config:
-        from_attributes = True

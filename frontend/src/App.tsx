@@ -21,9 +21,9 @@ import TorneosPage from "./pages/public/torneos/TorneosPage"
 import ClubesPage from "./pages/public/clubes/ClubesPage"
 import ClubesDetallePublic from "./pages/public/clubes/ClubesDetallePublic"
 import EquipoDetallePublic from "./pages/public/clubes/EquipoDetallePublic"
-import CompletarRegistro from './pages/login/CompletarRegistro'; // El nombre que le pongas
+import CompletarRegistro from './pages/admin/usuarios/CompletarRegistro'; // El nombre que le pongas
 import Unauthorized from "./pages/error/Unauthorized"
-import GestionUsuarios from "./pages/login/GestionUsuarios";
+import GestionUsuarios from "./pages/admin/usuarios/GestionUsuarios";
 
 export default function App() {
   return (

@@ -1,0 +1,205 @@
+/* GestionUsuarios.module.css */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  margin-bottom: 40px;
+  border-left: 5px solid var(--color-secondary);
+  padding-left: 20px;
+}
+
+.title {
+  font-size: 2.2rem;
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 800;
+}
+
+/* Sección de Invitación */
+.inviteCard {
+  background: var(--bg-paper);
+  border-radius: 16px;
+  border: 1px solid var(--divider-color);
+  padding: 24px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  margin-bottom: 40px;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.inviteForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-end;
+}
+
+.formGroup {
+  flex: 1;
+  min-width: 200px;
+}
+
+.label {
+  display: block;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.input, .select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--divider-color);
+  border-radius: 8px;
+  background-color: var(--bg-default);
+  transition: border-color 0.2s;
+}
+
+.input:focus, .select:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+}
+
+.btnSubmit {
+  background-color: var(--boton-oscuro);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnSubmit:hover:not(:disabled) {
+  background-color: var(--color-intermedio);
+  transform: translateY(-2px);
+}
+
+.btnSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Alertas */
+.alert {
+  margin-top: 20px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alertSuccess {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+.alertError {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+/* Tabla de Usuarios */
+.tableContainer {
+  background: var(--bg-paper);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  overflow: hidden;
+  border: 1px solid var(--divider-color);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background: var(--bg-default);
+  padding: 16px;
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-weight: 700;
+  border-bottom: 2px solid var(--divider-color);
+}
+
+.table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--bg-default);
+  vertical-align: middle;
+}
+
+.userMainInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.username {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.email {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.activeBadge { background: #dcfce7; color: #166534; }
+.inactiveBadge { background: #fee2e2; color: #991b1b; }
+
+.rowInactive {
+  background-color: #f9fafb;
+}
+
+.rowInactive td {
+  opacity: 0.8;
+}
+
+.btnToggle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.btnDeactivate { color: #ef4444; }
+.btnActivate { color: var(--color-accent02); }
+
+.btnToggle:hover {
+  background-color: rgba(0,0,0,0.05);
+}

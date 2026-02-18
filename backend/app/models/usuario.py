@@ -66,3 +66,4 @@ class Usuario(Base, AuditFieldsMixin, SoftDeleteMixin):
     bloqueado_hasta: Mapped[Optional[datetime]]
     ultimo_login: Mapped[Optional[datetime]]
 
+
