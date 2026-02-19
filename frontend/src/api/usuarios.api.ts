@@ -1,4 +1,5 @@
 import axiosAdmin from './axiosAdmin';
+import axiosPublic from './axiosPublic';
 
 // Reutilizamos o definimos la interfaz aquí
 export interface Usuario {
@@ -43,5 +44,33 @@ export const usuariosApi = {
     // Coincide con backend: PATCH /auth/usuarios/{id_usuario}/estado
     const response = await axiosAdmin.patch(`/auth/usuarios/${id}/estado`, { activo });
     return response.data;
+  }
+};
+
+// Recuperar y cambiar contraseña
+
+export const authApi = {
+  // Cambio de clave estando logueado
+  cambiarPassword: async (oldPassword: string, newPassword: string) => {
+    const res = await axiosAdmin.patch("/auth/cambiar-password", {
+      old_password: oldPassword,
+      new_password: newPassword
+    });
+    return res.data;
+  },
+
+  // Olvido de clave (Público)
+  solicitarRecuperacion: async (email: string) => {
+    const res = await axiosPublic.post("/auth/recuperar-password", { email });
+    return res.data;
+  },
+
+  // Formulario final con el token del mail
+  confirmarReset: async (token: string, newPassword: string) => {
+    const res = await axiosPublic.post("/auth/reset-password-confirm", {
+      token,
+      new_password: newPassword
+    });
+    return res.data;
   }
 };

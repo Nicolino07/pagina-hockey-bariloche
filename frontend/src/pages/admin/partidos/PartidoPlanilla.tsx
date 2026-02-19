@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTorneosActivos } from "../../../hooks/useTorneosActivos";
 import { useInscripcionesTorneo } from "../../../hooks/useInscripcionesTorneo";
 import { usePlantelActivo } from "../../../hooks/usePlantelActivo";
@@ -10,6 +11,7 @@ import type { PersonasArbitro } from "../../../types/vistas";
 import { TIPOS_GOL, TIPOS_TARJETA } from "../../../constants/enums";
 
 export default function PartidoPlanilla() {
+  const navigate = useNavigate();
   const { torneos } = useTorneosActivos();
   const [torneoId, setTorneoId] = useState<number | undefined>(undefined);
   const { inscripciones } = useInscripcionesTorneo(torneoId);
@@ -17,12 +19,14 @@ export default function PartidoPlanilla() {
   const [inscripcionLocal, setInscripcionLocal] = useState<any>(null);
   const [inscripcionVisitante, setInscripcionVisitante] = useState<any>(null);
 
-  // Obtenemos los integrantes de ambos equipos
   const { integrantes: plantelLocal } = usePlantelActivo(inscripcionLocal?.id_equipo);
   const { integrantes: plantelVisitante } = usePlantelActivo(inscripcionVisitante?.id_equipo);
 
   const [arbitrosList, setArbitrosList] = useState<PersonasArbitro[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // ESTADO PARA EL MODAL
+  const [showModal, setShowModal] = useState(false);
 
   const [partidoInfo, setPartidoInfo] = useState({
     fecha: new Date().toISOString().split("T")[0],
@@ -43,8 +47,8 @@ export default function PartidoPlanilla() {
   const [capitanes, setCapitanes] = useState({ local: 0, visitante: 0 });
   const [goles, setGoles] = useState<any[]>([]);
   const [tarjetas, setTarjetas] = useState<any[]>([]);
+  const [camisetas, setCamisetas] = useState<Record<number, string>>({});
 
-  // Carga inicial de árbitros
   useEffect(() => {
     const cargarArbitros = async () => {
       try {
@@ -96,6 +100,14 @@ export default function PartidoPlanilla() {
     if (!torneoId || !inscripcionLocal || !inscripcionVisitante) {
       alert("Faltan datos básicos del partido");
       return;
+
+    }
+
+    if (partidoInfo.id_arbitro1 && 
+      partidoInfo.id_arbitro1 === partidoInfo.id_arbitro2) {
+      alert("¡Error! El Árbitro 1 y el Árbitro 2 no pueden ser la misma persona.");
+      setLoading(false);
+      return;
     }
 
     setLoading(true);
@@ -119,10 +131,18 @@ export default function PartidoPlanilla() {
         observaciones: partidoInfo.observaciones,
         numero_fecha: numFechaVal > 0 ? numFechaVal : null
       },
+
       participantes: {
-        local: seleccionados.local,
-        visitante: seleccionados.visitante
+        local: seleccionados.local.map(id => ({
+          id_plantel_integrante: id,
+          numero_camiseta: camisetas[id] || null
+        })),
+        visitante: seleccionados.visitante.map(id => ({
+          id_plantel_integrante: id,
+          numero_camiseta: camisetas[id] || null
+        }))
       },
+
       goles: goles.filter(g => g.id_plantel_integrante !== "").map(g => ({
         id_plantel_integrante: Number(g.id_plantel_integrante),
         minuto: Number(g.minuto) || 0,
@@ -138,21 +158,34 @@ export default function PartidoPlanilla() {
         observaciones: t.observaciones || ""
       }))
     };
-    console.log("Enviando este payload:", payload);
+
     try {
       await crearPlanillaPartido(payload);
       alert("Planilla guardada con éxito.");
+      navigate(-1);
     } catch (error) {
       console.error(error);
       alert("Error al guardar.");
     } finally {
       setLoading(false);
+      setShowModal(false);
     }
+  };
+
+  // FUNCION AUXILIAR PARA OBTENER NOMBRE DEL JUGADOR
+  const getPlayerName = (id: any) => {
+    const p = [...plantelLocal, ...plantelVisitante].find(x => x.id_plantel_integrante === Number(id));
+    return p ? `${p.apellido_persona}, ${p.nombre_persona}` : "Desconocido";
   };
 
   return (
     <div className={styles.container}>
-      <h1>Nueva Planilla de Partido</h1>
+      <div className={styles.headerPage}>
+        <Button variant="primary" size="sm" onClick={() => navigate(-1)}>
+          ← Volver
+        </Button>
+        <h1>Nueva Planilla de Partido</h1>
+      </div>
 
       {/* CABECERA - DATOS DEL PARTIDO */}
       <section className={styles.section}>
@@ -163,15 +196,12 @@ export default function PartidoPlanilla() {
               <option key={t.id_torneo} value={t.id_torneo}>{t.nombre} - {t.genero} - {t.categoria}</option>
             ))}
           </select>
-
           <input type="number" placeholder="N° Fecha" value={partidoInfo.numero_fecha} onChange={e => setPartidoInfo({...partidoInfo, numero_fecha: e.target.value})} />
         </div>
-
         <div className={styles.gridForm}>
           <input type="date" value={partidoInfo.fecha} onChange={e => setPartidoInfo({...partidoInfo, fecha: e.target.value})} />
           <input type="time" value={partidoInfo.horario} onChange={e => setPartidoInfo({...partidoInfo, horario: e.target.value})} />
         </div>
-
         <div className={styles.gridForm}>
           <select value={partidoInfo.id_arbitro1} onChange={e => setPartidoInfo({...partidoInfo, id_arbitro1: e.target.value})}>
             <option value="">Árbitro 1</option>
@@ -183,12 +213,10 @@ export default function PartidoPlanilla() {
           </select>
           <input type="text" placeholder="Ubicación" value={partidoInfo.ubicacion} onChange={e => setPartidoInfo({...partidoInfo, ubicacion: e.target.value})} />
         </div>
-
         <div className={styles.gridForm}>
           <input type="text" placeholder="Juez de Mesa Local" value={partidoInfo.juez_mesa_local} onChange={e => setPartidoInfo({...partidoInfo, juez_mesa_local: e.target.value})} />
           <input type="text" placeholder="Juez de Mesa Visitante" value={partidoInfo.juez_mesa_visitante} onChange={e => setPartidoInfo({...partidoInfo, juez_mesa_visitante: e.target.value})} />
         </div>
-
         <div className={styles.gridForm}>
           <select disabled={!torneoId} value={inscripcionLocal?.id_inscripcion || ""} onChange={(e) => handleEquipoChange(e.target.value, 'local')}>
             <option value="">Equipo Local</option>
@@ -207,7 +235,6 @@ export default function PartidoPlanilla() {
         {(['local', 'visitante'] as const).map(side => {
           const listaIntegrantes = side === 'local' ? plantelLocal : plantelVisitante;
           const nombreEquipo = side === 'local' ? inscripcionLocal?.nombre_equipo : inscripcionVisitante?.nombre_equipo;
-
           return (
             <div key={side} className={styles.column}>
               <h3>{nombreEquipo || (side === 'local' ? 'Local' : 'Visitante')}</h3>
@@ -215,24 +242,13 @@ export default function PartidoPlanilla() {
                 {listaIntegrantes.length === 0 && <p className={styles.empty}>Selecciona un equipo</p>}
                 {listaIntegrantes.map(p => (
                   <div key={p.id_plantel_integrante} className={styles.playerItem}>
-                    <input 
-                      type="checkbox" 
-                      checked={seleccionados[side].includes(p.id_plantel_integrante)} 
-                      onChange={(e) => {
-                        const id = p.id_plantel_integrante;
-                        setSeleccionados(prev => ({ 
-                          ...prev, 
-                          [side]: e.target.checked ? [...prev[side], id] : prev[side].filter(x => x !== id) 
-                        }));
-                      }} 
-                    />
+                    <input type="checkbox" checked={seleccionados[side].includes(p.id_plantel_integrante)} onChange={(e) => {
+                      const id = p.id_plantel_integrante;
+                      setSeleccionados(prev => ({ ...prev, [side]: e.target.checked ? [...prev[side], id] : prev[side].filter(x => x !== id) }));
+                    }} />
+                    <input type="text" placeholder="#" className={styles.inputCamiseta} value={camisetas[p.id_plantel_integrante] || ""} onChange={(e) => setCamisetas({ ...camisetas, [p.id_plantel_integrante]: e.target.value })} disabled={!seleccionados[side].includes(p.id_plantel_integrante)} />
                     <span className={styles.playerText}>{p.apellido_persona}, {p.nombre_persona} - {p.documento} - {p.rol_en_plantel} </span>
-                    <input 
-                      type="radio" 
-                      name={`capitan-${side}`} 
-                      checked={capitanes[side] === p.id_plantel_integrante} 
-                      onChange={() => setCapitanes(prev => ({ ...prev, [side]: p.id_plantel_integrante }))} 
-                    />
+                    <input type="radio" name={`capitan-${side}`} checked={capitanes[side] === p.id_plantel_integrante} onChange={() => setCapitanes(prev => ({ ...prev, [side]: p.id_plantel_integrante }))} />
                   </div>
                 ))}
               </div>
@@ -241,64 +257,29 @@ export default function PartidoPlanilla() {
         })}
       </div>
 
-      {/* SECCIÓN DE INCIDENCIAS (Goles y Tarjetas) */}
+      {/* SECCIÓN DE INCIDENCIAS */}
       <div className={styles.incidencias}>
-        {/* GOLES */}
         <section className={styles.eventSection}>
           <div className={styles.headerRow}>
             <h3>Goles</h3>
-            <Button 
-              onClick={() => setGoles([...goles, { 
-                id_plantel_integrante: "", 
-                minuto: "", 
-                cuarto: "", 
-                referencia_gol: "GJ", 
-                es_autogol: false 
-              }])} 
-              size="sm" 
-              variant="outline"
-            >
-              + Gol
-            </Button>
+            <Button onClick={() => setGoles([...goles, { id_plantel_integrante: "", minuto: "", cuarto: "", referencia_gol: "GJ", es_autogol: false }])} size="sm" variant="outline">+ Gol</Button>
           </div>
           {goles.map((gol, index) => (
             <div key={index} className={styles.eventRow}>
               <select value={gol.id_plantel_integrante} onChange={e => { const n = [...goles]; n[index].id_plantel_integrante = e.target.value; setGoles(n); }}>
                 <option value="">Autor</option>
-                <optgroup label="Local">
-                  {plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante)).map(p => <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>{p.apellido_persona}, {p.nombre_persona}</option>)}
-                </optgroup>
-                <optgroup label="Visitante">
-                  {plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante)).map(p => <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>{p.apellido_persona}, {p.nombre_persona}</option>)}
-                </optgroup>
+                <optgroup label="Local">{plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante)).map(p => <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>{p.apellido_persona}, {p.nombre_persona}</option>)}</optgroup>
+                <optgroup label="Visitante">{plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante)).map(p => <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>{p.apellido_persona}, {p.nombre_persona}</option>)}</optgroup>
               </select>
-              <select value={gol.referencia_gol} onChange={e => { const n = [...goles]; n[index].referencia_gol = e.target.value; setGoles(n); }}>
-                {TIPOS_GOL.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
+              <select value={gol.referencia_gol} onChange={e => { const n = [...goles]; n[index].referencia_gol = e.target.value; setGoles(n); }}>{TIPOS_GOL.map(t => <option key={t} value={t}>{t}</option>)}</select>
               <input type="number" placeholder="Min" value={gol.minuto} onChange={e => { const n = [...goles]; n[index].minuto = e.target.value; setGoles(n); }} />
               <input type="number" placeholder="4°" value={gol.cuarto} onChange={e => { const n = [...goles]; n[index].cuarto = e.target.value; setGoles(n); }} />
-              {/* CHECKBOX DE AUTOGOL */}
-                <label className={styles.checkboxLabel}>
-                  <input 
-                    type="checkbox" 
-                    checked={gol.es_autogol || false} // El || false evita errores si es undefined
-                    onChange={e => {
-                      const nuevosGoles = [...goles];
-                      nuevosGoles[index] = { 
-                        ...nuevosGoles[index], 
-                        es_autogol: e.target.checked 
-                      };
-                      setGoles(nuevosGoles);
-                    }} 
-                  />
-                  Autogol
-                </label>
+              <label className={styles.checkboxLabel}><input type="checkbox" checked={gol.es_autogol || false} onChange={e => { const nuevosGoles = [...goles]; nuevosGoles[index] = { ...nuevosGoles[index], es_autogol: e.target.checked }; setGoles(nuevosGoles); }} /> Autogol</label>
               <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'gol')}>✕</button>
             </div>
           ))}
         </section>
 
-        {/* TARJETAS */}
         <section className={styles.eventSection}>
           <div className={styles.headerRow}>
             <h3>Tarjetas</h3>
@@ -308,38 +289,130 @@ export default function PartidoPlanilla() {
             <div key={index} className={styles.eventRow}>
               <select value={t.id_plantel_integrante} onChange={e => { const n = [...tarjetas]; n[index].id_plantel_integrante = e.target.value; setTarjetas(n); }}>
                 <option value="">Sancionado</option>
-                <optgroup label="Local">
-                  {plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante)).map(p => <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>{p.apellido_persona}, {p.nombre_persona}</option>)}
-                </optgroup>
-                <optgroup label="Visitante">
-                  {plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante)).map(p => <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>{p.apellido_persona}, {p.nombre_persona}</option>)}
-                </optgroup>
+                <optgroup label="Local">{plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante)).map(p => <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>{p.apellido_persona}, {p.nombre_persona}</option>)}</optgroup>
+                <optgroup label="Visitante">{plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante)).map(p => <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>{p.apellido_persona}, {p.nombre_persona}</option>)}</optgroup>
               </select>
-              <select value={t.tipo} onChange={e => { const n = [...tarjetas]; n[index].tipo = e.target.value; setTarjetas(n); }}>
-                {TIPOS_TARJETA.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}
-              </select>
+              <select value={t.tipo} onChange={e => { const n = [...tarjetas]; n[index].tipo = e.target.value; setTarjetas(n); }}>{TIPOS_TARJETA.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}</select>
               <input type="number" placeholder="Min" value={t.minuto} onChange={e => { const n = [...tarjetas]; n[index].minuto = e.target.value; setTarjetas(n); }} />
               <input type="number" placeholder="4°" value={t.cuarto} onChange={e => { const n = [...tarjetas]; n[index].cuarto = e.target.value; setTarjetas(n); }} />
               <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'tarjeta')}>✕</button>
             </div>
-           ))}
+          ))}
         </section>
       </div>
 
       <section className={styles.section}>
-        <textarea 
-          placeholder="Observaciones finales del partido..." 
-          className={styles.textarea}
-          value={partidoInfo.observaciones}
-          onChange={e => setPartidoInfo({...partidoInfo, observaciones: e.target.value})}
-        />
+        <textarea placeholder="Observaciones finales..." className={styles.textarea} value={partidoInfo.observaciones} onChange={e => setPartidoInfo({...partidoInfo, observaciones: e.target.value})} />
       </section>
 
       <footer className={styles.footer}>
-        <Button variant="primary" size="md" onClick={enviarPlanilla} disabled={loading}>
-          {loading ? "Guardando..." : "Guardar y Finalizar Partido"}
+        <Button variant="primary" size="md" onClick={() => setShowModal(true)}>
+          Revisar y Guardar Partido
         </Button>
       </footer>
+
+      {/* MODAL DE RESUMEN */}
+      {showModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h2>Resumen de Planilla</h2>
+            
+            <div className={styles.resumenGrid}>
+              {/* DATOS GENERALES */}
+              <div className={styles.resumenHeader}>
+                <p><strong>Torneo:</strong> {torneos.find((t: any) => t.id_torneo === torneoId)?.nombre}</p>
+                <p><strong>Partido:</strong> {inscripcionLocal?.nombre_equipo} vs {inscripcionVisitante?.nombre_equipo}</p>
+                <p><strong>Fecha/Hora:</strong> {partidoInfo.fecha} - {partidoInfo.horario} (Fecha {partidoInfo.numero_fecha})</p>
+                <p><strong>Ubicación:</strong> {partidoInfo.ubicacion || 'No definida'}</p>
+              </div>
+
+              <hr className={styles.divider} />
+
+              {/* AUTORIDADES DEL PARTIDO */}
+              <div className={styles.resumenAutoridades}>
+                <h4>Autoridades</h4>
+                <div className={styles.autoridadesGrid}>
+                  <div>
+                    <p><strong>Árbitro 1:</strong> {arbitrosList.find(a => a.id_persona_rol === Number(partidoInfo.id_arbitro1))?.apellido || 'No asignado'}</p>
+                    <p><strong>Árbitro 2:</strong> {arbitrosList.find(a => a.id_persona_rol === Number(partidoInfo.id_arbitro2))?.apellido || 'No asignado'}</p>
+                    {/* Alerta de error de árbitros iguales */}
+                    {partidoInfo.id_arbitro1 && partidoInfo.id_arbitro1 === partidoInfo.id_arbitro2 && (
+                      <span className={styles.errorText}>⚠️ Los árbitros no pueden ser iguales</span>
+                    )}
+                  </div>
+                  <div>
+                    <p><strong>Mesa Local:</strong> {partidoInfo.juez_mesa_local || 'N/A'}</p>
+                    <p><strong>Mesa Visitante:</strong> {partidoInfo.juez_mesa_visitante || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <hr className={styles.divider} />
+
+              {/* JUGADORES QUE ASISTIERON */}
+              <div className={styles.resumenAsistencia}>
+                <h4>Asistencia de Jugadores</h4>
+                <div className={styles.asistenciaGrid}>
+                  <div>
+                    <h5>{inscripcionLocal?.nombre_equipo} ({seleccionados.local.length})</h5>
+                    <ul>
+                      {seleccionados.local.map(id => (
+                        <li key={id}>
+                          <strong>#{camisetas[id] || '--'}</strong> {getPlayerName(id)} {capitanes.local === id ? ' (C)' : ''}
+                        </li>
+                      ))}
+                    </ul>
+                    {capitanes.local === 0 && <span className={styles.errorText}>⚠️ Falta capitán</span>}
+                  </div>
+                  <div>
+                    <h5>{inscripcionVisitante?.nombre_equipo} ({seleccionados.visitante.length})</h5>
+                    <ul>
+                      {seleccionados.visitante.map(id => (
+                        <li key={id}>
+                          <strong>#{camisetas[id] || '--'}</strong> {getPlayerName(id)} {capitanes.visitante === id ? ' (C)' : ''}
+                        </li>
+                      ))}
+                    </ul>
+                    {capitanes.visitante === 0 && <span className={styles.errorText}>⚠️ Falta capitán</span>}
+                  </div>
+                </div>
+              </div>
+
+              <hr className={styles.divider} />
+
+              {/* INCIDENCIAS (Goles y Tarjetas) */}
+              <div className={styles.resumenListas}>
+                <div>
+                  <h4>Goles</h4>
+                  {goles.length === 0 ? <p className={styles.emptyResumen}>Sin goles registrados</p> : goles.map((g, i) => (
+                    <p key={i}>• Min {g.minuto}: {getPlayerName(g.id_plantel_integrante)} {g.es_autogol ? '(Autogol)' : ''}</p>
+                  ))}
+                </div>
+                <div>
+                  <h4>Tarjetas</h4>
+                  {tarjetas.length === 0 ? <p className={styles.emptyResumen}>Sin tarjetas registradas</p> : tarjetas.map((t, i) => (
+                    <p key={i}>• {t.tipo} - {getPlayerName(t.id_plantel_integrante)} (Min {t.minuto})</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.modalActions}>
+              <Button variant="outline" onClick={() => setShowModal(false)}>
+                Seguir editando
+              </Button>
+              <Button 
+                variant="primary" 
+                onClick={enviarPlanilla} 
+                disabled={loading || (partidoInfo.id_arbitro1 === partidoInfo.id_arbitro2 && partidoInfo.id_arbitro1 !== "")}
+              >
+                {loading ? "Confirmando..." : "Confirmar y Finalizar"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
     </div>
   );
 }

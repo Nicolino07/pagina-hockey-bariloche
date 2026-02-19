@@ -30,14 +30,17 @@ class PartidoPlanillaCreate(BaseModel):
     observaciones: Optional[str] = None
     numero_fecha: Optional[int] = None
 
-
 # ---------------------------
 # Participantes
 # ---------------------------
-class ParticipantesPlanilla(BaseModel):
-    local: List[int]        # ids plantel_integrante
-    visitante: List[int]
 
+class ParticipanteConCamiseta(BaseModel):
+    id_plantel_integrante: int
+    numero_camiseta: Optional[str] = None  # Usamos str por si hay números como "10A" o vacíos
+
+class ParticipantesPlanilla(BaseModel):
+    local: List[ParticipanteConCamiseta]     # Ahora es una lista de objetos, no de ints
+    visitante: List[ParticipanteConCamiseta] # Ahora es una lista de objetos, no de ints
 
 # ---------------------------
 # Goles

@@ -27,11 +27,14 @@ def crear_planilla_partido(db: Session, data, current_user):
         # =========================
         participantes_map = {}  # id_plantel_integrante -> id_participante_partido
 
-        ids_participantes = (
-            data.participantes.local + data.participantes.visitante
-        )
+        # Combinamos ambas listas de objetos (ParticipanteConCamiseta)
+        todos_los_participantes = data.participantes.local + data.participantes.visitante
 
-        for id_pi in ids_participantes:
+        for p in todos_los_participantes:
+            # 💡 CAMBIO: Ahora p es un objeto, extraemos sus atributos
+            id_pi = p.id_plantel_integrante
+            camiseta = p.numero_camiseta
+
             # validar que exista el integrante
             integrante = db.get(PlantelIntegrante, id_pi)
             if not integrante:
@@ -42,6 +45,7 @@ def crear_planilla_partido(db: Session, data, current_user):
             pp = ParticipanPartido(
                 id_partido=partido.id_partido,
                 id_plantel_integrante=id_pi,
+                numero_camiseta=camiseta, 
                 creado_por=current_user.username,
             )
             db.add(pp)
@@ -52,6 +56,7 @@ def crear_planilla_partido(db: Session, data, current_user):
         # =========================
         # 3️⃣ Cargar goles
         # =========================
+        # (Este bloque no cambia porque g.id_plantel_integrante sigue siendo un ID)
         for g in data.goles:
             id_pp = participantes_map.get(g.id_plantel_integrante)
             if not id_pp:
@@ -71,8 +76,6 @@ def crear_planilla_partido(db: Session, data, current_user):
                     creado_por=current_user.username,
                 )
             )
-
-    
 
         # =========================
         # 4️⃣ Cargar tarjetas
@@ -97,17 +100,15 @@ def crear_planilla_partido(db: Session, data, current_user):
                 )
             )
 
-
-
-        
-
-        # se dispara el triggers para recalcular posiciones. 
+        # Disparo de triggers y fin
         partido.estado_partido = "TERMINADO"
         db.flush()
-
         db.commit()
         return partido
 
-    except Exception:
+    except Exception as e:
         db.rollback()
-        raise
+        # Es mejor relanzar el error para ver qué pasó
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=str(e))

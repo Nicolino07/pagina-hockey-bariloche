@@ -5,6 +5,7 @@ import { login as loginApi } from "../../api/auth.api"
 import { useAuth } from "../../auth/AuthContext"
 import { decodeJwt } from "../../utils/jwt"
 import styles from "./Login.module.css"
+import { Link } from "react-router-dom"
 
 export default function Login() {
   const navigate = useNavigate()
@@ -43,13 +44,15 @@ export default function Login() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Login</h1>
+        <h1 className={styles.title}>Hockey Bariloche</h1>
+        <h2 className={styles.title}>Iniciar sesion</h2>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <input
             className={styles.input}
-            placeholder="Usuario"
+            placeholder="Nombre de usuario"
             value={username}
+            autoComplete="username"
             onChange={(e) => setUsername(e.target.value)}
           />
 
@@ -58,15 +61,23 @@ export default function Login() {
             type="password"
             placeholder="Contraseña"
             value={password}
+            autoComplete="current-password"
             onChange={(e) => setPassword(e.target.value)}
           />
 
           {error && <p className={styles.error}>{error}</p>}
 
           <button type="submit" disabled={loading} className={styles.button}>
-            {loading ? "Ingresando..." : "Entrar"}
+            {loading ? "Verificando..." : "Iniciar Sesión"}
           </button>
         </form>
+
+        {/* 🔗 Enlace de recuperación */}
+        <div className={styles.footerLinks}>
+          <Link to="/recuperar-password" className={styles.forgotLink}>
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
       </div>
     </div>
   )

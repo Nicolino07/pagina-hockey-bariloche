@@ -9,7 +9,7 @@ from app.database import get_db
 from app.dependencies.permissions import require_admin, require_superuser
 from app.schemas.user import UserInviteRequest
 from app.auth.security import create_access_token
-from app.core.email import send_invite_email
+from app.core.email import send_invite_email, send_reset_password_email
 from datetime import timedelta
 from jose import jwt, JWTError
 from app.core.config import settings
@@ -18,14 +18,17 @@ from app.database import get_db
 from app.auth.service import login_user, logout_user, refresh_access_token
 from app.dependencies.permissions import get_current_user
 from app.models.usuario import Usuario
-from app.auth.security import hash_password
-from app.schemas.user import UserConfirm  
-
-
-# ... (tus otros imports)
+from app.auth.security import hash_password, verify_password
 from app.models.usuario import Usuario as UsuarioModel  # Alias para el modelo de DB
 from app.schemas.usuario import Usuario as UsuarioSchema # Importa el Schema de Pydantic
 from app.schemas.usuario import UsuarioUpdate # Usaremos este para los PATCH
+
+from app.schemas.user import (
+    UserConfirm,
+    PasswordChangeRequest,
+    ForgotPasswordRequest,
+    ResetPasswordConfirm
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 limiter = Limiter(key_func=get_remote_address)
@@ -116,6 +119,8 @@ async def invitar_usuario(
 
     return {"message": f"Invitación enviada con éxito a {payload.email}"}
 
+
+
 @router.get("/validar-invitacion/{token}")
 def validar_token_invitacion(token: str):
     try:
@@ -174,7 +179,7 @@ def confirmar_registro(payload: UserConfirm, db: Session = Depends(get_db)):
         password_hash=hash_password(payload.password),
         tipo=data.get("role"),
         activo=True,
-        creado_por=data.get("invited_by") # <-- Ahora sí tomamos el nombre del admin
+        creado_por=data.get("invited_by") 
     )
     
     db.add(nuevo_usuario)
@@ -224,3 +229,69 @@ def cambiar_estado(
     
     db.commit()
     return {"message": "Estado actualizado"}
+
+
+
+
+# --- CAMBIO DE PASSWORD (LOGUEADO) ---
+@router.patch("/cambiar-password")
+def cambiar_password(
+    payload: PasswordChangeRequest, 
+    db: Session = Depends(get_db), 
+    current_user = Depends(get_current_user)
+):
+    # Verificar que la contraseña actual coincida
+    if not verify_password(payload.old_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=400, 
+            detail="La contraseña actual no es correcta"
+        )
+    
+    # Actualizar
+    current_user.password_hash = hash_password(payload.new_password)
+    current_user.actualizado_por = current_user.username
+    db.commit()
+    return {"message": "Contraseña actualizada con éxito"}
+
+
+# --- SOLICITAR RECUPERACIÓN (PÚBLICO) ---
+@router.post("/recuperar-password")
+async def recuperar_password(
+    payload: ForgotPasswordRequest, 
+    background_tasks: BackgroundTasks, 
+    db: Session = Depends(get_db)
+):
+    user = db.query(UsuarioModel).filter(UsuarioModel.email == payload.email).first()
+    
+    if user and user.activo:
+        token = create_access_token(
+            data={"sub": user.email, "type": "reset"}, 
+            expires_delta=timedelta(minutes=15)
+        )
+        
+        # 🔥 Llamamos a la función de Resend en segundo plano
+        background_tasks.add_task(send_reset_password_email, user.email, token)
+        
+    # Siempre devolvemos el mismo mensaje por seguridad
+    return {"message": "Si el correo está registrado, recibirás un link de recuperación en breve."}
+
+# --- CONFIRMAR RESET (PÚBLICO - VIENE DEL MAIL) ---
+@router.post("/reset-password-confirm")
+def reset_confirm(payload: ResetPasswordConfirm, db: Session = Depends(get_db)):
+    try:
+        data = jwt.decode(payload.token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+        if data.get("type") != "reset":
+            raise HTTPException(status_code=400, detail="Token no válido para esta operación")
+            
+        email = data.get("sub")
+        user = db.query(UsuarioModel).filter(UsuarioModel.email == email).first()
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            
+        user.password_hash = hash_password(payload.new_password)
+        db.commit()
+        return {"message": "Contraseña restablecida correctamente. Ya puedes iniciar sesión."}
+        
+    except JWTError:
+        raise HTTPException(status_code=400, detail="El link ha expirado o es inválido")

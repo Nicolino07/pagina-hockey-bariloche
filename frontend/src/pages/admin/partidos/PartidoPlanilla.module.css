@@ -15,6 +15,18 @@
   padding-bottom: 0.5rem;
 }
 
+.headerPage {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.headerPage h1 {
+  margin: 0;
+}
+
+
 /* SECCIONES GENERALES */
 .section {
 
@@ -170,6 +182,22 @@
   cursor: pointer;
 }
 
+.inputCamiseta {
+  width: 40px;
+  height: 25px;
+  text-align: center;
+  margin: 0 8px;
+  border: 1px solid var(--divider-color);
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.inputCamiseta:disabled {
+  background-color: #f0f0f0;
+  border-color: #eee;
+  cursor: not-allowed;
+}
+
 .deleteBtn {
   background: #ff4d4d;
   color: white;
@@ -211,6 +239,125 @@
   padding: 1rem;
   font-style: italic;
 }
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.resumenGrid {
+  margin: 1.5rem 0;
+  text-align: left;
+}
+
+.resumenListas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+}
+
+.modalContent h4 {
+  margin-bottom: 0.5rem;
+  color: #333;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid #eee;
+  margin: 1rem 0;
+}
+
+.resumenAsistencia h5 {
+  color: #555;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  text-decoration: underline;
+}
+
+.asistenciaGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  font-size: 0.85rem;
+}
+
+.asistenciaGrid ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.asistenciaGrid li {
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.emptyResumen {
+  font-style: italic;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.resumenHeader p {
+  margin: 0.2rem 0;
+}
+
+.resumenAutoridades {
+  margin-bottom: 1rem;
+}
+
+.autoridadesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.autoridadesGrid p {
+  margin: 0.2rem 0;
+}
+
+.errorText {
+  color: #dc3545;
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: block;
+  margin-top: 0.3rem;
+}
+
+
 
 /* RESPONSIVE */
 @media (max-width: 768px) {

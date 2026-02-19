@@ -56,3 +56,22 @@
   font-size: 14px;
   text-align: center;
 }
+
+.footerLinks {
+  margin-top: 1.5rem;
+  text-align: center;
+  border-top: 1px solid var(--divider-color);
+  padding-top: 1rem;
+}
+
+.forgotLink {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.forgotLink:hover {
+  color: var(--color-accent01); /* O el color que uses para destacar */
+  text-decoration: underline;
+}

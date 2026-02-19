@@ -43,7 +43,7 @@ class ParticipanPartido(Base, AuditFieldsMixin):
         nullable=False
     )
 
-    numero_camiseta: Mapped[Optional[int]] = mapped_column(Integer)
+    numero_camiseta: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
 
 
     # Relaciones (muy útiles)

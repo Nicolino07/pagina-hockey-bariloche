@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axiosAdmin from "../../../api/axiosAdmin";
 import { usuariosApi } from "../../../api/usuarios.api"; 
 import styles from "./GestionUsuarios.module.css"; // Importamos el module
 

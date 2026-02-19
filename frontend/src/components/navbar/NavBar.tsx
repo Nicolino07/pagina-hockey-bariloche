@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../auth/AuthContext"
 import styles from "./NavBar.module.css"
+import Button from "../ui/button/Button"
 
 export default function Navbar() {
   const { isAuthenticated, logout } = useAuth()
@@ -37,7 +38,9 @@ export default function Navbar() {
       <div className={styles.right}>
         {!isAuthenticated && (
           <Link to="/login" className={styles.login}>
-            Ingresar
+            <Button>
+              Ingresar
+            </Button>
           </Link>
         )}
 

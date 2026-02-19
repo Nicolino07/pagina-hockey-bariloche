@@ -24,14 +24,17 @@ import EquipoDetallePublic from "./pages/public/clubes/EquipoDetallePublic"
 import CompletarRegistro from './pages/admin/usuarios/CompletarRegistro'; // El nombre que le pongas
 import Unauthorized from "./pages/error/Unauthorized"
 import GestionUsuarios from "./pages/admin/usuarios/GestionUsuarios";
-
+import SolicitarRecuperacion from "./pages/login/SolicitarRecuperacion"
+import ResetPasswordForm from "./pages/login/ResetPassword";
 export default function App() {
   return (
     
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
-
+      <Route path="/recuperar-password" element={<SolicitarRecuperacion />}></Route>
+      <Route path="/reset-password" element={<ResetPasswordForm />} />
+      
       {/* 🌍 Público */}
       <Route element={<PublicLayout />}>
 
@@ -87,7 +90,7 @@ export default function App() {
         }
       >
         <Route path="/login/usuarios" element={<GestionUsuarios />} />
-  
+        
       </Route>
       
     </Routes>
