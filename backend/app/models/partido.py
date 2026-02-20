@@ -10,11 +10,12 @@ from sqlalchemy import (
     Time,
     CheckConstraint,
     UniqueConstraint,
-    Enum
+    Column,
+    Enum,
+    DateTime
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
-
 
 class Partido(Base, AuditFieldsMixin):
     __tablename__ = "partido"
@@ -134,3 +135,32 @@ class Partido(Base, AuditFieldsMixin):
         back_populates="partido",
         cascade="all, delete-orphan"
     )
+
+# Modelo para vista de paridos
+
+class PartidoDetallado(Base):
+    __tablename__ = 'vw_partidos_detallados'
+    
+    id_partido = Column(Integer, primary_key=True)
+    id_torneo = Column(Integer)
+    nombre_torneo = Column(String)
+    fecha = Column(Date)
+    horario = Column(Time)
+    ubicacion = Column(String)
+    numero_fecha = Column(Integer)
+    observaciones = Column(String)
+    creado_por = Column(String)
+    creado_en = Column(DateTime)
+    
+    equipo_local_nombre = Column(String)
+    equipo_visitante_nombre = Column(String)
+    goles_local = Column(Integer)
+    goles_visitante = Column(Integer)
+    
+    # Estos traen los strings concatenados "Apellido|Min|Cuarto|Extra"
+    lista_jugadores_local = Column(String)
+    lista_jugadores_visitante = Column(String)
+    lista_goles_local = Column(String)
+    lista_tarjetas_local = Column(String)
+    lista_goles_visitante = Column(String)
+    lista_tarjetas_visitante = Column(String)

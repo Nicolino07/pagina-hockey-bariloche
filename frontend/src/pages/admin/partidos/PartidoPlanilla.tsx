@@ -262,7 +262,7 @@ export default function PartidoPlanilla() {
         <section className={styles.eventSection}>
           <div className={styles.headerRow}>
             <h3>Goles</h3>
-            <Button onClick={() => setGoles([...goles, { id_plantel_integrante: "", minuto: "", cuarto: "", referencia_gol: "GJ", es_autogol: false }])} size="sm" variant="outline">+ Gol</Button>
+            <Button onClick={() => setGoles([...goles, { id_plantel_integrante: "", minuto: "", cuarto: "", referencia_gol: "GJ", es_autogol: false }])} size="sm" variant="secondary">+ Gol</Button>
           </div>
           {goles.map((gol, index) => (
             <div key={index} className={styles.eventRow}>
@@ -283,7 +283,7 @@ export default function PartidoPlanilla() {
         <section className={styles.eventSection}>
           <div className={styles.headerRow}>
             <h3>Tarjetas</h3>
-            <Button onClick={() => setTarjetas([...tarjetas, { id_plantel_integrante: "", tipo: "AMARILLA", minuto: "", cuarto: "" }])} size="sm" variant="outline">+ Tarjeta</Button>
+            <Button onClick={() => setTarjetas([...tarjetas, { id_plantel_integrante: "", tipo: "AMARILLA", minuto: "", cuarto: "" }])} size="sm" variant="secondary">+ Tarjeta</Button>
           </div>
           {tarjetas.map((t, index) => (
             <div key={index} className={styles.eventRow}>

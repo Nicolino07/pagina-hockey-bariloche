@@ -1,92 +1,105 @@
-.container {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
+.container { padding: 20px; max-width: 1200px; margin: 0 auto; }
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 .botones {
   display: flex;
-  gap: 12px; 
+  gap: 12px;
+  align-items: center;
 }
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+.statCard { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+.statCard strong { font-size: 1.5rem; color: #2c3e50; }
 
-.statCard {
+.tableContainer { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+.table th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; color: #666; font-size: 0.9rem; }
+.table td { padding: 12px; border-bottom: 1px solid #f5f5f5; }
+
+/* MODAL STYLES */
+.modalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+.modalContent { background: white; width: 100%; max-width: 800px; max-height: 90vh; border-radius: 12px; overflow-y: auto; position: relative; }
+
+.modalHeader { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+.subHeader { color: #888; font-size: 0.85rem; margin-top: 4px; }
+.closeBtn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+
+.mainScoreBanner { background: #1a252f; color: white; padding: 30px; display: flex; align-items: center; justify-content: center; gap: 20px; }
+.bigScore { font-size: 3.5rem; font-weight: 900; background: rgba(255,255,255,0.1); padding: 0 25px; border-radius: 10px; }
+.bigTeamName { flex: 1; text-align: center; font-size: 1.3rem; font-weight: 700; text-transform: uppercase; }
+
+.detailsBody { padding: 25px; }
+.teamSection { margin-bottom: 30px; }
+.localTitle { color: #2980b9; margin-bottom: 15px; font-weight: 800; }
+.visitanteTitle { color: #c0392b; margin-bottom: 15px; font-weight: 800; }
+
+.infoGrid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; }
+.infoCol label { display: block; font-size: 0.7rem; font-weight: 900; color: #bbb; text-transform: uppercase; margin-bottom: 10px; }
+
+.plantillaList { display: grid; grid-template-columns: 1fr; gap: 4px; }
+.jugadorRow { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; padding: 4px; background: #f8f9fa; border-radius: 4px; }
+.tshirt { background: #34495e; color: white; width: 20px; height: 20px; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold; }
+
+.incidenciaItem { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
+.mt { margin-top: 20px; }
+
+/* Tarjetas */
+.verde { color: #27ae60; border-right: 4px solid #27ae60; padding-right: 5px; }
+.amarilla { color: #f1c40f; border-right: 4px solid #f1c40f; padding-right: 5px; }
+.roja { color: #e74c3c; border-right: 4px solid #e74c3c; padding-right: 5px; }
+
+.divider { margin: 30px 0; border: 0; border-top: 1px solid #eee; }
+
+.modalFooter { padding: 20px; background: #fdfdfd; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-end; }
+.obs { max-width: 70%; font-size: 0.85rem; }
+.audit { font-size: 0.75rem; color: #999; }
+
+
+
+.modalContentSmall {
   background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.modalHelp {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.printForm {
   display: flex;
   flex-direction: column;
+  gap: 1rem;
 }
 
-.statCard strong {
-  font-size: 2rem;
-  color: #2563eb;
+.printForm select {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
 }
 
-.tableContainer {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  overflow: hidden;
+.vsLabel {
+  margin: 0 10px;
+  color: #999;
+  font-style: italic;
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.table th {
-  background: #f8fafc;
-  padding: 1rem;
-  font-weight: 600;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.table td {
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.matchup {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  font-weight: 500;
-}
-
-.matchup small {
-  color: #94a3b8;
-}
-
-.badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  font-weight: bold;
-}
-
-.finalizado { background: #dcfce7; color: #166534; }
-.borrador { background: #fef9c3; color: #854d0e; }
-.cancelado { background: #fee2e2; color: #991b1b; }
-
-.empty {
-  text-align: center;
-  padding: 3rem;
-  color: #64748b;
+.matchupRow strong {
+  color: #2c3e50;
 }

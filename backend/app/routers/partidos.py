@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -6,26 +6,28 @@ from app.dependencies.permissions import require_admin, require_editor
 from app.models.partido import Partido
 from app.schemas.partido import PartidoBase
 from app.schemas.planilla_partido import PlanillaPartidoCreate
-from app.services.partidos_services import crear_planilla_partido
+from app.services.partidos_services import crear_planilla_partido, get_partido_by_id, get_ultimos_partidos
 
 router = APIRouter(
     prefix="/partidos",
     tags=["Partidos"],
 )
 
-# 🔓 Público
-@router.get("/", response_model=list[PartidoBase])
-def listar_partidos(db: Session = Depends(get_db)):
-    return db.query(Partido).all()
 
+@router.get("/recientes")
+def listar_partidos_recientes(
+    torneo_id: int = Query(None), 
+    db: Session = Depends(get_db)
+):
+    partidos = get_ultimos_partidos(db, torneo_id=torneo_id)
+    return partidos
 
-@router.get("/{id_partido}", response_model=PartidoBase)
-def obtener_partido(id_partido: int, db: Session = Depends(get_db)):
-    partido = db.get(Partido, id_partido)
+@router.get("/{partido_id}")
+def detalle_partido(partido_id: int, db: Session = Depends(get_db)):
+    partido = get_partido_by_id(db, partido_id)
     if not partido:
-        raise HTTPException(404, "Partido no encontrado")
+        return {"error": "Partido no encontrado"}, 404
     return partido
-
 
 # 🔐 ADMIN/ EDITOR – carga de planilla completa
 @router.post(

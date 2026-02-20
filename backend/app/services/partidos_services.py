@@ -3,7 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
 from sqlalchemy import text
 
-from app.models.partido import Partido
+from app.models.partido import Partido, PartidoDetallado
 from app.models.participan_partido import ParticipanPartido
 from app.models.gol import Gol
 from app.models.tarjeta import Tarjeta
@@ -112,3 +112,20 @@ def crear_planilla_partido(db: Session, data, current_user):
         if isinstance(e, HTTPException):
             raise e
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+
+
+
+def get_ultimos_partidos(db: Session, torneo_id: int = None, limit: int = 10):
+    query = db.query(PartidoDetallado)
+    
+    if torneo_id:
+        query = query.filter(PartidoDetallado.id_torneo == torneo_id)
+    
+    # Ordenamos por fecha y hora descendente para ver lo más reciente primero
+    return query.order_by(PartidoDetallado.fecha.desc(), PartidoDetallado.horario.desc()).limit(limit).all()
+
+def get_partido_by_id(db: Session, partido_id: int):
+    return db.query(PartidoDetallado).filter(PartidoDetallado.id_partido == partido_id).first()

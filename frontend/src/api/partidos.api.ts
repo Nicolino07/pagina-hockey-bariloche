@@ -1,36 +1,25 @@
 
 import api from "./axiosAdmin"
+import axiosPublic from "./axiosPublic";
+
 
 /**
- * Obtiene la lista de todos los partidos registrados.
- * Ideal para la PartidosPage.
+ * Obtiene los últimos partidos con el detalle de la vista (goles, tarjetas, autores)
+ * @param {number} torneoId - Opcional: filtra por un torneo específico
  */
-export const listarPartidos = async () => {
+export const obtenerPartidosRecientes = async (torneoId?: number) => {
   try {
-    const response = await api.get(`/partidos/`, {
-      withCredentials: true, // Importante si usas cookies de sesión/auth
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error en listarPartidos:", error);
-    throw error;
-  }
-};
-
-/**
- * Obtiene el detalle de un partido específico.
- */
-export const obtenerPartido = async (id_partido: number) => {
-  try {
-    const response = await api.get(`/partidos/${id_partido}`, {
+    // Ahora si no pasas nada, torneoId es null y la URL será limpia
+    const url = torneoId ? `/partidos/recientes?torneo_id=${torneoId}` : `/partidos/recientes`;
+    const response = await axiosPublic.get(url, {
       withCredentials: true,
     });
     return response.data;
   } catch (error) {
-    console.error(`Error al obtener partido ${id_partido}:`, error);
-    throw error;
+    // ... error handling
   }
 };
+
 
 /**
  * Crea la planilla completa del partido (Endpoint: POST /partidos/planilla)

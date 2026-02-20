@@ -30,3 +30,7 @@ class ClubPersonaRol(Base):
     fecha_fin: Mapped[date | None] = mapped_column(Date)
 
     activo: Mapped[bool] = mapped_column(Boolean)
+
+
+
+
