@@ -48,7 +48,11 @@ export default function PartidosPage() {
     const data = await getPlantelActivoPorEquipo(idEquipo);
     if (data && data.length > 0) {
       // Aplicamos el mismo filtro que tu hook: solo personas reales
-      return data.filter((i: any) => i.id_persona !== null && i.id_persona !== undefined);
+      return data.filter((i: any) => 
+        i.id_persona !== null && 
+        i.id_persona !== undefined &&
+        i.rol_en_plantel === "JUGADOR" 
+      );
     }
     return [];
   };
