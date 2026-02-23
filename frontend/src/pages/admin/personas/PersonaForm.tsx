@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import styles from "./PersonaDetalle.module.css"; 
+import { useNavigate } from "react-router-dom";
 import type { PersonaFormData } from "../../../types/persona";
 import type { TipoGenero } from "../../../constants/enums";
+import styles from "./PersonaForm.module.css";
 
 interface Props {
   initialData?: PersonaFormData;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function PersonaForm({ initialData, onSubmit, onCancel, isSaving, disabled }: Props) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<PersonaFormData>({
     nombre: "",
     apellido: "",
@@ -92,9 +94,16 @@ export default function PersonaForm({ initialData, onSubmit, onCancel, isSaving,
       </div>
 
       {!disabled && (
-        <div className={styles.buttonGroup} style={{ gridColumn: "1 / -1", justifyContent: "flex-end", display: "flex", gap: "10px", marginTop: "15px" }}>
-          <button type="button" className={styles.cancelButton} onClick={onCancel}>Cancelar</button>
-          <button type="button" className={styles.saveButton} onClick={() => onSubmit(formData)} disabled={isSaving}>
+        <div className={styles.buttonGroup}>
+          <button type="button" className={styles.cancelButton} onClick={onCancel}>
+            Cancelar
+          </button>
+          <button 
+            type="button" 
+            className={styles.saveButton} 
+            onClick={() => onSubmit(formData)} 
+            disabled={isSaving}
+          >
             {isSaving ? "Guardando..." : "Guardar Cambios"}
           </button>
         </div>

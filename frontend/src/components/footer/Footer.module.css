@@ -1,14 +1,33 @@
 .footer {
   width: 100%;
-  padding: 16px 24px;
-  margin-top: auto;
-
+  padding: 24px; /* Un poco más de aire */
+  margin-top: auto; /* Empuja el footer al fondo si hay poco contenido */
+  
+  background-color: transparent; /* O puedes usar var(--bg-main) */
   text-align: center;
-  font-size: 0.9rem;
-  color: var(--text-primary);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--divider-color);
+  box-sizing: border-box;
 }
 
 .author {
   color: var(--color-accent03);
-  font-weight: 500;
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.author:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+/* Ajuste para móviles */
+@media (max-width: 480px) {
+  .footer {
+    padding: 16px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
 }

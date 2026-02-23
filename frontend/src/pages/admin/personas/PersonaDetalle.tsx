@@ -106,8 +106,8 @@ export default function PersonaDetalle() {
       <header className={styles.header}>
         <div className={styles.titleSection}>
 
-          <Button
-           className={styles.backButton} onClick={() => navigate(-1)}>← Volver
+          <Button onClick={() => navigate(-1)}>
+            ← Volver
           </Button>
           <h1>Detalle de Persona</h1>
           <span className={styles.idBadge}>ID: {id_persona}</span>

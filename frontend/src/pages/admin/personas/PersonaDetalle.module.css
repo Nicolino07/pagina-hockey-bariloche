@@ -1,88 +1,106 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  box-sizing: border-box;
 }
 
+/* --- HEADER --- */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid var(--bg-default);
-  padding-bottom: 15px;
+  border-bottom: 2px solid #edf2f7;
+  padding-bottom: 20px;
 }
 
 .titleSection {
   display: flex;
   align-items: center;
   gap: 15px;
-}
-
-.backButton {
-  background: none;
-  border: none;
-  color: var(--color-primary);
-  font-weight: 600;
-  cursor: pointer;
-  padding: 5px 10px;
-  border-radius: 4px;
-}
-
-.backButton:hover {
-  background-color: var(--bg-default);
+  flex-wrap: wrap;
 }
 
 .header h1 {
   margin: 0;
-  font-size: 1.6rem;
-  color: var(--text-primary);
+  font-size: 1.8rem;
+  color: #1a202c;
 }
 
 .idBadge {
-  background: var(--bg-default);
+  background: #f1f5f9;
   padding: 4px 12px;
   border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
 }
 
-/* Sección de Tabla */
-.content {
-  background: var(--bg-paper);
-  border: 1px solid var(--divider-color);
+/* --- TARJETAS (INFO GRAL Y ROLES) --- */
+.card, .content {
+  background: white;
   border-radius: 12px;
   padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
 }
 
-.sectionHeader {
+.cardHeader, .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
-.sectionHeader h2 {
-  font-size: 1.1rem;
+.cardHeader h2, .sectionHeader h2 {
+  font-size: 1.25rem;
   margin: 0;
-  color: var(--color-secondary);
+  color: #2d3748;
+  font-weight: 700;
 }
 
-.addButton {
-  background-color: var(--bg-default);
-  border: 1px solid var(--divider-color);
-  padding: 6px 12px;
+/* --- GESTIÓN DE ROLES (NUEVO ROL) --- */
+.addRolBar {
+  display: flex;
+  gap: 12px;
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+  align-items: center;
+}
+
+.select {
+  flex: 1;
+  height: 40px;
   border-radius: 6px;
-  font-size: 0.85rem;
+  border: 1px solid #cbd5e0;
+  padding: 0 10px;
+  font-size: 0.9rem;
+}
+
+.saveButtonSmall {
+  background: #2b6cb0;
+  color: white;
+  border: none;
+  padding: 0 16px;
+  height: 40px;
+  border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
 }
 
-.addButton:hover {
-  background-color: #eee;
+.saveButtonSmall:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-/* Tabla Estilizada */
+/* --- TABLA DE ROLES --- */
 .tableWrapper {
   overflow-x: auto;
 }
@@ -90,126 +108,111 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.95rem;
 }
 
 .table th {
   text-align: left;
   padding: 12px;
-  border-bottom: 2px solid var(--bg-default);
-  color: var(--text-secondary);
-  font-size: 0.8rem;
+  background: #f8fafc;
+  color: #718096;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  border-bottom: 2px solid #edf2f7;
 }
 
 .table td {
-  padding: 14px 12px;
-  border-bottom: 1px solid var(--bg-default);
+  padding: 16px 12px;
+  border-bottom: 1px solid #edf2f7;
+  font-size: 0.95rem;
 }
 
-.rolCell {
-  color: var(--color-primary);
+.rolCell strong {
+  color: #2b6cb0;
+  font-size: 1rem;
 }
 
+/* ESTADOS */
+.statusFichado, .statusLibre {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.statusFichado { background: #dcfce7; color: #166534; }
+.statusLibre { background: #f1f5f9; color: #475569; }
+
+/* --- BOTÓN ELIMINAR --- */
 .deleteButton {
-  background-color: #fff1f0;
+  background: #fff1f0;
   color: #cf1322;
   border: 1px solid #ffa39e;
-  padding: 4px 10px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .deleteButton:hover {
-  background-color: #cf1322;
+  background: #cf1322;
   color: white;
 }
 
-.empty {
-  text-align: center;
-  padding: 40px;
-  color: var(--text-secondary);
-  font-style: italic;
-}
-
-.card {
-  background: white;
+.addButton {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e0;
+  padding: 8px 16px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  padding: 20px;
-  margin-bottom: 20px;
-  border: 1px solid #eee;
-}
-
-.cardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #f5f5f5;
-  padding-bottom: 10px;
-}
-
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.formGroup label {
   font-size: 0.85rem;
-  font-weight: 600;
-  color: #666;
-}
-
-.formGroup input {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background-color: #f9f9f9;
-}
-
-.formGroup input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  background-color: white;
-}
-
-.formGroup input:disabled {
-  background-color: #f5f5f5;
-  color: #888;
-  cursor: not-allowed;
-  border-color: #eee;
-}
-
-.saveButton {
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  font-weight: 700;
+  color: #4a5568;
   cursor: pointer;
 }
 
-.cancelButton {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-}
+/* --- RESPONSIVO --- */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
 
-.buttonGroup {
-  display: flex;
-  gap: 10px;
+  .addRolBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Transformar tabla en tarjetas en móvil */
+  .table thead { display: none; }
+  
+  .table tr {
+    display: block;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    padding: 15px;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: none;
+    padding: 8px 0;
+    text-align: left !important;
+  }
+
+  .table td::before {
+    content: attr(data-label); /* Necesitarás agregar data-label al JSX */
+    font-weight: 700;
+    color: #718096;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+  }
+
+  .rolCell { order: -1; border-bottom: 1px solid #f1f5f9 !important; padding-bottom: 12px !important; margin-bottom: 8px; }
+  .rolCell::before { content: "ROL ACTUAL" !important; }
 }

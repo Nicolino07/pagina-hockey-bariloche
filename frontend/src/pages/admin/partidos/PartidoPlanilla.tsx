@@ -235,20 +235,58 @@ export default function PartidoPlanilla() {
         {(['local', 'visitante'] as const).map(side => {
           const listaIntegrantes = side === 'local' ? plantelLocal : plantelVisitante;
           const nombreEquipo = side === 'local' ? inscripcionLocal?.nombre_equipo : inscripcionVisitante?.nombre_equipo;
+          
           return (
             <div key={side} className={styles.column}>
               <h3>{nombreEquipo || (side === 'local' ? 'Local' : 'Visitante')}</h3>
+              
+              {/* Cabecera de la lista de jugadores */}
+              {listaIntegrantes.length > 0 && (
+                <div className={styles.playerListHeader}>
+                  <span title="Asistencia">Asist.</span>
+                  <span title="Número de Camiseta">Cam.</span>
+                  <span className={styles.headerNombre}>Nombre / Documento / Rol</span>
+                  <span title="Capitán">Cap.</span>
+                </div>
+              )}
+
               <div className={styles.playerList}>
                 {listaIntegrantes.length === 0 && <p className={styles.empty}>Selecciona un equipo</p>}
                 {listaIntegrantes.map(p => (
                   <div key={p.id_plantel_integrante} className={styles.playerItem}>
-                    <input type="checkbox" checked={seleccionados[side].includes(p.id_plantel_integrante)} onChange={(e) => {
-                      const id = p.id_plantel_integrante;
-                      setSeleccionados(prev => ({ ...prev, [side]: e.target.checked ? [...prev[side], id] : prev[side].filter(x => x !== id) }));
-                    }} />
-                    <input type="text" placeholder="#" className={styles.inputCamiseta} value={camisetas[p.id_plantel_integrante] || ""} onChange={(e) => setCamisetas({ ...camisetas, [p.id_plantel_integrante]: e.target.value })} disabled={!seleccionados[side].includes(p.id_plantel_integrante)} />
-                    <span className={styles.playerText}>{p.apellido_persona}, {p.nombre_persona} - {p.documento} - {p.rol_en_plantel} </span>
-                    <input type="radio" name={`capitan-${side}`} checked={capitanes[side] === p.id_plantel_integrante} onChange={() => setCapitanes(prev => ({ ...prev, [side]: p.id_plantel_integrante }))} />
+                    {/* Checkbox Asistencia */}
+                    <input 
+                      type="checkbox" 
+                      checked={seleccionados[side].includes(p.id_plantel_integrante)} 
+                      onChange={(e) => {
+                        const id = p.id_plantel_integrante;
+                        setSeleccionados(prev => ({ ...prev, [side]: e.target.checked ? [...prev[side], id] : prev[side].filter(x => x !== id) }));
+                      }} 
+                    />
+                    
+                    {/* Input Camiseta */}
+                    <input 
+                      type="text" 
+                      placeholder="#" 
+                      className={styles.inputCamiseta} 
+                      value={camisetas[p.id_plantel_integrante] || ""} 
+                      onChange={(e) => setCamisetas({ ...camisetas, [p.id_plantel_integrante]: e.target.value })} 
+                      disabled={!seleccionados[side].includes(p.id_plantel_integrante)} 
+                    />
+                    
+                    {/* Datos Jugador */}
+                    <span className={styles.playerText}>
+                      {p.apellido_persona}, {p.nombre_persona} <br />
+                      <small>{p.documento} - <strong>{p.rol_en_plantel}</strong></small>
+                    </span>
+                    
+                    {/* Radio Capitán */}
+                    <input 
+                      type="radio" 
+                      name={`capitan-${side}`} 
+                      checked={capitanes[side] === p.id_plantel_integrante} 
+                      onChange={() => setCapitanes(prev => ({ ...prev, [side]: p.id_plantel_integrante }))} 
+                    />
                   </div>
                 ))}
               </div>
@@ -256,7 +294,6 @@ export default function PartidoPlanilla() {
           );
         })}
       </div>
-
       {/* SECCIÓN DE INCIDENCIAS */}
       <div className={styles.incidencias}>
         <section className={styles.eventSection}>
@@ -268,8 +305,29 @@ export default function PartidoPlanilla() {
             <div key={index} className={styles.eventRow}>
               <select value={gol.id_plantel_integrante} onChange={e => { const n = [...goles]; n[index].id_plantel_integrante = e.target.value; setGoles(n); }}>
                 <option value="">Autor</option>
-                <optgroup label="Local">{plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante)).map(p => <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>{p.apellido_persona}, {p.nombre_persona}</option>)}</optgroup>
-                <optgroup label="Visitante">{plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante)).map(p => <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>{p.apellido_persona}, {p.nombre_persona}</option>)}</optgroup>
+                <optgroup label="Local">
+                  {plantelLocal
+                    .filter(p => seleccionados.local.includes(p.id_plantel_integrante))
+                    // 👇 NUEVO FILTRO DE ROL
+                    .filter(p => p.rol_en_plantel === 'JUGADOR') 
+                    .map(p => (
+                      <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>
+                        {p.apellido_persona}, {p.nombre_persona}
+                      </option>
+                    ))}
+                </optgroup>
+
+                <optgroup label="Visitante">
+                  {plantelVisitante
+                    .filter(p => seleccionados.visitante.includes(p.id_plantel_integrante))
+                    // 👇 NUEVO FILTRO DE ROL
+                    .filter(p => p.rol_en_plantel === 'JUGADOR') 
+                    .map(p => (
+                      <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>
+                        {p.apellido_persona}, {p.nombre_persona}
+                      </option>
+                    ))}
+                </optgroup>
               </select>
               <select value={gol.referencia_gol} onChange={e => { const n = [...goles]; n[index].referencia_gol = e.target.value; setGoles(n); }}>{TIPOS_GOL.map(t => <option key={t} value={t}>{t}</option>)}</select>
               <input type="number" placeholder="Min" value={gol.minuto} onChange={e => { const n = [...goles]; n[index].minuto = e.target.value; setGoles(n); }} />

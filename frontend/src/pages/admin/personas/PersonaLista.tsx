@@ -1,55 +1,60 @@
-import { usePersonasRoles } from "../../../hooks/usePersonaConRoles"
+import { usePersonasRoles } from "../../../hooks/usePersonaConRoles";
+import styles from "./PersonasList.module.css";
 
 export const PersonasList = () => {
-  const { data, loading, error } = usePersonasRoles()
+  const { data, loading, error } = usePersonasRoles();
 
-  if (loading) return <p>Cargando personas...</p>
-  if (error) return <p>{error}</p>
+  if (loading) return <p className={styles.loading}>Cargando personas...</p>;
+  if (error) return <p className={styles.error}>{error}</p>;
 
   return (
-    <table>
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Roles</th>
-          <th>Club</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((persona) => {
-          const rolPrincipal = persona.roles[0]
+    <div className={styles.tableContainer}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Nombre y Apellido</th>
+            <th>Roles</th>
+            <th>Estado / Club</th>
+            <th style={{ textAlign: "right" }}>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((persona) => {
+            const rolPrincipal = persona.roles[0];
 
-          return (
-            <tr key={persona.id_persona}>
-              <td>
-                {persona.nombre} {persona.apellido}
-              </td>
+            return (
+              <tr key={persona.id_persona}>
+                <td className={styles.personaName}>
+                  {persona.apellido}, {persona.nombre}
+                </td>
 
-              <td>
-                <strong>{rolPrincipal.rol}</strong>
-                {persona.roles.length > 1 && (
-                  <ul style={{ margin: 0 }}>
-                    {persona.roles.slice(1).map((r) => (
-                      <li key={r.rol}>{r.rol}</li>
-                    ))}
-                  </ul>
-                )}
-              </td>
+                <td className={styles.rolesCell}>
+                  <span className={styles.primaryRol}>{rolPrincipal.rol}</span>
+                  {persona.roles.length > 1 && (
+                    <ul className={styles.extraRoles}>
+                      {persona.roles.slice(1).map((r) => (
+                        <li key={r.rol}>• {r.rol}</li>
+                      ))}
+                    </ul>
+                  )}
+                </td>
 
-              <td>
-                {rolPrincipal.estado_fichaje === "FICHADO"
-                  ? rolPrincipal.nombre_club
-                  : "Sin fichar"}
-              </td>
+                <td className={styles.clubCell}>
+                  {rolPrincipal.estado_fichaje === "FICHADO" ? (
+                    <span className={styles.fichado}>{rolPrincipal.nombre_club}</span>
+                  ) : (
+                    <span className={styles.libre}>Sin fichar</span>
+                  )}
+                </td>
 
-              <td>
-                <button>Editar</button>
-              </td>
-            </tr>
-          )
-        })}
-      </tbody>
-    </table>
-  )
-}
+                <td style={{ textAlign: "right" }}>
+                  <button className={styles.editBtn}>Editar</button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+};

@@ -1,101 +1,147 @@
+/* ==========================================================================
+   EquipoDetalle.module.css - Gestión de Planteles
+   ========================================================================== */
+
 .container {
   padding: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
+/* --- HEADER --- */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
-  background: var(--bg-secondary);
-  padding: 1rem;
-  border-radius: 8px;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  gap: 1rem;
+}
+
+.titleInfo {
+  flex: 1;
 }
 
 .titleInfo h1 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
+  color: #1a202c;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.subtext {
+  font-size: 0.9rem;
+  color: #718096;
+  font-weight: 400;
 }
 
 .titleInfo p {
-  margin: 0.2rem 0 0;
-  opacity: 0.7;
-  font-size: 0.9rem;
+  margin: 5px 0 0;
+  color: #4a5568;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
 }
 
-/* FILTROS DENTRO DEL MODAL */
-.filters {
+/* --- SECCIONES DE CONTENIDO --- */
+.plantelSection {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.emptyCard {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: #f8fafc;
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  color: #64748b;
+}
+
+/* --- MODALES Y FORMULARIOS --- */
+.formContainer {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color);
+  gap: 1.2rem;
+  padding: 10px 0;
 }
 
-.row {
+.field {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
 }
 
-.filters select, 
-.filters input {
-  padding: 0.6rem;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-input);
-  color: var(--text-color);
-  flex: 1;
+.field label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4a5568;
 }
 
-/* LISTA CON SCROLL */
+.field input, .filters select, .searchInput {
+  height: 42px;
+  padding: 0 1rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e0;
+  font-size: 0.95rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* --- FILTROS DENTRO DEL MODAL --- */
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  background: #f1f5f9;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.searchInput {
+  background: white;
+}
+
+/* --- LISTA DE FICHAJES (DENTRO DEL MODAL) --- */
 .scrollList {
-  max-height: 400px;
+  max-height: 350px;
   overflow-y: auto;
-  padding-right: 0.5rem;
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* TARJETAS DE PERSONA */
 .personaCard {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.5rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  padding: 0.8rem 1rem;
+  background: white;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  transition: transform 0.1s;
-}
-
-.personaCard:hover {
-  border-color: var(--primary-color);
 }
 
 .personaInfo {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
 }
 
 .personaName {
-  font-weight: 600;
-  font-size: 1rem;
-  color: var(--text-primary);
-  text-transform: uppercase;
-}
-
-.personaSub {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  opacity: 0.8;
-}
-
-/* ESTADOS */
-.empty {
-  text-align: center;
-  padding: 2rem;
-  opacity: 0.5;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #2d3748;
 }
 
 .modalActions {
@@ -103,4 +149,56 @@
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #edf2f7;
+}
+
+/* --- ADAPTACIÓN A MÓVILES --- */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    padding: 1.2rem;
+  }
+
+  .titleInfo h1 {
+    justify-content: center;
+    font-size: 1.4rem;
+  }
+
+  /* Botones en móvil */
+  .header button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .personaCard {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .personaCard button {
+    width: 100%;
+  }
+
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+
+  .modalActions button {
+    width: 100%;
+  }
+}
+
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: #a0aec0;
 }

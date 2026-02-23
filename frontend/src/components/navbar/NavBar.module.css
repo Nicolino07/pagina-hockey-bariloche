@@ -3,15 +3,20 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 2rem;
-  background-color: var(--color-intermedio); /* Tu color oscuro */
-  height: 60px;
+  background-color: var(--color-intermedio);
+  min-height: 60px; /* Cambiado a min-height */
   color: white;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1000;
 }
 
 .left {
   display: flex;
   gap: 1.5rem;
   align-items: center;
+  flex-wrap: wrap; /* Permite que los links bajen si no hay espacio */
 }
 
 .link {
@@ -20,24 +25,19 @@
   font-size: 0.9rem;
   font-weight: 500;
   transition: color 0.2s;
+  white-space: nowrap; /* Evita que una palabra se parta a la mitad */
 }
 
 .link:hover {
   color: var(--color-secondary);
 }
 
-/* Resaltado especial para el link de Gestión de Staff */
 .superLink {
-  color: var(--color-accent03); /* El color mostaza/dorado que tienes en variables */
+  color: var(--color-accent03);
   border: 1px solid var(--color-accent03);
   padding: 4px 10px;
   border-radius: 6px;
   font-weight: 700;
-}
-
-.superLink:hover {
-  background-color: var(--color-accent03);
-  color: var(--color-intermedio);
 }
 
 .right {
@@ -50,34 +50,48 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-}
-
-.userRoleBadge {
-  font-size: 0.65rem;
-  font-weight: 800;
-  background-color: var(--color-secondary);
-  color: var(--color-intermedio);
-  padding: 2px 8px;
-  border-radius: 4px;
-  text-transform: uppercase;
-}
-
-.userName {
   font-size: 0.8rem;
-  opacity: 0.8;
 }
 
-.button {
-  background: transparent;
-  border: 1px solid var(--color-secondary);
-  color: var(--color-secondary);
-  padding: 5px 15px;
-  border-radius: 4px;
-  cursor: pointer;
+/* --- MEDIA QUERIES PARA CELULARES --- */
+
+@media (max-width: 850px) {
+  .navbar {
+    flex-direction: column; /* Apila logo/links arriba y usuario abajo */
+    height: auto;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .left {
+    justify-content: center; /* Centra los links en el móvil */
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .right {
+    width: 100%;
+    justify-content: space-between; /* Usuario a un lado, salir al otro */
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 0.8rem;
+  }
+
+  .userInfo {
+    align-items: flex-start; /* Texto a la izquierda en móvil */
+  }
 }
 
-.button:hover {
-  background: var(--color-secondary);
-  color: var(--color-intermedio);
-}
+@media (max-width: 480px) {
+  .left {
+    gap: 0.8rem;
+  }
 
+  .link {
+    font-size: 0.8rem; /* Links un poco más pequeños */
+  }
+
+  .superLink {
+    padding: 2px 6px;
+    font-size: 0.75rem;
+  }
+}

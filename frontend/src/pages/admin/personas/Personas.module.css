@@ -1,232 +1,177 @@
-/* Contenedor principal */
 .container {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  box-sizing: border-box;
 }
 
-/* Header de la página */
+/* --- HEADER Y TOOLBAR --- */
 .header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .header h1 {
   margin: 0;
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
 }
 
-/* Botón "Nueva Persona" */
-.primaryButton {
-  background-color: var(--boton-oscuro);
-  color: var(--text-on-primary);
-  text-decoration: none;
-  padding: 8px 16px;
+.toolbar {
+  display: flex;
+  gap: 12px;
+  background: #f1f5f9;
+  padding: 1rem;
+  border-radius: 12px;
+  align-items: center;
+}
+
+.searchInput {
+  flex: 2;
+  min-width: 200px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e0;
   border-radius: 8px;
-  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.filterSelect {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  background: white;
   font-size: 0.9rem;
-  transition: all 0.2s ease;
 }
 
-.primaryButton:hover {
-  background-color: var(--color-secondary);
-  transform: translateY(-1px);
-}
-
-/* Lista de tarjetas - Una debajo de la otra */
+/* --- LISTA DE PERSONAS --- */
 .list {
   display: flex;
   flex-direction: column;
-  gap: 4px; /* Espacio mínimo entre filas */
+  gap: 8px; /* Separación sutil entre filas */
 }
 
-/* La Tarjeta (PersonaCard) */
 .personaCard {
- background-color: var(--bg-paper);
-  border: 1px solid var(--divider-color);
-  border-radius: 6px; /* Bordes más sutiles */
-  padding: 8px 16px; /* Padding reducido al mínimo */
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 20px;
   display: flex;
   flex-direction: column;
-  transition: background-color 0.2s;
-  cursor: pointer; /* Cambia el cursor a la mano */
-  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .personaCard:hover {
-  background-color: #f0f4f7; /* Un celeste muy suave */
   border-color: var(--color-primary);
-  transform: translateX(4px); /* Pequeño desplazamiento a la derecha al pasar el mouse */
+  background-color: #f8fafc;
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* Para accesibilidad */
-.personaCard:focus {
-  outline: 2px solid var(--color-primary);
-  background-color: #f0f4f7;
-}
-
-
-
-/* Fila del Nombre del Usuario */
-.personaMain {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-bottom: 2px;
-}
-
-
-.iconUser {
-  font-size: 0.9rem;
-  opacity: 0.6;
-}
-
-.personaCard h3 {
+.personaMain h3 {
   margin: 0;
-  font-size: 0.95rem; /* Fuente más pequeña */
+  font-size: 1.1rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #2d3748;
 }
 
-/* Contenedor de los roles (Debajo del nombre) */
+/* --- FILAS DE ROLES --- */
 .rolesContainer {
   display: flex;
   flex-direction: column;
-  /* Quitamos el border-top y el padding extra para comprimir */
+  margin-top: 4px;
 }
 
-/* CADA FILA DE ROL (Lo que pediste lineal) */
 .rolRow {
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 2px 0; /* Filas de rol muy delgadas */
+  gap: 20px;
+  padding: 6px 0;
+  border-top: 1px solid #f1f5f9;
 }
+
+.rolRow:first-child { border-top: none; }
 
 .rolName {
-  min-width: 110px;
-  font-weight: 600;
+  min-width: 130px;
+  font-weight: 700;
   font-size: 0.8rem;
-  color: var(--text-primary);
-}
-
-.badge {
-  min-width: 90px;
-  font-size: 0.65rem;
-  padding: 1px 6px;
-  border-radius: 4px;
-  text-align: center;
+  color: #4a5568;
 }
 
 .clubName {
-  font-size: 1rem;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; /* Si el nombre del club es muy largo, no rompe la fila */
+  font-size: 0.9rem;
+  color: #2b6cb0; /* Azul deportivo para clubes */
+  font-weight: 500;
+  flex: 1;
 }
 
-/* Colores de estados (más suaves para no cansar la vista en listas largas) */
+/* ESTADOS DE FICHAJE */
+.stadoBadge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 5px;
+  text-transform: uppercase;
+}
+
 .fichado {
-  color: #2e7d32;
-  font-style: italic;
-  font-weight: 600;
+  color: #059669;
+  background: #ecfdf5;
 }
 
 .sinfichar {
-  color: #414040;
-  font-style: italic;
-  font-weight: 600;
-  font-size: 0.85rem;
+  color: #64748b;
+  background: #f1f5f9;
 }
 
-
-/* Estados de carga y error */
-.loading, .error {
-  padding: 40px;
-  text-align: center;
-  font-weight: 500;
-  font-size: 0.85rem;
-}
-
-.error {
-  color: #c0392b;
-  background-color: #fdecea;
-  border-radius: 8px;
-}
-
+/* --- MODAL --- */
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6); /* Fondo oscurecido */
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
-  padding: 20px;
+  z-index: 2000;
+  padding: 1rem;
 }
 
 .modalContent {
   background: white;
   padding: 2rem;
-  border-radius: 12px;
+  border-radius: 16px;
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  position: relative;
 }
 
-.modalHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 1rem;
-}
+/* --- RESPONSIVO --- */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-.closeX {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #666;
-}
+  .header h1 { font-size: 1.8rem; }
 
-.closeX:hover {
-  color: #000;
-}
+  .rolRow {
+    flex-wrap: wrap; /* Permite que el club baje si no hay espacio */
+    gap: 8px;
+  }
 
-.toolbar {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 8px;
-  flex-wrap: wrap;
-}
-
-.searchInput {
-  flex: 1;
-  min-width: 250px;
-  padding: 0.6rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.filterSelect {
-  background: var(--color-secondary);
-  padding: 0.6rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
+  .rolName { width: 100%; } /* Rol arriba */
+  
+  .clubName { 
+    width: 100%; 
+    font-size: 0.85rem;
+    color: #4a5568;
+  }
 }
