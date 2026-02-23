@@ -3,14 +3,13 @@ services:
     image: postgres:15
     container_name: hockey_db
     environment:
-      POSTGRES_DB: hockey_db
-      POSTGRES_USER: hockey_user
-      POSTGRES_PASSWORD: hockey1234
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/db:/docker-entrypoint-initdb.d
     networks:
       - hockey-network
 
@@ -18,9 +17,7 @@ services:
     build: ./backend
     container_name: hockey_api
     env_file:
-      - ./backend/.env
-    environment:
-      - DATABASE_URL=postgresql://hockey_user:hockey1234@db:5432/hockey_db
+      - .env  # 👈 Cambiado a la raíz
     ports:
       - "8000:8000"
     depends_on:
@@ -29,43 +26,21 @@ services:
       - ./backend:/app
     networks:
       - hockey-network
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: hockey_pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@hockeybariloche.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
-    ports:
-      - "8080:80"
-    depends_on:
-      - db
-    networks:
-      - hockey-network
 
   frontend:
-    image: hockey_frontend_dev   # 👈 IMPORTANTE (ver punto 2)
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    build: ./frontend
     container_name: hockey_frontend
+    env_file:
+      - .env  # 👈 Cambiado a la raíz
     volumes:
       - ./frontend:/app
       - /app/node_modules
     ports:
       - "5173:5173"
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
-      - VITE_FORCE_POLLING=true
-    stdin_open: true
-    tty: true
     depends_on:
       - api
     networks:
       - hockey-network
-
 
 volumes:
   postgres_data:
