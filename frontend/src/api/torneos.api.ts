@@ -5,7 +5,7 @@ import type { InscripcionTorneoDetalle} from "../types/inscripcion"
 
 // LISTAR
 export async function listarTorneos(): Promise<Torneo[]> {
-  const res = await api.get<Torneo[]>("/torneos")
+  const res = await api.get<Torneo[]>("/torneos/")
   return res.data
 }
 

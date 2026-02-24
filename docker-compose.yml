@@ -2,7 +2,6 @@ services:
   db:
     image: postgres:15
     container_name: hockey_db
-    restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -11,39 +10,39 @@ services:
       - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/db:/docker-entrypoint-initdb.d/:ro # Mapeo de scripts SQL
+      - ./backend/db:/docker-entrypoint-initdb.d # 👈 Esto cargará tus scripts SQL
     networks:
       - hockey-network
 
   api:
     build: ./backend
     container_name: hockey_api
-    restart: always
     env_file:
       - .env
     ports:
       - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     volumes:
       - ./backend:/app
     networks:
       - hockey-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
     build: ./frontend
     container_name: hockey_frontend
-    restart: always
     env_file:
       - .env
-    ports:
-      - "5173:5173"
-    depends_on:
-      - api
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - api
     networks:
       - hockey-network
 
