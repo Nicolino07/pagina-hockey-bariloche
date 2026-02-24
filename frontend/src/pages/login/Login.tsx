@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/AuthContext"
 import { decodeJwt } from "../../utils/jwt"
 import styles from "./Login.module.css"
 import { Link } from "react-router-dom"
+import Button from "../../components/ui/button/Button"
 
 export default function Login() {
   const navigate = useNavigate()
@@ -43,6 +44,12 @@ export default function Login() {
 
   return (
     <div className={styles.container}>
+      <Button 
+        className={styles.backButton}
+        onClick={() => navigate("/")}>
+        ← Volver
+      </Button>
+
       <div className={styles.card}>
         <h1 className={styles.title}>Hockey Bariloche</h1>
         <h2 className={styles.title}>Iniciar sesion</h2>

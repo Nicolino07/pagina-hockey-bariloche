@@ -1,115 +1,179 @@
 .container {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 2rem 1.5rem;
+  min-height: 100vh;
 }
 
+/* HEADER DEL CLUB */
 .clubHeader {
-  background: white;
-  padding: 40px;
-  border-radius: 24px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  margin-bottom: 40px;
-  border: 1px solid #f1f5f9;
+  background: var(--bg-paper);
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  margin-bottom: 2.5rem;
+  border: 1px solid var(--divider-color);
 }
 
 .mainInfo {
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 2rem;
 }
 
 .logoGrande {
-  width: 120px;
-  height: 120px;
-  background: #2563eb;
-  color: white;
-  border-radius: 20%;
+  width: 100px;
+  height: 100px;
+  background: var(--boton-oscuro); /* Usando tu azul intermedio */
+  color: var(--text-on-primary);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 900;
-  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+  flex-shrink: 0; /* Evita que el logo se aplaste */
 }
 
 .clubName {
-  font-size: 2.2rem;
-  color: #0f172a;
+  font-size: 2rem;
+  color: var(--text-primary);
   margin: 0;
+  line-height: 1.2;
 }
 
 .localidad {
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 1.1rem;
-  margin-top: 5px;
+  margin-top: 0.5rem;
 }
 
+/* SECCIÓN CONTENIDO */
 .sectionHeader {
-  margin-bottom: 30px;
+  margin-bottom: 2rem;
 }
 
 .title {
-  font-size: 1.5rem;
-  color: #1e293b;
+  font-size: 1.6rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
 }
 
+.subtitle {
+  color: var(--text-secondary);
+}
+
+/* GRID DE EQUIPOS */
 .equiposGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  gap: 1.5rem;
 }
 
 .equipoCard {
-  background: white;
-  padding: 24px;
+  background: var(--bg-paper);
+  padding: 1.5rem;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--divider-color);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease-in-out;
 }
 
 .equipoCard:hover {
-  border-color: #2563eb;
+  border-color: var(--color-secondary);
   transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
 }
 
 .categoriaBadge {
-  background: #f1f5f9;
-  color: #475569;
-  padding: 4px 12px;
+  background: var(--color-primary); /* Celeste claro de tu paleta */
+  color: var(--text-primary);
+  padding: 6px 14px;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  text-transform: uppercase;
 }
 
 .equipoNombre {
-  margin: 15px 0;
-  font-size: 1.2rem;
-  color: #1e293b;
+  margin: 1.2rem 0;
+  font-size: 1.3rem;
+  color: var(--text-primary);
 }
 
 .equipoFooter {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #2563eb;
+  color: var(--boton-oscuro);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
+.arrow {
+  transition: transform 0.2s;
+}
+
+.equipoCard:hover .arrow {
+  transform: translateX(5px);
+}
+
+/* UTILIDADES */
 .backBtn {
-  margin-top: 40px;
+  margin-top: 3rem;
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--text-secondary);
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 10px;
+  transition: color 0.2s;
 }
 
 .backBtn:hover {
-  color: #0f172a;
+  color: var(--color-accent01);
   text-decoration: underline;
+}
+
+.loader, .error {
+  text-align: center;
+  padding: 4rem;
+  color: var(--text-secondary);
+}
+
+/* --- MEDIA QUERIES (RESPONSIVE) --- */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .clubHeader {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .mainInfo {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .logoGrande {
+    width: 80px;
+    height: 80px;
+    font-size: 1.8rem;
+  }
+
+  .clubName {
+    font-size: 1.6rem;
+  }
+
+  .equiposGrid {
+    grid-template-columns: 1fr; /* Tarjetas de ancho completo */
+  }
+
+  .equipoCard {
+    padding: 1.2rem;
+  }
 }

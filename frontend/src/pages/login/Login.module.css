@@ -1,49 +1,66 @@
 .container {
   background-color: #333;
-  min-height: calc(100vh - 120px); /* navbar + footer aprox */
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 16px;
+  position: relative; /* 👈 IMPORTANTE */
 }
 
+.backButton {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 8px 14px;
+  font-size: 14px;
+}
 .card {
   width: 100%;
-  max-width: 320px;
-  padding: 24px;
-  border-radius: 8px;
+  max-width: 380px;
+  padding: 28px 24px;
+  border-radius: 12px;
   background: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .title {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .input {
-  padding: 8px 10px;
-  border-radius: 4px;
+  padding: 12px;
+  border-radius: 6px;
   border: 1px solid #ccc;
+  font-size: 16px; /* evita zoom automático en iOS */
 }
 
 .input:focus {
   outline: none;
-  border-color: #333;
+  border-color: #111;
 }
 
 .button {
-  padding: 10px;
+  padding: 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   background: #111;
   color: #fff;
   cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.button:hover:not(:disabled) {
+  background: #000;
 }
 
 .button:disabled {
@@ -60,18 +77,30 @@
 .footerLinks {
   margin-top: 1.5rem;
   text-align: center;
-  border-top: 1px solid var(--divider-color);
+  border-top: 1px solid #eee;
   padding-top: 1rem;
 }
 
 .forgotLink {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
+  color: #666;
+  font-size: 0.9rem;
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .forgotLink:hover {
-  color: var(--color-accent01); /* O el color que uses para destacar */
+  color: #111;
   text-decoration: underline;
+}
+
+/* 🔽 Ajustes específicos para pantallas muy pequeñas */
+@media (max-width: 400px) {
+  .card {
+    padding: 22px 18px;
+    border-radius: 10px;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
 }

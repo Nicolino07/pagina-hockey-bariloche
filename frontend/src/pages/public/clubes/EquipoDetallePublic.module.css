@@ -125,3 +125,87 @@
   color: #64748b;
   margin: 10px 0;
 }
+
+
+/* ========================= */
+/* 📱 MOBILE OPTIMIZATION */
+/* ========================= */
+
+@media (max-width: 768px) {
+
+  .container {
+    padding: 20px 16px;
+  }
+
+  .header {
+    margin-bottom: 25px;
+  }
+
+  .backBtn {
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+  }
+
+  .equipoTitleBlock {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 4px 10px;
+  }
+
+  .sectionTitle {
+    font-size: 1.2rem;
+    margin-bottom: 18px;
+  }
+
+  /* Jugadores en una sola columna */
+  .jugadoresGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .playerCard {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .numberBadge {
+    width: 34px;
+    height: 34px;
+    font-size: 0.9rem;
+  }
+
+  .playerName {
+    font-size: 0.95rem;
+  }
+
+  .playerRole {
+    font-size: 0.65rem;
+  }
+
+  /* Sidebar como bloque inferior */
+  .sidebar {
+    margin-top: 25px;
+  }
+
+  .infoCard {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .infoCard p {
+    font-size: 0.85rem;
+  }
+}
+
+.playerCard:active {
+  transform: scale(0.98);
+}

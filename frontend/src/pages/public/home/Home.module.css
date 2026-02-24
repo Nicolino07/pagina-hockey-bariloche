@@ -1,19 +1,133 @@
+/* CONTENEDOR PRINCIPAL */
 .home {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 1.5rem;
+  background-color: var(--bg-default);
+  min-height: 100vh;
+}
 
+/* HERO SECTION (BANNER) */
+.hero {
+  position: relative;
+  height: 450px;
+  margin: 1.5rem 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--color-intermedio); /* Fondo oscuro semitransparente */
+  border: 1px solid var(--border-color);
+}
+
+.overlay {
+  padding: 2.5rem;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: linear-gradient(to bottom, transparent, var(--color-intermedio));
 }
 
-.title {
-  font-size: 2rem;
-  font-weight: 600;
+.hero h1 {
+  font-size: 3rem;
+  color: var(--text-on-primary);
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.hero p {
   color: var(--color-primary);
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
 }
 
-.subtitle {
-  font-size: 1rem;
+/* BOTÓN DESTACADO */
+.btnMain {
+  background-color: var(--color-accent03); /* Mostaza para que resalte */
+  color: var(--text-primary);
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.btnMain:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+/* SECCIÓN DE NOTICIAS */
+.newsSection {
+  padding: 3rem 0;
+}
+
+.newsSection h2 {
+  font-size: 2rem;
+  color: var(--text-primary);
+  margin-bottom: 2rem;
+  border-left: 6px solid var(--color-secondary);
+  padding-left: 1rem;
+}
+
+.newsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.card {
+  background: var(--bg-paper);
+  border-radius: 12px;
+  border: 1px solid var(--divider-color);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.imagePlaceholder {
+  width: 100%;
+  height: 180px;
+  background: var(--color-casilla-clara);
+}
+
+.cardContent {
+  padding: 1.5rem;
+}
+
+.cardContent h3 {
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.cardContent span {
   color: var(--text-secondary);
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+/* --- ADAPTACIÓN MÓVIL (RESPONSIVE) --- */
+
+@media (max-width: 768px) {
+  .hero {
+    height: 350px;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .newsGrid {
+    grid-template-columns: 1fr; /* Una sola columna en el celu */
+  }
+
+  .btnMain {
+    width: 100%; /* Botón ancho completo en móviles */
+  }
 }

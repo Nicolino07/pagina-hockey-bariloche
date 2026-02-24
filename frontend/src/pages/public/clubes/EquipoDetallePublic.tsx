@@ -65,13 +65,7 @@ export default function EquipoDetallePublic() {
           </div>
         </section>
 
-        <aside className={styles.sidebar}>
-          <div className={styles.infoCard}>
-            <h3>Ficha Técnica</h3>
-            <p><strong>Club:</strong> {equipo.id_club}</p>
-            <p><strong>Estado:</strong> {hasPlantel ? 'Inscripto' : 'Pendiente'}</p>
-          </div>
-        </aside>
+    
       </div>
     </div>
   )

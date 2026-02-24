@@ -117,3 +117,86 @@
   padding: 100px;
   color: #64748b;
 }
+
+/* ========================= */
+/* 📱 MOBILE OPTIMIZATION */
+/* ========================= */
+
+@media (max-width: 768px) {
+
+  .container {
+    padding: 24px 16px;
+  }
+
+  .header {
+    margin-bottom: 30px;
+  }
+
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .searchBar {
+    margin-top: 20px;
+  }
+
+  .searchInput {
+    padding: 12px 16px;
+    font-size: 16px; /* evita zoom en iPhone */
+  }
+
+  /* Grid a una sola columna */
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Card más compacta y horizontal */
+  .clubCard {
+    display: flex;
+    align-items: center;
+    text-align: left;
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .logoContainer {
+    width: 60px;
+    height: 60px;
+    margin: 0 16px 0 0;
+    flex-shrink: 0;
+  }
+
+  .logoPlaceholder {
+    font-size: 1.1rem;
+    border-width: 3px;
+  }
+
+  .clubInfo {
+    flex: 1;
+  }
+
+  .clubName {
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+
+  .localidad {
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+  }
+
+  /* El botón sobra en mobile */
+  .viewBtn {
+    display: none;
+  }
+
+  .loader,
+  .noResults {
+    padding: 60px 20px;
+  }
+}

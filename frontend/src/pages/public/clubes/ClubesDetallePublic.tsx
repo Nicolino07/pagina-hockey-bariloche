@@ -5,6 +5,8 @@ import { getEquiposByClub } from "../../../api/equipos.api" // Necesitaremos est
 import type { Club } from "../../../types/club"
 import type { Equipo } from "../../../types/equipo"
 import styles from "./ClubesDetallePublic.module.css"
+import Button from "../../../components/ui/button/Button"
+
 
 export default function ClubesDetallePublic() {
   const { id_club } = useParams<{ id_club: string }>()
@@ -36,6 +38,9 @@ export default function ClubesDetallePublic() {
 
   return (
     <div className={styles.container}>
+       <Button variant="primary" size="md" onClick={() => navigate(-1)}>
+        ← Volver
+      </Button>
       {/* Portada / Header del Club */}
       <header className={styles.clubHeader}>
         <div className={styles.mainInfo}>
@@ -80,9 +85,7 @@ export default function ClubesDetallePublic() {
         </div>
       </section>
 
-      <button className={styles.backBtn} onClick={() => navigate("/public/clubes")}>
-        ← Volver a Clubes
-      </button>
+  
     </div>
   )
 }

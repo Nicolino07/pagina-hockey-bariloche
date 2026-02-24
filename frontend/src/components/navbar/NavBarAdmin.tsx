@@ -19,6 +19,11 @@ export default function NavbarAdmin() {
     <header className={styles.navbar}>
       <div className={styles.left}>
         {/* Accesible para todos los del staff (EDITOR, ADMIN, SUPER) */}
+
+        <Link to="/public/home" className={styles.link}>
+          Inicio
+        </Link>
+
         <Link to="/admin" className={styles.link}>
           Panel
         </Link>

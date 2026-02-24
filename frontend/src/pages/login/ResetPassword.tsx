@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { authApi } from "../../api/usuarios.api"; 
 import styles from "./Login.module.css";
+import Button from "../../components/ui/button/Button";
+
 
 export default function ResetPasswordForm() {
   const [searchParams] = useSearchParams();
@@ -52,6 +54,12 @@ export default function ResetPasswordForm() {
 
   return (
     <div className={styles.container}>
+
+      <Button 
+        className={styles.backButton}
+        onClick={() => navigate("/")}>
+        ← Volver
+      </Button>
       <div className={styles.card}>
         <h2 className={styles.title}>Nueva Contraseña</h2>
         <form onSubmit={handleSubmit} className={styles.form}>

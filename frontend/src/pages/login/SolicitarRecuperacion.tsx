@@ -2,9 +2,11 @@
 import { useState } from "react";
 import { authApi } from "../../api/usuarios.api"; // Donde definiste llamar al back
 import styles from "./Login.module.css"; 
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import Button from "../../components/ui/button/Button";
 
 export default function SolicitarRecuperacion() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState("");
   const [enviado, setEnviado] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -25,6 +27,11 @@ export default function SolicitarRecuperacion() {
 
   return (
     <div className={styles.container}>
+      <Button 
+        className={styles.backButton}
+        onClick={() => navigate("/")}>
+        ← Volver
+      </Button>
       <div className={styles.card}>
         <h2 className={styles.title}>Recuperar Clave</h2>
         

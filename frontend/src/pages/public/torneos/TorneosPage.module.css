@@ -335,3 +335,99 @@
 .equipoItem:hover .arrowIcon {
   color: #2563eb;
 }
+
+/* ========================= */
+/* 📱 MOBILE OPTIMIZATION */
+/* ========================= */
+
+@media (max-width: 768px) {
+
+  .container {
+    padding: 20px 14px;
+  }
+
+  .header {
+    margin-bottom: 25px;
+    padding-left: 14px;
+    border-left-width: 4px;
+  }
+
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  /* Grid torneos más compacto */
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .torneoNombre {
+    font-size: 1.1rem;
+  }
+
+  /* Section title */
+  .sectionTitle {
+    font-size: 1.3rem;
+  }
+
+  .tableCard {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  /* Tabla más compacta */
+  .posicionesTable th,
+  .posicionesTable td {
+    padding: 8px 6px;
+    font-size: 0.75rem;
+  }
+
+  .statsTitle {
+    font-size: 1rem;
+  }
+
+  .statsCard {
+    padding: 14px;
+  }
+
+  .statsTable {
+    font-size: 0.8rem;
+  }
+
+  /* Equipos */
+  .equiposDivider {
+    margin-top: 30px;
+  }
+
+  .equipoItem {
+    padding: 12px;
+  }
+
+  .equipoName {
+    font-size: 0.9rem;
+  }
+
+  .equipoLabel {
+    font-size: 0.65rem;
+  }
+}
+
+.responsiveScroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 600px) {
+  .hideMobile {
+    display: none;
+  }
+}

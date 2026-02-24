@@ -16,6 +16,11 @@ export default function Navbar() {
     <header className={styles.navbar}>
       {/* 🔹 IZQUIERDA */}
       <div className={styles.left}>
+
+        <Link to="/" className={styles.link}>
+          Inicio
+        </Link>
+
         <Link to="/public/torneos" className={styles.link}>
           Torneos
         </Link>
