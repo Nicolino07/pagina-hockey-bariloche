@@ -99,5 +99,70 @@
 }
 
 @media (max-width: 768px) {
-  .hideMobile { display: none; }
+
+  .container {
+    padding: 24px 16px;
+  }
+
+  .header {
+    margin-bottom: 25px;
+  }
+
+  .header h1 {
+    font-size: 1.6rem;
+  }
+
+  .header p {
+    font-size: 0.9rem;
+  }
+
+  /* Selector más compacto */
+  .selectorGrid {
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+  }
+
+  .card {
+    min-width: 160px;
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .torneoNombre {
+    font-size: 0.95rem;
+  }
+
+  .torneoMeta {
+    font-size: 0.75rem;
+  }
+
+  /* Tabla más compacta */
+  .tableCard {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .posicionesTable th,
+  .posicionesTable td {
+    padding: 8px 6px;
+    font-size: 0.75rem;
+  }
+
+  .hideMobile {
+    display: none;
+  }
+}
+
+.selectorGrid {
+  scroll-behavior: smooth;
+}
+
+.selectorGrid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.selectorGrid::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
 }

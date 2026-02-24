@@ -20,7 +20,7 @@ export default function NavbarAdmin() {
       <div className={styles.left}>
         {/* Accesible para todos los del staff (EDITOR, ADMIN, SUPER) */}
 
-        <Link to="/public/home" className={styles.link}>
+        <Link to="/" className={styles.link}>
           Inicio
         </Link>
 
