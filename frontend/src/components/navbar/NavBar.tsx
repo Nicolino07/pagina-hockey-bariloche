@@ -50,7 +50,6 @@ export default function Navbar() {
         <nav className={styles.menu}>
           {/* Públicos */}
           <Link to="/" onClick={() => setMenuOpen(false)}>Inicio</Link>
-          <Link to="/public/torneos" onClick={() => setMenuOpen(false)}>Torneos</Link>
           <Link to="/public/clubes" onClick={() => setMenuOpen(false)}>Clubes</Link>
           <Link to="/public/posiciones" onClick={() => setMenuOpen(false)}>Posiciones</Link>
 

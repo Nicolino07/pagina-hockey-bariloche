@@ -1,63 +1,140 @@
+/* ============================= */
+/* LAYOUT GENERAL */
+/* ============================= */
+
 .container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
 }
 
 .header {
-  text-align: center;
   margin-bottom: 40px;
+  border-left: 5px solid #2563eb;
+  padding-left: 20px;
 }
 
-/* Selector de Torneos */
-.selectorGrid {
+.title {
+  font-size: 2.2rem;
+  color: #1e293b;
+  margin: 0;
+}
+
+.subtitle {
+  color: #64748b;
+  margin-top: 8px;
+}
+
+/* ============================= */
+/* SELECTOR VERTICAL DE TORNEOS */
+/* ============================= */
+
+.grid {
   display: flex;
-  gap: 15px;
-  overflow-x: auto;
-  padding-bottom: 15px;
-  margin-bottom: 30px;
+  flex-direction: column;
+  gap: 14px;
+
+  max-height: 360px; /* 3-4 torneos visibles */
+  overflow-y: auto;
+
+  padding-right: 6px;
+  margin-bottom: 40px;
+
   scrollbar-width: thin;
 }
 
+.grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.grid::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+/* ============================= */
+/* CARD TORNEO */
+/* ============================= */
+
 .card {
-  min-width: 200px;
-  padding: 15px;
   background: white;
+  border-radius: 14px;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  padding: 18px;
   cursor: pointer;
-  text-align: left;
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
 }
 
-.card.active {
-  border-color: #3b82f6;
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
+}
+
+.activeCard {
+  border-color: #2563eb;
   background-color: #eff6ff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15);
+}
+
+.badge {
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  width: fit-content;
 }
 
 .torneoNombre {
-  font-weight: bold;
-  color: #1e293b;
-  font-size: 1.1rem;
+  margin: 12px 0 4px 0;
+  font-size: 1.2rem;
+  color: #0f172a;
 }
 
-.torneoMeta {
+.categoria {
   color: #64748b;
-  font-size: 0.85rem;
-  margin-top: 5px;
+  font-size: 0.9rem;
 }
 
-/* Tabla de Posiciones */
+/* ============================= */
+/* DETAILS SECTION */
+/* ============================= */
+
+.detailsSection {
+  margin-top: 10px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.sectionTitle {
+  font-size: 1.6rem;
+  color: #1e293b;
+  margin-bottom: 20px;
+}
+
+/* ============================= */
+/* TABLA DE POSICIONES */
+/* ============================= */
+
 .tableCard {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   padding: 20px;
+  margin-bottom: 30px;
 }
 
 .responsiveScroll {
+  width: 100%;
   overflow-x: auto;
 }
 
@@ -75,12 +152,14 @@
 }
 
 .posicionesTable td {
-  padding: 16px 12px;
+  padding: 14px 10px;
   text-align: center;
   border-bottom: 1px solid #f1f5f9;
 }
 
-.alignLeft { text-align: left !important; }
+.alignLeft {
+  text-align: left !important;
+}
 
 .equipoNombre {
   font-weight: 600;
@@ -98,49 +177,172 @@
   background: #f8fafc;
 }
 
+/* ============================= */
+/* GOLEADORES Y TARJETAS */
+/* ============================= */
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.statsCard {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+}
+
+.statsTitle {
+  font-size: 1.1rem;
+  color: #1e293b;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 8px;
+}
+
+.statsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.statsTable th {
+  padding-bottom: 10px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.statsTable td {
+  padding: 10px 5px;
+  border-bottom: 1px solid #f8fafc;
+  text-align: center;
+}
+
+.playerName {
+  font-weight: 600;
+  color: #334155;
+}
+
+.playerTeam {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.boxVerde,
+.boxAmarilla,
+.boxRoja {
+  display: inline-block;
+  width: 20px;
+  height: 24px;
+  line-height: 24px;
+  border-radius: 3px;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.boxVerde { background-color: #22c55e; }
+.boxAmarilla { background-color: #eab308; }
+.boxRoja { background-color: #ef4444; }
+
+.bold {
+  font-weight: bold;
+  color: #1e293b;
+}
+
+/* ============================= */
+/* EQUIPOS */
+/* ============================= */
+
+.equiposDivider {
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.equiposGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.equipoItem {
+  display: flex;
+  align-items: center;
+  padding: 14px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.equipoItem:hover {
+  border-color: #2563eb;
+  background: #f8fafc;
+  transform: translateX(4px);
+}
+
+.equipoInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.equipoName {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.equipoLabel {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
+/* ============================= */
+/* MENSAJES */
+/* ============================= */
+
+.loader,
+.infoMsg,
+.infoSmall {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+}
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
 @media (max-width: 768px) {
 
   .container {
     padding: 24px 16px;
   }
 
-  .header {
-    margin-bottom: 25px;
-  }
-
-  .header h1 {
+  .title {
     font-size: 1.6rem;
   }
 
-  .header p {
-    font-size: 0.9rem;
+  .grid {
+    max-height: 300px;
   }
 
-  /* Selector más compacto */
-  .selectorGrid {
-    gap: 10px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
+  .statsGrid {
+    grid-template-columns: 1fr;
   }
 
-  .card {
-    min-width: 160px;
-    padding: 12px;
-    border-radius: 10px;
-  }
-
-  .torneoNombre {
-    font-size: 0.95rem;
-  }
-
-  .torneoMeta {
-    font-size: 0.75rem;
-  }
-
-  /* Tabla más compacta */
-  .tableCard {
-    padding: 12px;
-    border-radius: 12px;
+  .tableCard,
+  .statsCard {
+    padding: 14px;
   }
 
   .posicionesTable th,
@@ -152,17 +354,4 @@
   .hideMobile {
     display: none;
   }
-}
-
-.selectorGrid {
-  scroll-behavior: smooth;
-}
-
-.selectorGrid::-webkit-scrollbar {
-  height: 6px;
-}
-
-.selectorGrid::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
 }

@@ -14,7 +14,6 @@ import PartidosPage from "./pages/admin/partidos/PartidosPage"
 import PartidoPlanilla from "./pages/admin/partidos/PartidoPlanilla"
 
 import PosicionesPage from "./pages/public/posiciones/PosicionesPage"
-import TorneosPage from "./pages/public/torneos/TorneosPage"
 import ClubesPage from "./pages/public/clubes/ClubesPage"
 import ClubesDetallePublic from "./pages/public/clubes/ClubesDetallePublic"
 import EquipoDetallePublic from "./pages/public/clubes/EquipoDetallePublic"
@@ -46,7 +45,6 @@ export default function App() {
         <Route path="/completar-registro" element={<CompletarRegistro />} />
 
         <Route path="/public/posiciones" element={<PosicionesPage />} />
-        <Route path="/public/torneos" element={<TorneosPage />} />
         <Route path="/public/clubes" element={<ClubesPage />} />
         <Route path="/public/clubes/:id_club" element={<ClubesDetallePublic />} />
         <Route path="/public/clubes/:id_club/equipos/:id_equipo" element={<EquipoDetallePublic />} />
