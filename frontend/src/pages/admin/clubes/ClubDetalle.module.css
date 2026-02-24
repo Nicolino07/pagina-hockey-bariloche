@@ -1,13 +1,20 @@
-/* ClubDetalle.module.css */
+/* ========================= */
+/* CONTAINER GENERAL */
+/* ========================= */
 
 .container {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  max-width: 1200px; /* Limita el ancho en pantallas muy grandes */
+  max-width: 1200px;
   margin: 0 auto;
   box-sizing: border-box;
+  background: var(--bg-default);
 }
+
+/* ========================= */
+/* HEADER */
+/* ========================= */
 
 .header { 
   display: flex;
@@ -19,27 +26,30 @@
 
 .titleInfo h1 { 
   margin: 0; 
-  font-size: 2.5rem; /* Más grande en PC */
-  color: #1a1a1a;
+  font-size: 2.5rem;
+  color: var(--text-primary);
 }
 
 .cityBadge { 
   display: inline-block;
   padding: 4px 12px; 
   border-radius: 20px; 
-  font-size: 1.1rem; 
-  background-color: #e9ecef;
-  color: #495057;
+  font-size: 1rem; 
+  background-color: var(--color-primary);
+  color: var(--text-primary);
   margin-top: 0.5rem;
 }
 
-/* BARRA DE ACCIONES */
+/* ========================= */
+/* ACTION BAR */
+/* ========================= */
+
 .actionBar { 
   display: flex; 
   justify-content: space-between; 
   align-items: center; 
   margin-bottom: 2rem; 
-  border-bottom: 1px solid #eee; 
+  border-bottom: 1px solid var(--divider-color); 
   padding-bottom: 1rem;
 }
 
@@ -48,22 +58,89 @@
   gap: 12px; 
 }
 
-/* SECCIÓN FICHAJES */
+/* ========================= */
+/* SECCIÓN PERSONAS Y MIEMBROS */
+/* ========================= */
+
 .fichadosSection { 
-  background: #f8f9fa; 
-  border-radius: 12px; 
-  padding: 1.5rem; 
   margin-bottom: 2rem; 
 }
 
 .fichadosGrid { 
-  display: grid; 
-  /* En PC: mínimo 300px, máximo lo que quepa */
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-  gap: 20px; 
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-paper);
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-/* LISTA DE EQUIPOS */
+/* LISTA PRO */
+
+.fichadoCard {
+  padding: 16px;
+  border-bottom: 1px solid var(--divider-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s ease;
+}
+
+.fichadoCard:last-child {
+  border-bottom: none;
+}
+
+.fichadoCard:hover {
+  background: var(--color-casilla-clara);
+}
+
+.fichadoName {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.fichadoTags {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+/* Badge Rol usando accent */
+
+.rolTag {
+  background: var(--color-primary);
+  color: var(--color-intermedio);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Botón Baja */
+
+.btnBaja {
+  background: none;
+  border: none;
+  color: var(--color-accent01);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.btnBaja:hover {
+  background: var(--color-casilla-clara);
+}
+
+/* ========================= */
+/* LISTA EQUIPOS */
+/* ========================= */
+
 .equiposList { 
   display: flex; 
   flex-direction: column; 
@@ -71,9 +148,9 @@
 }
 
 .equipoItem { 
-  border: 1px solid #eee; 
+  border: 1px solid var(--divider-color); 
   border-radius: 10px; 
-  background: white; 
+  background: var(--bg-paper); 
   transition: box-shadow 0.2s;
 }
 
@@ -87,15 +164,58 @@
   justify-content: space-between; 
   align-items: center; 
   cursor: pointer; 
+  gap: 1rem;
 }
 
-/* MODALES - En PC deben tener un tamaño fijo razonable */
+.equipoName {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.equipoMeta {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.manageBtn {
+  background: var(--boton-oscuro);
+  color: var(--text-on-primary);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.manageBtn:hover {
+  opacity: 0.85;
+}
+
+.plantelContainer {
+  padding: 0 20px 20px 20px;
+}
+
+/* ========================= */
+/* MODALES */
+/* ========================= */
+
 .modalForm { 
   display: flex; 
   flex-direction: column; 
   gap: 20px; 
-  width: 500px; /* Tamaño fijo en PC */
+  width: 500px;
   max-width: 100%;
+  box-sizing: border-box;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .row { 
@@ -104,17 +224,72 @@
   gap: 15px; 
 }
 
-/* --- MEDIA QUERIES (ADAPTACIÓN A MÓVILES) --- */
+.selectorScrollable {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid var(--divider-color);
+  border-radius: 8px;
+}
+
+.selectorItem {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--divider-color);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.selectorItem:hover {
+  background: var(--color-casilla-clara);
+}
+
+.selectedItem {
+  background: var(--color-primary);
+}
+
+.itemName {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.itemDni {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.checkIcon {
+  color: var(--color-accent02);
+  font-weight: bold;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ========================= */
+/* RESPONSIVE */
+/* ========================= */
 
 @media (max-width: 768px) {
-  .container { padding: 1rem; }
 
-  .header {
-    flex-direction: column; /* Apila título y botón volver */
-    align-items: flex-start;
+  .container { 
+    padding: 1rem; 
   }
 
-  .titleInfo h1 { font-size: 1.8rem; }
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .titleInfo h1 { 
+    font-size: 1.6rem; 
+    line-height: 1.2;
+  }
 
   .actionBar {
     flex-direction: column;
@@ -125,35 +300,39 @@
   .actionButtons {
     width: 100%;
     display: grid;
-    grid-template-columns: 1fr; /* Un botón por fila */
+    grid-template-columns: 1fr;
   }
 
   .actionButtons button {
     width: 100%;
-    justify-content: center;
   }
 
-  .fichadosGrid {
-    grid-template-columns: 1fr;
+  .fichadoCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .btnBaja {
+    width: 100%;
   }
 
   .equipoHeader {
     flex-direction: column;
     align-items: flex-start;
-    gap: 15px;
+    gap: 12px;
   }
 
   .manageBtn {
     width: 100%;
-    margin: 0;
   }
 
   .modalForm {
-    width: 100%; /* En móviles usa todo el ancho */
-    min-width: 0;
+    width: 100%;
   }
 
   .row {
-    grid-template-columns: 1fr; /* Inputs de modal uno sobre otro */
+    grid-template-columns: 1fr;
   }
+
 }

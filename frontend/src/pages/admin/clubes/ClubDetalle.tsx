@@ -171,7 +171,7 @@ export default function ClubDetalle() {
       <div className={styles.actionBar}>
         <div className={styles.actionButtons}>
           <Button variant="primary" onClick={() => setShowFichados(!showFichados)}>
-            {showFichados ? "Ocultar Personal" : "Personal y Miembros"}
+            {showFichados ? "Ocultar Personal" : "Personas y Miembros"}
           </Button>
           <Button onClick={() => setShowFichajeModal(true)} variant="secondary">⚡ Fichar</Button>
           <Button onClick={() => setShowModal(true)}>+ Nuevo equipo</Button>
