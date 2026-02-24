@@ -12,7 +12,7 @@ import {
 import styles from "./TorneosAdmin.module.css"
 
 export default function TorneosAdmin() {
-  const { torneos, loading, error } = useTorneosActivos()
+  const { torneos, loading, error, refetch } = useTorneosActivos()
   const navigate = useNavigate()
   const [mostrarForm, setMostrarForm] = useState(false)
   const [procesandoId, setProcesandoId] = useState<number | null>(null)
@@ -29,7 +29,7 @@ export default function TorneosAdmin() {
     try {
       setProcesandoId(id)
       await eliminarTorneo(id)
-      window.location.reload()
+      await refetch()
     } finally {
       setProcesandoId(null)
     }
@@ -44,7 +44,7 @@ export default function TorneosAdmin() {
     try {
       setProcesandoId(id)
       await finalizarTorneo(id)
-      window.location.reload()
+      await refetch()
     } finally {
       setProcesandoId(null)
     }

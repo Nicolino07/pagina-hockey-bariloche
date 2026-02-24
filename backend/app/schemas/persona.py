@@ -41,6 +41,7 @@ class PersonaAltaConRol(BaseModel):
 
 
 class PersonaUpdate(BaseModel):
+    documento: Optional[int] = Field(None, gt=0)
     nombre: Optional[str] = Field(None, min_length=1, max_length=100)
     apellido: Optional[str] = Field(None, min_length=1, max_length=100)
     fecha_nacimiento: Optional[date] = None
