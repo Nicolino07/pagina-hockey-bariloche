@@ -1,17 +1,15 @@
 import { Outlet } from "react-router-dom"
-import NavbarAdmin from "../components/navbar/NavBarAdmin"
-import styles from "./AdminLayout.module.css"
+import Navbar from "../components/navbar/NavBar"
 import Footer from "../components/footer/Footer"
+import styles from "./MainLayout.module.css"
 
-export default function AdminLayout() {
+export default function MainLayout() {
   return (
     <div className={styles.layout}>
-      <NavbarAdmin />
-
+      <Navbar />
       <main className={styles.main}>
         <Outlet />
       </main>
-
       <Footer />
     </div>
   )

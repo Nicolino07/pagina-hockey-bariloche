@@ -230,6 +230,14 @@ export default function PartidoPlanilla() {
           return (
             <div key={side} className={styles.column}>
               <h3>{equipo || (side === 'local' ? 'Local' : 'Visitante')}</h3>
+
+              <div className={styles.playerHeader}>
+                <span className={styles.colAsistencia}>Asist.</span>
+                <span className={styles.colNumero}>#</span>
+                <span className={styles.colNombre}>Jugador</span>
+                <span className={styles.colCapitan}>Cap</span>
+              </div>
+
               <div className={styles.playerList}>
                 {lista.map(p => {
                   const pid = p.id_plantel_integrante as number;
@@ -237,8 +245,19 @@ export default function PartidoPlanilla() {
                     <div key={pid} className={styles.playerItem}>
                       <input type="checkbox" checked={seleccionados[side].includes(pid)} onChange={(e) => setSeleccionados(prev => ({ ...prev, [side]: e.target.checked ? [...prev[side], pid] : prev[side].filter(x => x !== pid) }))} />
                       <input type="text" placeholder="#" className={styles.inputCamiseta} value={camisetas[pid] || ""} onChange={(e) => setCamisetas({ ...camisetas, [pid]: e.target.value })} disabled={!seleccionados[side].includes(pid)} />
-                      <span className={styles.playerText}>{p.apellido_persona}, {p.nombre_persona}</span>
-                      <input type="radio" name={`capitan-${side}`} checked={capitanes[side] === pid} onChange={() => setCapitanes(prev => ({ ...prev, [side]: pid }))} />
+                      <span className={styles.playerText}>
+                        {p.apellido_persona}, {p.nombre_persona}
+                        <span className={styles.playerRole}>
+                          {p.rol_en_plantel}
+                        </span>
+                      </span>
+                      <input
+                        type="radio"
+                        name={`capitan-${side}`}
+                        checked={capitanes[side] === pid}
+                        disabled={!seleccionados[side].includes(pid)}
+                        onChange={() => setCapitanes(prev => ({ ...prev, [side]: pid }))}
+                      />
                     </div>
                   );
                 })}
@@ -260,14 +279,19 @@ export default function PartidoPlanilla() {
               <select value={String(gol.id_plantel_integrante)} onChange={e => { const n = [...goles]; n[index].id_plantel_integrante = e.target.value; setGoles(n); }}>
                 <option value="">Autor</option>
                 <optgroup label={inscripcionLocal?.nombre_equipo || "Local"}>
-                  {plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante as number)).map(p => (
+                  {plantelLocal
+                  .filter(p => 
+                    seleccionados.local.includes(p.id_plantel_integrante as number) &&
+                    p.rol_en_plantel === "JUGADOR").map(p => (
                     <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
                       {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
                     </option>
                   ))}
                 </optgroup>
                 <optgroup label={inscripcionVisitante?.nombre_equipo || "Visitante"}>
-                  {plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante as number)).map(p => (
+                  {plantelVisitante.filter(p => 
+                    seleccionados.visitante.includes(p.id_plantel_integrante as number) &&
+                    p.rol_en_plantel === "JUGADOR").map(p => (
                     <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
                       {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
                     </option>

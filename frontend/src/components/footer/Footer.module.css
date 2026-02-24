@@ -3,10 +3,10 @@
   padding: 24px; /* Un poco más de aire */
   margin-top: auto; /* Empuja el footer al fondo si hay poco contenido */
   
-  background-color: transparent; /* O puedes usar var(--bg-main) */
+  background-color: var(--color-intermedio); /* O puedes usar var(--bg-main) */
   text-align: center;
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: var(--text-on-primary);
   border-top: 1px solid var(--divider-color);
   box-sizing: border-box;
 }

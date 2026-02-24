@@ -1,97 +1,124 @@
+/* NAVBAR SUPERIOR */
 .navbar {
+  height: 60px;
+  background: var(--color-intermedio);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 2rem;
-  background-color: var(--color-intermedio);
-  min-height: 60px; /* Cambiado a min-height */
+  padding: 0 1.5rem;
   color: white;
-  width: 100%;
-  box-sizing: border-box;
-  position: relative;
-  z-index: 1000;
 }
 
-.left {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-  flex-wrap: wrap; /* Permite que los links bajen si no hay espacio */
-}
-
-.link {
+.logo a {
   color: var(--color-primary);
   text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: color 0.2s;
-  white-space: nowrap; /* Evita que una palabra se parta a la mitad */
+  font-weight: bold;
 }
 
-.link:hover {
-  color: var(--color-secondary);
+.menuToggle {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: white;
+  cursor: pointer;
 }
 
-.superLink {
-  color: var(--color-accent03);
-  border: 1px solid var(--color-accent03);
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-weight: 700;
+/* OVERLAY OSCURO */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 998;
 }
 
-.right {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
+.overlay.show {
+  opacity: 1;
+  pointer-events: all;
 }
 
-.userInfo {
+/* SIDEBAR */
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: -280px;
+  width: 260px;
+  height: 100%;
+  background: #1e1e1e;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  transition: right 0.3s ease;
+  z-index: 999;
+  box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+}
+
+.sidebar.open {
+  right: 0;
+}
+
+/* BOTON CERRAR */
+.closeBtn {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+/* MENU */
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.menu a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.menu a:hover {
+  color: var(--color-secondary);
+  transform: translateX(5px);
+}
+
+.menu hr {
+  border: 0;
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 1rem 0;
+}
+
+/* USUARIO */
+.userInfo {
   font-size: 0.8rem;
+  opacity: 0.8;
 }
 
-/* --- MEDIA QUERIES PARA CELULARES --- */
-
-@media (max-width: 850px) {
-  .navbar {
-    flex-direction: column; /* Apila logo/links arriba y usuario abajo */
-    height: auto;
-    padding: 1rem;
-    gap: 1rem;
-  }
-
-  .left {
-    justify-content: center; /* Centra los links en el móvil */
-    gap: 1rem;
-    width: 100%;
-  }
-
-  .right {
-    width: 100%;
-    justify-content: space-between; /* Usuario a un lado, salir al otro */
-    border-top: 1px solid rgba(255,255,255,0.1);
-    padding-top: 0.8rem;
-  }
-
-  .userInfo {
-    align-items: flex-start; /* Texto a la izquierda en móvil */
-  }
+/* LOGOUT */
+.logout {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: var(--color-accent03);
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
-@media (max-width: 480px) {
-  .left {
-    gap: 0.8rem;
-  }
+.logout:hover {
+  opacity: 0.8;
+}
 
-  .link {
-    font-size: 0.8rem; /* Links un poco más pequeños */
-  }
-
-  .superLink {
-    padding: 2px 6px;
-    font-size: 0.75rem;
-  }
+/* SUPER LINK */
+.superLink {
+  color: var(--color-accent03);
+  font-weight: bold;
 }
