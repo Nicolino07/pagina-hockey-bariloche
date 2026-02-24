@@ -15,35 +15,38 @@ from app.core.exceptions import (
     AuthorizationError,
 )
 
-
 def login_user(
     db: Session,
-    username: str,
+    username: str, # Este 'username' viene del Form de FastAPI, pero contendrá el EMAIL
     password: str,
     request: Request,
 ):
-    # 🔍 Buscar usuario
+    # 🔍 1. Buscar usuario por EMAIL (cambiamos el filtro aquí)
     user = (
         db.query(Usuario)
-        .filter(Usuario.username == username)
+        .filter(Usuario.email == username) # Comparamos contra la columna email
         .first()
     )
 
-    if not user or not user.activo:
-        raise AuthenticationError("Usuario o contraseña incorrectos")
+    if not user:
+        raise AuthenticationError("Email o contraseña incorrectos")
 
-    # 🔐 Verificar contraseña
+    if not user.activo:
+        raise AuthenticationError("Tu cuenta no está activa. Contacta al administrador.")
+
+    # 🔐 2. Verificar contraseña
     if not verify_password(password, user.password_hash):
-        raise AuthenticationError("Usuario o contraseña incorrectos")
+        raise AuthenticationError("Email o contraseña incorrectos")
 
-    # 🔑 Access token (JWT corto)
+    # 🔑 3. Access token (JWT)
+    # Importante: El payload ahora lleva el email para que el frontend lo reconozca
     access_token = create_access_token({
         "sub": str(user.id_usuario),
-        "username": user.username,
+        "username": user.email, # Enviamos el email como username en el token
         "rol": user.tipo,
     })
 
-    # 🔁 Refresh token (valor random, NO JWT)
+    # 🔁 4. Refresh token (valor random)
     refresh_token_value = generate_refresh_token_value()
 
     db.add(RefreshToken(
@@ -57,8 +60,6 @@ def login_user(
 
     db.commit()
 
-    # ⚠️ Se devuelve el valor del refresh token
-    # → normalmente lo seteás como cookie HttpOnly en el router
     return access_token, refresh_token_value
 
 
@@ -91,7 +92,7 @@ def refresh_access_token(db: Session, request: Request):
     # 🔑 Nuevo access token
     access_token = create_access_token({
         "sub": str(user.id_usuario),
-        "username": user.username,
+        "username": user.email, 
         "rol": user.tipo,
     })
 

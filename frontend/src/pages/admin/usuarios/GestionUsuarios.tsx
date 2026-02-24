@@ -164,6 +164,44 @@ export default function GestionUsuarios() {
           </tbody>
         </table>
       </div>
+
+      {/* Vista Mobile */}
+      <div className={styles.mobileList}>
+        {usuarios.map((user) => (
+          <div key={user.id_usuario} className={styles.userCard}>
+            <div className={styles.cardHeader}>
+              <div>
+                <div className={styles.username}>{user.username || "Pendiente"}</div>
+                <div className={styles.email}>{user.email}</div>
+              </div>
+              <span className={`${styles.badge} ${user.activo ? styles.activeBadge : styles.inactiveBadge}`}>
+                {user.activo ? "Activo" : "Inactivo"}
+              </span>
+            </div>
+
+            <div className={styles.cardBody}>
+              <label className={styles.label}>Rol</label>
+              <select
+                value={user.tipo}
+                onChange={(e) => handleCambiarRol(user.id_usuario, e.target.value)}
+                className={styles.select}
+              >
+                <option value="EDITOR">EDITOR</option>
+                <option value="ADMIN">ADMIN</option>
+                <option value="SUPERUSUARIO">SUPERUSUARIO</option>
+              </select>
+
+              <button
+                onClick={() => handleToggleActivo(user.id_usuario, user.activo)}
+                className={`${styles.btnToggle} ${user.activo ? styles.btnDeactivate : styles.btnActivate}`}
+              >
+                {user.activo ? "Dar de Baja" : "Reactivar Cuenta"}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 }

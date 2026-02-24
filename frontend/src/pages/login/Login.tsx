@@ -1,4 +1,3 @@
-// src/pages/login/Login.tsx
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { login as loginApi } from "../../api/auth.api"
@@ -6,16 +5,17 @@ import { useAuth } from "../../auth/AuthContext"
 import { decodeJwt } from "../../utils/jwt"
 import styles from "./Login.module.css"
 import { Link } from "react-router-dom"
-import Button from "../../components/ui/button/Button"
 
 export default function Login() {
   const navigate = useNavigate()
   const { login } = useAuth()
 
-  const [username, setUsername] = useState("")
+  // 1. Cambiamos 'username' por 'email'
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false) // Estado para el ojito
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,18 +25,20 @@ export default function Login() {
     setError(null)
 
     try {
-      const data = await loginApi(username, password)
+      // 2. Enviamos el email a la API. 
+      // Nota: Asegúrate de que tu función loginApi en auth.api ahora espere (email, password)
+      const data = await loginApi(email, password)
       const payload = decodeJwt(data.access_token)
 
       login(data.access_token, {
         id: Number(payload.sub),
-        email: payload.username,
+        email: payload.username, // El payload suele traer el email en 'username' o 'email'
         rol: payload.rol,
       })
 
       navigate("/admin")
     } catch {
-      setError("Usuario o contraseña incorrectos")
+      setError("Email o contraseña incorrectos")
     } finally {
       setLoading(false)
     }
@@ -44,42 +46,52 @@ export default function Login() {
 
   return (
     <div className={styles.container}>
-      <Button 
-        className={styles.backButton}
-        onClick={() => navigate("/")}>
-        ← Volver
-      </Button>
-
       <div className={styles.card}>
         <h1 className={styles.title}>Hockey Bariloche</h1>
-        <h2 className={styles.title}>Iniciar sesion</h2>
+        <h2 className={styles.title}>Iniciar sesión</h2>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <input
-            className={styles.input}
-            placeholder="Nombre de usuario"
-            value={username}
-            autoComplete="username"
-            onChange={(e) => setUsername(e.target.value)}
-          />
+          {/* 3. Input de Email optimizado */}
+          <div className={styles.inputGroup}>
+            <input
+              className={styles.input}
+              type="email" 
+              placeholder="Correo electrónico"
+              value={email}
+              autoComplete="email"
+              required
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-          <input
-            className={styles.input}
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            autoComplete="current-password"
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          {/* 4. Input de Contraseña con Ojito */}
+          <div style={{ position: 'relative' }}>
+            <input
+              className={styles.input}
+              type={showPassword ? "text" : "password"}
+              placeholder="Contraseña"
+              value={password}
+              autoComplete="current-password"
+              required
+              onChange={(e) => setPassword(e.target.value)}
+              style={{ width: '100%' }}
+            />
+            <button 
+              type="button"
+              className={styles.eyeButton}
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </button>
+          </div>
 
           {error && <p className={styles.error}>{error}</p>}
 
           <button type="submit" disabled={loading} className={styles.button}>
-            {loading ? "Verificando..." : "Iniciar Sesión"}
+            {loading ? "Verificando..." : "Entrar"}
           </button>
         </form>
 
-        {/* 🔗 Enlace de recuperación */}
         <div className={styles.footerLinks}>
           <Link to="/recuperar-password" className={styles.forgotLink}>
             ¿Olvidaste tu contraseña?

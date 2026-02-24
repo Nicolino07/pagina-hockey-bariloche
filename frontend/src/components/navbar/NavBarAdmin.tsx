@@ -58,7 +58,7 @@ export default function NavbarAdmin() {
       <div className={styles.right}>
         <div className={styles.userInfo}>
 
-          <span>{user?.username} - {user?.rol} </span>
+          <span>{user?.email} - {user?.rol} </span>
       
         </div>
         <button onClick={handleLogout} className={styles.button}>

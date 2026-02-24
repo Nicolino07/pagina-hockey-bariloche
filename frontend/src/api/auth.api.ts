@@ -4,23 +4,28 @@ import { authUtils } from '../utils/auth'
 import type { LoginResponse, RefreshResponse } from '../types/auth'
 
 /**
- * Inicia sesión con username y password
+ * Inicia sesión utilizando Email y Password
+ * @param email - Correo electrónico del socio/admin
+ * @param password - Contraseña
  */
-export async function login(username: string, password: string): Promise<LoginResponse> {
-  console.log('🔐 Iniciando sesión para usuario:', username)
+export async function login(email: string, password: string): Promise<LoginResponse> {
+  // Ahora usamos 'email' en el log para mayor claridad
+  console.log('🔐 Iniciando sesión para:', email)
   
-  // Validaciones básicas
-  if (!username || !password) {
-    throw new Error('Usuario y contraseña son requeridos')
+  // Validaciones básicas actualizadas
+  if (!email || !password) {
+    throw new Error('El email y la contraseña son requeridos')
   }
   
   try {
     // Crear form data para OAuth2
-    const formData = new URLSearchParams()
-    formData.append('username', username)
-    formData.append('password', password)
+    const formData = new URLSearchParams();
     
-    // Usar axiosAdmin porque necesita cookies para refresh token
+    // IMPORTANTE: El backend (FastAPI) espera la clave 'username' 
+    // pero nosotros le pasamos el valor de la variable 'email'
+    formData.append('username', email); 
+    formData.append('password', password);
+    
     const response = await axiosAdmin.post<LoginResponse>(
       '/auth/login',
       formData.toString(),
@@ -34,19 +39,14 @@ export async function login(username: string, password: string): Promise<LoginRe
     const { access_token, token_type } = response.data
     
     if (!access_token) {
-      throw new Error('No se recibió access_token en la respuesta')
+      throw new Error('No se recibió el token de acceso')
     }
     
-    console.log('✅ Login exitoso', {
-      username,
-      tokenLength: access_token.length,
-      tokenType: token_type
-    })
+    console.log('✅ Login exitoso para:', email)
     
     // Guardar en auth utils
     const userData = {
-      username,
-      // Puedes decodificar el token para obtener más datos
+      email, // Guardamos el email en el objeto de usuario
       token: access_token
     }
     
@@ -56,15 +56,14 @@ export async function login(username: string, password: string): Promise<LoginRe
     
   } catch (error: any) {
     console.error('❌ Error en login:', {
-      username,
+      email,
       status: error.response?.status,
       data: error.response?.data,
       message: error.message
     })
     
-    // Convertir error HTTP a error de dominio
     if (error.response?.status === 401) {
-      throw new Error('Credenciales incorrectas')
+      throw new Error('Email o contraseña incorrectos')
     } else if (error.response?.status === 403) {
       throw new Error('Usuario bloqueado o sin permisos')
     } else if (error.response?.status === 429) {

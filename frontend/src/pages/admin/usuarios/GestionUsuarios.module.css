@@ -167,6 +167,12 @@
   color: var(--text-secondary);
 }
 
+.subtitle {
+  color: var(--text-secondary);
+  margin-top: 8px;
+  font-size: 0.95rem;
+}
+
 .badge {
   padding: 4px 12px;
   border-radius: 20px;
@@ -202,4 +208,113 @@
 
 .btnToggle:hover {
   background-color: rgba(0,0,0,0.05);
+}
+
+/* ========================= */
+/* 📱 RESPONSIVE MOBILE */
+/* ========================= */
+
+@media (max-width: 768px) {
+
+  .container {
+    padding: 20px 14px;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .inviteForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .formGroup {
+    width: 100%;
+  }
+
+  .btnSubmit {
+    width: 100%;
+  }
+
+  .tableContainer {
+    overflow-x: auto;
+  }
+
+  .table {
+    min-width: 600px;
+  }
+
+  .table th,
+  .table td {
+    padding: 12px;
+    font-size: 0.85rem;
+  }
+
+  .btnToggle {
+    font-size: 0.75rem;
+    padding: 6px 8px;
+  }
+}
+
+/* ========================= */
+/* MOBILE CARDS */
+/* ========================= */
+
+.mobileList {
+  display: none;
+}
+
+.userCard {
+  background: var(--bg-paper);
+  border: 1px solid var(--divider-color);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ========================= */
+/* RESPONSIVE SWITCH */
+/* ========================= */
+
+@media (max-width: 768px) {
+
+  .tableContainer {
+    display: none;
+  }
+
+  .mobileList {
+    display: block;
+  }
+
+  .container {
+    padding: 20px 14px;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .inviteForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btnSubmit {
+    width: 100%;
+  }
 }
