@@ -2,6 +2,7 @@ services:
   db:
     image: postgres:15
     container_name: hockey_db
+    restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -10,18 +11,21 @@ services:
       - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backend/db:/docker-entrypoint-initdb.d/:ro # Mapeo de scripts SQL
     networks:
       - hockey-network
 
   api:
     build: ./backend
     container_name: hockey_api
+    restart: always
     env_file:
-      - .env  # 👈 Cambiado a la raíz
+      - .env
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - ./backend:/app
     networks:
@@ -30,15 +34,16 @@ services:
   frontend:
     build: ./frontend
     container_name: hockey_frontend
+    restart: always
     env_file:
-      - .env  # 👈 Cambiado a la raíz
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - .env
     ports:
       - "5173:5173"
     depends_on:
       - api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     networks:
       - hockey-network
 
