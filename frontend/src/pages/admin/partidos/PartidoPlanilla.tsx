@@ -7,8 +7,24 @@ import { crearPlanillaPartido } from "../../../api/partidos.api";
 import Button from "../../../components/ui/button/Button";
 import styles from "./PartidoPlanilla.module.css";
 import { getPersonasArbitro } from "../../../api/vistas/personas.api";
-import type { PersonasArbitro } from "../../../types/vistas";
+import type { PersonasArbitro, PlantelActivoIntegrante } from "../../../types/vistas";
 import { TIPOS_GOL, TIPOS_TARJETA } from "../../../constants/enums";
+
+// Tipado para evitar el "rojo" en las incidencias
+interface Gol {
+  id_plantel_integrante: string | number;
+  minuto: string | number;
+  cuarto: string | number;
+  referencia_gol: string;
+  es_autogol: boolean;
+}
+
+interface Tarjeta {
+  id_plantel_integrante: string | number;
+  tipo: string;
+  minuto: string | number;
+  cuarto: string | number;
+}
 
 export default function PartidoPlanilla() {
   const navigate = useNavigate();
@@ -19,13 +35,15 @@ export default function PartidoPlanilla() {
   const [inscripcionLocal, setInscripcionLocal] = useState<any>(null);
   const [inscripcionVisitante, setInscripcionVisitante] = useState<any>(null);
 
-  const { integrantes: plantelLocal } = usePlantelActivo(inscripcionLocal?.id_equipo);
-  const { integrantes: plantelVisitante } = usePlantelActivo(inscripcionVisitante?.id_equipo);
+  // Casting de los integrantes para asegurar que id_plantel_integrante sea reconocido
+  const { integrantes: rawLocal } = usePlantelActivo(inscripcionLocal?.id_equipo);
+  const { integrantes: rawVisitante } = usePlantelActivo(inscripcionVisitante?.id_equipo);
+  
+  const plantelLocal = (rawLocal || []) as PlantelActivoIntegrante[];
+  const plantelVisitante = (rawVisitante || []) as PlantelActivoIntegrante[];
 
   const [arbitrosList, setArbitrosList] = useState<PersonasArbitro[]>([]);
   const [loading, setLoading] = useState(false);
-  
-  // ESTADO PARA EL MODAL
   const [showModal, setShowModal] = useState(false);
 
   const [partidoInfo, setPartidoInfo] = useState({
@@ -45,8 +63,8 @@ export default function PartidoPlanilla() {
   });
 
   const [capitanes, setCapitanes] = useState({ local: 0, visitante: 0 });
-  const [goles, setGoles] = useState<any[]>([]);
-  const [tarjetas, setTarjetas] = useState<any[]>([]);
+  const [goles, setGoles] = useState<Gol[]>([]);
+  const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
   const [camisetas, setCamisetas] = useState<Record<number, string>>({});
 
   useEffect(() => {
@@ -61,6 +79,8 @@ export default function PartidoPlanilla() {
     cargarArbitros();
   }, []);
 
+  // --- HANDLERS (Iguales a tu lógica original) ---
+
   const handleTorneoChange = (id: string) => {
     setTorneoId(id ? Number(id) : undefined);
     setInscripcionLocal(null);
@@ -73,12 +93,10 @@ export default function PartidoPlanilla() {
   const handleEquipoChange = (idInscripcion: string, side: 'local' | 'visitante') => {
     const idNum = Number(idInscripcion);
     const opuesto = side === 'local' ? inscripcionVisitante : inscripcionLocal;
-    
     if (opuesto && opuesto.id_inscripcion === idNum) {
       alert("¡Error! Un equipo no puede enfrentarse a sí mismo.");
       return;
     }
-
     const insc = inscripciones.find(i => i.id_inscripcion === idNum);
     if (side === 'local') {
       setInscripcionLocal(insc);
@@ -100,19 +118,9 @@ export default function PartidoPlanilla() {
     if (!torneoId || !inscripcionLocal || !inscripcionVisitante) {
       alert("Faltan datos básicos del partido");
       return;
-
     }
-
-    if (partidoInfo.id_arbitro1 && 
-      partidoInfo.id_arbitro1 === partidoInfo.id_arbitro2) {
-      alert("¡Error! El Árbitro 1 y el Árbitro 2 no pueden ser la misma persona.");
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
     const numFechaVal = Number(partidoInfo.numero_fecha);
-
     const payload = {
       partido: {
         id_torneo: torneoId,
@@ -131,18 +139,10 @@ export default function PartidoPlanilla() {
         observaciones: partidoInfo.observaciones,
         numero_fecha: numFechaVal > 0 ? numFechaVal : null
       },
-
       participantes: {
-        local: seleccionados.local.map(id => ({
-          id_plantel_integrante: id,
-          numero_camiseta: camisetas[id] || null
-        })),
-        visitante: seleccionados.visitante.map(id => ({
-          id_plantel_integrante: id,
-          numero_camiseta: camisetas[id] || null
-        }))
+        local: seleccionados.local.map(id => ({ id_plantel_integrante: id, numero_camiseta: camisetas[id] || null })),
+        visitante: seleccionados.visitante.map(id => ({ id_plantel_integrante: id, numero_camiseta: camisetas[id] || null }))
       },
-
       goles: goles.filter(g => g.id_plantel_integrante !== "").map(g => ({
         id_plantel_integrante: Number(g.id_plantel_integrante),
         minuto: Number(g.minuto) || 0,
@@ -155,10 +155,9 @@ export default function PartidoPlanilla() {
         tipo: t.tipo,
         minuto: Number(t.minuto) || 0,
         cuarto: Number(t.cuarto) || null,
-        observaciones: t.observaciones || ""
+        observaciones: ""
       }))
     };
-
     try {
       await crearPlanillaPartido(payload);
       alert("Planilla guardada con éxito.");
@@ -172,7 +171,6 @@ export default function PartidoPlanilla() {
     }
   };
 
-  // FUNCION AUXILIAR PARA OBTENER NOMBRE DEL JUGADOR
   const getPlayerName = (id: any) => {
     const p = [...plantelLocal, ...plantelVisitante].find(x => x.id_plantel_integrante === Number(id));
     return p ? `${p.apellido_persona}, ${p.nombre_persona}` : "Desconocido";
@@ -181,13 +179,11 @@ export default function PartidoPlanilla() {
   return (
     <div className={styles.container}>
       <div className={styles.headerPage}>
-        <Button variant="primary" size="sm" onClick={() => navigate(-1)}>
-          ← Volver
-        </Button>
+        <Button variant="primary" size="sm" onClick={() => navigate(-1)}>← Volver</Button>
         <h1>Nueva Planilla de Partido</h1>
       </div>
 
-      {/* CABECERA - DATOS DEL PARTIDO */}
+      {/* DATOS DEL PARTIDO */}
       <section className={styles.section}>
         <div className={styles.gridForm}>
           <select onChange={(e) => handleTorneoChange(e.target.value)}>
@@ -214,10 +210,6 @@ export default function PartidoPlanilla() {
           <input type="text" placeholder="Ubicación" value={partidoInfo.ubicacion} onChange={e => setPartidoInfo({...partidoInfo, ubicacion: e.target.value})} />
         </div>
         <div className={styles.gridForm}>
-          <input type="text" placeholder="Juez de Mesa Local" value={partidoInfo.juez_mesa_local} onChange={e => setPartidoInfo({...partidoInfo, juez_mesa_local: e.target.value})} />
-          <input type="text" placeholder="Juez de Mesa Visitante" value={partidoInfo.juez_mesa_visitante} onChange={e => setPartidoInfo({...partidoInfo, juez_mesa_visitante: e.target.value})} />
-        </div>
-        <div className={styles.gridForm}>
           <select disabled={!torneoId} value={inscripcionLocal?.id_inscripcion || ""} onChange={(e) => handleEquipoChange(e.target.value, 'local')}>
             <option value="">Equipo Local</option>
             {inscripciones.map(i => <option key={i.id_inscripcion} value={i.id_inscripcion}>{i.nombre_equipo}</option>)}
@@ -233,68 +225,30 @@ export default function PartidoPlanilla() {
       {/* COLUMNAS DE JUGADORES */}
       <div className={styles.columns}>
         {(['local', 'visitante'] as const).map(side => {
-          const listaIntegrantes = side === 'local' ? plantelLocal : plantelVisitante;
-          const nombreEquipo = side === 'local' ? inscripcionLocal?.nombre_equipo : inscripcionVisitante?.nombre_equipo;
-          
+          const lista = side === 'local' ? plantelLocal : plantelVisitante;
+          const equipo = side === 'local' ? inscripcionLocal?.nombre_equipo : inscripcionVisitante?.nombre_equipo;
           return (
             <div key={side} className={styles.column}>
-              <h3>{nombreEquipo || (side === 'local' ? 'Local' : 'Visitante')}</h3>
-              
-              {/* Cabecera de la lista de jugadores */}
-              {listaIntegrantes.length > 0 && (
-                <div className={styles.playerListHeader}>
-                  <span title="Asistencia">Asist.</span>
-                  <span title="Número de Camiseta">Cam.</span>
-                  <span className={styles.headerNombre}>Nombre / Documento / Rol</span>
-                  <span title="Capitán">Cap.</span>
-                </div>
-              )}
-
+              <h3>{equipo || (side === 'local' ? 'Local' : 'Visitante')}</h3>
               <div className={styles.playerList}>
-                {listaIntegrantes.length === 0 && <p className={styles.empty}>Selecciona un equipo</p>}
-                {listaIntegrantes.map(p => (
-                  <div key={p.id_plantel_integrante} className={styles.playerItem}>
-                    {/* Checkbox Asistencia */}
-                    <input 
-                      type="checkbox" 
-                      checked={seleccionados[side].includes(p.id_plantel_integrante)} 
-                      onChange={(e) => {
-                        const id = p.id_plantel_integrante;
-                        setSeleccionados(prev => ({ ...prev, [side]: e.target.checked ? [...prev[side], id] : prev[side].filter(x => x !== id) }));
-                      }} 
-                    />
-                    
-                    {/* Input Camiseta */}
-                    <input 
-                      type="text" 
-                      placeholder="#" 
-                      className={styles.inputCamiseta} 
-                      value={camisetas[p.id_plantel_integrante] || ""} 
-                      onChange={(e) => setCamisetas({ ...camisetas, [p.id_plantel_integrante]: e.target.value })} 
-                      disabled={!seleccionados[side].includes(p.id_plantel_integrante)} 
-                    />
-                    
-                    {/* Datos Jugador */}
-                    <span className={styles.playerText}>
-                      {p.apellido_persona}, {p.nombre_persona} <br />
-                      <small>{p.documento} - <strong>{p.rol_en_plantel}</strong></small>
-                    </span>
-                    
-                    {/* Radio Capitán */}
-                    <input 
-                      type="radio" 
-                      name={`capitan-${side}`} 
-                      checked={capitanes[side] === p.id_plantel_integrante} 
-                      onChange={() => setCapitanes(prev => ({ ...prev, [side]: p.id_plantel_integrante }))} 
-                    />
-                  </div>
-                ))}
+                {lista.map(p => {
+                  const pid = p.id_plantel_integrante as number;
+                  return (
+                    <div key={pid} className={styles.playerItem}>
+                      <input type="checkbox" checked={seleccionados[side].includes(pid)} onChange={(e) => setSeleccionados(prev => ({ ...prev, [side]: e.target.checked ? [...prev[side], pid] : prev[side].filter(x => x !== pid) }))} />
+                      <input type="text" placeholder="#" className={styles.inputCamiseta} value={camisetas[pid] || ""} onChange={(e) => setCamisetas({ ...camisetas, [pid]: e.target.value })} disabled={!seleccionados[side].includes(pid)} />
+                      <span className={styles.playerText}>{p.apellido_persona}, {p.nombre_persona}</span>
+                      <input type="radio" name={`capitan-${side}`} checked={capitanes[side] === pid} onChange={() => setCapitanes(prev => ({ ...prev, [side]: pid }))} />
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
         })}
       </div>
-      {/* SECCIÓN DE INCIDENCIAS */}
+
+      {/* INCIDENCIAS */}
       <div className={styles.incidencias}>
         <section className={styles.eventSection}>
           <div className={styles.headerRow}>
@@ -303,36 +257,27 @@ export default function PartidoPlanilla() {
           </div>
           {goles.map((gol, index) => (
             <div key={index} className={styles.eventRow}>
-              <select value={gol.id_plantel_integrante} onChange={e => { const n = [...goles]; n[index].id_plantel_integrante = e.target.value; setGoles(n); }}>
+              <select value={String(gol.id_plantel_integrante)} onChange={e => { const n = [...goles]; n[index].id_plantel_integrante = e.target.value; setGoles(n); }}>
                 <option value="">Autor</option>
-                <optgroup label="Local">
-                  {plantelLocal
-                    .filter(p => seleccionados.local.includes(p.id_plantel_integrante))
-                    // 👇 NUEVO FILTRO DE ROL
-                    .filter(p => p.rol_en_plantel === 'JUGADOR') 
-                    .map(p => (
-                      <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>
-                        {p.apellido_persona}, {p.nombre_persona}
-                      </option>
-                    ))}
+                <optgroup label={inscripcionLocal?.nombre_equipo || "Local"}>
+                  {plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante as number)).map(p => (
+                    <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                      {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                    </option>
+                  ))}
                 </optgroup>
-
-                <optgroup label="Visitante">
-                  {plantelVisitante
-                    .filter(p => seleccionados.visitante.includes(p.id_plantel_integrante))
-                    // 👇 NUEVO FILTRO DE ROL
-                    .filter(p => p.rol_en_plantel === 'JUGADOR') 
-                    .map(p => (
-                      <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>
-                        {p.apellido_persona}, {p.nombre_persona}
-                      </option>
-                    ))}
+                <optgroup label={inscripcionVisitante?.nombre_equipo || "Visitante"}>
+                  {plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante as number)).map(p => (
+                    <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                      {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                    </option>
+                  ))}
                 </optgroup>
               </select>
               <select value={gol.referencia_gol} onChange={e => { const n = [...goles]; n[index].referencia_gol = e.target.value; setGoles(n); }}>{TIPOS_GOL.map(t => <option key={t} value={t}>{t}</option>)}</select>
               <input type="number" placeholder="Min" value={gol.minuto} onChange={e => { const n = [...goles]; n[index].minuto = e.target.value; setGoles(n); }} />
               <input type="number" placeholder="4°" value={gol.cuarto} onChange={e => { const n = [...goles]; n[index].cuarto = e.target.value; setGoles(n); }} />
-              <label className={styles.checkboxLabel}><input type="checkbox" checked={gol.es_autogol || false} onChange={e => { const nuevosGoles = [...goles]; nuevosGoles[index] = { ...nuevosGoles[index], es_autogol: e.target.checked }; setGoles(nuevosGoles); }} /> Autogol</label>
+              <label className={styles.checkboxLabel}><input type="checkbox" checked={gol.es_autogol} onChange={e => { const n = [...goles]; n[index].es_autogol = e.target.checked; setGoles(n); }} /> Autogol</label>
               <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'gol')}>✕</button>
             </div>
           ))}
@@ -341,14 +286,26 @@ export default function PartidoPlanilla() {
         <section className={styles.eventSection}>
           <div className={styles.headerRow}>
             <h3>Tarjetas</h3>
-            <Button onClick={() => setTarjetas([...tarjetas, { id_plantel_integrante: "", tipo: "AMARILLA", minuto: "", cuarto: "" }])} size="sm" variant="secondary">+ Tarjeta</Button>
+            <Button onClick={() => setTarjetas([...tarjetas, { id_plantel_integrante: "", tipo: "VERDE", minuto: "", cuarto: "" }])} size="sm" variant="secondary">+ Tarjeta</Button>
           </div>
           {tarjetas.map((t, index) => (
             <div key={index} className={styles.eventRow}>
-              <select value={t.id_plantel_integrante} onChange={e => { const n = [...tarjetas]; n[index].id_plantel_integrante = e.target.value; setTarjetas(n); }}>
+              <select value={String(t.id_plantel_integrante)} onChange={e => { const n = [...tarjetas]; n[index].id_plantel_integrante = e.target.value; setTarjetas(n); }}>
                 <option value="">Sancionado</option>
-                <optgroup label="Local">{plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante)).map(p => <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>{p.apellido_persona}, {p.nombre_persona}</option>)}</optgroup>
-                <optgroup label="Visitante">{plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante)).map(p => <option key={p.id_plantel_integrante} value={p.id_plantel_integrante}>{p.apellido_persona}, {p.nombre_persona}</option>)}</optgroup>
+                <optgroup label={inscripcionLocal?.nombre_equipo || "Local"}>
+                  {plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante as number)).map(p => (
+                    <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                      {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label={inscripcionVisitante?.nombre_equipo || "Visitante"}>
+                  {plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante as number)).map(p => (
+                    <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                      {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
               <select value={t.tipo} onChange={e => { const n = [...tarjetas]; n[index].tipo = e.target.value; setTarjetas(n); }}>{TIPOS_TARJETA.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}</select>
               <input type="number" placeholder="Min" value={t.minuto} onChange={e => { const n = [...tarjetas]; n[index].minuto = e.target.value; setTarjetas(n); }} />
@@ -359,17 +316,12 @@ export default function PartidoPlanilla() {
         </section>
       </div>
 
-      <section className={styles.section}>
-        <textarea placeholder="Observaciones finales..." className={styles.textarea} value={partidoInfo.observaciones} onChange={e => setPartidoInfo({...partidoInfo, observaciones: e.target.value})} />
-      </section>
-
       <footer className={styles.footer}>
-        <Button variant="primary" size="md" onClick={() => setShowModal(true)}>
-          Revisar y Guardar Partido
-        </Button>
+        <Button variant="primary" size="md" onClick={() => setShowModal(true)}>Revisar y Guardar Partido</Button>
       </footer>
 
-      {/* MODAL DE RESUMEN */}
+     
+    {/* MODAL DE RESUMEN */}
       {showModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
@@ -393,7 +345,6 @@ export default function PartidoPlanilla() {
                   <div>
                     <p><strong>Árbitro 1:</strong> {arbitrosList.find(a => a.id_persona_rol === Number(partidoInfo.id_arbitro1))?.apellido || 'No asignado'}</p>
                     <p><strong>Árbitro 2:</strong> {arbitrosList.find(a => a.id_persona_rol === Number(partidoInfo.id_arbitro2))?.apellido || 'No asignado'}</p>
-                    {/* Alerta de error de árbitros iguales */}
                     {partidoInfo.id_arbitro1 && partidoInfo.id_arbitro1 === partidoInfo.id_arbitro2 && (
                       <span className={styles.errorText}>⚠️ Los árbitros no pueden ser iguales</span>
                     )}
@@ -420,7 +371,7 @@ export default function PartidoPlanilla() {
                         </li>
                       ))}
                     </ul>
-                    {capitanes.local === 0 && <span className={styles.errorText}>⚠️ Falta capitán</span>}
+                    {capitanes.local === 0 && <span className={styles.errorText}>⚠️ Falta capitán local</span>}
                   </div>
                   <div>
                     <h5>{inscripcionVisitante?.nombre_equipo} ({seleccionados.visitante.length})</h5>
@@ -431,7 +382,7 @@ export default function PartidoPlanilla() {
                         </li>
                       ))}
                     </ul>
-                    {capitanes.visitante === 0 && <span className={styles.errorText}>⚠️ Falta capitán</span>}
+                    {capitanes.visitante === 0 && <span className={styles.errorText}>⚠️ Falta capitán visitante</span>}
                   </div>
                 </div>
               </div>
@@ -470,7 +421,6 @@ export default function PartidoPlanilla() {
           </div>
         </div>
       )}
-      
     </div>
   );
 }

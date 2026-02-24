@@ -11,19 +11,22 @@ export interface PlantelActivoIntegrante {
   temporada: string;
   plantel_activo: boolean;
 
-  // Estos campos son opcionales porque el plantel puede estar vacío
+  // Campos opcionales (vienen así de la base de datos/vista)
   id_persona?: number | null;
   nombre_persona?: string | null;
   apellido_persona?: string | null;
   documento?: number | null;
   rol_en_plantel?: string | null;
   numero_camiseta?: number | null;
-  id_plantel_integrante?: number | null;
-  rol_en_palntel?: string | null;
+  id_plantel_integrante?: number | null; // El "?" causa el rojo
   fecha_alta?: string | null; 
   fecha_baja?: string | null;
 }
 
+// Creamos un tipo "Seguro" para la UI de la planilla
+export type IntegranteValidado = Required<Pick<PlantelActivoIntegrante, 
+  'id_plantel_integrante' | 'nombre_persona' | 'apellido_persona' | 'rol_en_plantel'
+>> & PlantelActivoIntegrante;
 
 // lista de personas con roles completa
 export interface PersonasRolesVista {
