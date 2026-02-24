@@ -5,7 +5,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from fastapi.middleware.cors import CORSMiddleware
-
+import os
 
 from app.core.middleware import request_context_middleware
 from app.core.exceptions import AppError
@@ -29,15 +29,16 @@ app = FastAPI(
     version="1.1.0",
 )
 
+# Obtenemos el string del .env y lo convertimos en una lista
+origins_str = os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:5173")
+origins = [origin.strip() for origin in origins_str.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",  # frontend Vite
-    ],
+    allow_origins=origins, # 👈 Ahora usamos la lista dinámica
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-
 )
 
 # =====================================================
