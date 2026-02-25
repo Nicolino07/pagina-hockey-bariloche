@@ -187,7 +187,7 @@ export default function PartidoPlanilla() {
       <section className={styles.section}>
         <div className={styles.gridForm}>
           <select onChange={(e) => handleTorneoChange(e.target.value)}>
-            <option value="">Seleccionar Torneo</option>
+            <option value="">Torneo</option>
             {torneos.map((t: any) => (
               <option key={t.id_torneo} value={t.id_torneo}>{t.nombre} - {t.genero} - {t.categoria}</option>
             ))}
