@@ -96,4 +96,20 @@ CREATE TABLE IF NOT EXISTS fixture_partido (
         UNIQUE (id_fixture_fecha, id_equipo_local, id_equipo_visitante)
 );
 
+
+CREATE TABLE noticias (
+    id_noticia      INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    titulo          VARCHAR(255) NOT NULL,
+    imagen_url      TEXT,
+    epigrafe        VARCHAR(255),
+    texto           TEXT NOT NULL,
+    
+    -- Auditoría y Soft Delete
+    creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en  TIMESTAMP DEFAULT NULL,
+    borrado_en      TIMESTAMP DEFAULT NULL,
+    creado_por      VARCHAR(100),
+    actualizado_por VARCHAR(100)
+);
+
 COMMIT;

@@ -1,222 +1,947 @@
-/* --- BASE & UTILS --- */
-.home {
+/* ==========================================================================
+   PartidosPage.module.css - Versión Optimizada para Móviles
+   ========================================================================== */
+
+.container {
+  padding: 1rem;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1.5rem;
-  min-height: 100vh;
+  box-sizing: border-box;
+  width: 100%;
 }
 
-/* --- HERO --- */
-.hero {
-  position: relative;
-  height: 400px;
-  margin: 1.5rem 0;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #1e293b;
-}
-
-.overlay {
-  padding: 2.5rem;
-  height: 100%;
+/* --- HEADER --- */
+.header {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  text-align: center;
-  background: linear-gradient(to bottom, transparent, rgba(15, 23, 42, 0.8));
+  margin-bottom: 1.5rem;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-.hero h1 { font-size: 2.5rem; color: white; margin-bottom: 1rem; }
-.hero p { color: #94a3b8; font-size: 1.2rem; }
+.header h1 { 
+  margin: 0; 
+  font-size: clamp(1.4rem, 5vw, 1.8rem); 
+  color: #1a1a1a; 
+  line-height: 1.2;
+}
 
-/* --- TABLA --- */
+.header p { 
+  margin: 5px 0 0; 
+  color: #666;
+  font-size: clamp(0.85rem, 4vw, 1rem);
+}
+
+.botones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* --- ESTADÍSTICAS --- */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.statCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+}
+
+.statIcon {
+  font-size: 2rem;
+  background: #f8fafc;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.statContent span {
+  font-size: 0.8rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.statContent strong {
+  display: block;
+  font-size: 1.8rem;
+  color: #1e293b;
+}
+
+/* Estilo específico para el Widget de Marcador */
+.lastResultWidget {
+  flex-direction: column;
+  align-items: flex-start;
+  background: linear-gradient(to right, #ffffff, #f8fafc);
+  border-left: 4px solid #0056b3; /* Color de la Asociación */
+}
+
+.miniScoreboard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.miniTeam {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #334155;
+  flex: 1;
+  text-align: center;
+}
+
+.miniResult {
+  background: #1e293b;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-family: 'Monaco', monospace;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+
+
+.statCard span { 
+  font-size: 0.7rem; 
+  text-transform: uppercase; 
+  color: #7f8c8d; 
+  font-weight: 700; 
+  display: block;
+  margin-bottom: 4px;
+}
+
+.statCard strong { 
+  font-size: 1.5rem; 
+  color: #2c3e50; 
+  display: block; 
+  line-height: 1.2;
+}
+
+.statCard small {
+  font-size: 0.8rem;
+  color: #666;
+  display: block;
+  margin-top: 4px;
+}
+
+/* --- TABLA (Escritorio) --- */
 .tableContainer {
   background: white;
   border-radius: 10px;
   padding: 20px;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  overflow-x: auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-.matchesTable { width: 100%; border-collapse: collapse; }
-.matchesTable th { text-align: left; padding: 12px; color: #64748b; font-size: 0.85rem; text-transform: uppercase; }
-.matchesTable td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; }
+.tableContainer h3 {
+  margin: 0 0 15px 0;
+  font-size: clamp(1.1rem, 4vw, 1.3rem);
+}
 
-/* --- MODAL E INCIDENCIAS --- */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.table th {
+  text-align: left;
+  padding: 12px;
+  background-color: #f8fafc;
+  color: #64748b;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.table td {
+  padding: 15px 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.matchupRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.vsLabel {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.resHighlight {
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 800;
+  color: #1e293b;
+  display: inline-block;
+}
+
+/* --- MODAL DE DETALLES --- */
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.85);
   z-index: 2000;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+  padding: 10px;
+  backdrop-filter: blur(3px);
 }
 
 .modalContent {
   background: white;
   width: 100%;
-  max-width: 850px;
+  max-width: 900px;
   max-height: 90vh;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow-y: auto;
+  position: relative;
+  animation: modalFadeIn 0.3s ease;
 }
 
-.mainScoreBanner {
-  background: #0f172a;
-  color: white;
-  padding: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-}
-
-.bigScore {
-  font-size: 2.5rem;
-  font-weight: 900;
-  background: rgba(255,255,255,0.1);
-  padding: 0.5rem 1.5rem;
-  border-radius: 8px;
-}
-
-.bigTeamName { flex: 1; text-align: center; font-weight: 700; text-transform: uppercase; }
-
-/* --- LISTA DE INCIDENCIAS --- */
-.incidenciasList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.incidenciaItem {
-  padding: 10px 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 48px;
-}
-
-.jugadorInfo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
-
-.jugadorNombre {
-  font-weight: 600;
-  color: #1e293b;
-  font-size: 0.95rem;
-}
-
-.tiempoInfo {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.badgeMinuto {
-  background: #eff6ff;
-  color: #2563eb;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  border: 1px solid #dbeafe;
-}
-
-.badgeCuarto {
-  background: #334155;
-  color: white;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-}
-
-/* Colores de Tarjetas */
-.tarjeta.verde { border-left: 5px solid #22c55e; }
-.tarjeta.amarilla { border-left: 5px solid #eab308; }
-.tarjeta.roja { border-left: 5px solid #ef4444; }
-
-/* Plantilla Jugadores */
-.jugadorRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.tshirt {
-  width: 26px;
-  height: 26px;
-  background: #475569;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: bold;
-}
-
-.infoGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  padding: 20px;
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .modalHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  
-  /* CLAVE: Añade padding para que el radio del modal no corte el texto */
-  padding: 20px 24px; 
-  
-  border-bottom: 1px solid #eee;
-  width: 100%; /* Asegura que ocupe todo el ancho */
-  box-sizing: border-border-box; /* Evita que el padding agrande el modal */
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
 }
 
 .modalHeader h2 {
   margin: 0;
-  padding: 0;
-  text-align: left; /* Asegura alineación a la izquierda */
+  font-size: clamp(1.2rem, 4vw, 1.5rem);
+  padding-right: 2rem;
 }
 
 .subHeader {
-  margin: 5px 0 0 0;
-  text-align: left;
-  display: block; /* Evita comportamientos extraños de línea */
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
 }
 
 .closeBtn {
   background: none;
   border: none;
-  font-size: 1.8rem;
-  line-height: 1;
+  font-size: 2rem;
   cursor: pointer;
-  color: #999;
+  color: #64748b;
+  padding: 0 8px;
+  line-height: 1;
   transition: color 0.2s;
-  padding: 0 5px;
-  margin-left: 15px;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
 }
 
 .closeBtn:hover {
-  color: #333; /* Efecto al pasar el mouse */
+  color: #1e293b;
 }
 
+.mainScoreBanner {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: white;
+  padding: 2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.bigScore {
+  font-size: clamp(2rem, 8vw, 3rem);
+  font-weight: 900;
+  background: rgba(255,255,255,0.15);
+  padding: 0.5rem 1.5rem;
+  border-radius: 12px;
+  font-family: monospace;
+  letter-spacing: 2px;
+}
+
+.bigTeamName {
+  flex: 1;
+  text-align: center;
+  font-size: clamp(1rem, 4vw, 1.3rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  word-break: break-word;
+  hyphens: auto;
+  padding: 0 5px;
+}
+
+.detailsBody {
+  padding: 1.5rem;
+}
+
+.teamSection {
+  margin-bottom: 2rem;
+}
+
+.localTitle, .visitanteTitle {
+  font-size: 1.1rem;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid;
+}
+
+.localTitle { border-color: var(--color-primary); }
+.visitanteTitle { border-color: var(--color-secondary); }
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.infoCol {
+  min-width: 0;
+}
+
+.infoCol label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.plantillaList {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.jugadorRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  padding: 8px;
+  background: #f8fafc;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.tshirt {
+  background: #34495e;
+  color: white;
+  width: 24px;
+  height: 24px;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.incidenciaItem {
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  background: #f8fafc;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.incidenciaItem span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Colores de tarjetas */
+.verde { 
+  border-left: 4px solid #22c55e; 
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.amarilla { 
+  border-left: 4px solid #eab308; 
+  background: rgba(234, 179, 8, 0.05);
+}
+
+.roja { 
+  border-left: 4px solid #ef4444; 
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.divider {
+  margin: 2rem 0;
+  border: none;
+  border-top: 2px dashed #e2e8f0;
+}
+
+.modalFooter {
+  padding: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.modalFooter p {
+  margin: 0;
+}
+
+.audit {
+  font-size: 0.8rem;
+  margin-top: 5px;
+  color: #94a3b8;
+}
+
+/* --- MODAL DE IMPRESIÓN --- */
+.modalContentSmall {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: modalFadeIn 0.3s ease;
+}
+
+.modalContentSmall h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.3rem;
+}
+
+.modalHelp {
+  color: #666;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.printForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 2rem;
+}
+
+.printForm select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: white;
+}
+
+.printForm select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.printForm select:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   MEDIA QUERIES - MEJORAS PARA MÓVILES
+   ========================================================================== */
+
+/* Tablets y móviles grandes */
 @media (max-width: 768px) {
-  .infoGrid { grid-template-columns: 1fr; }
+  .container {
+    padding: 0.75rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .botones {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .botones button {
+    width: 100%;
+    justify-content: center;
+    padding: 12px !important;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .statCard {
+    padding: 0.9rem;
+  }
+
+  .statCard strong {
+    font-size: 1.3rem;
+  }
+
+  /* Transformar tabla en cards */
+  .table {
+    display: block;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: block;
+  }
+
+  .table tr {
+    display: block;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed #f1f5f9;
+    border-bottom-width: 1px;
+    border-bottom-style: dashed;
+    border-bottom-color: #f1f5f9;
+    font-size: 0.9rem;
+  }
+
+  .table td:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .table td:first-child {
+    padding-top: 0;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #64748b;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    margin-right: 10px;
+  }
+
+  .matchupRow {
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .resHighlight {
+    padding: 4px 12px;
+  }
+
+  /* Modal mejorado para móvil */
+  .modalContent {
+    max-height: 95vh;
+    border-radius: 16px 16px 0 0;
+    margin-top: auto;
+    align-self: flex-end;
+  }
+
+  .modalOverlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .modalContent {
+    animation: slideUp 0.3s ease;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .modalHeader {
+    padding: 1rem;
+  }
+
+  .modalHeader h2 {
+    font-size: 1.2rem;
+  }
+
+  .mainScoreBanner {
+    flex-direction: column;
+    padding: 1.2rem;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .bigScore {
+    font-size: 2.2rem;
+    order: 2;
+    width: 100%;
+    text-align: center;
+  }
+
+  .bigTeamName {
+    font-size: 1rem;
+    order: 1;
+    width: 100%;
+  }
+  
+  .bigTeamName:last-child {
+    order: 3;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .detailsBody {
+    padding: 1rem;
+  }
+
+  .plantillaList {
+    max-height: 200px;
+  }
+
+  .incidenciaItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .incidenciaItem small {
+    align-self: flex-end;
+  }
+
+  /* Modal de impresión */
+  .modalContentSmall {
+    width: 100%;
+    height: auto;
+    max-height: 90vh;
+    overflow-y: auto;
+    margin: 1rem;
+    padding: 1.5rem;
+    align-self: center;
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
+
+  .modalActions button {
+    width: 100%;
+  }
+}
+
+/* Móviles pequeños */
+@media (max-width: 480px) {
+  .container {
+    padding: 0.5rem;
+  }
+
+  .header {
+    padding: 0.9rem;
+  }
+
+  .header h1 {
+    font-size: 1.3rem;
+  }
+
+  .table tr {
+    padding: 0.75rem;
+  }
+
+  .table td {
+    font-size: 0.8rem;
+    padding: 8px 0;
+  }
+
+  .table td::before {
+    font-size: 0.7rem;
+  }
+
+  .modalHeader {
+    padding: 0.75rem;
+  }
+
+  .modalHeader h2 {
+    font-size: 1.1rem;
+  }
+
+  .closeBtn {
+    font-size: 1.8rem;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .mainScoreBanner {
+    padding: 1rem;
+  }
+
+  .bigScore {
+    font-size: 1.8rem;
+    padding: 0.3rem 1rem;
+  }
+
+  .bigTeamName {
+    font-size: 0.9rem;
+  }
+
+  .infoCol label {
+    font-size: 0.75rem;
+  }
+
+  .jugadorRow {
+    font-size: 0.8rem;
+    padding: 6px;
+  }
+
+  .tshirt {
+    width: 20px;
+    height: 20px;
+    font-size: 0.65rem;
+  }
+
+  .incidenciaItem {
+    font-size: 0.8rem;
+    padding: 5px 6px;
+  }
+
+  .modalFooter {
+    padding: 1rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Orientación horizontal en móviles */
+@media (max-height: 600px) and (orientation: landscape) {
+  .modalContent {
+    max-height: 85vh;
+  }
+
+  .modalContentSmall {
+    max-height: 85vh;
+  }
+
+  .plantillaList {
+    max-height: 150px;
+  }
+}
+
+/* Ajuste para pantallas táctiles */
+@media (hover: none) and (pointer: coarse) {
+  .button, 
+  .closeBtn,
+  select,
+  .table td button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .closeBtn {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Soporte para notch en dispositivos modernos */
+@supports (padding: max(0px)) {
+  .modalContent {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  .modalContent:first-child {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .modalContent:last-child {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+.newsSection {
+  margin: 40px 0;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.newsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.newsCard {
+  display: flex;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+  cursor: pointer;
+  border: 1px solid #f0f0f0;
+}
+
+.newsCard:hover {
+  transform: translateY(-5px);
+}
+
+.newsImage {
+  width: 100px;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.imagePlaceholder {
+  font-size: 2rem;
+  opacity: 0.5;
+}
+
+.newsContent {
+  padding: 15px;
+}
+
+.newsDate {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.newsContent h3 {
+  margin: 5px 0;
+  font-size: 1.1rem;
+  color: #1e293b;
+  line-height: 1.3;
+}
+
+.newsContent p {
+  font-size: 0.85rem;
+  color: #64748b;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Corta el texto a 2 líneas */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.readMore {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0056b3;
+}
+
+/* Ajuste para móviles */
+@media (max-width: 480px) {
+  .newsCard {
+    flex-direction: column; /* Foto arriba, texto abajo en celulares */
+  }
+  .newsImage {
+    width: 100%;
+    height: 150px;
+  }
+}
+
+.newsImageWrapper {
+  position: relative;
+  width: 140px; /* Un poco más ancha para que se luzca la foto */
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.newsImageWrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Clave para que la foto no se deforme */
+}
+
+.epigrafe {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 0.65rem;
+  padding: 4px 8px;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.newsContent p {
+  /* ... (el line-clamp que usamos antes para que no explote el diseño) ... */
+  display: -webkit-box;
+  -webkit-line-clamp: 3; 
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

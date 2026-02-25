@@ -1,0 +1,73 @@
+.adminWrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  padding: 40px;
+  background: #f8fafc;
+}
+
+.formSection, .previewSection, .listSection {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.listSection {
+  grid-column: span 2;
+}
+
+.newsForm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.inputGroup label {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.inputGroup input, .inputGroup textarea {
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+/* Estilos de la Vista Previa similar al Home */
+.previewCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.previewCard img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.previewContent {
+  padding: 15px;
+}
+
+.deleteBtn {
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .adminWrapper { grid-template-columns: 1fr; }
+  .listSection { grid-column: span 1; }
+}

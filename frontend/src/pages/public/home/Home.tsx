@@ -2,18 +2,55 @@ import styles from "./Home.module.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { obtenerPartidosRecientes } from "../../../api/partidos.api";
+import Button from "../../../components/ui/button/Button";
+import { usePartidos } from "../../../hooks/usePartidos";
+
+import { obtenerNoticiasRecientes } from "../../../api/noticias.api"; 
 
 export default function Home() {
-  const navigate = useNavigate();
+
+  const [noticias, setNoticias] = useState<any[]>([]);
+  const [loadingNoticias, setLoadingNoticias] = useState(true);
   const [partidos, setPartidos] = useState<any[]>([]);
-  const [partidoSeleccionado, setPartidoSeleccionado] = useState<any | null>(null);
-  const [modalAbierto, setModalAbierto] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [selectedPartido, setSelectedPartido] = useState<any>(null);
+  const [showModal, setShowModal] = useState(false);
+  
+  const navigate = useNavigate();
+  const { parseIncidencias } = usePartidos();
 
-  const noticias = [
-    { id: 1, titulo: "Gran Final del Torneo Apertura", fecha: "20 Feb 2026" },
-    { id: 2, titulo: "Convocatoria Selección Sub-16", fecha: "18 Feb 2026" },
-  ];
+  useEffect(() => {
+    cargarPartidos();
+    cargarNoticias();
+  }, []);
 
+  const cargarNoticias = async () => {
+    try {
+      const data = await obtenerNoticiasRecientes();
+      setNoticias(data.slice(0, 3)); // Solo mostramos las 3 más nuevas en el Home
+    } catch (error) {
+      console.error("Error cargando noticias:", error);
+    } finally {
+      setLoadingNoticias(false);
+    }
+  };
+
+  const cargarPartidos = async () => {
+    try {
+      const data = await obtenerPartidosRecientes(); 
+      // Tomamos solo los primeros 5 elementos del array
+      setPartidos(data.slice(0, 5)); 
+    } catch (err) {
+      console.error("Error al cargar partidos", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerDetalle = (partido: any) => {
+    setSelectedPartido(partido);
+    setShowModal(true);
+  };
 
   const parsePlantilla = (str: string) => {
     if (!str) return [];
@@ -23,119 +60,73 @@ export default function Home() {
     });
   };
 
-  const abrirModal = (partido: any) => {
-    setPartidoSeleccionado(partido);
-    setModalAbierto(true);
-  };
-
-  const cerrarModal = () => {
-    setModalAbierto(false);
-    setPartidoSeleccionado(null);
-  };
-
-  useEffect(() => {
-    cargarPartidos();
-  }, []);
-
-  const cargarPartidos = async () => {
-    try {
-      const data = await obtenerPartidosRecientes();
-      setPartidos(data.slice(0, 4));
-    } catch (error) {
-      console.error("Error cargando partidos:", error);
-    }
-  };
-
- // Función de parseo corregida para Apellido | Nombre | Minuto | Cuarto
-const parseIncidencias = (str: string) => {
-  if (!str || str.trim() === "" || str === "0") return [];
-  
-  return str.split("; ").map(item => {
-    const partes = item.split("|").map(p => p.trim());
-    
-    // Si el formato es: Apellido (0) | Nombre (1) | Minuto (2) | Cuarto (3) | Tarjeta (4)
-    const tieneNombreYApellido = partes.length >= 2 && isNaN(Number(partes[1]));
-
-    return {
-      // Si partes[1] no es un número, es el nombre. Los unimos.
-      jugador: tieneNombreYApellido ? `${partes[0]} ${partes[1]}` : partes[0],
-      // El minuto ahora debería estar en la posición 2 si hubo nombre, o en la 1 si no.
-      minuto: !isNaN(Number(partes[2])) ? partes[2] : (!isNaN(Number(partes[1])) ? partes[1] : ""),
-      // El cuarto suele estar después del minuto
-      cuarto: partes[3] || (isNaN(Number(partes[2])) ? partes[2] : ""), 
-      extra: partes[partes.length - 1] 
-    };
-  });
-};
-
-  const IncidenciasEquipo = ({ goles, tarjetas }: { goles: string; tarjetas: string }) => {
-    const golesList = parseIncidencias(goles);
-    const tarjetasList = parseIncidencias(tarjetas);
-
-    if (golesList.length === 0 && tarjetasList.length === 0) {
-      return <div className={styles.emptyMessage}>Sin incidencias</div>;
-    }
-
-    const renderFila = (item: any, icon: string, extraClass: string = "") => {
-      return (
-        <div className={`${styles.incidenciaItem} ${extraClass}`}>
-          <div className={styles.jugadorInfo}>
-            <span className={styles.incidenciaIcon}>{icon}</span>
-            <span className={styles.jugadorNombre}>{item.jugador}</span>
-          </div>
-          <div className={styles.tiempoInfo}>
-            {item.minuto && <span className={styles.badgeMinuto}>{item.minuto}'</span>}
-            {item.cuarto && (
-              <span className={styles.badgeCuarto}>{item.cuarto}C</span>
-            )}
-          </div>
-        </div>
-      );
-    };
-
-    return (
-      <div className={styles.incidenciasList}>
-        {golesList.map((g, i) => renderFila(g, "⚽", `gol-${i}`))}
-        {tarjetasList.map((t, i) => {
-          const colorClass = 
-            t.extra === 'VERDE' ? styles.verde :
-            t.extra === 'AMARILLA' ? styles.amarilla :
-            t.extra === 'ROJA' ? styles.roja : "";
-          const emoji = t.extra === 'VERDE' ? '🟢' : t.extra === 'AMARILLA' ? '🟡' : '🔴';
-          return renderFila(t, emoji, `${styles.tarjeta} ${colorClass}`);
-        })}
-      </div>
-    );
-  };
-
   return (
-    <div className={styles.home}>
-      <header className={styles.hero}>
-        <div className={styles.overlay}>
-          <h1>Asociación de Hockey Bariloche y Lagos del Sur</h1>
-          <p>Pasión por el hockey en la Patagonia</p>
-          <button className={styles.btnPrimary}>Ver Fixture</button>
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <div>
+          <h1>Hockey Bariloche</h1>
         </div>
       </header>
 
-      <section className={styles.newsSection}>
-        <h2>Últimas Noticias</h2>
-        <div className={styles.newsGrid}>
-          {noticias.map((item) => (
-            <article key={item.id} className={styles.card}>
-              <div className={styles.imagePlaceholder}></div>
-              <h3>{item.titulo}</h3>
-              <span>{item.fecha}</span>
-              <p>Breve descripción de lo que está pasando...</p>
-            </article>
-          ))}
+      <section className={styles.stats}>
+        {/* Widget: Contador */}
+        <div className={styles.statCard}>
+          <div className={styles.statIcon}>📊</div>
+          <div className={styles.statContent}>
+            <span>Partidos Temporada</span>
+            <strong>{partidos.length}</strong>
+          </div>
+        </div>
+
+        {/* Widget: Último Resultado (Estilo Marcador) */}
+        <div className={`${styles.statCard} ${styles.lastResultWidget}`}>
+          <span>Último Resultado</span>
+          {partidos[0] ? (
+            <div className={styles.miniScoreboard}>
+              <span className={styles.miniTeam}>{partidos[0].equipo_local_nombre}</span>
+              <div className={styles.miniResult}>
+                {partidos[0].goles_local} - {partidos[0].goles_visitante}
+              </div>
+              <span className={styles.miniTeam}>{partidos[0].equipo_visitante_nombre}</span>
+            </div>
+          ) : (
+            <strong>---</strong>
+          )}
         </div>
       </section>
 
-      <section className={styles.lastMatches}>
-        <h2>Últimos Resultados</h2>
-        <div className={styles.tableContainer}>
-          <table className={styles.matchesTable}>
+      {/* --- SECCIÓN DE NOTICIAS --- */}
+          <section className={styles.newsSection}>
+            <div className={styles.sectionHeader}>
+              <h2>Novedades de la Asociación</h2>
+            </div>
+
+            <div className={styles.newsGrid}>
+              {noticias.map((n) => (
+                <article key={n.id_noticia} className={styles.newsCard}>
+                  <div className={styles.newsImageWrapper}>
+                    <img src={n.imagen_url || "/placeholder.jpg"} alt={n.titulo} />
+                    {n.epigrafe && <span className={styles.epigrafe}>{n.epigrafe}</span>}
+                  </div>
+                  <div className={styles.newsContent}>
+                    {/* Ajustamos a 'creado_en' que viene del Backend */}
+                    <span className={styles.newsDate}>
+                      {new Date(n.creado_en).toLocaleDateString()}
+                    </span>
+                    <h3>{n.titulo}</h3>
+                    <p>{n.texto}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+
+      <div className={styles.tableContainer}>
+        <h3>Ultimos Encuentros</h3>
+        {loading ? (
+          <p className={styles.loadingText}>Cargando datos...</p>
+        ) : (
+          <table className={styles.table}>
             <thead>
               <tr>
                 <th>Fecha</th>
@@ -146,65 +137,79 @@ const parseIncidencias = (str: string) => {
               </tr>
             </thead>
             <tbody>
-              {partidos.map((p) => (
-                <tr key={p.id_partido} onClick={() => abrirModal(p)} style={{ cursor: 'pointer' }}>
-                  <td data-label="Fecha">📅 {new Date(p.fecha).toLocaleDateString()}</td>
-                  <td data-label="Torneo">{p.nombre_torneo}</td>
+              {partidos.map((partido) => (
+                <tr key={partido.id_partido}>
+                  <td data-label="Fecha">📅 {new Date(partido.fecha).toLocaleDateString()}</td>
+                  <td data-label="Torneo">{partido.nombre_torneo}</td>
                   <td data-label="Encuentro">
                     <div className={styles.matchupRow}>
-                      <strong className={p.goles_local > p.goles_visitante ? styles.winner : ""}>{p.equipo_local_nombre}</strong>
-                      <small className={styles.vsLabel}>vs</small>
-                      <strong className={p.goles_visitante > p.goles_local ? styles.winner : ""}>{p.equipo_visitante_nombre}</strong>
+                      <strong>{partido.equipo_local_nombre}</strong> 
+                      <small className={styles.vsLabel}>vs</small> 
+                      <strong>{partido.equipo_visitante_nombre}</strong>
                     </div>
                   </td>
                   <td data-label="Resultado">
-                    <span className={styles.resHighlight}>{p.goles_local} - {p.goles_visitante}</span>
+                    <span className={styles.resHighlight}>
+                      {partido.goles_local} - {partido.goles_visitante}
+                    </span>
                   </td>
                   <td data-label="Acciones">
-                    <button className={styles.detailBtn} onClick={(e) => { e.stopPropagation(); abrirModal(p); }}>📄 Detalle</button>
+                    <Button variant="secondary" size="sm" onClick={() => handleVerDetalle(partido)}>
+                      📄 Detalle
+                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      </section>
+        )}
+      </div>
 
-      {modalAbierto && partidoSeleccionado && (
-        <div className={styles.modalOverlay} onClick={cerrarModal}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+      {showModal && selectedPartido && (
+        <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
+          <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <div>
-                <h2>{partidoSeleccionado.nombre_torneo}</h2>
-                <p className={styles.subHeader}>Fecha {partidoSeleccionado.numero_fecha} | {new Date(partidoSeleccionado.fecha).toLocaleDateString()}</p>
+                <h2>{selectedPartido.nombre_torneo}</h2>
+                <p className={styles.subHeader}>
+                  Fecha {selectedPartido.numero_fecha} | {new Date(selectedPartido.fecha).toLocaleDateString()}
+                </p>
               </div>
-              <button className={styles.closeBtn} onClick={cerrarModal}>×</button>
+              <button className={styles.closeBtn} onClick={() => setShowModal(false)}>×</button>
             </div>
 
             <div className={styles.mainScoreBanner}>
-              <div className={styles.bigTeamName}>{partidoSeleccionado.equipo_local_nombre}</div>
-              <div className={styles.bigScore}>{partidoSeleccionado.goles_local} - {partidoSeleccionado.goles_visitante}</div>
-              <div className={styles.bigTeamName}>{partidoSeleccionado.equipo_visitante_nombre}</div>
+              <div className={styles.bigTeamName}>{selectedPartido.equipo_local_nombre}</div>
+              <div className={styles.bigScore}>{selectedPartido.goles_local} - {selectedPartido.goles_visitante}</div>
+              <div className={styles.bigTeamName}>{selectedPartido.equipo_visitante_nombre}</div>
             </div>
 
             <div className={styles.detailsBody}>
               <div className={styles.teamSection}>
-                <h3 className={styles.localTitle}>🏠 {partidoSeleccionado.equipo_local_nombre}</h3>
+                <h3 className={styles.localTitle}>🏠 {selectedPartido.equipo_local_nombre}</h3>
                 <div className={styles.infoGrid}>
                   <div className={styles.infoCol}>
                     <label>📋 Plantilla</label>
                     <div className={styles.plantillaList}>
-                      {parsePlantilla(partidoSeleccionado.lista_jugadores_local).map((j, i) => (
+                      {parsePlantilla(selectedPartido.lista_jugadores_local).map((j, i) => (
                         <div key={i} className={styles.jugadorRow}>
-                          <span className={styles.tshirt}>{j.camiseta || '-'}</span>
-                          <span>{j.nombreCompleto}</span>
+                          <span className={styles.tshirt}>{j.camiseta || '-'}</span> {j.nombreCompleto}
                         </div>
                       ))}
                     </div>
                   </div>
                   <div className={styles.infoCol}>
                     <label>⚽ Goles / 🎴 Sanciones</label>
-                    <IncidenciasEquipo goles={partidoSeleccionado.lista_goles_local} tarjetas={partidoSeleccionado.lista_tarjetas_local} />
+                    {parseIncidencias(selectedPartido.lista_goles_local).map((g, i) => (
+                      <div key={i} className={styles.incidenciaItem}>
+                        <span>⚽ {g.jugador}</span> <small>{g.minuto}' ({g.cuarto}C)</small>
+                      </div>
+                    ))}
+                    {parseIncidencias(selectedPartido.lista_tarjetas_local).map((t, i) => (
+                      <div key={i} className={`${styles.incidenciaItem} ${styles[t.extra.toLowerCase() || 'amarilla']}`}>
+                        <span>🎴 {t.jugador}</span> <small>{t.minuto}' ({t.cuarto}C)</small>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -212,25 +217,38 @@ const parseIncidencias = (str: string) => {
               <hr className={styles.divider} />
 
               <div className={styles.teamSection}>
-                <h3 className={styles.visitanteTitle}>🚩 {partidoSeleccionado.equipo_visitante_nombre}</h3>
+                <h3 className={styles.visitanteTitle}>🚩 {selectedPartido.equipo_visitante_nombre}</h3>
                 <div className={styles.infoGrid}>
-                  <div className={styles.infoCol}>
+                   <div className={styles.infoCol}>
                     <label>📋 Plantilla</label>
                     <div className={styles.plantillaList}>
-                      {parsePlantilla(partidoSeleccionado.lista_jugadores_visitante).map((j, i) => (
+                      {parsePlantilla(selectedPartido.lista_jugadores_visitante).map((j, i) => (
                         <div key={i} className={styles.jugadorRow}>
-                          <span className={styles.tshirt}>{j.camiseta || '-'}</span>
-                          <span>{j.nombreCompleto}</span>
+                          <span className={styles.tshirt}>{j.camiseta || '-'}</span> {j.nombreCompleto}
                         </div>
                       ))}
                     </div>
                   </div>
                   <div className={styles.infoCol}>
                     <label>⚽ Goles / 🎴 Sanciones</label>
-                    <IncidenciasEquipo goles={partidoSeleccionado.lista_goles_visitante} tarjetas={partidoSeleccionado.lista_tarjetas_visitante} />
+                    {parseIncidencias(selectedPartido.lista_goles_visitante).map((g, i) => (
+                      <div key={i} className={styles.incidenciaItem}>
+                        <span>⚽ {g.jugador}</span> <small>{g.minuto}' ({g.cuarto}C)</small>
+                      </div>
+                    ))}
+                    {parseIncidencias(selectedPartido.lista_tarjetas_visitante).map((t, i) => (
+                      <div key={i} className={`${styles.incidenciaItem} ${styles[t.extra.toLowerCase() || 'amarilla']}`}>
+                        <span>🎴 {t.jugador}</span> <small>{t.minuto}' ({t.cuarto}C)</small>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
+            </div>
+            
+            <div className={styles.modalFooter}>
+               <p>Ubicación: <strong>{selectedPartido.ubicacion || 'No especificada'}</strong></p>
+               <p className={styles.audit}>Cargado por: {selectedPartido.creado_por || 'Sistema'}</p>
             </div>
           </div>
         </div>

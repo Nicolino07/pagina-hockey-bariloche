@@ -57,6 +57,11 @@ BEFORE UPDATE ON usuario
 FOR EACH ROW
 EXECUTE FUNCTION fn_set_actualizado_en();
 
+CREATE TRIGGER trg_noticia_actualizado
+BEFORE UPDATE ON noticias
+FOR EACH ROW
+EXECUTE FUNCTION fn_set_actualizado_en();
+
 CREATE TRIGGER trg_torneo_actualizado
 BEFORE UPDATE ON torneo
 FOR EACH ROW
@@ -271,6 +276,12 @@ EXECUTE FUNCTION fn_auditoria_generica();
 CREATE TRIGGER trg_audit_posicion
 AFTER INSERT OR UPDATE OR DELETE
 ON posicion
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica();
+
+CREATE TRIGGER trg_audit_noticia
+AFTER INSERT OR UPDATE OR DELETE
+ON noticias
 FOR EACH ROW
 EXECUTE FUNCTION fn_auditoria_generica();
 

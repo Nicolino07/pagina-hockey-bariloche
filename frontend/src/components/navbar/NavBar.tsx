@@ -58,6 +58,7 @@ export default function Navbar() {
               <hr />
               <Link to="/admin" onClick={() => setMenuOpen(false)}>Panel</Link>
               <Link to="/admin/partidos" onClick={() => setMenuOpen(false)}>Partidos</Link>
+              <Link to="/admin/noticias" onClick={() => setMenuOpen(false)}>Noticias</Link>
 
               {isAdminOrSuper && (
                 <>

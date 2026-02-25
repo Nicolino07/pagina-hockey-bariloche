@@ -85,6 +85,7 @@ from app.routers import (
     partidos_router as partido,
     vistas_router as vistas,
     fichajes_router as fichajes,
+    noticias_router as noticias,
 )
 
 
@@ -106,3 +107,4 @@ app.include_router(inscripciones.router)
 app.include_router(partido)
 app.include_router(vistas)
 app.include_router(fichajes)
+app.include_router(noticias)
