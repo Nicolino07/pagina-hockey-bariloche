@@ -244,7 +244,7 @@ export default function PartidoPlanilla() {
                   return (
                     <div key={pid} className={styles.playerItem}>
                       <input type="checkbox" checked={seleccionados[side].includes(pid)} onChange={(e) => setSeleccionados(prev => ({ ...prev, [side]: e.target.checked ? [...prev[side], pid] : prev[side].filter(x => x !== pid) }))} />
-                      <input type="text" placeholder="#" className={styles.inputCamiseta} value={camisetas[pid] || ""} onChange={(e) => setCamisetas({ ...camisetas, [pid]: e.target.value })} disabled={!seleccionados[side].includes(pid)} />
+                      <input type="number" placeholder="#" className={styles.inputCamiseta} value={camisetas[pid] || ""} onChange={(e) => setCamisetas({ ...camisetas, [pid]: e.target.value })} disabled={!seleccionados[side].includes(pid)} />
                       <span className={styles.playerText}>
                         {p.apellido_persona}, {p.nombre_persona}
                         <span className={styles.playerRole}>

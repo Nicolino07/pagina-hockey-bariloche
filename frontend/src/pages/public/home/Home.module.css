@@ -1,21 +1,19 @@
-/* CONTENEDOR PRINCIPAL */
+/* --- BASE & UTILS --- */
 .home {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1.5rem;
-  background-color: var(--bg-default);
   min-height: 100vh;
 }
 
-/* HERO SECTION (BANNER) */
+/* --- HERO --- */
 .hero {
   position: relative;
-  height: 450px;
+  height: 400px;
   margin: 1.5rem 0;
   border-radius: 12px;
   overflow: hidden;
-  background: var(--color-intermedio); /* Fondo oscuro semitransparente */
-  border: 1px solid var(--border-color);
+  background: #1e293b;
 }
 
 .overlay {
@@ -26,108 +24,199 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  background: linear-gradient(to bottom, transparent, var(--color-intermedio));
+  background: linear-gradient(to bottom, transparent, rgba(15, 23, 42, 0.8));
 }
 
-.hero h1 {
-  font-size: 3rem;
-  color: var(--text-on-primary);
-  margin-bottom: 1rem;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+.hero h1 { font-size: 2.5rem; color: white; margin-bottom: 1rem; }
+.hero p { color: #94a3b8; font-size: 1.2rem; }
+
+/* --- TABLA --- */
+.tableContainer {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  overflow-x: auto;
 }
 
-.hero p {
-  color: var(--color-primary);
-  font-size: 1.2rem;
-  margin-bottom: 2rem;
+.matchesTable { width: 100%; border-collapse: collapse; }
+.matchesTable th { text-align: left; padding: 12px; color: #64748b; font-size: 0.85rem; text-transform: uppercase; }
+.matchesTable td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; }
+
+/* --- MODAL E INCIDENCIAS --- */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
 }
 
-/* BOTÓN DESTACADO */
-.btnMain {
-  background-color: var(--color-accent03); /* Mostaza para que resalte */
-  color: var(--text-primary);
-  padding: 12px 24px;
-  border-radius: 8px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.btnMain:hover {
-  transform: scale(1.05);
-  filter: brightness(1.1);
-}
-
-/* SECCIÓN DE NOTICIAS */
-.newsSection {
-  padding: 3rem 0;
-}
-
-.newsSection h2 {
-  font-size: 2rem;
-  color: var(--text-primary);
-  margin-bottom: 2rem;
-  border-left: 6px solid var(--color-secondary);
-  padding-left: 1rem;
-}
-
-.newsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 2rem;
-}
-
-.card {
-  background: var(--bg-paper);
-  border-radius: 12px;
-  border: 1px solid var(--divider-color);
-  overflow: hidden;
-  transition: box-shadow 0.3s ease;
-}
-
-.card:hover {
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-}
-
-.imagePlaceholder {
+.modalContent {
+  background: white;
   width: 100%;
-  height: 180px;
-  background: var(--color-casilla-clara);
+  max-width: 850px;
+  max-height: 90vh;
+  border-radius: 16px;
+  overflow-y: auto;
 }
 
-.cardContent {
-  padding: 1.5rem;
+.mainScoreBanner {
+  background: #0f172a;
+  color: white;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
 }
 
-.cardContent h3 {
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
+.bigScore {
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: rgba(255,255,255,0.1);
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
 }
 
-.cardContent span {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  display: block;
-  margin-bottom: 1rem;
+.bigTeamName { flex: 1; text-align: center; font-weight: 700; text-transform: uppercase; }
+
+/* --- LISTA DE INCIDENCIAS --- */
+.incidenciasList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-/* --- ADAPTACIÓN MÓVIL (RESPONSIVE) --- */
+.incidenciaItem {
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 48px;
+}
+
+.jugadorInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.jugadorNombre {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.95rem;
+}
+
+.tiempoInfo {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.badgeMinuto {
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  border: 1px solid #dbeafe;
+}
+
+.badgeCuarto {
+  background: #334155;
+  color: white;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+/* Colores de Tarjetas */
+.tarjeta.verde { border-left: 5px solid #22c55e; }
+.tarjeta.amarilla { border-left: 5px solid #eab308; }
+.tarjeta.roja { border-left: 5px solid #ef4444; }
+
+/* Plantilla Jugadores */
+.jugadorRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.tshirt {
+  width: 26px;
+  height: 26px;
+  background: #475569;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 20px;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  
+  /* CLAVE: Añade padding para que el radio del modal no corte el texto */
+  padding: 20px 24px; 
+  
+  border-bottom: 1px solid #eee;
+  width: 100%; /* Asegura que ocupe todo el ancho */
+  box-sizing: border-border-box; /* Evita que el padding agrande el modal */
+}
+
+.modalHeader h2 {
+  margin: 0;
+  padding: 0;
+  text-align: left; /* Asegura alineación a la izquierda */
+}
+
+.subHeader {
+  margin: 5px 0 0 0;
+  text-align: left;
+  display: block; /* Evita comportamientos extraños de línea */
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #999;
+  transition: color 0.2s;
+  padding: 0 5px;
+  margin-left: 15px;
+}
+
+.closeBtn:hover {
+  color: #333; /* Efecto al pasar el mouse */
+}
 
 @media (max-width: 768px) {
-  .hero {
-    height: 350px;
-  }
-
-  .hero h1 {
-    font-size: 2rem;
-  }
-
-  .newsGrid {
-    grid-template-columns: 1fr; /* Una sola columna en el celu */
-  }
-
-  .btnMain {
-    width: 100%; /* Botón ancho completo en móviles */
-  }
+  .infoGrid { grid-template-columns: 1fr; }
 }
