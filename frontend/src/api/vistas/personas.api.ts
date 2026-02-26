@@ -21,7 +21,7 @@ export async function getPersonasConRol(
 export async function getPersonasArbitro (
  ): Promise<PersonasArbitro[]>{
     const response = await axiosAdmin.get(
-        "/vistas/persona-arbitro",
+        "vistas/persona-arbitro",
       )
     return response.data;
  }
