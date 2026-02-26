@@ -23,3 +23,14 @@ export const actualizarNoticia = async (id_noticia: number, datos: any) => {
   const res = await api.put(`/noticias/${id_noticia}`, datos);
   return res.data;
 };
+
+
+// api/noticias.api.ts
+import axiosPublic from "./axiosPublic";
+
+
+// Obtener una noticia específica por ID
+export const obtenerNoticiaPorId = async (id: string | number) => {
+  const response = await axiosPublic.get(`/noticias/${id}/`); // ✅ Barra final
+  return response.data;
+};

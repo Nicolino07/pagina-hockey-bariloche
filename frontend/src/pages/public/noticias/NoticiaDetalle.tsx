@@ -1,7 +1,7 @@
 // pages/noticias/NoticiaDetalle.tsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "../../../api/axiosAdmin"; // O tu api de noticias
+import { obtenerNoticiaPorId } from "../../../api/noticias.api"; // ✅ Usamos la API
 import Button from "../../../components/ui/button/Button";
 import styles from "./NoticiaDetalle.module.css";
 
@@ -12,18 +12,20 @@ export default function NoticiaDetalle() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const cargarNoticia = async () => {
+    if (!id) return;
+
+    const cargarData = async () => {
       try {
-        // Asumiendo que tenés un endpoint por ID
-        const res = await api.get(`/noticias/${id}/`);
-        setNoticia(res.data);
+        const data = await obtenerNoticiaPorId(id); // ✅ Llamada limpia
+        setNoticia(data);
       } catch (error) {
         console.error("Error cargando noticia:", error);
       } finally {
         setLoading(false);
       }
     };
-    cargarNoticia();
+
+    cargarData();
   }, [id]);
 
   if (loading) return <div className={styles.loading}>Cargando...</div>;
