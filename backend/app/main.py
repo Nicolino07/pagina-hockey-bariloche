@@ -24,9 +24,15 @@ from app import models  # noqa: F401
 # =====================================================
 limiter = Limiter(key_func=get_remote_address)
 
+
+# Leemos el entorno (usando el nombre exacto de tu .env)
+ENV = os.getenv("ENVIRONMENT", "development")
+
 app = FastAPI(
     title="Hockey Bariloche API",
     version="1.1.0",
+    docs_url="/docs" if os.getenv("ENABLE_SWAGGER") == "True" else None,
+    redoc_url="/redoc" if os.getenv("ENABLE_SWAGGER") == "True" else None,
 )
 
 # Obtenemos el string del .env y lo convertimos en una lista

@@ -7,10 +7,10 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5434:5432"
+      - "127.0.0.1:5434:5432" 
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/db:/docker-entrypoint-initdb.d # 👈 Esto cargará tus scripts SQL
+      - ./backend/db:/docker-entrypoint-initdb.d
     networks:
       - hockey-network
 
@@ -19,15 +19,16 @@ services:
     container_name: hockey_api
     env_file:
       - .env
-    ports:
-      - "8000:8000"
+    # Quitamos ports públicos, Nginx llegará por la red interna
+    expose:
+      - "8000"
     depends_on:
       - db
     volumes:
       - ./backend:/app
     networks:
       - hockey-network
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
 
   frontend:
     build: ./frontend
@@ -37,11 +38,25 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    ports:
-      - "5173:5173"
+    # Quitamos ports públicos
+    expose:
+      - "5173"
     environment:
       - CHOKIDAR_USEPOLLING=true
     depends_on:
+      - api
+    networks:
+      - hockey-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: hockey_proxy
+    ports:
+      - "80:80" # EL ÚNICO PUERTO ABIERTO AL MUNDO
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
       - api
     networks:
       - hockey-network
