@@ -70,10 +70,12 @@ export default function Home() {
       const camiseta = parts[2];
       const rol = parts[3] || "JUGADOR";
 
+
       return { 
         nombreCompleto: `${apellido}, ${nombre}`, 
         camiseta: (camiseta === "" || camiseta === "null") ? null : camiseta,
         rol: rol
+       
       };
     });
   };
@@ -248,12 +250,23 @@ export default function Home() {
                     <label>⚽ Goles / 🎴 Sanciones</label>
                     {parseIncidencias(selectedPartido.lista_goles_local).map((g, i) => (
                       <div key={i} className={styles.incidenciaItem}>
-                        <span>⚽ {g.jugador}</span> <small>{g.minuto}' ({g.cuarto}C)</small>
+                        <span>
+                          ⚽ {g.jugador} {g.esAutogol && <strong>(AG)</strong>}
+                        </span>
+                        <small>{g.minuto}' ({g.cuarto}C)</small>
                       </div>
                     ))}
                     {parseIncidencias(selectedPartido.lista_tarjetas_local).map((t, i) => (
-                      <div key={i} className={`${styles.incidenciaItem} ${styles[t.extra.toLowerCase()]}`}>
-                        <span>🎴 {t.jugador}</span> <small>{t.minuto}' ({t.cuarto}C)</small>
+                      <div
+                        key={i}
+                        className={`${styles.incidenciaItem} ${
+                          t.tipoTarjeta ? styles[t.tipoTarjeta.toLowerCase()] : ""
+                        }`}
+                      >
+                        <span>🎴 {t.jugador}</span>
+                        <small>
+                          {t.minuto}' ({t.cuarto}C) {t.tipoTarjeta}
+                        </small>
                       </div>
                     ))}
                   </div>
@@ -286,12 +299,23 @@ export default function Home() {
                     <label>⚽ Goles / 🎴 Sanciones</label>
                     {parseIncidencias(selectedPartido.lista_goles_visitante).map((g, i) => (
                       <div key={i} className={styles.incidenciaItem}>
-                        <span>⚽ {g.jugador}</span> <small>{g.minuto}' ({g.cuarto}C)</small>
+                        <span>
+                          ⚽ {g.jugador} {g.esAutogol && <strong>(AG)</strong>}
+                        </span>
+                        <small>{g.minuto}' ({g.cuarto}C)</small>
                       </div>
                     ))}
                     {parseIncidencias(selectedPartido.lista_tarjetas_visitante).map((t, i) => (
-                      <div key={i} className={`${styles.incidenciaItem} ${styles[t.extra.toLowerCase()]}`}>
-                        <span>🎴 {t.jugador}</span> <small>{t.minuto}' ({t.cuarto}C)</small>
+                      <div
+                        key={i}
+                        className={`${styles.incidenciaItem} ${
+                          t.tipoTarjeta ? styles[t.tipoTarjeta.toLowerCase()] : ""
+                        }`}
+                      >
+                        <span>🎴 {t.jugador}</span>
+                        <small>
+                          {t.minuto}' ({t.cuarto}C) {t.tipoTarjeta}
+                        </small>
                       </div>
                     ))}
                   </div>

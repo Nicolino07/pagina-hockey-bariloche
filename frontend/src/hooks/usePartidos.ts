@@ -26,13 +26,22 @@ export const usePartidos = (torneoId?: number) => {
   // Función para procesar los strings de la DB y convertirlos en arrays de objetos
   const parseIncidencias = (str: string) => {
     if (!str) return [];
+
     return str.split("; ").map((item) => {
       const [apellido, nombre, minuto, cuarto, extra] = item.split("|");
+
+      const esAutogol = extra === "true";
+      const tipoTarjeta =
+        extra === "VERDE" || extra === "AMARILLA" || extra === "ROJA"
+          ? extra
+          : null;
+
       return {
         jugador: `${apellido}, ${nombre}`,
         minuto,
         cuarto,
-        extra, // esAutogol (boolean) o tipoTarjeta (string)
+        esAutogol,
+        tipoTarjeta,
       };
     });
   };

@@ -532,6 +532,13 @@
   transform: translateY(-5px);
 }
 
+.autogolTag {
+  margin-left: 6px;
+  font-size: 0.75rem;
+  color: #c0392b;
+  font-weight: 600;
+}
+
 .epigrafeSutil {
   position: absolute;
   bottom: 0;
