@@ -2,12 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./PartidosPage.module.css";
 import Button from "../../../components/ui/button/Button";
-import { obtenerPartidosRecientes } from "../../../api/partidos.api";
+import { obtenerPartidosRecientes, obtenerDetallePartido } from "../../../api/partidos.api";
 import { usePartidos } from "../../../hooks/usePartidos";
 
 import { useTorneosActivos } from "../../../hooks/useTorneosActivos";
 import { useInscripcionesTorneo } from "../../../hooks/useInscripcionesTorneo";
-// Importamos la función directa del API que usa tu hook para mantener consistencia
 import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api"; 
 import { generarPlanillaPDF } from "../../../services/PlanillaVacia.service";
 
@@ -32,6 +31,8 @@ export default function PartidosPage() {
     cargarPartidos();
   }, []);
 
+  
+
   const cargarPartidos = async () => {
     try {
       const data = await obtenerPartidosRecientes(); 
@@ -47,11 +48,11 @@ export default function PartidosPage() {
   const obtenerPlantelFiltrado = async (idEquipo: number) => {
     const data = await getPlantelActivoPorEquipo(idEquipo);
     if (data && data.length > 0) {
-      // Aplicamos el mismo filtro que tu hook: solo personas reales
+      // Quitamos la condición de rol === "JUGADOR" 
+      // para que incluya DT, Ayudante, etc.
       return data.filter((i: any) => 
         i.id_persona !== null && 
-        i.id_persona !== undefined &&
-        i.rol_en_plantel === "JUGADOR" 
+        i.id_persona !== undefined
       );
     }
     return [];
@@ -88,16 +89,35 @@ export default function PartidosPage() {
     }
   };
 
-  const handleVerDetalle = (partido: any) => {
-    setSelectedPartido(partido);
+  const handleVerDetalle = async (partido: any) => {
+  try {
+    setLoading(true); // Reutilizamos tu estado de loading
+    const detalle = await obtenerDetallePartido(partido.id_partido);
+    setSelectedPartido(detalle);
     setShowModal(true);
-  };
+  } catch (error) {
+    alert("No se pudo cargar el detalle del partido");
+    console.error(error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const parsePlantilla = (str: string) => {
     if (!str) return [];
     return str.split("; ").map(item => {
-      const [apellido, nombre, camiseta] = item.split("|");
-      return { nombreCompleto: `${apellido}, ${nombre}`, camiseta };
+      // Usamos split con el pipe. Si vienen 3 campos (viejo) o 4 (nuevo), funcionará.
+      const parts = item.split("|");
+      const apellido = parts[0];
+      const nombre = parts[1];
+      const camiseta = parts[2];
+      const rol = parts[3] || "JUGADOR"; // Si no existe el 4to campo, es Jugador
+
+      return { 
+        nombreCompleto: `${apellido}, ${nombre}`, 
+        camiseta: (camiseta === "" || camiseta === "null") ? null : camiseta,
+        rol: rol
+      };
     });
   };
 
@@ -177,7 +197,7 @@ export default function PartidosPage() {
           </table>
         )}
       </div>
-
+         {/* Modal Detalle */}
       {showModal && selectedPartido && (
         <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
           <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
@@ -206,7 +226,15 @@ export default function PartidosPage() {
                     <div className={styles.plantillaList}>
                       {parsePlantilla(selectedPartido.lista_jugadores_local).map((j, i) => (
                         <div key={i} className={styles.jugadorRow}>
-                          <span className={styles.tshirt}>{j.camiseta || '-'}</span> {j.nombreCompleto}
+                          <span className={styles.tshirt}>
+                            {/* Si es JUGADOR muestra número, sino un ícono de tablero/carpeta */}
+                            {j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}
+                          </span> 
+                          <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
+                            {j.nombreCompleto} 
+                            {/* Etiqueta pequeña si es DT o Ayudante */}
+                            {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -237,7 +265,15 @@ export default function PartidosPage() {
                     <div className={styles.plantillaList}>
                       {parsePlantilla(selectedPartido.lista_jugadores_visitante).map((j, i) => (
                         <div key={i} className={styles.jugadorRow}>
-                          <span className={styles.tshirt}>{j.camiseta || '-'}</span> {j.nombreCompleto}
+                          <span className={styles.tshirt}>
+                            {/* Si es JUGADOR muestra número, sino un ícono de tablero/carpeta */}
+                            {j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}
+                          </span> 
+                          <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
+                            {j.nombreCompleto} 
+                            {/* Etiqueta pequeña si es DT o Ayudante */}
+                            {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
+                          </span>
                         </div>
                       ))}
                     </div>
