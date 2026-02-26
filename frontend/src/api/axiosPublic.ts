@@ -3,8 +3,10 @@ import axios from 'axios'
 import config from './config/index'
 
 const axiosPublic = axios.create({
-  // Aseguramos que baseURL sea el origen de los datos
-  baseURL: config.api.baseURL, 
+  // Forzamos que la baseURL termine en /api/
+  baseURL: config.api.baseURL.endsWith('/') 
+    ? config.api.baseURL 
+    : `${config.api.baseURL}/`,
   timeout: config.api.timeout,
   headers: {
     'Accept': 'application/json',
@@ -12,27 +14,12 @@ const axiosPublic = axios.create({
   },
 })
 
-axiosPublic.interceptors.request.use(
-  (configRequest) => {
-    // 1. Aseguramos que la baseURL termine en /api/ (con barra)
-    let bUrl = configRequest.baseURL || '';
-    if (!bUrl.endsWith('/')) {
-      bUrl += '/';
-    }
-    configRequest.baseURL = bUrl;
-
-    // 2. Aseguramos que la URL del endpoint NO empiece con / 
-    // (porque ya la pusimos en la baseURL)
-    if (configRequest.url && configRequest.url.startsWith('/')) {
-      configRequest.url = configRequest.url.substring(1);
-    }
-
-    // 3. Log para confirmar que la unión es perfecta
-    console.log(`🚀 Petición final a: ${configRequest.baseURL}${configRequest.url}`);
-    
-    return configRequest;
-  },
-  (error) => Promise.reject(error)
-);
+// Interceptor solo para LOGS (para ver la verdad en la consola)
+axiosPublic.interceptors.request.use((req) => {
+  // Axios une baseURL + url. Si url empieza con "/", ignora la baseURL.
+  // Por eso es vital que los endpoints NO empiecen con "/"
+  console.log(`📡 Enviando a: ${req.baseURL}${req.url}`);
+  return req;
+});
 
 export default axiosPublic;
