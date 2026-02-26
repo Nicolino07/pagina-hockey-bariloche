@@ -6,7 +6,7 @@ export async function getPersonasConRol(
   rol: TipoRolPersona
 ): Promise<PersonasRolesVista[]> {
   const response = await axiosAdmin.get(
-    "/vistas/personas-con-roles",
+    "vistas/personas-con-roles",
     {
       params: {
         rol,           // 👈 coincide con el backend

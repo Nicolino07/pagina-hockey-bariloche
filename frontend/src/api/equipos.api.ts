@@ -5,18 +5,18 @@ import type { Equipo, EquipoCreate, EquipoUpdate } from "../types/equipo"
 
 
 export function getEquipos() {
-  return api.get<Equipo[]>("/equipos")
+  return api.get<Equipo[]>("equipos")
 }
 
 export function getEquipoById(id: number) {
   return api  
-    .get<Equipo>(`/equipos/${id}`)
+    .get<Equipo>(`equipos/${id}`)
     .then(res => res.data)
 }
 
 export function crearEquipo(equipoData: EquipoCreate) {
   return api  
-    .post<Equipo>('/equipos', equipoData)
+    .post<Equipo>('equipos', equipoData)
     .then(res => res.data)
 }
 
@@ -33,7 +33,7 @@ export function inscribirEquipo(
 
 
 export async function getEquiposByClub(id_club: number): Promise<Equipo[]> {
-  const res = await api.get("/equipos", {
+  const res = await api.get("equipos", {
     params: { id_club },
   })
   return res.data.map(mapEquipoFromApi)
@@ -44,12 +44,12 @@ export async function updateEquipo(
   id_equipo: number,
   payload: EquipoUpdate
 ): Promise<Equipo> {
-  const res = await api.put(`/equipos/${id_equipo}`, payload)
+  const res = await api.put(`equipos/${id_equipo}`, payload)
   return mapEquipoFromApi(res.data)
 }
 
 export async function deleteEquipo(id_equipo: number): Promise<void> {
-  await api.delete(`/equipos/${id_equipo}`)
+  await api.delete(`equipos/${id_equipo}`)
 }
 
 

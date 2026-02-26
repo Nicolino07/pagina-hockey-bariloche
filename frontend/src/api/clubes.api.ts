@@ -19,18 +19,18 @@ function mapClubFromApi(data: any): Club {
 
 // 🔓 Público
 export async function getClubes(): Promise<Club[]> {
-  const res = await AxiosPublic.get("/clubes/")
+  const res = await AxiosPublic.get("clubes/")
   return res.data.map(mapClubFromApi)
 }
 
 // 🔓 Público
 export async function getClubById(id: number): Promise<Club> {
-  const res = await AxiosPublic.get(`/clubes/${id}`)
+  const res = await AxiosPublic.get(`clubes/${id}`)
   return mapClubFromApi(res.data)
 }
 // 🔓 Público
 export async function listarEquiposPorClub(idClub: number): Promise<Equipo[]> {
-  const res = await AxiosPublic.get(`/clubes/${idClub}/equipos/`)
+  const res = await AxiosPublic.get(`clubes/${idClub}/equipos/`)
   return res.data
 }
 
@@ -38,7 +38,7 @@ export async function listarEquiposPorClub(idClub: number): Promise<Equipo[]> {
 // ---------------- Rutas Admin ------------------------------------
 // 🔐 ADMIN
 export async function crearClub(payload: ClubCreate): Promise<Club> {
-  const res = await api.post("/clubes/", payload)
+  const res = await api.post("clubes/", payload)
   return mapClubFromApi(res.data)
 }
 
@@ -47,12 +47,12 @@ export async function updateClub(
   id: number,
   payload: ClubUpdate
 ): Promise<Club> {
-  const res = await api.put(`/clubes/${id}`, payload)
+  const res = await api.put(`clubes/${id}`, payload)
   return mapClubFromApi(res.data)
 }
 
 // 🔐 ADMIN
 export async function deleteClub(id: number): Promise<void> {
-  await api.delete(`/clubes/${id}`)
+  await api.delete(`clubes/${id}`)
 }
 
