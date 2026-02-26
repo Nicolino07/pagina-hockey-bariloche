@@ -660,20 +660,22 @@ SELECT
     COALESCE((SELECT COUNT(*) FROM gol g JOIN participan_partido pp ON g.id_participante_partido = pp.id_participante_partido JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante JOIN plantel pl ON pi.id_plantel = pl.id_plantel
               WHERE g.id_partido = p.id_partido AND ((pl.id_equipo = itv.id_equipo AND NOT g.es_autogol) OR (pl.id_equipo = itl.id_equipo AND g.es_autogol))), 0) AS goles_visitante,
 
-    -- LISTADO DE JUGADORES (Apellido|Nombre|Camiseta)
-    (SELECT string_agg(per.apellido || '|' || per.nombre || '|' || pp.numero_camiseta, '; ' ORDER BY pp.numero_camiseta ASC)
-     FROM participan_partido pp
-     JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante
-     JOIN persona per ON pi.id_persona = per.id_persona
-     JOIN plantel pl ON pi.id_plantel = pl.id_plantel
-     WHERE pp.id_partido = p.id_partido AND pl.id_equipo = itl.id_equipo) AS lista_jugadores_local,
+    -- LISTADO DE INTEGRANTES LOCAL (Agregamos el ROL como 4to campo)
 
-    (SELECT string_agg(per.apellido || '|' || per.nombre || '|' || pp.numero_camiseta, '; ' ORDER BY pp.numero_camiseta ASC)
-     FROM participan_partido pp
-     JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante
-     JOIN persona per ON pi.id_persona = per.id_persona
-     JOIN plantel pl ON pi.id_plantel = pl.id_plantel
-     WHERE pp.id_partido = p.id_partido AND pl.id_equipo = itv.id_equipo) AS lista_jugadores_visitante,
+    (SELECT string_agg(per.apellido || '|' || per.nombre || '|' || COALESCE(pp.numero_camiseta::text, '') || '|' || pi.rol_en_plantel, '; ' ORDER BY pi.rol_en_plantel DESC, pp.numero_camiseta ASC)
+    FROM participan_partido pp
+    JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante
+    JOIN persona per ON pi.id_persona = per.id_persona
+    JOIN plantel pl ON pi.id_plantel = pl.id_plantel
+    WHERE pp.id_partido = p.id_partido AND pl.id_equipo = itl.id_equipo) AS lista_jugadores_local,
+
+    -- LISTADO DE INTEGRANTES VISITANTE (Agregamos el ROL como 4to campo)
+    (SELECT string_agg(per.apellido || '|' || per.nombre || '|' || COALESCE(pp.numero_camiseta::text, '') || '|' || pi.rol_en_plantel, '; ' ORDER BY pi.rol_en_plantel DESC, pp.numero_camiseta ASC)
+    FROM participan_partido pp
+    JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante
+    JOIN persona per ON pi.id_persona = per.id_persona
+    JOIN plantel pl ON pi.id_plantel = pl.id_plantel
+    WHERE pp.id_partido = p.id_partido AND pl.id_equipo = itv.id_equipo) AS lista_jugadores_visitante,
 
     -- DETALLE GOLES LOCAL
     (SELECT string_agg(per.apellido || '|' || per.nombre || '|' || g.minuto || '|' || g.cuarto || '|' || g.es_autogol::text, '; ')

@@ -1,7 +1,7 @@
 import styles from "./Home.module.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { obtenerPartidosRecientes } from "../../../api/partidos.api";
+import { obtenerPartidosRecientes, obtenerDetallePartido } from "../../../api/partidos.api";
 import Button from "../../../components/ui/button/Button";
 import { usePartidos } from "../../../hooks/usePartidos";
 
@@ -47,16 +47,34 @@ export default function Home() {
     }
   };
 
-  const handleVerDetalle = (partido: any) => {
-    setSelectedPartido(partido);
-    setShowModal(true);
+  const handleVerDetalle = async (partido: any) => {
+    try {
+      setLoading(true);
+      const detalle = await obtenerDetallePartido(partido.id_partido);
+      setSelectedPartido(detalle);
+      setShowModal(true);
+    } catch (error) {
+      console.error("Error al cargar detalle:", error);
+      alert("No se pudo obtener el detalle del encuentro.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const parsePlantilla = (str: string) => {
     if (!str) return [];
     return str.split("; ").map(item => {
-      const [apellido, nombre, camiseta] = item.split("|");
-      return { nombreCompleto: `${apellido}, ${nombre}`, camiseta };
+      const parts = item.split("|");
+      const apellido = parts[0];
+      const nombre = parts[1];
+      const camiseta = parts[2];
+      const rol = parts[3] || "JUGADOR";
+
+      return { 
+        nombreCompleto: `${apellido}, ${nombre}`, 
+        camiseta: (camiseta === "" || camiseta === "null") ? null : camiseta,
+        rol: rol
+      };
     });
   };
 
@@ -185,6 +203,7 @@ export default function Home() {
             </div>
 
             <div className={styles.detailsBody}>
+              {/* Equipo Local */}
               <div className={styles.teamSection}>
                 <h3 className={styles.localTitle}>🏠 {selectedPartido.equipo_local_nombre}</h3>
                 <div className={styles.infoGrid}>
@@ -193,7 +212,13 @@ export default function Home() {
                     <div className={styles.plantillaList}>
                       {parsePlantilla(selectedPartido.lista_jugadores_local).map((j, i) => (
                         <div key={i} className={styles.jugadorRow}>
-                          <span className={styles.tshirt}>{j.camiseta || '-'}</span> {j.nombreCompleto}
+                          <span className={styles.tshirt}>
+                            {j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}
+                          </span> 
+                          <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
+                            {j.nombreCompleto} 
+                            {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -206,7 +231,7 @@ export default function Home() {
                       </div>
                     ))}
                     {parseIncidencias(selectedPartido.lista_tarjetas_local).map((t, i) => (
-                      <div key={i} className={`${styles.incidenciaItem} ${styles[t.extra.toLowerCase() || 'amarilla']}`}>
+                      <div key={i} className={`${styles.incidenciaItem} ${styles[t.extra.toLowerCase()]}`}>
                         <span>🎴 {t.jugador}</span> <small>{t.minuto}' ({t.cuarto}C)</small>
                       </div>
                     ))}
@@ -216,6 +241,7 @@ export default function Home() {
 
               <hr className={styles.divider} />
 
+              {/* Equipo Visitante */}
               <div className={styles.teamSection}>
                 <h3 className={styles.visitanteTitle}>🚩 {selectedPartido.equipo_visitante_nombre}</h3>
                 <div className={styles.infoGrid}>
@@ -224,7 +250,13 @@ export default function Home() {
                     <div className={styles.plantillaList}>
                       {parsePlantilla(selectedPartido.lista_jugadores_visitante).map((j, i) => (
                         <div key={i} className={styles.jugadorRow}>
-                          <span className={styles.tshirt}>{j.camiseta || '-'}</span> {j.nombreCompleto}
+                          <span className={styles.tshirt}>
+                            {j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}
+                          </span> 
+                          <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
+                            {j.nombreCompleto} 
+                            {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -237,7 +269,7 @@ export default function Home() {
                       </div>
                     ))}
                     {parseIncidencias(selectedPartido.lista_tarjetas_visitante).map((t, i) => (
-                      <div key={i} className={`${styles.incidenciaItem} ${styles[t.extra.toLowerCase() || 'amarilla']}`}>
+                      <div key={i} className={`${styles.incidenciaItem} ${styles[t.extra.toLowerCase()]}`}>
                         <span>🎴 {t.jugador}</span> <small>{t.minuto}' ({t.cuarto}C)</small>
                       </div>
                     ))}
@@ -247,8 +279,7 @@ export default function Home() {
             </div>
             
             <div className={styles.modalFooter}>
-               <p>Ubicación: <strong>{selectedPartido.ubicacion || 'No especificada'}</strong></p>
-               <p className={styles.audit}>Cargado por: {selectedPartido.creado_por || 'Sistema'}</p>
+               <p>Ubicación: <strong>{selectedPartido.ubicacion}</strong></p>
             </div>
           </div>
         </div>

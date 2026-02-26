@@ -209,6 +209,22 @@ export default function PartidoPlanilla() {
           </select>
           <input type="text" placeholder="Ubicación" value={partidoInfo.ubicacion} onChange={e => setPartidoInfo({...partidoInfo, ubicacion: e.target.value})} />
         </div>
+        {/* Jueces de mesa */}
+        <div className={styles.gridForm}>
+          <input 
+            type="text" 
+            placeholder="Juez de Mesa Local" 
+            value={partidoInfo.juez_mesa_local} 
+            onChange={e => setPartidoInfo({...partidoInfo, juez_mesa_local: e.target.value})} 
+          />
+          <input 
+            type="text" 
+            placeholder="Juez de Mesa Visitante" 
+            value={partidoInfo.juez_mesa_visitante} 
+            onChange={e => setPartidoInfo({...partidoInfo, juez_mesa_visitante: e.target.value})} 
+          />
+        </div>
+
         <div className={styles.gridForm}>
           <select disabled={!torneoId} value={inscripcionLocal?.id_inscripcion || ""} onChange={(e) => handleEquipoChange(e.target.value, 'local')}>
             <option value="">Equipo Local</option>
@@ -237,31 +253,58 @@ export default function PartidoPlanilla() {
                 <span className={styles.colNombre}>Jugador</span>
                 <span className={styles.colCapitan}>Cap</span>
               </div>
-
               <div className={styles.playerList}>
                 {lista.map(p => {
                   const pid = p.id_plantel_integrante as number;
+                  // Verificamos si es Jugador (asumiendo que el string es "JUGADOR")
+                  const esJugador = p.rol_en_plantel === "JUGADOR"; 
+
                   return (
                     <div key={pid} className={styles.playerItem}>
-                      <input type="checkbox" checked={seleccionados[side].includes(pid)} onChange={(e) => setSeleccionados(prev => ({ ...prev, [side]: e.target.checked ? [...prev[side], pid] : prev[side].filter(x => x !== pid) }))} />
-                      <input type="number" placeholder="#" className={styles.inputCamiseta} value={camisetas[pid] || ""} onChange={(e) => setCamisetas({ ...camisetas, [pid]: e.target.value })} disabled={!seleccionados[side].includes(pid)} />
+                      <input 
+                        type="checkbox" 
+                        checked={seleccionados[side].includes(pid)} 
+                        onChange={(e) => setSeleccionados(prev => ({ 
+                          ...prev, 
+                          [side]: e.target.checked ? [...prev[side], pid] : prev[side].filter(x => x !== pid) 
+                        }))} 
+                      />
+                      
+                      {/* Renderizado condicional del campo camiseta */}
+                      {esJugador ? (
+                        <input 
+                          type="number" 
+                          placeholder="#" 
+                          className={styles.inputCamiseta} 
+                          value={camisetas[pid] || ""} 
+                          onChange={(e) => setCamisetas({ ...camisetas, [pid]: e.target.value })} 
+                          disabled={!seleccionados[side].includes(pid)} 
+                        />
+                      ) : (
+                        <div className={styles.inputCamisetaPlaceholder} /> // Un div vacío para mantener la alineación
+                      )}
+
                       <span className={styles.playerText}>
                         {p.apellido_persona}, {p.nombre_persona}
                         <span className={styles.playerRole}>
                           {p.rol_en_plantel}
                         </span>
                       </span>
+
+                      {/* El capitán también suele ser solo para jugadores, podrías ocultarlo igual si quisieras */}
                       <input
                         type="radio"
                         name={`capitan-${side}`}
                         checked={capitanes[side] === pid}
-                        disabled={!seleccionados[side].includes(pid)}
+                        disabled={!seleccionados[side].includes(pid) || !esJugador} // Bloqueado si no es jugador
                         onChange={() => setCapitanes(prev => ({ ...prev, [side]: pid }))}
                       />
                     </div>
                   );
                 })}
               </div>
+                            
+              
             </div>
           );
         })}

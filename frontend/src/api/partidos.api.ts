@@ -56,3 +56,18 @@ export const eliminarPartido = async (id_partido: number) => {
     throw new Error(mensaje);
   }
 };
+
+/**
+ * Obtiene el detalle completo de un partido por su ID
+ */
+export const obtenerDetallePartido = async (partidoId: number) => {
+  try {
+    const response = await axiosPublic.get(`/partidos/${partidoId}`, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener detalle del partido:", error);
+    throw error;
+  }
+};
