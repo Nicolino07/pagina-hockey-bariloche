@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { obtenerNoticiasRecientes, crearNoticia, eliminarNoticia } from "../../../api/noticias.api";
 import Button from "../../../components/ui/button/Button";
-import styles from "./Noticias.module.css";
+import styles from "./NoticiasForm.module.css";
 
 export default function Noticias() {
   const [noticias, setNoticias] = useState<any[]>([]);

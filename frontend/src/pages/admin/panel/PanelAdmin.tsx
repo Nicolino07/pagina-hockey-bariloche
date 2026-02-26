@@ -29,6 +29,10 @@ export default function PanelAdmin() {
           Personas
         </Link>
 
+        <Link to="/admin/noticias" className={styles.card}>
+          Noticias
+        </Link>
+
 
       </section>
     </div>

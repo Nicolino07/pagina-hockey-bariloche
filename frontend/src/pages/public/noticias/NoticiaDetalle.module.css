@@ -1,0 +1,66 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.backBtn {
+  margin-bottom: 2rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.date {
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  margin-top: 0.5rem;
+  line-height: 1.1;
+  color: #1e293b;
+}
+
+.mainImage {
+  margin: 0 -1rem 2rem -1rem; /* Se sale un poco de los márgenes en móvil */
+}
+
+.mainImage img {
+  width: 100%;
+  max-height: 500px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.mainImage figcaption {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #64748b;
+  font-style: italic;
+  padding: 0 1rem;
+  border-left: 3px solid #004a8c;
+}
+
+.content {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: #334155;
+}
+
+.content p {
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  .mainImage {
+    margin: 0 0 1.5rem 0;
+  }
+}

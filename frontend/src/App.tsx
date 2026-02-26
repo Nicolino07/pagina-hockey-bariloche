@@ -12,7 +12,7 @@ import Personas from "./pages/admin/personas/Personas"
 import PersonaDetalle from "./pages/admin/personas/PersonaDetalle"
 import PartidosPage from "./pages/admin/partidos/PartidosPage"
 import PartidoPlanilla from "./pages/admin/partidos/PartidoPlanilla"
-import Noticias from "./pages/admin/noticias/Noticias"
+import NoticiasForm from "./pages/admin/noticias/NoticiasForm"
 
 import PosicionesPage from "./pages/public/posiciones/PosicionesPage"
 import ClubesPage from "./pages/public/clubes/ClubesPage"
@@ -23,7 +23,8 @@ import Unauthorized from "./pages/error/Unauthorized"
 import GestionUsuarios from "./pages/admin/usuarios/GestionUsuarios";
 import SolicitarRecuperacion from "./pages/login/SolicitarRecuperacion"
 import ResetPasswordForm from "./pages/login/ResetPassword";
-
+import NoticiaDetalle from "./pages/public/noticias/NoticiaDetalle"
+import Noticias from "./pages/public/noticias/Noticias"
 
 import MainLayout from "./layouts/MainLayout"
 
@@ -49,6 +50,9 @@ export default function App() {
         <Route path="/public/clubes" element={<ClubesPage />} />
         <Route path="/public/clubes/:id_club" element={<ClubesDetallePublic />} />
         <Route path="/public/clubes/:id_club/equipos/:id_equipo" element={<EquipoDetallePublic />} />
+
+        <Route path="/noticias" element={<Noticias />} />
+        <Route path="/noticias/:id" element={<NoticiaDetalle />} />
         
 
         {/* ADMIN GENERAL */}
@@ -60,7 +64,7 @@ export default function App() {
           <Route path="/admin" element={<PanelAdmin />} />
           <Route path="/admin/partidos" element={<PartidosPage />} />
           <Route path="/admin/partidos/:id_partido" element={<PartidoPlanilla />} />
-          <Route path="/admin/noticias" element={<Noticias />} />
+          <Route path="/admin/noticias" element={<NoticiasForm />} />
         </Route>
 
         {/* ADMIN ESTRUCTURAL */}

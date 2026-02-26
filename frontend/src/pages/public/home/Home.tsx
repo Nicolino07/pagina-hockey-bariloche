@@ -112,32 +112,53 @@ export default function Home() {
           )}
         </div>
       </section>
-
       {/* --- SECCIÓN DE NOTICIAS --- */}
-          <section className={styles.newsSection}>
-            <div className={styles.sectionHeader}>
-              <h2>Novedades de la Asociación</h2>
-            </div>
+        <section className={styles.newsSection}>
+          <div className={styles.sectionHeader}>
+            <h2>Novedades de la Asociación</h2>
+            <Button variant="primary" onClick={() => navigate("/noticias")}>
+              Ver todas →
+            </Button>
+          </div>
 
-            <div className={styles.newsGrid}>
-              {noticias.map((n) => (
-                <article key={n.id_noticia} className={styles.newsCard}>
-                  <div className={styles.newsImageWrapper}>
-                    <img src={n.imagen_url || "/placeholder.jpg"} alt={n.titulo} />
-                    {n.epigrafe && <span className={styles.epigrafe}>{n.epigrafe}</span>}
-                  </div>
-                  <div className={styles.newsContent}>
-                    {/* Ajustamos a 'creado_en' que viene del Backend */}
+          <div className={styles.newsGrid}>
+            {noticias.map((n) => (
+              <article key={n.id_noticia} className={styles.newsCard}>
+                <div className={styles.newsImageWrapper}>
+                  <img src={n.imagen_url || "/placeholder.jpg"} alt={n.titulo} />
+                  
+                  {/* Pie de foto suave en el margen inferior de la imagen */}
+                  {n.epigrafe && (
+                    <div className={styles.epigrafeSutil}>
+                      {n.epigrafe}
+                    </div>
+                  )}
+                </div>
+                
+                <div className={styles.newsContent}>
+                  <div className={styles.newsMeta}>
+                    {/* <span className={styles.newsTag}>Institucional</span> */}
                     <span className={styles.newsDate}>
-                      {new Date(n.creado_en).toLocaleDateString()}
+                      {new Date(n.creado_en).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}
                     </span>
-                    <h3>{n.titulo}</h3>
-                    <p>{n.texto}</p>
                   </div>
-                </article>
-              ))}
-            </div>
-          </section>
+                  
+                  <h3>{n.titulo}</h3>
+                  
+                  <p className={styles.newsExcerpt}>
+                    {n.texto.length > 110 ? `${n.texto.substring(0, 110)}...` : n.texto}
+                  </p>
+                  
+                  <div className={styles.newsFooter}>
+                    <button className={styles.readMoreBtn} onClick={() => navigate(`/noticias/${n.id_noticia}`)}>
+                      Leer noticia completa
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
 
       <div className={styles.tableContainer}>
         <h3>Ultimos Encuentros</h3>
