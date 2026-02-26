@@ -9,7 +9,7 @@ export async function getPlantelActivoPorEquipo(idEquipo: number): Promise<Plant
   try {
     console.log(`🔍 [2/5] Haciendo request a: /vistas/plantel-activo/${idEquipo}`)
     
-    const response = await AxiosPublic.get(`vistas/plantel-activo/${idEquipo}`)
+    const response = await AxiosPublic.get(`/vistas/plantel-activo/${idEquipo}`)
     
     console.log(`✅ [3/5] RESPONSE RECIBIDA:`, {
       status: response.status,
