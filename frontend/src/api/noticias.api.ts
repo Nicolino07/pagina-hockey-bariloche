@@ -1,36 +1,37 @@
+// api/noticias.api.ts
 import api from "./axiosAdmin"
+import axiosPublic from "./axiosPublic";
 
+// --- FUNCIONES PÚBLICAS (Usan axiosPublic) ---
 
 export const obtenerNoticiasRecientes = async (limit: number = 5) => {
-  // Pasamos el limit como query param según definimos en el Router
-  const res = await api.get(`/noticias/`, { params: { limit } });
+  // Usamos axiosPublic porque cualquier usuario debe ver el home/lista
+  const res = await axiosPublic.get(`/noticias/`, { params: { limit } }); // ✅ Barra final
   return res.data; 
 };
 
+export const obtenerNoticiaPorId = async (id: string | number) => {
+  // ✅ Barra final después del ID es CRÍTICA
+  const response = await axiosPublic.get(`/noticias/${id}/`); 
+  return response.data;
+};
+
+
+// --- FUNCIONES PRIVADAS (Usan axiosAdmin / Requieren Token) ---
+
 export const crearNoticia = async (noticia: any) => {
-  // El body debe coincidir con el Schema 'NoticiaCreate'
-  const res = await api.post(`/noticias/`, noticia);
+  const res = await api.post(`/noticias/`, noticia); // ✅ Barra final
   return res.data;
 };
 
 export const eliminarNoticia = async (id_noticia: number) => {
-  // Usamos el ID específico de tu tabla
-  const res = await api.delete(`/noticias/${id_noticia}`);
+  // Agregamos la barra final después del ID
+  const res = await api.delete(`/noticias/${id_noticia}/`); // ✅ Barra final
   return res.data;
 };
 
 export const actualizarNoticia = async (id_noticia: number, datos: any) => {
-  const res = await api.put(`/noticias/${id_noticia}`, datos);
+  // Agregamos la barra final después del ID
+  const res = await api.put(`/noticias/${id_noticia}/`, datos); // ✅ Barra final
   return res.data;
-};
-
-
-// api/noticias.api.ts
-import axiosPublic from "./axiosPublic";
-
-
-// Obtener una noticia específica por ID
-export const obtenerNoticiaPorId = async (id: string | number) => {
-  const response = await axiosPublic.get(`/noticias/${id}/`); // ✅ Barra final
-  return response.data;
 };
