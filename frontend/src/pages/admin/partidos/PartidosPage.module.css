@@ -758,3 +758,25 @@
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 }
+
+
+.cardIcon {
+  display: inline-block;
+  width: 14px;
+  height: 18px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.verde {
+  background-color: #2ecc71;
+}
+
+.amarilla {
+  background-color: #f1c40f;
+}
+
+.roja {
+  background-color: #e74c3c;
+}

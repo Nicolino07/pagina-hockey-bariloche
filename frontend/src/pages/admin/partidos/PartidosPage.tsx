@@ -121,6 +121,19 @@ export default function PartidosPage() {
     });
   };
 
+  const renderIconoTarjeta = (tipo?: string) => {
+  switch (tipo) {
+    case "VERDE":
+      return <span className={`${styles.cardIcon} ${styles.verde}`} />;
+    case "AMARILLA":
+      return <span className={`${styles.cardIcon} ${styles.amarilla}`} />;
+    case "ROJA":
+      return <span className={`${styles.cardIcon} ${styles.roja}`} />;
+    default:
+      return null;
+  }
+};
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -243,12 +256,22 @@ export default function PartidosPage() {
                     <label>⚽ Goles / 🎴 Sanciones</label>
                     {parseIncidencias(selectedPartido.lista_goles_local).map((g, i) => (
                       <div key={i} className={styles.incidenciaItem}>
-                        <span>⚽ {g.jugador}</span> <small>{g.minuto}' ({g.cuarto}C)</small>
+                        <span>
+                          ⚽ {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}
+                        </span>
+                        <small>{g.minuto}' ({g.cuarto}C)</small>
                       </div>
                     ))}
-                    {parseIncidencias(selectedPartido.lista_tarjetas_local).map((t, i) => (
-                      <div key={i} className={`${styles.incidenciaItem} ${styles[t.extra.toLowerCase()]}`}>
-                        <span>🎴 {t.jugador}</span> <small>{t.minuto}' ({t.cuarto}C)</small>
+                   {parseIncidencias(selectedPartido.lista_tarjetas_local).map((t, i) => (
+                      <div key={i} className={styles.incidenciaItem}>
+                        <span>
+                          {renderIconoTarjeta(t.tipoTarjeta)}
+                          {t.jugador}
+                        </span>
+
+                        <small>
+                          {t.minuto}' ({t.cuarto}C)
+                        </small>
                       </div>
                     ))}
                   </div>
@@ -282,12 +305,22 @@ export default function PartidosPage() {
                     <label>⚽ Goles / 🎴 Sanciones</label>
                     {parseIncidencias(selectedPartido.lista_goles_visitante).map((g, i) => (
                       <div key={i} className={styles.incidenciaItem}>
-                        <span>⚽ {g.jugador}</span> <small>{g.minuto}' ({g.cuarto}C)</small>
+                        <span>
+                          ⚽ {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}
+                        </span>
+                        <small>{g.minuto}' ({g.cuarto}C)</small>
                       </div>
                     ))}
                     {parseIncidencias(selectedPartido.lista_tarjetas_visitante).map((t, i) => (
-                      <div key={i} className={`${styles.incidenciaItem} ${styles[t.extra.toLowerCase()]}`}>
-                        <span>🎴 {t.jugador}</span> <small>{t.minuto}' ({t.cuarto}C)</small>
+                      <div key={i} className={styles.incidenciaItem}>
+                        <span>
+                          {renderIconoTarjeta(t.tipoTarjeta)}
+                          {t.jugador}
+                        </span>
+
+                        <small>
+                          {t.minuto}' ({t.cuarto}C)
+                        </small>
                       </div>
                     ))}
                   </div>

@@ -30,18 +30,17 @@ export const usePartidos = (torneoId?: number) => {
     return str.split("; ").map((item) => {
       const [apellido, nombre, minuto, cuarto, extra] = item.split("|");
 
-      const esAutogol = extra === "true";
-      const tipoTarjeta =
-        extra === "VERDE" || extra === "AMARILLA" || extra === "ROJA"
-          ? extra
-          : null;
-
       return {
         jugador: `${apellido}, ${nombre}`,
         minuto,
         cuarto,
-        esAutogol,
-        tipoTarjeta,
+        esAutogol: extra === "true",
+        tipoTarjeta:
+          extra === "VERDE" ||
+          extra === "AMARILLA" ||
+          extra === "ROJA"
+            ? extra
+            : undefined,
       };
     });
   };
