@@ -1,9 +1,10 @@
 // frontend/src/api/axiosPublic.ts
 import axios from 'axios'
-import config from './config/index' // Verifica que la ruta sea correcta (../ o ./)
+import config from './config/index'
 
 const axiosPublic = axios.create({
-  baseURL: config.api.baseURL,
+  // Aseguramos que baseURL sea el origen de los datos
+  baseURL: config.api.baseURL, 
   timeout: config.api.timeout,
   headers: {
     'Accept': 'application/json',
@@ -11,31 +12,27 @@ const axiosPublic = axios.create({
   },
 })
 
-// ============================================
-// INTERCEPTOR PARA ARREGLAR RUTAS Y HTTPS
-// ============================================
 axiosPublic.interceptors.request.use(
   (configRequest) => {
-    // Si la URL empieza con "/", se la quitamos para que Axios 
-    // use la baseURL completa con el "/api" incluido.
+    // 1. Aseguramos que la baseURL termine en /api/ (con barra)
+    let bUrl = configRequest.baseURL || '';
+    if (!bUrl.endsWith('/')) {
+      bUrl += '/';
+    }
+    configRequest.baseURL = bUrl;
+
+    // 2. Aseguramos que la URL del endpoint NO empiece con / 
+    // (porque ya la pusimos en la baseURL)
     if (configRequest.url && configRequest.url.startsWith('/')) {
       configRequest.url = configRequest.url.substring(1);
     }
-    
-    // Log para depuración en producción (luego puedes quitarlo)
-    if (import.meta.env.DEV) {
-      console.log(`📡 AxiosPublic enviando a: ${configRequest.baseURL}/${configRequest.url}`);
-    }
+
+    // 3. Log para confirmar que la unión es perfecta
+    console.log(`🚀 Petición final a: ${configRequest.baseURL}${configRequest.url}`);
     
     return configRequest;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-if (config.app.isDev) {
-  console.log(`🔧 AxiosPublic configurado: ${config.api.baseURL}`)
-}
-
-export default axiosPublic
+export default axiosPublic;
