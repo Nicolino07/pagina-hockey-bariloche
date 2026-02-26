@@ -102,15 +102,18 @@ from app.routers import (
 def root():
     return {"message": "API Hockey Bariloche funcionando"}
 
+# =====================================================
+# Routers - AGREGAMOS EL PREFIX /api A TODOS
+# =====================================================
 
-app.include_router(auth.router)
-app.include_router(clubes)
-app.include_router(equipos)
-app.include_router(personas)
-app.include_router(planteles)
-app.include_router(torneos)
-app.include_router(inscripciones.router)
-app.include_router(partido)
-app.include_router(vistas)
-app.include_router(fichajes)
-app.include_router(noticias)
+app.include_router(auth.router, prefix="/api")
+app.include_router(clubes, prefix="/api")
+app.include_router(equipos, prefix="/api")
+app.include_router(personas, prefix="/api")
+app.include_router(planteles, prefix="/api")
+app.include_router(torneos, prefix="/api")
+app.include_router(inscripciones.router, prefix="/api")
+app.include_router(partido, prefix="/api")
+app.include_router(vistas, prefix="/api")
+app.include_router(fichajes, prefix="/api")
+app.include_router(noticias, prefix="/api")
