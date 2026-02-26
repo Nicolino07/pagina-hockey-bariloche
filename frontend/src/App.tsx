@@ -29,9 +29,27 @@ import Noticias from "./pages/public/noticias/Noticias"
 import MainLayout from "./layouts/MainLayout"
 
 
-/* páginas */
+import { useEffect } from 'react';
+
 
 export default function App() {
+
+  useEffect(() => {
+    // Detectamos si estamos en producción (VPS)
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (!isLocal) {
+      // Solo en el VPS inyectamos el upgrade a HTTPS
+      const meta = document.createElement('meta');
+      meta.httpEquiv = "Content-Security-Policy";
+      meta.content = "upgrade-insecure-requests";
+      document.head.appendChild(meta);
+      console.log("🛡️ Escudo HTTPS activo (Producción)");
+    } else {
+      console.log("🛠️ Modo desarrollo: HTTP permitido");
+    }
+  }, []);
+
   return (
     <Routes>
 
