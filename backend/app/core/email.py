@@ -8,7 +8,7 @@ def send_invite_email(email_to: str, token: str):
     link = f"{settings.frontend_url}/completar-registro?token={token}"
     
     params = {
-        "from": "Hockey Bariloche <onboarding@resend.dev>",
+        "from": "Hockey Bariloche <admin@hockeybariloche.com.ar>",
         "to": [email_to],
         "subject": "Invitación a la Plataforma",
         "html": f"""
@@ -38,7 +38,7 @@ def send_reset_password_email(email_to: str, token: str):
     link = f"{settings.frontend_url}/reset-password?token={token}"
     
     params = {
-        "from": "Hockey Bariloche <onboarding@resend.dev>",
+        "from": "Hockey Bariloche <admin@hockeybariloche.com.ar>",
         "to": [email_to],
         "subject": "Restablecer tu contraseña",
         "html": f"""
