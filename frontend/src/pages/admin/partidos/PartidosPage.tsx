@@ -253,11 +253,11 @@ export default function PartidosPage() {
                     </div>
                   </div>
                   <div className={styles.infoCol}>
-                    <label>⚽ Goles / 🎴 Sanciones</label>
+                    <label>🏑 Goles / 🎴 Sanciones</label>
                     {parseIncidencias(selectedPartido.lista_goles_local).map((g, i) => (
                       <div key={i} className={styles.incidenciaItem}>
                         <span>
-                          ⚽ {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}
+                          🏑 {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}
                         </span>
                         <small>{g.minuto}' ({g.cuarto}C)</small>
                       </div>
@@ -302,11 +302,11 @@ export default function PartidosPage() {
                     </div>
                   </div>
                   <div className={styles.infoCol}>
-                    <label>⚽ Goles / 🎴 Sanciones</label>
+                    <label>🏑 Goles / 🎴 Sanciones</label>
                     {parseIncidencias(selectedPartido.lista_goles_visitante).map((g, i) => (
                       <div key={i} className={styles.incidenciaItem}>
                         <span>
-                          ⚽ {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}
+                          🏑 {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}
                         </span>
                         <small>{g.minuto}' ({g.cuarto}C)</small>
                       </div>

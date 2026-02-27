@@ -92,6 +92,7 @@ from app.routers import (
     vistas_router as vistas,
     fichajes_router as fichajes,
     noticias_router as noticias,
+    estadisticas_router as estadisticas,
 )
 
 
@@ -117,3 +118,4 @@ app.include_router(partido, prefix="/api")
 app.include_router(vistas, prefix="/api")
 app.include_router(fichajes, prefix="/api")
 app.include_router(noticias, prefix="/api")
+app.include_router(estadisticas, prefix="/api")

@@ -6,6 +6,7 @@ import Button from "../../../components/ui/button/Button";
 import { usePartidos } from "../../../hooks/usePartidos";
 
 import { obtenerNoticiasRecientes } from "../../../api/noticias.api"; 
+import { obtenerStatsGlobales } from "../../../api/estadisticas.api";
 
 export default function Home() {
 
@@ -15,37 +16,38 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [selectedPartido, setSelectedPartido] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
-  
+  const [stats, setStats] = useState({ partidos_totales: 0, goles_totales: 0 });
   const navigate = useNavigate();
   const { parseIncidencias } = usePartidos();
 
+
+ // Unificamos todo en un solo efecto de carga al montar el componente
   useEffect(() => {
-    cargarPartidos();
-    cargarNoticias();
+    const cargarTodo = async () => {
+      setLoading(true);
+      try {
+        // Usamos Promise.all para que carguen en paralelo, es más eficiente 🚀
+        const [partidosData, noticiasData, statsData] = await Promise.all([
+          obtenerPartidosRecientes(),
+          obtenerNoticiasRecientes(),
+          obtenerStatsGlobales()
+        ]);
+
+        setPartidos(partidosData.slice(0, 5));
+        setNoticias(noticiasData.slice(0, 3));
+        setStats(statsData);
+      } catch (error) {
+        console.error("Error cargando datos del Home:", error);
+      } finally {
+        setLoading(false);
+        setLoadingNoticias(false);
+      }
+    };
+
+    cargarTodo();
   }, []);
 
-  const cargarNoticias = async () => {
-    try {
-      const data = await obtenerNoticiasRecientes();
-      setNoticias(data.slice(0, 3)); // Solo mostramos las 3 más nuevas en el Home
-    } catch (error) {
-      console.error("Error cargando noticias:", error);
-    } finally {
-      setLoadingNoticias(false);
-    }
-  };
 
-  const cargarPartidos = async () => {
-    try {
-      const data = await obtenerPartidosRecientes(); 
-      // Tomamos solo los primeros 5 elementos del array
-      setPartidos(data.slice(0, 5)); 
-    } catch (err) {
-      console.error("Error al cargar partidos", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleVerDetalle = async (partido: any) => {
     try {
@@ -102,31 +104,24 @@ export default function Home() {
       </header>
 
       <section className={styles.stats}>
-        {/* Widget: Contador */}
         <div className={styles.statCard}>
           <div className={styles.statIcon}>📊</div>
           <div className={styles.statContent}>
             <span>Partidos Temporada</span>
-            <strong>{partidos.length}</strong>
+            {/* Ahora este número viene del count() real de la DB */}
+            <strong>{stats.partidos_totales}</strong> 
           </div>
         </div>
 
-        {/* Widget: Último Resultado (Estilo Marcador) */}
-        <div className={`${styles.statCard} ${styles.lastResultWidget}`}>
-          <span>Último Resultado</span>
-          {partidos[0] ? (
-            <div className={styles.miniScoreboard}>
-              <span className={styles.miniTeam}>{partidos[0].equipo_local_nombre}</span>
-              <div className={styles.miniResult}>
-                {partidos[0].goles_local} - {partidos[0].goles_visitante}
-              </div>
-              <span className={styles.miniTeam}>{partidos[0].equipo_visitante_nombre}</span>
-            </div>
-          ) : (
-            <strong>---</strong>
-          )}
+        <div className={styles.statCard}>
+          <div className={styles.statIcon}>🏑</div>
+          <div className={styles.statContent}>
+            <span>Goles Convertidos</span>
+            <strong>{stats.goles_totales}</strong>
+          </div>
         </div>
       </section>
+
       {/* --- SECCIÓN DE NOTICIAS --- */}
         <section className={styles.newsSection}>
           <div className={styles.sectionHeader}>
@@ -260,11 +255,11 @@ export default function Home() {
                     </div>
                   </div>
                   <div className={styles.infoCol}>
-                    <label>⚽ Goles / 🎴 Sanciones</label>
+                    <label>🏑 Goles / 🎴 Sanciones</label>
                     {parseIncidencias(selectedPartido.lista_goles_local).map((g, i) => (
                       <div key={i} className={styles.incidenciaItem}>
                         <span>
-                          ⚽ {g.jugador} {g.esAutogol && <strong className={styles.autogol}>(En contra)</strong>}
+                          🏑 {g.jugador} {g.esAutogol && <strong className={styles.autogol}>(En contra)</strong>}
                         </span>
                         <small>{g.minuto}' ({g.cuarto}C)</small>
                       </div>
@@ -308,11 +303,11 @@ export default function Home() {
                     </div>
                   </div>
                   <div className={styles.infoCol}>
-                    <label>⚽ Goles / 🎴 Sanciones</label>
+                    <label>🏑 Goles / 🎴 Sanciones</label>
                     {parseIncidencias(selectedPartido.lista_goles_visitante).map((g, i) => (
                       <div key={i} className={styles.incidenciaItem}>
                         <span>
-                          ⚽ {g.jugador} {g.esAutogol && <strong className={styles.autogol}>(En contra)</strong>}
+                          🏑 {g.jugador} {g.esAutogol && <strong className={styles.autogol}>(En contra)</strong>}
                         </span>
                         <small>{g.minuto}' ({g.cuarto}C)</small>
                       </div>
