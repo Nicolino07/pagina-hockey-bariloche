@@ -1,6 +1,7 @@
 # Este archivo contiene las rutas relacionadas con autenticación, gestión de usuarios e invitaciones.
 # app/auth/router.py
 import os
+from app.services import usuarios_services
 from slowapi import Limiter
 from typing import List
 from app.models import refresh_token
@@ -199,19 +200,15 @@ def get_usuarios(db: Session = Depends(get_db),
 # 2. Cambiar Rol
 @router.patch("/usuarios/{id_usuario}/rol")
 def cambiar_rol(
-    id_usuario: int, 
-    payload: UsuarioUpdate, 
+    id_usuario: int,
+    payload: UsuarioUpdate,
     db: Session = Depends(get_db),
     admin = Depends(require_superuser)
 ):
-    user = db.query(UsuarioModel).filter(UsuarioModel.id_usuario == id_usuario).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    
-    if payload.tipo:
-        user.tipo = payload.tipo
-        db.commit()
-    
+    usuarios_services.cambiar_rol(
+        db, id_usuario, payload.tipo, admin
+    )
+
     return {"message": "Rol actualizado correctamente"}
 
 # 3. Cambiar Estado (Activo/Inactivo)
