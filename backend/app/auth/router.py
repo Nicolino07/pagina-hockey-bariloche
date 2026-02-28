@@ -2,11 +2,11 @@
 # app/auth/router.py
 import os
 from typing import List
-from backend.app.models import refresh_token
+from app.models import refresh_token
 from fastapi import APIRouter, Depends, Response, Request, BackgroundTasks, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from slowapi import Limiter
+from slowapi import Limitergit
 from slowapi.util import get_remote_address
 from app.database import get_db
 from app.dependencies.permissions import require_admin, require_superuser
