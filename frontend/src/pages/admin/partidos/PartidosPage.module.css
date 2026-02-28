@@ -424,6 +424,44 @@
   flex-wrap: wrap;
 }
 
+.refereeRibbon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  background: #f1f3f5; /* Un gris muy suave */
+  padding: 10px 20px;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 0.9rem;
+}
+
+.refereeItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #495057;
+}
+
+.refereeItem strong {
+  color: #212529;
+  font-weight: 600;
+}
+
+.icon {
+  font-size: 1.1rem;
+  filter: saturate(0.8);
+}
+
+/* Ajuste para móviles */
+@media (max-width: 600px) {
+  .refereeRibbon {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+}
+
 /* ==========================================================================
    MEDIA QUERIES - MEJORAS PARA MÓVILES
    ========================================================================== */

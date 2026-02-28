@@ -634,7 +634,8 @@ FROM goles_por_torneo gt
 LEFT JOIN goles_carrera gc ON gt.id_persona = gc.id_persona;
 
 -- =======================================
--- Vista partidos detallados
+-- Vista partidos detallados (ACTUALIZADA)
+-- Incluye Árbitros, Jueces de Mesa y Marcador
 -- =======================================
 
 CREATE OR REPLACE VIEW vw_partidos_detallados AS
@@ -647,6 +648,8 @@ SELECT
     p.ubicacion,
     p.numero_fecha,
     p.observaciones,
+    p.juez_mesa_local,
+    p.juez_mesa_visitante,
     p.creado_por,
     p.creado_en,
     
@@ -654,14 +657,28 @@ SELECT
     el.nombre AS equipo_local_nombre,
     ev.nombre AS equipo_visitante_nombre,
 
+    -- Árbitros (Nombres procesados)
+    TRIM(per_a1.apellido || ' ' || per_a1.nombre) AS nombre_arbitro1,
+    TRIM(per_a2.apellido || ' ' || per_a2.nombre) AS nombre_arbitro2,
+    CONCAT_WS('; ', 
+        TRIM(per_a1.apellido || ' ' || per_a1.nombre), 
+        TRIM(per_a2.apellido || ' ' || per_a2.nombre)
+    ) AS arbitros,
+
     -- Marcador Final
-    COALESCE((SELECT COUNT(*) FROM gol g JOIN participan_partido pp ON g.id_participante_partido = pp.id_participante_partido JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante JOIN plantel pl ON pi.id_plantel = pl.id_plantel
+    COALESCE((SELECT COUNT(*) FROM gol g 
+              JOIN participan_partido pp ON g.id_participante_partido = pp.id_participante_partido 
+              JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante 
+              JOIN plantel pl ON pi.id_plantel = pl.id_plantel
               WHERE g.id_partido = p.id_partido AND ((pl.id_equipo = itl.id_equipo AND NOT g.es_autogol) OR (pl.id_equipo = itv.id_equipo AND g.es_autogol))), 0) AS goles_local,
-    COALESCE((SELECT COUNT(*) FROM gol g JOIN participan_partido pp ON g.id_participante_partido = pp.id_participante_partido JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante JOIN plantel pl ON pi.id_plantel = pl.id_plantel
+    
+    COALESCE((SELECT COUNT(*) FROM gol g 
+              JOIN participan_partido pp ON g.id_participante_partido = pp.id_participante_partido 
+              JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante 
+              JOIN plantel pl ON pi.id_plantel = pl.id_plantel
               WHERE g.id_partido = p.id_partido AND ((pl.id_equipo = itv.id_equipo AND NOT g.es_autogol) OR (pl.id_equipo = itl.id_equipo AND g.es_autogol))), 0) AS goles_visitante,
 
-    -- LISTADO DE INTEGRANTES LOCAL (Agregamos el ROL como 4to campo)
-
+    -- LISTADO DE INTEGRANTES LOCAL
     (SELECT string_agg(per.apellido || '|' || per.nombre || '|' || COALESCE(pp.numero_camiseta::text, '') || '|' || pi.rol_en_plantel, '; ' ORDER BY pi.rol_en_plantel DESC, pp.numero_camiseta ASC)
     FROM participan_partido pp
     JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante
@@ -669,7 +686,7 @@ SELECT
     JOIN plantel pl ON pi.id_plantel = pl.id_plantel
     WHERE pp.id_partido = p.id_partido AND pl.id_equipo = itl.id_equipo) AS lista_jugadores_local,
 
-    -- LISTADO DE INTEGRANTES VISITANTE (Agregamos el ROL como 4to campo)
+    -- LISTADO DE INTEGRANTES VISITANTE
     (SELECT string_agg(per.apellido || '|' || per.nombre || '|' || COALESCE(pp.numero_camiseta::text, '') || '|' || pi.rol_en_plantel, '; ' ORDER BY pi.rol_en_plantel DESC, pp.numero_camiseta ASC)
     FROM participan_partido pp
     JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante
@@ -720,7 +737,10 @@ JOIN torneo t ON p.id_torneo = t.id_torneo
 JOIN inscripcion_torneo itl ON p.id_inscripcion_local = itl.id_inscripcion
 JOIN equipo el ON itl.id_equipo = el.id_equipo
 JOIN inscripcion_torneo itv ON p.id_inscripcion_visitante = itv.id_inscripcion
-JOIN equipo ev ON itv.id_equipo = ev.id_equipo;
+JOIN equipo ev ON itv.id_equipo = ev.id_equipo
+-- Joins para obtener nombres de árbitros
+LEFT JOIN persona per_a1 ON p.id_arbitro1 = per_a1.id_persona
+LEFT JOIN persona per_a2 ON p.id_arbitro2 = per_a2.id_persona;
 
 
 COMMIT;

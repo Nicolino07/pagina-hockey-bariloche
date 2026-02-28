@@ -118,7 +118,7 @@ def crear_planilla_partido(db: Session, data, current_user):
 
 
 
-def get_ultimos_partidos(db: Session, torneo_id: int = None, limit: int = 10):
+def get_ultimos_partidos(db: Session, torneo_id: int = None, limit: int = 5):
     query = db.query(PartidoDetallado)
     
     if torneo_id:

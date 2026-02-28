@@ -156,6 +156,14 @@ class PartidoDetallado(Base):
     equipo_visitante_nombre = Column(String)
     goles_local = Column(Integer)
     goles_visitante = Column(Integer)
+
+    # --- NUEVOS CAMPOS AGREGADOS ---
+    nombre_arbitro1 = Column(String)
+    nombre_arbitro2 = Column(String)
+    arbitros = Column(String) # Este trae el string: "Apellido Nombre; Apellido Nombre"
+    juez_mesa_local = Column(String)
+    juez_mesa_visitante = Column(String)
+    # -------------------------------
     
     # Estos traen los strings concatenados "Apellido|Min|Cuarto|Extra"
     lista_jugadores_local = Column(String)

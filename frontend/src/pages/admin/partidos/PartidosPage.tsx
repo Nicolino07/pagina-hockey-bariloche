@@ -230,6 +230,24 @@ export default function PartidosPage() {
               <div className={styles.bigTeamName}>{selectedPartido.equipo_visitante_nombre}</div>
             </div>
 
+            {/* --- NUEVA SECCIÓN DE AUTORIDADES --- */}
+              <div className={styles.refereeRibbon}>
+                <div className={styles.refereeItem}>
+                  <span className={styles.icon}>🏁</span>
+                  <span>Árbitros: <strong>{selectedPartido.arbitros || "No designados"}</strong></span>
+                </div>
+                {(selectedPartido.juez_mesa_local || selectedPartido.juez_mesa_visitante) && (
+                  <div className={styles.refereeItem}>
+                    <span className={styles.icon}>📋</span>
+                    <span>Mesa: <strong>{
+                      [selectedPartido.juez_mesa_local, selectedPartido.juez_mesa_visitante]
+                        .filter(Boolean)
+                        .join(" / ")
+                    }</strong></span>
+                  </div>
+                )}
+              </div>
+
             <div className={styles.detailsBody}>
               <div className={styles.teamSection}>
                 <h3 className={styles.localTitle}>🏠 {selectedPartido.equipo_local_nombre}</h3>

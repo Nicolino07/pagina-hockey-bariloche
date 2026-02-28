@@ -233,6 +233,14 @@ export default function Home() {
               <div className={styles.bigTeamName}>{selectedPartido.equipo_visitante_nombre}</div>
             </div>
 
+            {/* --- NUEVA SECCIÓN DE AUTORIDADES --- */}
+            <div className={styles.refereeRibbon}>
+              <div className={styles.refereeItem}>
+                <span className={styles.icon}>🏁</span>
+                <span>Árbitros: <strong>{selectedPartido.arbitros || "No designados"}</strong></span>
+              </div>
+            </div>
+
             <div className={styles.detailsBody}>
               {/* Equipo Local */}
               <div className={styles.teamSection}>
