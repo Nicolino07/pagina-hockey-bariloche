@@ -3,11 +3,11 @@ import type { ReactNode } from 'react'
 
 import { authUtils } from '../utils/auth'
 import { decodeJwt } from '../utils/jwt'
+import { setAccessToken, clearAccessToken } from '../auth/TokenManager'
 
-// 1. Actualizamos la interfaz para que use 'email' como identificador principal
 interface User {
   id: number
-  email: string // Antes era username
+  email: string
   rol: string
   nombre?: string
   apellido?: string
@@ -16,7 +16,7 @@ interface User {
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
-  login: (token: string, userData: Partial<User>) => void
+  login: (token: string, userData?: Partial<User>) => void
   logout: () => void
   isLoading: boolean
 }
@@ -29,54 +29,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const initAuth = () => {
-      const token = authUtils.getAccessToken()
-      
-      if (token && authUtils.isAuthenticated()) {
+      const stored = authUtils.getAuthData()
+
+      if (stored?.token) {
         try {
-          const payload = decodeJwt(token)
-          const storedUser = authUtils.getUser()
-          
+          // 🧠 Restaurar token en memoria
+          setAccessToken(stored.token)
+
+          const payload = decodeJwt(stored.token)
+
           if (payload) {
-            setUser({
+            const userInfo: User = {
               id: Number(payload.sub),
-              // En el backend pusimos el email en la clave "username" del JWT
-              email: payload.username, 
+              email: payload.username,
               rol: payload.rol,
-              ...storedUser
-            })
+              ...stored.user
+            }
+
+            setUser(userInfo)
           }
         } catch (error) {
           console.error('❌ Error inicializando auth:', error)
           authUtils.clearAuth()
+          clearAccessToken()
+          setUser(null)
         }
       }
-      setIsLoading(false)
-      
-      if (authUtils.isAuthenticated()) {
-        authUtils.scheduleTokenCheck()
-      }
-    }
-    
-    initAuth()
 
-    return () => {
-      authUtils.clearTokenCheck()
+      setIsLoading(false)
     }
+
+    initAuth()
   }, [])
 
-  const login = (token: string, userData: Partial<User>) => {
+  const login = (token: string, userData?: Partial<User>) => {
     const payload = decodeJwt(token)
     if (!payload) throw new Error('Token inválido')
-    
-    // 2. Mapeamos el payload del JWT a nuestra estructura de User
+
     const userInfo: User = {
       id: Number(payload.sub),
-      email: payload.username, // El correo viene aquí desde el backend
+      email: payload.username,
       rol: payload.rol,
       ...userData
     }
-    
+
+    // 💾 Guardar en localStorage
     authUtils.setAuthData(token, userInfo)
+
+    // 🧠 Guardar en memoria
+    setAccessToken(token)
+
     setUser(userInfo)
   }
 
@@ -87,10 +89,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.warn('⚠️ Error en logout backend:', error)
     }
-    
+
     authUtils.clearAuth()
+    clearAccessToken()
     setUser(null)
-    
+
     if (window.location.pathname !== '/login') {
       window.location.href = '/login'
     }
@@ -113,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth debe usarse dentro de AuthProvider')
   }
   return context

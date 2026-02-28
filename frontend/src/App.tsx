@@ -18,21 +18,41 @@ import PosicionesPage from "./pages/public/posiciones/PosicionesPage"
 import ClubesPage from "./pages/public/clubes/ClubesPage"
 import ClubesDetallePublic from "./pages/public/clubes/ClubesDetallePublic"
 import EquipoDetallePublic from "./pages/public/clubes/EquipoDetallePublic"
-import CompletarRegistro from './pages/admin/usuarios/CompletarRegistro'; // El nombre que le pongas
+import CompletarRegistro from './pages/admin/usuarios/CompletarRegistro'; 
 import Unauthorized from "./pages/error/Unauthorized"
 import GestionUsuarios from "./pages/admin/usuarios/GestionUsuarios";
 import SolicitarRecuperacion from "./pages/login/SolicitarRecuperacion"
 import ResetPasswordForm from "./pages/login/ResetPassword";
 import NoticiaDetalle from "./pages/public/noticias/NoticiaDetalle"
 import Noticias from "./pages/public/noticias/Noticias"
-
 import MainLayout from "./layouts/MainLayout"
-
-
+import { setAccessToken } from './auth/TokenManager'
+import { authUtils } from './utils/auth'
 import { useEffect } from 'react';
+import axiosAdmin from './api/axiosAdmin'
+
 
 
 export default function App() {
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const storedToken = authUtils.getAuthData()?.token
+      
+
+      if (storedToken) {
+        setAccessToken(storedToken)
+
+        try {
+          await axiosAdmin.get('/auth/me')
+        } catch {
+          // Si falla, interceptor intenta refresh
+        }
+      }
+    }
+
+    initAuth()
+  }, [])
 
   useEffect(() => {
     // Detectamos si estamos en producción (VPS)

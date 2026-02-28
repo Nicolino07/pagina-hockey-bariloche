@@ -461,13 +461,13 @@ export default function PartidoPlanilla() {
                 <div>
                   <h4>Goles</h4>
                   {goles.length === 0 ? <p className={styles.emptyResumen}>Sin goles registrados</p> : goles.map((g, i) => (
-                    <p key={i}>• Min {g.minuto}: {getPlayerName(g.id_plantel_integrante)} {g.es_autogol ? '(Autogol)' : ''}</p>
+                    <p key={i}>• {getPlayerName(g.id_plantel_integrante)} (Min {g.minuto} - {g.cuarto}C) {g.es_autogol ? '(En contra)' : ''}</p>
                   ))}
                 </div>
                 <div>
                   <h4>Tarjetas</h4>
                   {tarjetas.length === 0 ? <p className={styles.emptyResumen}>Sin tarjetas registradas</p> : tarjetas.map((t, i) => (
-                    <p key={i}>• {t.tipo} - {getPlayerName(t.id_plantel_integrante)} (Min {t.minuto})</p>
+                    <p key={i}>• {t.tipo} - {getPlayerName(t.id_plantel_integrante)} (Min {t.minuto} - {t.cuarto}C)</p>
                   ))}
                 </div>
               </div>

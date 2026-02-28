@@ -1,5 +1,6 @@
 docker-compose.override.yml
 docker-compose.overryde.yml
+docker-compose.dev.yml
 
 # =====================
 # Archivos sensibles

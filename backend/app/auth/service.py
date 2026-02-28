@@ -1,3 +1,5 @@
+# app/auth/service.py
+# Este archivo contiene la lógica de negocio relacionada con autenticación, generación de tokens y gestión de sesiones.
 from sqlalchemy.orm import Session
 from fastapi import Request
 from datetime import datetime
@@ -71,15 +73,27 @@ def refresh_access_token(db: Session, request: Request):
 
     token_hash = hash_refresh_token(refresh_token_value)
 
-    token_db = (
-        db.query(RefreshToken)
-        .filter(
-            RefreshToken.token_hash == token_hash,
-            RefreshToken.revoked.is_(False),
-            RefreshToken.expires_at > datetime.utcnow(),
-        )
-        .first()
-    )
+    token_db = db.query(RefreshToken).filter(
+        RefreshToken.token_hash == token_hash
+    ).first()
+
+    if not token_db:
+        raise AuthenticationError("Refresh token inválido")
+
+    # 🚨 Reuse attack detection
+    if token_db.revoked:
+        # Revocar todos los tokens del usuario
+        db.query(RefreshToken).filter(
+            RefreshToken.id_usuario == token_db.id_usuario
+        ).update({
+            "revoked": True,
+            "revoked_at": datetime.utcnow()
+        })
+        db.commit()
+        raise AuthenticationError("Token comprometido")
+
+    if token_db.expires_at <= datetime.utcnow():
+        raise AuthenticationError("Refresh token expirado")
 
     if not token_db:
         raise AuthenticationError("Refresh token inválido")
@@ -100,6 +114,7 @@ def refresh_access_token(db: Session, request: Request):
     new_refresh_token = generate_refresh_token_value()
 
     token_db.revoked = True
+    token_db.revoked_at = datetime.utcnow()
 
     db.add(RefreshToken(
         id_usuario=user.id_usuario,
@@ -133,6 +148,7 @@ def logout_user(db: Session, request: Request):
 
     if token:
         token.revoked = True
+        token.revoked_at = datetime.utcnow()
         db.commit()
 
     return {"message": "Logged out"}

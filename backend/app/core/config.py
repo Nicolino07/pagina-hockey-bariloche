@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 1440
     refresh_token_expire_days: int = 30
 
+    cookie_secure: bool = False
+    cookie_samesite: str = "strict"
+
     @property
     def access_token_expire_timedelta(self) -> timedelta:
         return timedelta(minutes=self.access_token_expire_minutes)

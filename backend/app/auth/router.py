@@ -1,5 +1,8 @@
+# Este archivo contiene las rutas relacionadas con autenticación, gestión de usuarios e invitaciones.
+# app/auth/router.py
 import os
 from typing import List
+from backend.app.models import refresh_token
 from fastapi import APIRouter, Depends, Response, Request, BackgroundTasks, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -53,9 +56,9 @@ def login(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=bool(os.getenv("COOKIE_SECURE", "false").lower() == "true"),
-        samesite="strict",
-        max_age=60 * 60 * 24 * 14
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        max_age=60 * 60 * 24 * settings.refresh_token_expire_days,
     )
 
     return {
@@ -70,11 +73,11 @@ def refresh(request: Request, response: Response, db: Session = Depends(get_db))
 
     response.set_cookie(
         key="refresh_token",
-        value=new_refresh_token,
+        value=refresh_token,
         httponly=True,
-        secure=True,
-        samesite="strict",
-        max_age=60 * 60 * 24 * 7,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        max_age=60 * 60 * 24 * settings.refresh_token_expire_days,
     )
 
     return {"access_token": access_token}

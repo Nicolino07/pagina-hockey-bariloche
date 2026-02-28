@@ -2,6 +2,8 @@
 import axios from 'axios'
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import config from './config/index'
+import { getAccessToken, setAccessToken, clearAccessToken } from '../auth/TokenManager'
+
 
 
 // ============================================
@@ -48,7 +50,7 @@ axiosAdmin.interceptors.request.use(
       config.url = config.url.substring(1);
     }
 
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
@@ -75,6 +77,12 @@ axiosAdmin.interceptors.response.use(
     const originalRequest = error.config as CustomAxiosRequestConfig
     
     if (error.response?.status !== 401 || !originalRequest) {
+      return Promise.reject(error)
+    }
+
+    // 🚨 Evitar loop si falla el refresh
+    if (originalRequest.url?.includes('auth/refresh')) {
+      forceLogout()
       return Promise.reject(error)
     }
     
@@ -104,7 +112,7 @@ axiosAdmin.interceptors.response.use(
       
       if (!response.access_token) throw new Error()
       
-      localStorage.setItem('access_token', response.access_token)
+      setAccessToken(response.access_token)
       
       if (originalRequest.headers) {
         originalRequest.headers.Authorization = `Bearer ${response.access_token}`
@@ -116,7 +124,8 @@ axiosAdmin.interceptors.response.use(
     } catch (refreshError) {
       forceLogout()
       return Promise.reject(refreshError)
-    } finally {
+    }
+     finally {
       isRefreshing = false
     }
   }
@@ -126,9 +135,13 @@ axiosAdmin.interceptors.response.use(
 // FUNCIONES AUXILIARES
 // ============================================
 function forceLogout() {
-  localStorage.removeItem('access_token')
+  clearAccessToken()
   localStorage.removeItem('user')
-  sessionStorage.clear()
+
+  // 🔥 Siempre limpiar estado interno
+  refreshSubscribers = []
+  isRefreshing = false
+
   if (window.location.pathname !== '/login') {
     window.location.href = '/login'
   }
