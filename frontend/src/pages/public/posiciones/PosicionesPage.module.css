@@ -255,3 +255,120 @@
   padding: 50px;
   color: #8ab4f8;
 }
+
+
+/* --- RESPONSIVIDAD --- */
+
+@media (max-width: 1024px) {
+  .container {
+    padding: 20px 15px;
+  }
+  
+  .statsGrid {
+    grid-template-columns: 1fr; /* Goleadores y Tarjetas uno debajo del otro */
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr; /* Cards de torneos en lista simple */
+  }
+
+  .tableCard {
+    padding: 15px; /* Menos aire en móviles para ganar espacio de tabla */
+    border-radius: 16px;
+  }
+
+  .sectionTitle {
+    font-size: 1.4rem;
+  }
+
+  /* Ajuste de Tabla de Posiciones para Scroll */
+  .responsiveScroll {
+    margin: 0 -5px; /* Compensa el padding del contenedor */
+    padding-bottom: 10px;
+  }
+
+  .posicionesTable {
+    min-width: 500px; /* Asegura que no se amontone el texto */
+  }
+
+  .posicionesTable th, 
+  .posicionesTable td {
+    padding: 12px 8px;
+    font-size: 0.85rem;
+  }
+
+  .puntosValor {
+    font-size: 1rem;
+  }
+
+  /* Escondemos columnas menos críticas en tablets/móviles */
+  .hideMobile {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    margin-bottom: 25px;
+  }
+
+  .title {
+    font-size: 1.7rem;
+  }
+
+  /* Los botones de equipos ocupan todo el ancho */
+  .equiposGrid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Ajuste para las tablas de estadísticas pequeñas (goleadores/tarjetas) */
+  .statsTable td {
+    padding: 10px 5px;
+    font-size: 0.85rem;
+  }
+
+  .playerName {
+    font-size: 0.9rem;
+  }
+
+  /* Hacemos que el scroll de la tabla sea más evidente */
+  .responsiveScroll::after {
+    content: "Desliza para ver más →";
+    display: block;
+    text-align: right;
+    font-size: 0.7rem;
+    color: #8ab4f8;
+    margin-top: 8px;
+    opacity: 0.7;
+  }
+}
+
+/* --- DETALLES DE UI --- */
+
+/* Mejora la visibilidad del scrollbar en la tabla para móviles */
+.responsiveScroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.responsiveScroll::-webkit-scrollbar-thumb {
+  background: #3c4043;
+  border-radius: 10px;
+}
+
+/* Efecto de carga sutil */
+.infoMsg {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}

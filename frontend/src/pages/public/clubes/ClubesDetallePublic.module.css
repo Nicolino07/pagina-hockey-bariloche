@@ -206,3 +206,114 @@
 .playerInfo { display: flex; flex-direction: column; }
 .playerName { font-weight: 600; color: #fff; font-size: 1rem; }
 .playerRole { font-size: 0.8rem; color: #9aa0a6; text-transform: capitalize; }
+
+/* --- RESPONSIVIDAD --- */
+
+@media (max-width: 1024px) {
+  .headerInfo h1 {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .mainWrapper {
+    padding: 10px;
+  }
+
+  .categorySelector {
+    padding: 5px 0 15px 0;
+    /* Indicador visual de que hay más categorías a la derecha */
+    mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  }
+
+  .header {
+    padding: 15px;
+    margin-bottom: 24px;
+  }
+
+  .clubLogo {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+
+  .gridTop {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .matchCard {
+    padding: 15px;
+  }
+
+  .score {
+    font-size: 1.1rem;
+  }
+
+  /* Tabla de Posiciones: Simplificación para móviles */
+  .table th:nth-child(3), /* Oculta PJ */
+  .table td:nth-child(3) {
+    display: none;
+  }
+
+  .plantelGrid {
+    grid-template-columns: 1fr; /* Tarjetas de jugadores ocupan todo el ancho */
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerInfo h1 {
+    font-size: 1.5rem;
+  }
+
+  /* Hacemos las tarjetas de partidos más compactas */
+  .matchMain {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .teamLine {
+    font-size: 0.95rem;
+  }
+
+  .goalList {
+    font-size: 0.7rem;
+    margin-bottom: 5px;
+    padding-left: 5px;
+    border-left: 2px solid #303134;
+  }
+
+  .playerCard {
+    padding: 12px;
+  }
+
+  .playerNumber {
+    width: 35px;
+    height: 35px;
+    font-size: 0.9rem;
+  }
+
+  .playerName {
+    font-size: 0.9rem;
+  }
+}
+
+/* --- MEJORAS DE UX --- */
+
+/* Scrollbar para el selector de categorías */
+.categorySelector::-webkit-scrollbar {
+  height: 4px;
+}
+
+.categorySelector::-webkit-scrollbar-thumb {
+  background: #3c4043;
+  border-radius: 10px;
+}
+
+/* Efecto para resaltar la fila del equipo del club en la tabla */
+.rowActive td {
+  color: #8ab4f8;
+  border-bottom: 1px solid #8ab4f8;
+}
