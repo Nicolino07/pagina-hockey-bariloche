@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { login as loginApi } from "../../api/auth.api"
 import { useAuth } from "../../auth/AuthContext"
-import { decodeJwt, type JwtPayload } from "../../utils/jwt"  // 🔥 Importamos el tipo
+import { decodeJwt } from "../../utils/jwt"  
 import styles from "./Login.module.css"
 import { Link } from "react-router-dom"
 
