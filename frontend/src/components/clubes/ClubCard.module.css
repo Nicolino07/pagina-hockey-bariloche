@@ -1,74 +1,36 @@
+/* ClubCard.module.css */
 .card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   padding: 16px 20px;
-  border-radius: 12px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-
+  border-radius: var(--radius-md); /* Usamos la variable de App */
+  background-color: var(--bg-card); /* Cambia según el tema */
+  border: 1px solid var(--border-color); /* Cambia según el tema */
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition);
 }
 
 .card:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px);
 }
 
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.nombre {
-  font-size: 1.05rem;
-  font-weight: 600;
+.card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
   margin: 0;
+  color: var(--text-main); /* Blanco en dark, Negro en light */
 }
 
-.ciudad {
+.card span {
   font-size: 0.85rem;
-  color: #6b7280;
-}
-
-.right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  color: var(--text-muted); /* Gris suave */
 }
 
 .chevron {
   font-size: 1.5rem;
-  color: #9ca3af;
-}
-
-.actions {
-  display: flex;
-  gap: 8px;
-}
-
-.actions button {
-  padding: 6px 10px;
-  font-size: 0.8rem;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
-  cursor: pointer;
-}
-
-.actions button:hover {
-  background: #e5e7eb;
-}
-
-.danger {
-  color: #b91c1c;
-  border-color: #fca5a5;
-}
-
-.danger:hover {
-  background: #fee2e2;
+  color: var(--color-primary);
+  font-weight: bold;
 }

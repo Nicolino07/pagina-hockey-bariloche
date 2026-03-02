@@ -1,15 +1,25 @@
 .list {
   list-style: none;
   padding: 0;
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .item {
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 16px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--divider-color);
+  transition: border-color 0.2s;
+}
+
+.item:hover {
+  border-color: #444;
 }
 
 .info {
@@ -19,15 +29,49 @@
 }
 
 .equipo {
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
 }
 
 .club {
   font-size: 0.9rem;
-  color: var(--text-secondary);
+  color: #8ab4f8;
+  font-weight: 500;
 }
 
 .meta {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+/* --- RESPONSIVIDAD --- */
+
+@media (max-width: 600px) {
+  .item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .info {
+    text-align: center;
+    border-bottom: 1px solid #333;
+    padding-bottom: 12px;
+  }
+
+  .equipo {
+    font-size: 1.2rem;
+  }
+
+  /* El botón de baja se vuelve prominente en móvil */
+  .item button {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.9rem;
+  }
 }

@@ -1,353 +1,311 @@
-/* ============================= */
-/* CONTENEDOR GENERAL */
-/* ============================= */
-
 .container {
-  background-color: #f1f5f9;
-  padding: 2rem;
-  max-width: 1200px;
+  padding: 24px;
+  max-width: 1300px;
   margin: 0 auto;
-  min-height: 100vh;
-  box-sizing: border-box;
+  color: #e0e0e0;
 }
 
 .headerPage {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 20px;
+  margin-bottom: 25px;
 }
 
 .headerPage h1 {
-  font-size: 1.8rem;
   margin: 0;
-  flex: 1;
-  border-bottom: 3px solid var(--color-primary);
-  padding-bottom: 0.5rem;
+  font-size: 1.8rem;
 }
 
-/* ============================= */
-/* SECCIÓN DATOS DEL PARTIDO */
-/* ============================= */
-
+/* Secciones de Formulario */
 .section {
-  background: white;
-  padding: 1.8rem;
-  border-radius: 14px;
-  margin-bottom: 2rem;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+  background: #1e1e1e;
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  margin-bottom: 20px;
 }
 
 .gridForm {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-  width: 100%;
-  
-}
-
-/* ============================= */
-/* ESTILO UNIFICADO DE CAMPOS */
-/* ============================= */
-
-.gridForm input,
-.gridForm select,
-.eventRow input,
-.eventRow select {
-  flex: 1;
-
-  max-width: 100%;
-  padding: 0.75rem 0.9rem;
-  border-radius: 8px;
-  border: 2px solid var(--color-intermedio);
-  background: var(--color-casilla-clara);
-  font-size: 0.95rem;
-  box-sizing: border-box;
-  transition: all 0.2s ease;
-  min-width: 60px;
-}
-
-.gridForm input:focus,
-.gridForm select:focus,
-.eventRow input:focus,
-.eventRow select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  background: white;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
-}
-
-.vs {
-  font-weight: bold;
-  font-size: 1.2rem;
-  color: var(--text-primary);
-  padding: 0 0.5rem;
-  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
   align-items: center;
 }
 
-/* ============================= */
-/* COLUMNAS DE JUGADORES */
-/* ============================= */
+.gridForm select, .gridForm input {
+  background: #2d2d2d;
+  border: 1px solid #444;
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  flex: 1;
+}
 
+.vs {
+  font-weight: 900;
+  color: #8ab4f8;
+  font-style: italic;
+  padding: 0 10px;
+}
+
+/* Columnas de Jugadores */
 .columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
 .column {
-  background: white;
-  border-radius: 14px;
-  padding: 1.2rem;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
+  background: #1e1e1e;
+  border-radius: 12px;
+  border: 1px solid #333;
+  padding: 20px;
 }
 
 .column h3 {
   margin-top: 0;
-  margin-bottom: 1rem;
-  text-align: center;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+  color: #8ab4f8;
 }
 
 .playerHeader {
-  display: grid;
-  grid-template-columns: 60px 60px 1fr 50px;
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
   font-size: 0.75rem;
-  font-weight: 600;
-  opacity: 0.7;
-  padding-bottom: 0.4rem;
-  border-bottom: 1px solid rgba(0,0,0,0.1);
+  color: #666;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .playerList {
-  background: #f8fafc;
-  max-height: 420px;
+  max-height: 400px;
   overflow-y: auto;
-  padding: 0.5rem;
-  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
 }
 
 .playerItem {
-  display: grid;
-  grid-template-columns: 60px 60px 1fr 50px;
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #2a2a2a;
 }
 
 .inputCamiseta {
-  width: 50px;
-  height: 32px;
+  width: 45px;
+  background: #2d2d2d;
+  border: 1px solid #444;
+  color: #8ab4f8;
   text-align: center;
-  border-radius: 6px;
+  padding: 4px;
+  border-radius: 4px;
   font-weight: bold;
 }
 
+.inputCamisetaPlaceholder { width: 45px; }
+
 .playerText {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.85rem;
-  word-break: break-word;
+  flex: 1;
+  font-size: 0.95rem;
 }
 
 .playerRole {
-  font-size: 0.65rem;
-  background: rgba(0,0,0,0.08);
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-top: 2px;
-  width: fit-content;
+  display: block;
+  font-size: 0.7rem;
+  color: #666;
 }
 
-/* ============================= */
-/* INCIDENCIAS */
-/* ============================= */
-
-.eventSection {
-  background: white;
-  padding: 1.4rem;
-  border-radius: 14px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-  min-height: 350px; /* Espacio suficiente para los desplegables */
-}
-
+/* Incidencias */
 .incidencias {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  align-items: start; /* Evita que una columna estire a la otra */
+  gap: 20px;
+}
+
+.eventSection {
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #333;
 }
 
 .headerRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 15px;
 }
-
-/* ============================= */
-/* FILAS GOLES Y TARJETAS (ESTILO CARD) */
-/* ============================= */
 
 .eventRow {
-  display: grid;
-  /* Definimos columnas para la fila de abajo */
-  grid-template-columns: 1fr 1fr auto; 
-  gap: 0.8rem;
-  align-items: center;
-  background: #f8fafc;
-  padding: 1rem;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  margin-bottom: 1rem;
-  overflow: visible; /* Vital para que el select no se corte */
-}
-
-/* El selector de Jugador y el de Tipo/Referencia ocuparán toda la fila arriba */
-.eventRow select:nth-child(1),
-.eventRow select:nth-child(2) {
-  grid-column: span 3; /* Ocupan todo el ancho */
-  width: 100%;
-}
-
-/* Los inputs de Minuto y Cuarto van debajo, uno al lado del otro */
-.eventRow input[type="number"] {
-  width: 100% !important; /* Que ocupen su celda del grid */
-  grid-column: span 1;
-}
-
-/* El botón de eliminar se alinea al final */
-.deleteBtn {
-  grid-column: span 1;
-  justify-self: end;
-}
-
-/* Ajuste para el checkbox de Autogol en la fila de goles */
-.checkboxLabel {
-  grid-column: span 3; /* Debajo de los inputs o donde prefieras */
-  margin-top: 0.2rem;
-  padding-left: 0.5rem;
-}
-
-.deleteBtn {
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.deleteBtn:hover {
-  background: #dc2626;
-}
-
-/* ============================= */
-/* FOOTER */
-/* ============================= */
-
-.footer {
   display: flex;
-  justify-content: center;
-  padding: 2rem 0;
+  gap: 8px;
+  margin-bottom: 10px;
+  align-items: center;
 }
 
-/* ============================= */
-/* MODAL */
-/* ============================= */
+.eventRow select, .eventRow input {
+  background: #252525;
+  border: 1px solid #333;
+  color: white;
+  padding: 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
 
+.eventRow input[type="number"] { width: 60px; }
+
+.checkboxLabel {
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #888;
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  color: #ff6b6b;
+  cursor: pointer;
+  padding: 5px;
+}
+
+/* Modal Resumen */
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.9);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
-  padding: 1rem;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(8px);
 }
 
 .modalContent {
-  background: white;
-  padding: 1.8rem;
-  border-radius: 14px;
-  max-width: 750px;
-  width: 100%;
+  background: #1e1e1e;
+  width: 90%;
+  max-width: 800px;
   max-height: 90vh;
+  border-radius: 16px;
+  padding: 30px;
   overflow-y: auto;
+  border: 1px solid #444;
 }
 
-.modalActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  border-top: 1px solid var(--border-color);
-  padding-top: 1rem;
+.resumenGrid { display: flex; flex-direction: column; gap: 20px; }
+
+.divider { border: 0; border-top: 1px solid #333; margin: 10px 0; }
+
+.asistenciaGrid, .autoridadesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 
 .errorText {
-  color: #ef4444;
+  color: #ff6b6b;
   font-size: 0.8rem;
   font-weight: bold;
 }
 
-/* ============================= */
-/* RESPONSIVE */
-/* ============================= */
+.footer {
+  margin-top: 40px;
+  padding: 20px;
+  display: flex;
+  justify-content: flex-end;
+  background: #1e1e1e;
+  border-radius: 12px;
+}
 
-@media (max-width: 1000px) {
-  .columns,
-  .incidencias {
+/* --- RESPONSIVIDAD --- */
+
+@media (max-width: 1024px) {
+  /* En tablets, las columnas de jugadores ya no caben bien de a dos */
+  .columns, .incidencias {
     grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .gridForm {
+    flex-wrap: wrap; /* Permite que los inputs bajen si no hay espacio */
+  }
+
+  .gridForm select, .gridForm input {
+    flex: 1 1 200px; /* Tamaño mínimo antes de saltar de línea */
   }
 }
 
-@media (max-width: 700px) {
-  .gridForm {
-    flex-direction: column;
+@media (max-width: 600px) {
+  .container {
+    padding: 12px;
   }
 
+  .headerPage h1 {
+    font-size: 1.4rem;
+  }
+
+  /* El VS lo hacemos decorativo o lo ocultamos para ganar espacio */
   .vs {
-    justify-content: center;
+    width: 100%;
+    text-align: center;
+    margin: 10px 0;
   }
 
+  /* Optimizamos la fila de incidencia (Goles/Tarjetas) */
   .eventRow {
-    grid-template-columns: 1fr 1fr;
+    flex-wrap: wrap;
+    background: #252525;
+    padding: 12px;
+    border-radius: 8px;
+    position: relative;
   }
 
   .eventRow select:first-child {
-    grid-column: span 2;
+    flex: 1 1 100%; /* El nombre del jugador ocupa toda la fila arriba */
+    font-weight: bold;
+  }
+
+  .eventRow select:not(:first-child), 
+  .eventRow input {
+    flex: 1; /* El resto de campos se reparten abajo */
   }
 
   .deleteBtn {
-    grid-column: span 2;
-    justify-self: end;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 1rem;
+    position: absolute;
+    top: 5px;
+    right: 5px;
   }
 
-  .headerPage {
-    flex-direction: column;
-    align-items: flex-start;
+  /* Ajuste de Resumen en Móvil */
+  .asistenciaGrid, .autoridadesGrid {
+    grid-template-columns: 1fr;
   }
 
   .modalContent {
-    padding: 1rem;
+    padding: 15px;
+    width: 95%;
+  }
+}
+
+/* --- MEJORA DE UX TÁCTIL --- */
+@media (pointer: coarse) {
+  /* Hace los inputs y botones más grandes para dedos */
+  select, input, .deleteBtn {
+    min-height: 44px;
+  }
+
+  .playerItem {
+    padding: 12px 0;
+  }
+
+  input[type="checkbox"], input[type="radio"] {
+    transform: scale(1.3); /* Checkbox más fáciles de tocar */
+    margin-right: 10px;
   }
 }

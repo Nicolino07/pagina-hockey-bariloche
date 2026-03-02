@@ -22,37 +22,30 @@ export const PersonasList = () => {
         </thead>
         <tbody>
           {personas.map((persona: PersonaAgrupada) => {
-            // El primer rol es el principal (los demás son adicionales)
             const [rolPrincipal, ...otrosRoles] = persona.roles;
-            
-            // Para mostrar el club, tomamos el primer club del rol principal
             const clubPrincipal = rolPrincipal?.clubes?.[0];
 
             return (
               <tr key={persona.id_persona}>
-                <td className={styles.personaName}>
+                {/* Agregamos data-label a cada td */}
+                <td data-label="Nombre" className={styles.personaName}>
                   {persona.apellido}, {persona.nombre}
                   {persona.documento && (
                     <span className={styles.documento}> (DNI: {persona.documento})</span>
                   )}
                 </td>
 
-                <td className={styles.rolesCell}>
+                <td data-label="Roles" className={styles.rolesCell}>
                   {rolPrincipal && (
                     <>
-                      <span className={styles.primaryRol}>
-                        {rolPrincipal.rol}
-                      </span>
-                      
+                      <span className={styles.primaryRol}>{rolPrincipal.rol}</span>
                       {otrosRoles.length > 0 && (
                         <ul className={styles.extraRoles}>
                           {otrosRoles.map((rol) => (
                             <li key={rol.id_persona_rol}>
                               • {rol.rol}
                               {rol.clubes?.length > 0 && (
-                                <span className={styles.clubExtra}>
-                                  {' '}({rol.clubes[0].nombre_club})
-                                </span>
+                                <span className={styles.clubExtra}> ({rol.clubes[0].nombre_club})</span>
                               )}
                             </li>
                           ))}
@@ -62,16 +55,12 @@ export const PersonasList = () => {
                   )}
                 </td>
 
-                <td className={styles.clubCell}>
+                <td data-label="Estado/Club" className={styles.clubCell}>
                   {rolPrincipal?.estado_fichaje === "FICHADO" && clubPrincipal ? (
                     <div>
-                      <span className={styles.fichado}>
-                        {clubPrincipal.nombre_club}
-                      </span>
+                      <span className={styles.fichado}>{clubPrincipal.nombre_club}</span>
                       {rolPrincipal.clubes && rolPrincipal.clubes.length > 1 && (
-                        <span className={styles.multiClub}>
-                          +{rolPrincipal.clubes.length - 1} clubes
-                        </span>
+                        <span className={styles.multiClub}>+{rolPrincipal.clubes.length - 1}</span>
                       )}
                     </div>
                   ) : (
@@ -79,16 +68,8 @@ export const PersonasList = () => {
                   )}
                 </td>
 
-                <td style={{ textAlign: "right" }}>
-                  <button 
-                    className={styles.editBtn}
-                    onClick={() => {
-                      // Aquí iría la navegación a edición
-                      console.log("Editar persona:", persona.id_persona);
-                    }}
-                  >
-                    Editar
-                  </button>
+                <td data-label="Acción" style={{ textAlign: "right" }}>
+                  <button className={styles.editBtn}>Editar</button>
                 </td>
               </tr>
             );

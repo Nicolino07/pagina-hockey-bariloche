@@ -1,47 +1,46 @@
-/* frontend/src/styles/variables.css */
+/* Definición de la paleta base y variables dinámicas */
 :root {
-  /* 🎯 Primary */
-  --color-primary: #dcf0fa;
-  --color-secondary: #84cdee;
-  --color-intermedio: #0c1853cc;
-  --background-oscuro: #121212;
-  --backggound-claro: #dcf0fa;
- 
-
-  /*Colores para formularios */
-  --color-casilla-oscura: #838383;
-  --color-casilla-clara: #0e465833;
-
-    /* 📝 Text (TUS COLORES) */
-  --text-primary: #212121;
-  --text-secondary: #757575;
-  --text-on-primary: #ffffff;
-  
-   /* 📏 UI */
-  --divider-color: #bdbdbd;
-  --border-color: black;
-  --boton-oscuro: #5b869b;
-
-  /* 🎨 OPCIONES DE ACCENT (elige una) */
- 
-  /* 1. CORAL SUAVE (mi recomendación principal) */
+  /* 🎨 Colores de Acento (Se mantienen igual en ambos modos) */
   --color-accent01: #ff8a65;
-  
-  /* 2. TEAL/MENTA (armonía analógica) */
   --color-accent02: #26a69a;
-  
-  /* 3. MOSTAZA DORADA (contraste cálido) */
   --color-accent03: #ffb300;
-  
-  /* 4. LAVANDA (tonalidad complementaria suave) */
   --color-accent04: #9575cd;
-  
-  /* 5. VERDE BOTELLA (elegante y contrastante) */
   --color-accent05: #689f38;
+
+  /* 📏 UI Constantes */
+  --radius-lg: 24px;
+  --radius-md: 12px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ☀️ MODO CLARO (Default) */
+[data-theme='light'] {
+  --bg-main: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-header: #dcf0fa; /* Tu color light original */
   
- 
+  --text-main: #212121;
+  --text-muted: #757575;
   
-  /* 🧱 Backgrounds */
-  --bg-default: #f5f5f5;
-  --bg-paper: #ffffff;
+  --border-color: #bdbdbd;
+  --input-bg: #0e465833;
+  
+  --color-primary: #84cdee;
+  --color-surface: #ffffff;
+}
+
+/* 🌙 MODO OSCURO (El que estuvimos haciendo) */
+[data-theme='dark'] {
+  --bg-main: #121212;
+  --bg-card: #202124;
+  --bg-header: #1e1e1e;
+  
+  --text-main: #e8eaed;
+  --text-muted: #9aa0a6;
+  
+  --border-color: #3c4043;
+  --input-bg: #303134;
+  
+  --color-primary: #8ab4f8; /* Azul suave para modo oscuro */
+  --color-surface: #202124;
 }

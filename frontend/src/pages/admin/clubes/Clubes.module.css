@@ -1,145 +1,116 @@
 .container {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1.5rem;
-  box-sizing: border-box;
+  padding: 40px 20px;
+  /* Usamos las variables definidas en variables.css */
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* ======================
-   Header: Responsivo
-====================== */
 .header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap; /* Permite que los botones bajen en móvil */
-  gap: 1rem;
+  align-items: center;
+  margin-bottom: 50px;
+  gap: 20px;
+  flex-wrap: wrap; /* Para que en móvil no se amontone */
 }
 
 .header h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
   margin: 0;
-  font-size: 2.2rem; /* Más imponente en PC */
-  font-weight: 700;
-  color: #1a1a1a;
+  letter-spacing: -1.5px;
+  color: var(--text-main);
 }
 
 .botones {
   display: flex;
-  gap: 12px; 
+  gap: 12px;
 }
 
-/* ======================
-   Grid de Clubes: Auto-ajustable
-====================== */
+/* La Grilla de Tarjetas */
 .list {
   display: grid;
-  /* En PC se ven hasta 4 por fila, en móvil 1 */
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  /* Definimos el tamaño de las tarjetas de forma responsiva */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
 }
 
-/* ======================
-   Formulario y Campos
-====================== */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-  /* Evitamos que el formulario se pegue a los bordes del modal */
-  padding: 10px 5px; 
+/* Estado cuando no hay clubes */
+.empty {
+  text-align: center;
+  grid-column: 1 / -1;
+  padding: 80px 20px;
+  background-color: var(--bg-card);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.empty p {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
 }
 
-.field label {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #444;
+/* Estilo para el botón de "Nuevo Club" que está dentro de la lista de botones */
+.primaryButton {
+  background-color: var(--color-primary) !important;
+  color: var(--bg-main) !important; /* Invertimos para legibilidad */
+  font-weight: 700 !important;
+  border-radius: var(--radius-md) !important;
+  border: none !important;
 }
 
-.field input {
-  height: 45px;
-  padding: 0 1rem;
+/* Busca o agrega esto en Clubes.module.css */
+.form input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  background-color: #2d2d2d;
+  border: 1px solid #444;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  background-color: #fff;
-  transition: border-color 0.2s;
-}
-
-.field input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
-}
-
-/* Acciones del Modal */
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #eee;
-}
-
-.submit {
-  background-color: var(--color-primary);
   color: white;
-  border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
+  font-size: 1rem;
 }
 
-/* ======================
-   Media Queries: El truco para móviles
-====================== */
+.form label {
+  display: block;
+  margin-bottom: 5px;
+  color: #8ab4f8;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
 
-@media (max-width: 768px) {
-  .container {
-    padding: 1rem;
-  }
+/* Mensaje de error */
+.error {
+  text-align: center;
+  padding: 40px;
+  background: rgba(255, 0, 0, 0.05);
+  border: 1px solid rgba(255, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  color: #ff5252;
+  margin: 20px 0;
+}
 
+/* --- Media Queries para Móvil --- */
+@media (max-width: 600px) {
   .header {
     flex-direction: column;
     align-items: flex-start;
   }
-
+  
   .header h1 {
-    font-size: 1.8rem;
+    font-size: 2rem;
   }
-
+  
   .botones {
     width: 100%;
-    flex-direction: column; /* Botones uno sobre otro */
   }
-
+  
   .botones button {
-    width: 100%; /* Botón "Nuevo club" ancho completo */
-    justify-content: center;
-  }
-
-  .list {
-    grid-template-columns: 1fr; /* Una sola columna de tarjetas */
-    gap: 16px;
-  }
-
-  /* Ajuste para que el modal no sea gigante */
-  .actions {
-    flex-direction: column-reverse; /* Cancelar abajo, Crear arriba */
-  }
-
-  .actions button {
-    width: 100%;
-    padding: 12px;
+    flex: 1;
   }
 }

@@ -196,14 +196,14 @@ export default function PersonaDetalle() {
               {personaVista.roles && personaVista.roles.length > 0 ? (
                 personaVista.roles.map((rol) => (
                   <tr key={rol.id_persona_rol}>
-                    <td className={styles.rolCell}><strong>{rol.rol}</strong></td>
-                    <td>
+                    <td data-label="Rol" className={styles.rolCell}><strong>{rol.rol}</strong></td>
+                    <td data-label="Estado">
                       <span className={rol.estado_fichaje === 'FICHADO' ? styles.statusFichado : styles.statusLibre}>
                         {rol.estado_fichaje}
                       </span>
                     </td>
-                    <td>{rol.clubes.map(c => c.nombre_club).join(", ") || "Sin Club"}</td>
-                    <td style={{ textAlign: 'right' }}>
+                    <td data-label="Clubes">{rol.clubes.map(c => c.nombre_club).join(", ") || "Sin Club"}</td>
+                    <td data-label="Acción" style={{ textAlign: 'right' }}>
                       <button 
                         className={styles.deleteButton}
                         onClick={() => handleCerrarRol(rol.id_persona_rol)}

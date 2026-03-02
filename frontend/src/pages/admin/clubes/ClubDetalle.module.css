@@ -1,338 +1,179 @@
-/* ========================= */
-/* CONTAINER GENERAL */
-/* ========================= */
-
 .container {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  max-width: 1200px;
+  padding: 20px;
+  max-width: 1000px;
   margin: 0 auto;
-  box-sizing: border-box;
-  background: var(--bg-default);
+  color: #e0e0e0;
 }
 
-/* ========================= */
-/* HEADER */
-/* ========================= */
-
-.header { 
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start; 
-  margin-bottom: 2rem; 
-  gap: 1rem;
-}
-
-.titleInfo h1 { 
-  margin: 0; 
-  font-size: 2.5rem;
-  color: var(--text-primary);
-}
-
-.cityBadge { 
-  display: inline-block;
-  padding: 4px 12px; 
-  border-radius: 20px; 
-  font-size: 1rem; 
-  background-color: var(--color-primary);
-  color: var(--text-primary);
-  margin-top: 0.5rem;
-}
-
-/* ========================= */
-/* ACTION BAR */
-/* ========================= */
-
-.actionBar { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  margin-bottom: 2rem; 
-  border-bottom: 1px solid var(--divider-color); 
-  padding-bottom: 1rem;
-}
-
-.actionButtons { 
-  display: flex; 
-  gap: 12px; 
-}
-
-/* ========================= */
-/* SECCIÓN PERSONAS Y MIEMBROS */
-/* ========================= */
-
-.fichadosSection { 
-  margin-bottom: 2rem; 
-}
-
-.fichadosGrid { 
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-paper);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-/* LISTA PRO */
-
-.fichadoCard {
-  padding: 16px;
-  border-bottom: 1px solid var(--divider-color);
+.header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: background 0.2s ease;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #333;
+  padding-bottom: 15px;
 }
 
-.fichadoCard:last-child {
-  border-bottom: none;
+.titleInfo h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #fff;
 }
 
-.fichadoCard:hover {
-  background: var(--color-casilla-clara);
+.cityBadge {
+  background: #333;
+  color: #8ab4f8;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Barra de acciones */
+.actionBar {
+  background: #1e1e1e;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #333;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 12px;
+}
+
+/* Grid de Fichados */
+.fichadosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.fichadoCard {
+  background: #252525;
+  border: 1px solid #333;
+  padding: 15px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .fichadoName {
-  font-weight: 600;
-  font-size: 1rem;
-  color: var(--text-primary);
+  display: block;
+  font-weight: bold;
+  font-size: 1.1rem;
 }
-
-.fichadoTags {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  flex-wrap: wrap;
-}
-
-/* Badge Rol usando accent */
 
 .rolTag {
-  background: var(--color-primary);
-  color: var(--color-intermedio);
-  padding: 3px 10px;
-  border-radius: 20px;
+  background: #1a3a5a;
+  color: #8ab4f8;
+  padding: 2px 8px;
+  border-radius: 4px;
   font-size: 0.75rem;
-  font-weight: 600;
+  margin-right: 8px;
 }
 
-/* Botón Baja */
-
 .btnBaja {
-  background: none;
-  border: none;
-  color: var(--color-accent01);
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 0.85rem;
-  padding: 6px 10px;
+  background: transparent;
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
+  padding: 5px 10px;
   border-radius: 6px;
-  transition: background 0.2s;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
 .btnBaja:hover {
-  background: var(--color-casilla-clara);
+  background: #ff6b6b;
+  color: white;
 }
 
-/* ========================= */
-/* LISTA EQUIPOS */
-/* ========================= */
-
-.equiposList { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 15px; 
+/* Lista de Equipos */
+.equipoItem {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
 }
 
-.equipoItem { 
-  border: 1px solid var(--divider-color); 
-  border-radius: 10px; 
-  background: var(--bg-paper); 
-  transition: box-shadow 0.2s;
-}
-
-.equipoItem:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.equipoHeader { 
-  padding: 20px; 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  cursor: pointer; 
-  gap: 1rem;
+.equipoHeader {
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
 }
 
 .equipoName {
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: var(--text-primary);
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-right: 15px;
 }
 
 .equipoMeta {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin-top: 4px;
+  color: #888;
+  font-size: 0.9rem;
 }
 
-.manageBtn {
-  background: var(--boton-oscuro);
-  color: var(--text-on-primary);
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: opacity 0.2s;
-}
-
-.manageBtn:hover {
-  opacity: 0.85;
-}
-
-.plantelContainer {
-  padding: 0 20px 20px 20px;
-}
-
-/* ========================= */
-/* MODALES */
-/* ========================= */
-
-.modalForm { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 20px; 
-  width: 500px;
-  max-width: 100%;
-  box-sizing: border-box;
+/* Estilos para los formularios dentro del Modal */
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
-.row { 
-  display: grid; 
-  grid-template-columns: 1fr 1fr; 
-  gap: 15px; 
+.formGroup label {
+  color: #8ab4f8;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+.formGroup input, .formGroup select {
+  background: #2d2d2d;
+  border: 1px solid #444;
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
 }
 
 .selectorScrollable {
-  max-height: 250px;
+  max-height: 200px;
   overflow-y: auto;
-  border: 1px solid var(--divider-color);
+  background: #151515;
   border-radius: 8px;
+  border: 1px solid #333;
 }
 
 .selectorItem {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--divider-color);
+  padding: 10px;
+  border-bottom: 1px solid #222;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
-  align-items: center;
 }
 
 .selectorItem:hover {
-  background: var(--color-casilla-clara);
+  background: #2d2d2d;
 }
 
 .selectedItem {
-  background: var(--color-primary);
-}
-
-.itemName {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.itemDni {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.checkIcon {
-  color: var(--color-accent02);
-  font-weight: bold;
+  background: #1a3a5a;
+  border-left: 4px solid #8ab4f8;
 }
 
 .modalActions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-}
-
-/* ========================= */
-/* RESPONSIVE */
-/* ========================= */
-
-@media (max-width: 768px) {
-
-  .container { 
-    padding: 1rem; 
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .titleInfo h1 { 
-    font-size: 1.6rem; 
-    line-height: 1.2;
-  }
-
-  .actionBar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .actionButtons {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .actionButtons button {
-    width: 100%;
-  }
-
-  .fichadoCard {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .btnBaja {
-    width: 100%;
-  }
-
-  .equipoHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .manageBtn {
-    width: 100%;
-  }
-
-  .modalForm {
-    width: 100%;
-  }
-
-  .row {
-    grid-template-columns: 1fr;
-  }
-
+  margin-top: 15px;
 }

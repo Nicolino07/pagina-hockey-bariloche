@@ -1,6 +1,4 @@
-// src/components/clubes/ClubModal.tsx
 import { useEffect, useState } from "react"
-import styles from "./ClubModal.module.css"
 import type { Club, ClubCreate } from "../../types/club"
 
 type Props = {
@@ -10,23 +8,13 @@ type Props = {
   onSave: (data: ClubCreate) => void
 }
 
-export default function ClubModal({
-  open,
-  club,
-  onClose,
-  onSave,
-}: Props) {
+export default function ClubModal({ open, club, onClose, onSave }: Props) {
   const [form, setForm] = useState<ClubCreate>({
-    nombre: "",
-    provincia: "",
-    ciudad: "",
-    direccion: "",
-    telefono: "",
-    email: "",
+    nombre: "", provincia: "", ciudad: "", direccion: "", telefono: "", email: "",
   })
 
   useEffect(() => {
-    if (club) {
+    if (open && club) {
       setForm({
         nombre: club.nombre,
         provincia: club.provincia,
@@ -35,89 +23,47 @@ export default function ClubModal({
         telefono: club.telefono ?? "",
         email: club.email ?? "",
       })
-    } else {
-      setForm({
-        nombre: "",
-        provincia: "",
-        ciudad: "",
-        direccion: "",
-        telefono: "",
-        email: "",
-      })
     }
-  }, [club])
+  }, [club, open])
 
+  // SI NO ESTÁ ABIERTO, NO RENDERIZA
   if (!open) return null
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSave(form)
-  }
-
   return (
-    <div className={styles.backdrop}>
-      <div className={styles.modal}>
-        <h2>{club ? "Editar club" : "Nuevo club"}</h2>
-
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <input
-            name="nombre"
-            placeholder="Nombre"
+    <div style={{
+      position: 'fixed',
+      top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(255, 0, 0, 0.5)', // FONDO ROJO SEMITRANSPARENTE PARA PROBAR
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 999999, // MUY ALTO
+    }} onClick={onClose}>
+      
+      <div style={{
+        backgroundColor: '#1e1e1e',
+        color: 'white',
+        padding: '40px',
+        borderRadius: '10px',
+        border: '5px solid yellow', // BORDE AMARILLO PARA VERLO
+        width: '400px',
+      }} onClick={e => e.stopPropagation()}>
+        
+        <h2 style={{ color: 'white' }}>PROBANDO MODAL</h2>
+        
+        <form onSubmit={(e) => { e.preventDefault(); onSave(form); }}>
+          <input 
+            style={{ width: '100%', padding: '10px', marginBottom: '10px', color: 'black' }}
             value={form.nombre}
-            onChange={handleChange}
-            required
+            onChange={e => setForm({...form, nombre: e.target.value})}
+            placeholder="Nombre"
           />
-
-          <input
-            name="provincia"
-            placeholder="Provincia"
-            value={form.provincia}
-            onChange={handleChange}
-            required
-          />
-
-          <input
-            name="ciudad"
-            placeholder="Ciudad"
-            value={form.ciudad}
-            onChange={handleChange}
-            required
-          />
-
-          <input
-            name="direccion"
-            placeholder="Dirección"
-            value={form.direccion}
-            onChange={handleChange}
-          />
-
-          <input
-            name="telefono"
-            placeholder="Teléfono"
-            value={form.telefono}
-            onChange={handleChange}
-          />
-
-          <input
-            name="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleChange}
-          />
-
-          <div className={styles.actions}>
-            <button type="button" onClick={onClose}>
-              Cancelar
-            </button>
-            <button type="submit">
-              {club ? "Guardar cambios" : "Crear club"}
-            </button>
-          </div>
+          <button type="submit" style={{ padding: '10px', background: 'white', color: 'black' }}>
+            GUARDAR
+          </button>
+          <button type="button" onClick={onClose} style={{ marginLeft: '10px', color: 'white' }}>
+            CERRAR
+          </button>
         </form>
       </div>
     </div>

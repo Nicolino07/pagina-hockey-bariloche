@@ -1,40 +1,101 @@
 .form {
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 30px;
   display: grid;
-  gap: 16px;
+  grid-template-columns: 1fr 1fr; /* Dos columnas en desktop */
+  gap: 20px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+}
+
+/* El nombre y la fecha ocupan todo el ancho en desktop si quieres, 
+   o podemos dejar que fluyan. Aquí forzamos el nombre a ocupar 2 columnas */
+.field:first-child {
+  grid-column: span 2;
 }
 
 .label {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  font-weight: 600;
+  color: #8ab4f8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.input,
-.select {
-  padding: 8px 10px;
-  border-radius: 4px;
-  border: 1px solid var(--divider-color);
-  font-size: 0.95rem;
-}
-
-.input:focus,
-.select:focus {
+.input, .select {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 1rem;
   outline: none;
-  border-color: var(--color-primary);
+  transition: border-color 0.2s;
+}
+
+.input:focus, .select:focus {
+  border-color: #8ab4f8;
+}
+
+/* Estilo especial para el input de fecha (calendario nativo) */
+.input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1); /* Hace que el icono del calendario sea blanco */
+  cursor: pointer;
 }
 
 .error {
-  color: #d32f2f;
-  font-size: 0.85rem;
+  grid-column: span 2;
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  border: 1px solid #f44336;
+  text-align: center;
 }
 
 .actions {
+  grid-column: span 2;
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 20px;
+  border-top: 1px solid #333;
+}
+
+/* --- RESPONSIVIDAD --- */
+
+@media (max-width: 600px) {
+  .form {
+    grid-template-columns: 1fr; /* Una sola columna en móvil */
+    padding: 16px;
+  }
+
+  .field:first-child {
+    grid-column: span 1;
+  }
+
+  .actions {
+    grid-column: span 1;
+    flex-direction: column-reverse; /* El botón de cancelar queda abajo */
+  }
+
+  .actions button {
+    width: 100%;
+    padding: 14px;
+  }
 }

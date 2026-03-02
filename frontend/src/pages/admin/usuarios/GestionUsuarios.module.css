@@ -1,133 +1,102 @@
-/* GestionUsuarios.module.css */
 .container {
-  max-width: 1200px;
+  padding: 24px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 40px 20px;
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  color: #e0e0e0;
 }
 
 .header {
-  margin-bottom: 40px;
-  border-left: 5px solid var(--color-secondary);
-  padding-left: 20px;
+  margin-bottom: 30px;
 }
 
 .title {
-  font-size: 2.2rem;
-  color: var(--text-primary);
-  margin: 0;
-  font-weight: 800;
+  font-size: 2rem;
+  color: #fff;
+  margin: 0 0 8px 0;
 }
 
-/* Sección de Invitación */
+.subtitle {
+  color: #888;
+}
+
+/* Tarjeta de Invitación */
 .inviteCard {
-  background: var(--bg-paper);
-  border-radius: 16px;
-  border: 1px solid var(--divider-color);
+  background: #1e1e1e;
+  border: 1px solid #333;
   padding: 24px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  margin-bottom: 40px;
+  border-radius: 12px;
+  margin-bottom: 32px;
 }
 
 .sectionTitle {
-  font-size: 1.25rem;
-  color: var(--text-primary);
+  font-size: 1.2rem;
   margin-bottom: 20px;
-  font-weight: 700;
+  color: #8ab4f8;
 }
 
 .inviteForm {
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  gap: 16px;
   align-items: flex-end;
+  flex-wrap: wrap;
 }
 
 .formGroup {
   flex: 1;
   min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .label {
-  display: block;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
-  letter-spacing: 0.5px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #888;
 }
 
 .input, .select {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--divider-color);
+  background: #252525;
+  border: 1px solid #333;
+  color: #fff;
+  padding: 10px;
   border-radius: 8px;
-  background-color: var(--bg-default);
-  transition: border-color 0.2s;
-}
-
-.input:focus, .select:focus {
   outline: none;
-  border-color: var(--color-secondary);
 }
 
 .btnSubmit {
-  background-color: var(--boton-oscuro);
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
+  background: #8ab4f8;
+  color: #000;
   border: none;
+  padding: 11px 24px;
+  border-radius: 8px;
+  font-weight: bold;
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btnSubmit:hover:not(:disabled) {
-  background-color: var(--color-intermedio);
-  transform: translateY(-2px);
 }
 
 .btnSubmit:disabled {
-  opacity: 0.6;
+  background: #444;
   cursor: not-allowed;
 }
 
 /* Alertas */
 .alert {
-  margin-top: 20px;
-  padding: 12px 16px;
+  margin-top: 15px;
+  padding: 12px;
   border-radius: 8px;
   font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
-.alertSuccess {
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #15803d;
-}
+.alertSuccess { background: rgba(76, 175, 80, 0.1); color: #4caf50; border: 1px solid #4caf50; }
+.alertError { background: rgba(244, 67, 54, 0.1); color: #f44336; border: 1px solid #f44336; }
 
-.alertError {
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-}
-
-/* Tabla de Usuarios */
+/* Tabla (Desktop) */
 .tableContainer {
-  background: var(--bg-paper);
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  display: block; /* Se oculta en mobile */
+  background: #1e1e1e;
+  border-radius: 12px;
+  border: 1px solid #333;
   overflow: hidden;
-  border: 1px solid var(--divider-color);
 }
 
 .table {
@@ -136,20 +105,17 @@
 }
 
 .table th {
-  background: var(--bg-default);
-  padding: 16px;
+  background: #252525;
   text-align: left;
-  font-size: 0.75rem;
+  padding: 15px;
+  font-size: 0.8rem;
   text-transform: uppercase;
-  color: var(--text-secondary);
-  font-weight: 700;
-  border-bottom: 2px solid var(--divider-color);
+  color: #666;
 }
 
 .table td {
-  padding: 16px;
-  border-bottom: 1px solid var(--bg-default);
-  vertical-align: middle;
+  padding: 15px;
+  border-bottom: 1px solid #2a2a2a;
 }
 
 .userMainInfo {
@@ -157,156 +123,83 @@
   flex-direction: column;
 }
 
-.username {
-  font-weight: 700;
-  color: var(--text-primary);
-}
+.username { font-weight: bold; color: #fff; }
+.email { font-size: 0.85rem; color: #888; }
 
-.email {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-.subtitle {
-  color: var(--text-secondary);
-  margin-top: 8px;
-  font-size: 0.95rem;
-}
-
+/* Badges */
 .badge {
-  padding: 4px 12px;
+  padding: 4px 10px;
   border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: bold;
 }
 
-.activeBadge { background: #dcfce7; color: #166534; }
-.inactiveBadge { background: #fee2e2; color: #991b1b; }
+.activeBadge { background: rgba(76, 175, 80, 0.15); color: #4caf50; }
+.inactiveBadge { background: rgba(255, 255, 255, 0.1); color: #888; }
 
-.rowInactive {
-  background-color: #f9fafb;
-}
+.rowInactive { opacity: 0.6; }
 
-.rowInactive td {
-  opacity: 0.8;
-}
-
+/* Botones de acción */
 .btnToggle {
-  font-size: 0.85rem;
-  font-weight: 700;
-  background: none;
-  border: none;
-  cursor: pointer;
   padding: 6px 12px;
   border-radius: 6px;
-  transition: background 0.2s;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: 0.2s;
 }
 
-.btnDeactivate { color: #ef4444; }
-.btnActivate { color: var(--color-accent02); }
+.btnDeactivate { color: #f44336; border-color: #f44336; background: transparent; }
+.btnDeactivate:hover { background: #f44336; color: #fff; }
 
-.btnToggle:hover {
-  background-color: rgba(0,0,0,0.05);
-}
+.btnActivate { color: #4caf50; border-color: #4caf50; background: transparent; }
+.btnActivate:hover { background: #4caf50; color: #fff; }
 
-/* ========================= */
-/* 📱 RESPONSIVE MOBILE */
-/* ========================= */
-
-@media (max-width: 768px) {
-
-  .container {
-    padding: 20px 14px;
-  }
-
-  .title {
-    font-size: 1.6rem;
-  }
-
-  .inviteForm {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .formGroup {
-    width: 100%;
-  }
-
-  .btnSubmit {
-    width: 100%;
-  }
-
-  .tableContainer {
-    overflow-x: auto;
-  }
-
-  .table {
-    min-width: 600px;
-  }
-
-  .table th,
-  .table td {
-    padding: 12px;
-    font-size: 0.85rem;
-  }
-
-  .btnToggle {
-    font-size: 0.75rem;
-    padding: 6px 8px;
-  }
-}
-
-/* ========================= */
-/* MOBILE CARDS */
-/* ========================= */
-
+/* Vista Mobile (Oculta por defecto) */
 .mobileList {
   display: none;
 }
 
-.userCard {
-  background: var(--bg-paper);
-  border: 1px solid var(--divider-color);
-  border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
-
-.cardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 14px;
-}
-
-.cardBody {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* ========================= */
-/* RESPONSIVE SWITCH */
-/* ========================= */
+/* --- RESPONSIVIDAD --- */
 
 @media (max-width: 768px) {
-
   .tableContainer {
-    display: none;
+    display: none; /* Ocultamos la tabla en tablets y celulares */
   }
 
   .mobileList {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
   }
 
-  .container {
-    padding: 20px 14px;
+  .userCard {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 16px;
   }
 
-  .title {
-    font-size: 1.6rem;
+  .cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .cardBody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 15px;
+    border-top: 1px solid #333;
+  }
+
+  .btnToggle {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.9rem;
+    font-weight: bold;
   }
 
   .inviteForm {

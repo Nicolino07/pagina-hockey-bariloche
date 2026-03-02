@@ -1,107 +1,155 @@
 .tableContainer {
-  background: white;
+  background: #1e1e1e;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  overflow-x: auto; /* Fundamental para que no rompa en móviles */
-  margin-top: 1rem;
+  border: 1px solid #333;
+  overflow: hidden;
+  margin-top: 20px;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
-  font-size: 0.95rem;
+  color: #e0e0e0;
 }
 
 .table th {
-  background-color: #f8fafc;
-  padding: 12px 16px;
-  color: #64748b;
-  font-size: 0.75rem;
+  background: #252525;
+  padding: 14px;
+  text-align: left;
+  font-size: 0.85rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 700;
-  border-bottom: 2px solid #edf2f7;
+  color: #888;
+  border-bottom: 2px solid #333;
 }
 
 .table td {
-  padding: 16px;
-  border-bottom: 1px solid #edf2f7;
+  padding: 16px 14px;
+  border-bottom: 1px solid #2a2a2a;
   vertical-align: middle;
 }
 
-.table tr:last-child td {
-  border-bottom: none;
-}
-
-.table tr:hover {
-  background-color: #f1f5f9;
-}
-
-/* --- ESTILO DE NOMBRE --- */
+/* Estilos de Contenido */
 .personaName {
-  font-weight: 700;
-  color: #1e293b;
-  text-transform: capitalize;
+  font-weight: 600;
+  color: #fff;
 }
 
-/* --- ESTILO DE ROLES (Chips/Badges) --- */
-.rolesCell {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.documento {
+  display: block;
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 4px;
 }
 
 .primaryRol {
-  color: #2b6cb0;
-  font-weight: 700;
+  background: rgba(138, 180, 248, 0.1);
+  color: #8ab4f8;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: bold;
 }
 
 .extraRoles {
-  font-size: 0.8rem;
-  color: #64748b;
-  margin: 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  font-size: 0.75rem;
+  color: #888;
 }
 
-/* --- ESTILO DE CLUB --- */
-.clubCell {
-  font-weight: 500;
+.clubExtra {
+  font-style: italic;
+  color: #555;
 }
 
+/* Estados de Fichaje */
 .fichado {
-  color: #059669;
+  color: #4caf50;
+  font-weight: 700;
 }
 
 .libre {
-  color: #94a3b8;
-  font-style: italic;
+  color: #f44336;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
-/* --- BOTÓN DE ACCIÓN --- */
+.multiClub {
+  font-size: 0.7rem;
+  background: #333;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+
 .editBtn {
-  background-color: #edf2f7;
-  color: #4a5568;
-  border: 1px solid #cbd5e0;
-  padding: 6px 12px;
+  background: #333;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 6px 14px;
   border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .editBtn:hover {
-  background-color: #2b6cb0;
-  color: white;
-  border-color: #2b6cb0;
+  background: #8ab4f8;
+  color: #000;
+  border-color: #8ab4f8;
 }
 
-@media (max-width: 600px) {
-  .table td, .table th {
-    padding: 12px 10px;
-    font-size: 0.85rem;
+/* --- RESPONSIVIDAD --- */
+
+@media (max-width: 768px) {
+  .table thead {
+    display: none; /* Ocultar cabeceras en móvil */
   }
+
+  .table, .table tbody, .table tr, .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    border-bottom: 8px solid #111; /* Separador grueso entre "tarjetas" */
+    padding: 10px 0;
+  }
+
+  .table td {
+    border: none;
+    position: relative;
+    padding: 12px 15px 12px 50%; /* Espacio para la etiqueta a la izquierda */
+    text-align: right;
+    min-height: 45px;
+  }
+
+  /* Inyectar etiquetas usando pseudo-elementos */
+  .table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 15px;
+    width: 45%;
+    text-align: left;
+    font-weight: bold;
+    color: #666;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+  }
+
+  .extraRoles {
+    display: inline-block;
+    text-align: right;
+  }
+
+  .editBtn {
+    width: 100%;
+    padding: 12px;
+  }
+}
+
+.loading, .error, .empty {
+  text-align: center;
+  padding: 50px;
+  color: #888;
 }

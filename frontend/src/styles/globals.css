@@ -1,3 +1,4 @@
+/* src/global.css */
 @import "./variables.css";
 
 * {
@@ -7,7 +8,8 @@
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--bg-default);
-  color: var(--text-primary);
+  font-family: system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-main); /* Usa tu variable de tema */
+  color: var(--text-main);
+  min-height: 100vh;
 }

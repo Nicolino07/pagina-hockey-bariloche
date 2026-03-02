@@ -28,32 +28,51 @@ import Noticias from "./pages/public/noticias/Noticias"
 import MainLayout from "./layouts/MainLayout"
 import { setAccessToken } from './auth/TokenManager'
 import { authUtils } from './utils/auth'
-import { useEffect } from 'react';
 import axiosAdmin from './api/axiosAdmin'
+import { useState, useEffect } from 'react';
 
 
+
+function ThemeToggle({ isDark, setIsDark }: { isDark: boolean, setIsDark: (v: boolean) => void }) {
+  return (
+    <button 
+      onClick={() => setIsDark(!isDark)}
+      style={{
+        position: 'fixed', bottom: '20px', right: '20px', 
+        zIndex: 1000, padding: '12px', borderRadius: '50%',
+        cursor: 'pointer', border: '1px solid var(--border-color)',
+        backgroundColor: 'var(--bg-card)', fontSize: '1.2rem',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+      }}
+      title="Cambiar modo de color"
+    >
+      {isDark ? '☀️' : '🌙'}
+    </button>
+  );
+}
 
 export default function App() {
+  // Estado del tema
+  const [isDark, setIsDark] = useState(true);
 
+  // Efecto para cambiar el atributo data-theme
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  // Efectos de Auth y HTTPS
   useEffect(() => {
     const initAuth = async () => {
       const storedToken = authUtils.getAuthData()?.token
-      
-
       if (storedToken) {
         setAccessToken(storedToken)
-
-        try {
-          await axiosAdmin.get('/auth/me')
-        } catch {
-          // Si falla, interceptor intenta refresh
-        }
+        try { await axiosAdmin.get('/auth/me') } catch { }
       }
     }
-
     initAuth()
   }, [])
 
+  
   useEffect(() => {
     // Detectamos si estamos en producción (VPS)
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';

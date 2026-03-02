@@ -1,177 +1,230 @@
 .container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-width: 1100px;
+  padding: 24px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 1.5rem;
-  box-sizing: border-box;
+  color: #e0e0e0;
 }
 
-/* --- HEADER Y TOOLBAR --- */
 .header {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  margin-bottom: 30px;
 }
 
 .header h1 {
-  margin: 0;
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: #1a1a1a;
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #fff;
 }
 
+/* Toolbar Responsiva */
 .toolbar {
   display: flex;
   gap: 12px;
-  background: #f1f5f9;
-  padding: 1rem;
-  border-radius: 12px;
   align-items: center;
+  flex-wrap: wrap; /* Clave para móviles */
 }
 
 .searchInput {
   flex: 2;
-  min-width: 200px;
-  padding: 0.75rem 1rem;
-  border: 1px solid #cbd5e0;
+  min-width: 250px;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  color: white;
+  padding: 12px 16px;
   border-radius: 8px;
-  font-size: 0.95rem;
+  outline: none;
 }
 
 .filterSelect {
   flex: 1;
-  padding: 0.75rem;
-  border: 1px solid #cbd5e0;
+  min-width: 150px;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  color: white;
+  padding: 12px;
   border-radius: 8px;
-  background: white;
-  font-size: 0.9rem;
 }
 
-/* --- LISTA DE PERSONAS --- */
+.primaryButton {
+  background: #8ab4f8;
+  color: #000;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Lista de Personas */
 .list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px; /* Separación sutil entre filas */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 16px;
 }
 
 .personaCard {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px 20px;
-  display: flex;
-  flex-direction: column;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 20px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s, border-color 0.2s;
 }
 
 .personaCard:hover {
-  border-color: var(--color-primary);
-  background-color: #f8fafc;
-  transform: translateX(5px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border-color: #8ab4f8;
+  transform: translateY(-2px);
 }
 
 .personaMain h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #2d3748;
+  margin: 0 0 15px 0;
+  font-size: 1.2rem;
+  color: #fff;
+  text-transform: uppercase;
 }
 
-/* --- FILAS DE ROLES --- */
+/* Contenedor de Roles dentro de la Card */
 .rolesContainer {
   display: flex;
   flex-direction: column;
-  margin-top: 4px;
+  gap: 10px;
 }
 
 .rolRow {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 20px;
-  padding: 6px 0;
-  border-top: 1px solid #f1f5f9;
+  background: #252525;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
 }
-
-.rolRow:first-child { border-top: none; }
 
 .rolName {
-  min-width: 130px;
-  font-weight: 700;
-  font-size: 0.8rem;
-  color: #4a5568;
+  font-weight: 600;
+  color: #ccc;
+  min-width: 100px;
 }
 
-.clubName {
-  font-size: 0.9rem;
-  color: #2b6cb0; /* Azul deportivo para clubes */
-  font-weight: 500;
-  flex: 1;
-}
-
-/* ESTADOS DE FICHAJE */
 .stadoBadge {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 800;
   padding: 2px 8px;
-  border-radius: 5px;
-  text-transform: uppercase;
+  border-radius: 4px;
 }
 
 .fichado {
-  color: #059669;
-  background: #ecfdf5;
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
 }
 
 .sinfichar {
-  color: #64748b;
-  background: #f1f5f9;
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
 }
 
-/* --- MODAL --- */
+.clubName {
+  color: #888;
+  font-size: 0.8rem;
+  max-width: 120px;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Modal */
+
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 2000;
-  padding: 1rem;
+  padding: 20px; /* Margen de seguridad para que no toque los bordes del celular */
 }
 
 .modalContent {
-  background: white;
-  padding: 2rem;
+  background: #1a1a1a;
+  padding: 25px;
   border-radius: 16px;
   width: 100%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-width: 500px;
+  border: 1px solid #333;
+  
+  /* --- SOLUCIÓN AL DESBORDE --- */
+  max-height: calc(100vh - 40px); /* Ajusta el alto al 100% menos el padding del overlay */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Evita que el modal mismo crezca */
 }
 
-/* --- RESPONSIVO --- */
+.modalContent h2 {
+  margin-top: 0;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #333;
+  flex-shrink: 0; /* Evita que el título se comprima */
+}
+
+/* Personalización de la barra de scroll para que no quede fea en modo oscuro */
+.formContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.formContainer::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 10px;
+}
+
+.rolSelector {
+  flex-shrink: 0; /* Evita que se oculte al scrollear */
+  background: #252525;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+
+.rolSelector select {
+  padding: 10px;
+  background: #2d2d2d;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 8px;
+}
+
+/* --- RESPONSIVIDAD --- */
+
 @media (max-width: 768px) {
+  .list {
+    grid-template-columns: 1fr; /* Una sola columna en tablets y móviles */
+  }
+
   .toolbar {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .header h1 { font-size: 1.8rem; }
+  .searchInput, .filterSelect, .primaryButton {
+    width: 100%;
+  }
 
   .rolRow {
-    flex-wrap: wrap; /* Permite que el club baje si no hay espacio */
-    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
   }
 
-  .rolName { width: 100%; } /* Rol arriba */
-  
-  .clubName { 
-    width: 100%; 
-    font-size: 0.85rem;
-    color: #4a5568;
+  .clubName {
+    text-align: left;
+    max-width: 100%;
   }
+}
+
+.loading, .empty, .error {
+  text-align: center;
+  padding: 40px;
+  color: #888;
 }
