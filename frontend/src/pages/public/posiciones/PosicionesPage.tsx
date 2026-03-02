@@ -100,11 +100,12 @@ export default function PosicionesPage() {
                         <tr>
                           <th>#</th>
                           <th className={styles.alignLeft}>Equipo</th>
+                          <th className={styles.puntosCol}>PTS</th>
                           <th>PJ</th><th>PG</th><th>PE</th><th>PP</th>
                           <th className={styles.hideMobile}>GF</th>
                           <th className={styles.hideMobile}>GC</th>
                           <th>DG</th>
-                          <th className={styles.puntosCol}>PTS</th>
+                          
                         </tr>
                       </thead>
                       <tbody>
@@ -112,6 +113,7 @@ export default function PosicionesPage() {
                           <tr key={fila.id_equipo}>
                             <td>{index + 1}</td>
                             <td className={styles.equipoNombre}>{fila.equipo}</td>
+                            <td className={styles.puntosValor}>{fila.puntos}</td>
                             <td>{fila.partidos_jugados}</td>
                             <td>{fila.ganados}</td>
                             <td>{fila.empatados}</td>
@@ -119,7 +121,7 @@ export default function PosicionesPage() {
                             <td className={styles.hideMobile}>{fila.goles_a_favor}</td>
                             <td className={styles.hideMobile}>{fila.goles_en_contra}</td>
                             <td>{fila.diferencia_gol}</td>
-                            <td className={styles.puntosValor}>{fila.puntos}</td>
+                            
                           </tr>
                         ))}
                       </tbody>
