@@ -31,16 +31,17 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
 
   frontend:
-    build: ./frontend
+    build: 
+      context: ./frontend
+      target: ${FRONTEND_TARGET:-development}  # elige la etapa
     container_name: hockey_frontend
     env_file:
       - .env
+    ports:
+      - "${FRONTEND_PORT:-5173}:${FRONTEND_PORT:-5173}"
     volumes:
-      - ./frontend:/app
+      - ./frontend:/app  # Solo monta en desarrollo
       - /app/node_modules
-    # Quitamos ports públicos
-    expose:
-      - "5173"
     environment:
       - CHOKIDAR_USEPOLLING=true
     depends_on:
