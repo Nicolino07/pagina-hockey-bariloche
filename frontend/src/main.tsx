@@ -4,11 +4,9 @@ import { BrowserRouter } from "react-router-dom"
 import App from "./App"
 import { AuthProvider } from "./auth/AuthContext"
 
-console.log("🌍 VITE_API_URL =", import.meta.env.VITE_API_URL)
-
 ReactDOM.createRoot(document.getElementById("root")!).render(
   /*<React.StrictMode>*/
-    <BrowserRouter>
+    <BrowserRouter basename="/">  {/* 🔥 Agregamos basename explícito */}
       <AuthProvider>
         <App />
       </AuthProvider>

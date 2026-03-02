@@ -1,58 +1,80 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 40px 20px;
+  background-color: #121212;
+  color: #e8eaed;
+  min-height: 100vh;
 }
 
+/* Header con estilo de prensa */
 .header {
   text-align: center;
-  margin-bottom: 3rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 60px;
+  border-bottom: 1px solid #3c4043;
+  padding-bottom: 40px;
 }
 
 .header h1 {
-  font-size: clamp(2rem, 5vw, 2.5rem);
-  color: #1e293b;
-  margin-bottom: 0.5rem;
+  font-size: 3rem;
+  font-weight: 900;
+  margin-bottom: 10px;
+  letter-spacing: -2px;
+  text-transform: uppercase;
 }
 
 .header p {
-  color: #64748b;
-  font-size: 1.1rem;
+  color: #8ab4f8;
+  font-size: 1.2rem;
+  font-weight: 500;
+  letter-spacing: 1px;
 }
 
-/* Grilla principal */
+/* Grilla Principal */
 .mainGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 2.5rem;
+  gap: 40px;
 }
 
-/* Tarjeta de noticia */
+/* La primera noticia siempre es más grande (Destacada) */
+.mainGrid article:first-child {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 0;
+  background: #1e1e1e;
+}
+
+/* Card de Noticia */
 .newsCard {
-  background: white;
-  border-radius: 16px;
+  background-color: #202124;
+  border-radius: 28px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid #3c4043;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  cursor: pointer;
-  height: 100%;
 }
 
 .newsCard:hover {
   transform: translateY(-8px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  border-color: #8ab4f8;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 /* Contenedor de Imagen */
 .imageWrapper {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 250px;
   overflow: hidden;
+}
+
+/* Ajuste para la noticia destacada */
+.mainGrid article:first-child .imageWrapper {
+  height: 100%;
 }
 
 .imageWrapper img {
@@ -66,79 +88,85 @@
   transform: scale(1.05);
 }
 
-/* Epígrafe sobre la foto */
 .epigrafe {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-  color: white;
-  padding: 20px 15px 8px;
+  padding: 10px 20px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  color: #fff;
   font-size: 0.75rem;
   font-style: italic;
-  opacity: 0.9;
 }
 
-/* Contenido de la tarjeta */
+/* Contenido de texto */
 .content {
-  padding: 1.5rem;
+  padding: 30px;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 }
 
 .date {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #004a8c; /* Color institucional */
-  margin-bottom: 0.75rem;
+  color: #8ab4f8;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 15px;
   display: block;
 }
 
 .content h2 {
-  font-size: 1.4rem;
-  margin-bottom: 1rem;
-  color: #1e293b;
+  font-size: 1.5rem;
   line-height: 1.2;
+  margin-bottom: 15px;
+  color: #ffffff;
+}
+
+/* Título más grande para la destacada */
+.mainGrid article:first-child h2 {
+  font-size: 2.2rem;
 }
 
 .content p {
-  font-size: 0.95rem;
-  color: #475569;
+  color: #9aa0a6;
   line-height: 1.6;
-  margin-bottom: 1.5rem;
-  /* Truncar texto */
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
 }
 
 .readMore {
   margin-top: auto;
-  font-weight: 700;
-  color: #004a8c;
+  color: #8ab4f8;
+  font-weight: 600;
   font-size: 0.9rem;
-  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.newsCard:hover .readMore {
+  transform: translateX(5px);
 }
 
 /* Estado de carga */
 .loading {
   text-align: center;
-  padding: 5rem;
-  font-size: 1.2rem;
-  color: #64748b;
+  padding: 100px;
+  font-size: 1.5rem;
+  color: #8ab4f8;
 }
 
-/* Ajustes para móviles */
-@media (max-width: 480px) {
-  .mainGrid {
+/* Responsive */
+@media (max-width: 900px) {
+  .mainGrid article:first-child {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+  }
+  
+  .header h1 {
+    font-size: 2.2rem;
   }
 
-  .header {
-    margin-bottom: 2rem;
+  .mainGrid {
+    grid-template-columns: 1fr;
   }
 }

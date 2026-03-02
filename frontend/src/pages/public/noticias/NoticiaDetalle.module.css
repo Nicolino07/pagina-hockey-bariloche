@@ -1,66 +1,121 @@
 .container {
-  max-width: 800px;
+  max-width: 850px; /* Columna de lectura óptima */
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 40px 20px;
+  background-color: #121212;
+  color: #e8eaed;
+  min-height: 100vh;
 }
 
 .backBtn {
-  margin-bottom: 2rem;
+  margin-bottom: 30px;
+  background-color: transparent;
+  border: 1px solid #3c4043;
+  color: #9aa0a6;
+  transition: all 0.2s;
+}
+
+.backBtn:hover {
+  border-color: #8ab4f8;
+  color: #8ab4f8;
+}
+
+/* Estructura del Artículo */
+.article {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .header {
-  margin-bottom: 2rem;
+  margin-bottom: 40px;
+  text-align: center;
 }
 
 .date {
-  color: #64748b;
-  font-size: 0.9rem;
-  font-weight: 600;
+  display: block;
+  color: #8ab4f8;
+  font-weight: 700;
   text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1.5px;
+  margin-bottom: 15px;
 }
 
 .header h1 {
-  font-size: clamp(2rem, 5vw, 3rem);
-  margin-top: 0.5rem;
+  font-size: 3rem;
   line-height: 1.1;
-  color: #1e293b;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -1.5px;
 }
 
+/* Imagen Principal */
 .mainImage {
-  margin: 0 -1rem 2rem -1rem; /* Se sale un poco de los márgenes en móvil */
+  margin: 0 -20px 50px -20px; /* Sobresale un poco a los costados */
+  border-radius: 24px;
+  overflow: hidden;
+  background-color: #1e1e1e;
 }
 
 .mainImage img {
   width: 100%;
-  max-height: 500px;
+  height: auto;
+  max-height: 550px;
   object-fit: cover;
-  border-radius: 12px;
+  display: block;
 }
 
 .mainImage figcaption {
-  margin-top: 0.75rem;
+  padding: 15px 25px;
+  background: #1e1e1e;
+  color: #9aa0a6;
   font-size: 0.9rem;
-  color: #64748b;
   font-style: italic;
-  padding: 0 1rem;
-  border-left: 3px solid #004a8c;
+  border-bottom: 1px solid #3c4043;
 }
 
+/* Cuerpo del Texto */
 .content {
-  font-size: 1.15rem;
+  font-family: 'Inter', Georgia, serif; /* Fuente con buen cuerpo para leer */
   line-height: 1.8;
-  color: #334155;
+  font-size: 1.15rem;
+  color: #e8eaed;
 }
 
 .content p {
-  margin-bottom: 1.5rem;
+  margin-bottom: 25px; /* Espacio entre párrafos */
 }
 
+/* Primer párrafo con estilo "Drop Cap" o destacado opcional */
+.content p:first-of-type {
+  font-size: 1.3rem;
+  color: #ffffff;
+  font-weight: 400;
+}
+
+.loading {
+  text-align: center;
+  padding: 100px;
+  color: #8ab4f8;
+  font-size: 1.2rem;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .container {
-    padding: 1rem;
+  .header h1 {
+    font-size: 2.2rem;
   }
+  
   .mainImage {
-    margin: 0 0 1.5rem 0;
+    margin: 0 -20px 30px -20px;
+    border-radius: 0; /* En móvil queda mejor de borde a borde */
+  }
+
+  .content {
+    font-size: 1.05rem;
   }
 }

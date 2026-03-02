@@ -21,6 +21,7 @@ export default defineConfig({
     allowedHosts: [
       'localhost',
       '127.0.0.1',
+      'frontend',
       'hockeybariloche.com.ar',
       'www.hockeybariloche.com.ar'
     ]

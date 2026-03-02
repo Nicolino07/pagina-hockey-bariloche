@@ -1,5 +1,6 @@
 # Configuración local de Docker
 docker-compose.override.yml
+nginx.local.conf
 
 # Logs
 logs
