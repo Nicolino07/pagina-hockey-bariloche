@@ -33,14 +33,17 @@ services:
   frontend:
     build: 
       context: ./frontend
-      target: ${FRONTEND_TARGET:-development}  # elige la etapa
+      target: ${FRONTEND_TARGET:-development}
     container_name: hockey_frontend
     env_file:
       - .env
+    # 🔥 Los ports SOLO se aplican si es desarrollo
     ports:
-      - "${FRONTEND_PORT:-5173}:${FRONTEND_PORT:-5173}"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    profiles:
+      - development  # Solo se activa con --profile development
     volumes:
-      - ./frontend:/app  # Solo monta en desarrollo
+      - ./frontend:/app
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
