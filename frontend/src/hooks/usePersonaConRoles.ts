@@ -1,29 +1,10 @@
 // frontend/src/hooks/usePersonaConRoles.ts
 import { useEffect, useMemo, useState, useCallback } from "react"
 import { getPersonasConRoles } from "../api/personas.api"
-import type { PersonaRolClub } from "../types/persona"
+import type { PersonaRolClub, ClubRol, RolPersona, PersonaAgrupada } from "../types/persona"
 
 
 
-type ClubRol = {
-  id_club: number | null
-  nombre_club: string
-}
-
-type RolPersona = {
-  id_persona_rol: number 
-  rol: string
-  estado_fichaje: string
-  clubes: ClubRol[]
-}
-
-export type PersonaAgrupada = {
-  id_persona: number
-  nombre: string
-  apellido: string
-  documento?: number
-  roles: RolPersona[]
-}
 
 interface UsePersonaOptions {
   idPersona?: number;

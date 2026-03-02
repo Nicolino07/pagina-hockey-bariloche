@@ -46,3 +46,24 @@ export type PersonaRolClub = {
   estado_fichaje: "FICHADO" | "SIN_FICHAR"
   orden_roles: number
 }
+
+
+export type ClubRol = {
+  id_club: number | null
+  nombre_club: string
+}
+
+export type RolPersona = {
+  id_persona_rol: number 
+  rol: string
+  estado_fichaje: string
+  clubes: ClubRol[]
+}
+
+export type PersonaAgrupada = {
+  id_persona: number
+  nombre: string
+  apellido: string
+  documento?: number
+  roles: RolPersona[]
+}
