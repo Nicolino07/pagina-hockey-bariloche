@@ -15,12 +15,20 @@ CMD ["npm", "run", "dev", "--", "--host"]
 # --------------------------------------------
 FROM node:20-alpine AS builder
 
+# 🔥 Recibir argumento del build
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm ci
 
 COPY . .
+
+# 🔥 Mostrar para debug (opcional)
+RUN echo "Building with VITE_API_URL=$VITE_API_URL"
+
 RUN npm run build
 
 # --------------------------------------------
