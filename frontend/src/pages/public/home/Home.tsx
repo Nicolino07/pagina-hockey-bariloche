@@ -11,7 +11,6 @@ import { obtenerStatsGlobales } from "../../../api/estadisticas.api";
 export default function Home() {
 
   const [noticias, setNoticias] = useState<any[]>([]);
-  const [loadingNoticias, setLoadingNoticias] = useState(true);
   const [partidos, setPartidos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPartido, setSelectedPartido] = useState<any>(null);
@@ -40,7 +39,7 @@ export default function Home() {
         console.error("Error cargando datos del Home:", error);
       } finally {
         setLoading(false);
-        setLoadingNoticias(false);
+       
       }
     };
 

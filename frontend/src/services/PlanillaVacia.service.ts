@@ -5,7 +5,7 @@ export const generarPlanillaPDF = (datos: any) => {
   const { torneo, local, visitante, plantelLocal, plantelVisitante } = datos;
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
+  
   
   const marginLeft = 8;
   const marginRight = 8;

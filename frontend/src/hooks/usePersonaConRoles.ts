@@ -1,7 +1,7 @@
 // frontend/src/hooks/usePersonaConRoles.ts
 import { useEffect, useMemo, useState, useCallback } from "react"
 import { getPersonasConRoles } from "../api/personas.api"
-import type { PersonaRolClub, ClubRol, RolPersona, PersonaAgrupada } from "../types/persona"
+import type { PersonaRolClub, PersonaAgrupada } from "../types/persona"
 
 
 

@@ -11,8 +11,6 @@ export {
   refreshToken,
   logout,
   getCurrentUser,
-  checkAuthStatus,
-  getCurrentToken,
 } from './auth.api'
 
 export {

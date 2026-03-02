@@ -111,6 +111,17 @@ export default function Clubes() {
     return <p>Cargando clubes…</p>
   }
 
+  if (error) {
+    return (
+      <div className={styles.error}>
+        <p>Error: {error}</p>
+        <Button onClick={() => window.location.reload()}>
+          Reintentar
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <>
       <section className={styles.container}>
