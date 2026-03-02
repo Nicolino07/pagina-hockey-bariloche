@@ -2,7 +2,7 @@
 from datetime import date, datetime
 from app.schemas.plantel import PlantelCreate
 from sqlalchemy.exc import DBAPIError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.equipo import Equipo
 from app.models.persona import Persona
@@ -274,13 +274,13 @@ def obtener_plantel_activo_por_equipo(
 def listar_integrantes_por_plantel(db: Session, id_plantel: int):
     return (
         db.query(PlantelIntegrante)
+        .options(joinedload(PlantelIntegrante.persona)) # <--- ESTA ES LA CLAVE
         .filter(
             PlantelIntegrante.id_plantel == id_plantel,
             PlantelIntegrante.fecha_baja.is_(None),
         )
         .all()
     )
-
 
 def listar_integrantes_activos(
     db: Session,

@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
-from sqlalchemy import text
+from sqlalchemy import or_, text
+
 
 from app.models.partido import Partido, PartidoDetallado
 from app.models.participan_partido import ParticipanPartido
@@ -129,3 +130,26 @@ def get_ultimos_partidos(db: Session, torneo_id: int = None, limit: int = 5):
 
 def get_partido_by_id(db: Session, partido_id: int):
     return db.query(PartidoDetallado).filter(PartidoDetallado.id_partido == partido_id).first()
+
+
+
+def get_historial_por_equipo(db: Session, id_equipo: int, limit: int = 10):
+    """
+    Obtiene los últimos partidos de un equipo específico usando la vista detallada.
+    """
+    # Filtramos la vista donde el equipo sea local O visitante
+    # Nota: Asegúrate de que los nombres de las columnas coincidan con tu modelo PartidoDetallado
+    return (
+        db.query(PartidoDetallado)
+        .filter(
+            or_(
+                # Ajusta estos nombres según los atributos de tu clase PartidoDetallado
+                # Si tu vista tiene id_equipo_local/visitante, úsalos así:
+                PartidoDetallado.id_equipo_local == id_equipo,
+                PartidoDetallado.id_equipo_visitante == id_equipo
+            )
+        )
+        .order_by(PartidoDetallado.fecha.desc(), PartidoDetallado.horario.desc())
+        .limit(limit)
+        .all()
+    )

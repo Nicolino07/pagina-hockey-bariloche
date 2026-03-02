@@ -9,7 +9,6 @@ import axiosPublic from "./axiosPublic";
  */
 export const obtenerPartidosRecientes = async (torneoId?: number) => {
   try {
-    // Ahora si no pasas nada, torneoId es null y la URL será limpia
     const url = torneoId ? `/partidos/recientes?torneo_id=${torneoId}` : `/partidos/recientes`;
     const response = await axiosPublic.get(url, {
       withCredentials: true,
@@ -70,4 +69,23 @@ export const obtenerDetallePartido = async (partidoId: number) => {
     console.error("Error al obtener detalle del partido:", error);
     throw error;
   }
+};
+
+
+/**
+ * Trae los partidos del equipo usando la vista vw_partidos_detallados
+ */
+export const getPartidosByEquipo = async (equipoNombre: string) => {
+  // Nota: Si tu backend permite filtrar la vista por query params
+  const response = await axiosPublic.get(`/partidos/detallados?equipo=${equipoNombre}`);
+  return response.data; 
+  // Si el backend no filtra, tendrías que hacer el .filter() en el frontend
+};
+
+/**
+ * Trae la tabla de posiciones de un torneo específico
+ */
+export const getTablaPosiciones = async (torneoId: number) => {
+  const response = await axiosPublic.get(`/posiciones/torneo/${torneoId}`);
+  return response.data;
 };

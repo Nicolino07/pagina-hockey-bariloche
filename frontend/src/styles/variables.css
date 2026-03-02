@@ -3,7 +3,10 @@
   /* 🎯 Primary */
   --color-primary: #dcf0fa;
   --color-secondary: #84cdee;
-  --color-intermedio: #010207cc;
+  --color-intermedio: #0c1853cc;
+  --background-oscuro: #121212;
+  --backggound-claro: #dcf0fa;
+ 
 
   /*Colores para formularios */
   --color-casilla-oscura: #838383;

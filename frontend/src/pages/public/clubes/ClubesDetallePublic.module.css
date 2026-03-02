@@ -1,179 +1,208 @@
-.container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
+/* ClubesDetallePublic.module.css */
+
+.mainWrapper {
+ /* background-color: #121212;*/
   min-height: 100vh;
+  color: #e8eaed;
+  padding: 20px;
+  font-family: 'Inter', sans-serif;
 }
 
-/* HEADER DEL CLUB */
-.clubHeader {
-  background: var(--bg-paper);
-  padding: 2.5rem;
-  border-radius: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  margin-bottom: 2.5rem;
-  border: 1px solid var(--divider-color);
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.mainInfo {
+/* 1. SELECTOR DE CATEGORÍAS */
+.categorySelector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.catBtn, .catBtnActive {
+  padding: 10px 20px;
+  border-radius: 25px;
+  border: 1px solid #3c4043;
+  background: transparent;
+  color: #9aa0a6;
+  cursor: pointer;
+  white-space: nowrap;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.catBtnActive {
+  background: #3c4043;
+  color: #8ab4f8;
+  border-color: #8ab4f8;
+}
+
+/* 2. HEADER */
+.header {
+  margin-bottom: 32px;
+  padding: 20px;
+  background: linear-gradient(180deg, #1e1e1e 0%, #121212 100%);
+  border-radius: 16px;
+}
+
+.headerInfo {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 20px;
 }
 
-.logoGrande {
-  width: 100px;
-  height: 100px;
-  background: var(--boton-oscuro); /* Usando tu azul intermedio */
-  color: var(--text-on-primary);
-  border-radius: 16px;
+.clubLogo {
+  width: 70px;
+  height: 70px;
+  background: #303134;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.2rem;
-  font-weight: 900;
-  flex-shrink: 0; /* Evita que el logo se aplaste */
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #8ab4f8;
+  border: 2px solid #3c4043;
 }
 
-.clubName {
-  font-size: 2rem;
-  color: var(--text-primary);
+.headerInfo h1 {
   margin: 0;
-  line-height: 1.2;
+  font-size: 2.2rem;
+  letter-spacing: -0.5px;
 }
 
-.localidad {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
-  margin-top: 0.5rem;
+.headerInfo p {
+  margin: 4px 0 0;
+  color: #9aa0a6;
+  font-size: 1rem;
 }
 
-/* SECCIÓN CONTENIDO */
-.sectionHeader {
-  margin-bottom: 2rem;
-}
-
-.title {
-  font-size: 1.6rem;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.subtitle {
-  color: var(--text-secondary);
-}
-
-/* GRID DE EQUIPOS */
-.equiposGrid {
+/* 3. GRID SUPERIOR (PARTIDOS Y POSICIONES) */
+.gridTop {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+  margin-bottom: 48px;
 }
 
-.equipoCard {
-  background: var(--bg-paper);
-  padding: 1.5rem;
+@media (max-width: 900px) {
+  .gridTop { grid-template-columns: 1fr; }
+}
+
+.sectionHeader {
+  margin-bottom: 16px;
+  border-left: 4px solid #8ab4f8;
+  padding-left: 12px;
+}
+
+.sectionHeader h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* MATCH CARDS */
+.matchCard {
+  background: #202124;
+  border: 1px solid #3c4043;
   border-radius: 16px;
-  border: 1px solid var(--divider-color);
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  padding: 20px;
+  margin-bottom: 16px;
 }
 
-.equipoCard:hover {
-  border-color: var(--color-secondary);
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-}
-
-.categoriaBadge {
-  background: var(--color-primary); /* Celeste claro de tu paleta */
-  color: var(--text-primary);
-  padding: 6px 14px;
-  border-radius: 20px;
+.matchDate {
   font-size: 0.8rem;
-  font-weight: 700;
+  color: #9aa0a6;
+  margin-bottom: 14px;
 }
 
-.equipoNombre {
-  margin: 1.2rem 0;
-  font-size: 1.3rem;
-  color: var(--text-primary);
-}
-
-.equipoFooter {
+.teamLine {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: var(--boton-oscuro);
-  font-weight: 600;
-  font-size: 0.95rem;
+  padding: 4px 0;
 }
 
-.arrow {
+.winner { font-weight: 700; color: #fff; }
+.score { font-size: 1.2rem; font-weight: 800; color: #8ab4f8; }
+
+.goalList {
+  display: flex;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #9aa0a6;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.matchFooter {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #303134;
+  font-size: 0.8rem;
+  color: #9aa0a6;
+}
+
+/* TABLA POSICIONES */
+.tableWrapper {
+  background: #202124;
+  border: 1px solid #3c4043;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.table { width: 100%; border-collapse: collapse; }
+.table th { color: #9aa0a6; font-size: 0.75rem; padding: 10px; text-transform: uppercase; }
+.table td { padding: 14px 10px; text-align: center; border-bottom: 1px solid #303134; }
+.teamNameCell { text-align: left !important; font-weight: 500; }
+.pts { font-weight: 800; color: #fff; }
+.rowActive { background: rgba(138, 180, 248, 0.1); }
+
+/* 4. SECCIÓN PLANTEL */
+.plantelSection {
+  padding-top: 32px;
+  border-top: 1px solid #303134;
+}
+
+.plantelGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.playerCard {
+  background: #202124;
+  border: 1px solid #3c4043;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   transition: transform 0.2s;
 }
 
-.equipoCard:hover .arrow {
-  transform: translateX(5px);
+.playerCard:hover {
+  transform: translateY(-3px);
+  border-color: #8ab4f8;
 }
 
-/* UTILIDADES */
-.backBtn {
-  margin-top: 3rem;
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-weight: 600;
+.playerNumber {
+  background: #303134;
+  color: #8ab4f8;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
   font-size: 1rem;
-  padding: 10px;
-  transition: color 0.2s;
 }
 
-.backBtn:hover {
-  color: var(--color-accent01);
-  text-decoration: underline;
-}
-
-.loader, .error {
-  text-align: center;
-  padding: 4rem;
-  color: var(--text-secondary);
-}
-
-/* --- MEDIA QUERIES (RESPONSIVE) --- */
-
-@media (max-width: 768px) {
-  .container {
-    padding: 1rem;
-  }
-
-  .clubHeader {
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .mainInfo {
-    flex-direction: column;
-    text-align: center;
-    gap: 1rem;
-  }
-
-  .logoGrande {
-    width: 80px;
-    height: 80px;
-    font-size: 1.8rem;
-  }
-
-  .clubName {
-    font-size: 1.6rem;
-  }
-
-  .equiposGrid {
-    grid-template-columns: 1fr; /* Tarjetas de ancho completo */
-  }
-
-  .equipoCard {
-    padding: 1.2rem;
-  }
-}
+.playerInfo { display: flex; flex-direction: column; }
+.playerName { font-weight: 600; color: #fff; font-size: 1rem; }
+.playerRole { font-size: 0.8rem; color: #9aa0a6; text-transform: capitalize; }

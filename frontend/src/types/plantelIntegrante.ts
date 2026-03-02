@@ -11,6 +11,12 @@ export type PlantelIntegrante = {
   numero_camiseta?: number | null
   fecha_alta: string
   fecha_baja?: string | null
+
+    persona?: {
+    nombre: string;
+    apellido: string;
+  };
+
 }
 
 // ➕ Lo que enviamos al backend
@@ -21,4 +27,5 @@ export type PlantelIntegranteCreate = {
   rol_en_plantel: TipoRolPersona
   numero_camiseta?: number | null
 }
+
 

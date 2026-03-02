@@ -1,211 +1,154 @@
 .container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 30px 20px;
+  padding: 40px 20px;
+  background-color: #121212;
+  color: #e8eaed;
+  font-family: 'Inter', sans-serif;
 }
 
+/* Header con Botón Volver */
 .header {
-  margin-bottom: 40px;
+  margin-bottom: 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .backBtn {
-  background: none;
-  border: none;
-  color: #64748b;
+  background: transparent;
+  border: 1px solid #3c4043;
+  color: #9aa0a6;
+  padding: 8px 16px;
+  border-radius: 12px;
   cursor: pointer;
-  margin-bottom: 20px;
+  width: fit-content;
   font-weight: 500;
+  transition: all 0.2s;
+}
+
+.backBtn:hover {
+  border-color: #8ab4f8;
+  color: #8ab4f8;
+  background: rgba(138, 180, 248, 0.05);
 }
 
 .equipoTitleBlock {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .title {
-  font-size: 2.5rem;
-  color: #0f172a;
+  font-size: 2.8rem;
+  font-weight: 800;
   margin: 0;
+  letter-spacing: -1.5px;
 }
 
 .badge {
-  background: #dcfce7;
-  color: #166534;
-  padding: 5px 12px;
+  background: rgba(138, 180, 248, 0.1);
+  color: #8ab4f8;
+  padding: 6px 16px;
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  text-transform: uppercase;
+  border: 1px solid rgba(138, 180, 248, 0.2);
 }
 
-.mainGrid {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 40px;
-}
-
-@media (max-width: 850px) {
-  .mainGrid { grid-template-columns: 1fr; }
-}
-
+/* Sección de Plantel */
 .sectionTitle {
   font-size: 1.5rem;
-  margin-bottom: 25px;
-  color: #1e293b;
-  border-bottom: 2px solid #f1f5f9;
-  padding-bottom: 10px;
+  margin-bottom: 30px;
+  color: #ffffff;
+  border-left: 4px solid #8ab4f8;
+  padding-left: 15px;
 }
 
+/* Grid de Jugadores */
 .jugadoresGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
 }
 
 .playerCard {
-  background: white;
-  padding: 15px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  background: #202124;
+  border: 1px solid #3c4043;
+  border-radius: 20px;
+  padding: 24px;
   display: flex;
   align-items: center;
-  gap: 15px;
-  transition: transform 0.2s;
+  gap: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .playerCard:hover {
-  transform: scale(1.02);
-  border-color: #2563eb;
+  transform: translateY(-5px);
+  border-color: #8ab4f8;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
 }
 
+/* El número de camiseta estilo deportivo */
 .numberBadge {
-  width: 40px;
-  height: 40px;
-  background: #1e293b;
-  color: white;
+  background: #303134;
+  color: #8ab4f8;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  font-size: 1.2rem;
   font-weight: 800;
-  font-size: 1.1rem;
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+}
+
+.playerCard:hover .numberBadge {
+  border-color: #8ab4f8;
+}
+
+.playerInfo {
+  display: flex;
+  flex-direction: column;
 }
 
 .playerName {
+  font-size: 1.1rem;
   font-weight: 600;
-  color: #334155;
+  color: #ffffff;
   margin: 0;
-  text-transform: capitalize;
 }
 
 .playerRole {
-  font-size: 0.75rem;
-  color: #94a3b8;
-  margin: 0;
+  font-size: 0.8rem;
+  color: #9aa0a6;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  margin-top: 4px;
 }
 
-.infoCard {
-  background: #f8fafc;
-  padding: 20px;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
+/* Estados */
+.loader {
+  text-align: center;
+  padding: 100px;
+  color: #8ab4f8;
+  font-size: 1.2rem;
 }
 
-.infoCard h3 {
-  margin-top: 0;
-  font-size: 1.1rem;
-  color: #1e293b;
+.emptyState {
+  text-align: center;
+  padding: 60px;
+  background: #1a1a1c;
+  border: 2px dashed #3c4043;
+  border-radius: 24px;
+  color: #9aa0a6;
+  grid-column: 1 / -1;
 }
 
-.infoCard p {
-  font-size: 0.9rem;
-  color: #64748b;
-  margin: 10px 0;
-}
-
-
-/* ========================= */
-/* 📱 MOBILE OPTIMIZATION */
-/* ========================= */
-
-@media (max-width: 768px) {
-
-  .container {
-    padding: 20px 16px;
-  }
-
-  .header {
-    margin-bottom: 25px;
-  }
-
-  .backBtn {
-    margin-bottom: 12px;
-    font-size: 0.9rem;
-  }
-
-  .equipoTitleBlock {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .title {
-    font-size: 1.8rem;
-  }
-
-  .badge {
-    font-size: 0.7rem;
-    padding: 4px 10px;
-  }
-
-  .sectionTitle {
-    font-size: 1.2rem;
-    margin-bottom: 18px;
-  }
-
-  /* Jugadores en una sola columna */
-  .jugadoresGrid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .playerCard {
-    padding: 12px;
-    border-radius: 10px;
-  }
-
-  .numberBadge {
-    width: 34px;
-    height: 34px;
-    font-size: 0.9rem;
-  }
-
-  .playerName {
-    font-size: 0.95rem;
-  }
-
-  .playerRole {
-    font-size: 0.65rem;
-  }
-
-  /* Sidebar como bloque inferior */
-  .sidebar {
-    margin-top: 25px;
-  }
-
-  .infoCard {
-    padding: 16px;
-    border-radius: 12px;
-  }
-
-  .infoCard p {
-    font-size: 0.85rem;
-  }
-}
-
-.playerCard:active {
-  transform: scale(0.98);
+@media (max-width: 600px) {
+  .title { font-size: 2rem; }
+  .jugadoresGrid { grid-template-columns: 1fr; }
 }

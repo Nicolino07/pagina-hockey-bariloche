@@ -1,12 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-
+from typing import List
 from app.database import get_db
 from app.dependencies.permissions import require_admin, require_editor
 from app.models.partido import Partido
-from app.schemas.partido import PartidoBase
+from app.schemas.partido import PartidoBase, PartidoDetalle
 from app.schemas.planilla_partido import PlanillaPartidoCreate
-from app.services.partidos_services import crear_planilla_partido, get_partido_by_id, get_ultimos_partidos
+
+
+# Importar funciónes del service
+from app.services.partidos_services import (
+    crear_planilla_partido, 
+    get_partido_by_id, 
+    get_ultimos_partidos,
+    get_historial_por_equipo  
+)
 
 router = APIRouter(
     prefix="/partidos",
@@ -60,3 +68,20 @@ def eliminar_partido(
 
     db.delete(partido)
     db.commit()
+
+
+@router.get("/equipos/{id_equipo}", response_model=List[PartidoDetalle]) # Usa el schema adecuado
+def listar_historial_equipo(
+    id_equipo: int, 
+    limit: int = Query(10), 
+    db: Session = Depends(get_db)
+):
+    """
+    Retorna los últimos N partidos de un equipo (Historial/Próximos)
+    """
+    partidos = get_historial_por_equipo(db, id_equipo=id_equipo, limit=limit)
+    if not partidos:
+        # Opcional: podrías devolver una lista vacía [] en vez de 404 
+        # para que el frontend no rompa y simplemente muestre "Sin partidos"
+        return []
+    return partidos

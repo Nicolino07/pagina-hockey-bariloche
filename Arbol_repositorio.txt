@@ -1,0 +1,329 @@
+├── backend/
+│   ├── app/
+│   │   ├── auth/
+│   │   │   ├── __init__.py
+│   │   │   ├── router.py
+│   │   │   ├── security.py
+│   │   │   └── service.py
+│   │   ├── core/
+│   │   │   ├── __init__.py
+│   │   │   ├── audit_context.py
+│   │   │   ├── config.py
+│   │   │   ├── email.py
+│   │   │   ├── error_response.py
+│   │   │   ├── exception_handlers.py
+│   │   │   ├── exceptions.py
+│   │   │   └── middleware.py
+│   │   ├── dependencies/
+│   │   │   ├── auth.py
+│   │   │   └── permissions.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── auditoria_log.py
+│   │   │   ├── base.py
+│   │   │   ├── club.py
+│   │   │   ├── enums.py
+│   │   │   ├── equipo.py
+│   │   │   ├── fase.py
+│   │   │   ├── fichaje_rol.py
+│   │   │   ├── fixture_fecha.py
+│   │   │   ├── fixture_partido.py
+│   │   │   ├── gol.py
+│   │   │   ├── inscripcion_torneo.py
+│   │   │   ├── mixins.py
+│   │   │   ├── noticia.py
+│   │   │   ├── participan_partido.py
+│   │   │   ├── partido.py
+│   │   │   ├── persona_rol.py
+│   │   │   ├── persona.py
+│   │   │   ├── plantel_integrante.py
+│   │   │   ├── plantel.py
+│   │   │   ├── posicion.py
+│   │   │   ├── refresh_token.py
+│   │   │   ├── suspension.py
+│   │   │   ├── tarjeta.py
+│   │   │   ├── torneo.py
+│   │   │   ├── usuario.py
+│   │   │   ├── utils.py
+│   │   │   └── vistas.py
+│   │   ├── routers/
+│   │   │   ├── __init__.py
+│   │   │   ├── clubes.py
+│   │   │   ├── equipos.py
+│   │   │   ├── estadisticas.py
+│   │   │   ├── fases.py
+│   │   │   ├── fichajes.py
+│   │   │   ├── goles.py
+│   │   │   ├── inscripciones_torneos.py
+│   │   │   ├── noticias.py
+│   │   │   ├── partidos.py
+│   │   │   ├── persona.py
+│   │   │   ├── planteles.py
+│   │   │   ├── posiciones.py
+│   │   │   ├── tarjetas.py
+│   │   │   ├── torneos.py
+│   │   │   └── vistas.py
+│   │   ├── schemas/
+│   │   │   ├── __init__.py
+│   │   │   ├── auditoria_log.py
+│   │   │   ├── auth.py
+│   │   │   ├── club.py
+│   │   │   ├── equipo.py
+│   │   │   ├── fase.py
+│   │   │   ├── fichaje_rol.py
+│   │   │   ├── fixture_fecha.py
+│   │   │   ├── fixture_partido.py
+│   │   │   ├── gol.py
+│   │   │   ├── inscripcion_torneo.py
+│   │   │   ├── noticia.py
+│   │   │   ├── participan_partido.py
+│   │   │   ├── partido.py
+│   │   │   ├── persona_rol.py
+│   │   │   ├── persona.py
+│   │   │   ├── planilla_partido.py
+│   │   │   ├── plantel_integrante.py
+│   │   │   ├── plantel.py
+│   │   │   ├── posicion.py
+│   │   │   ├── refresh_token.py
+│   │   │   ├── suspension.py
+│   │   │   ├── tarjeta.py
+│   │   │   ├── torneo.py
+│   │   │   ├── user.py
+│   │   │   ├── usuario.py
+│   │   │   └── vistas.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── clubes_services.py
+│   │   │   ├── equipos_services.py
+│   │   │   ├── fichajes_services.py
+│   │   │   ├── inscripciones_services.py
+│   │   │   ├── partidos_services.py
+│   │   │   ├── personas_services.py
+│   │   │   ├── planteles_services.py
+│   │   │   ├── torneos_services.py
+│   │   │   ├── usuarios_services.py
+│   │   │   └── vistas_services.py
+│   │   ├── utils/
+│   │   │   ├── __init__.py
+│   │   │   └── db.py
+│   │   ├── __init__.py
+│   │   ├── database.py
+│   │   └── main.py
+│   ├── db/
+│   │   ├── init/
+│   │   │   ├── 001_enums.sql
+│   │   │   ├── 002_tables.sql
+│   │   │   ├── 003_tables_extra.sql
+│   │   │   ├── 004_functions.sql
+│   │   │   ├── 005_triggers.sql
+│   │   │   ├── 006_views.sql
+│   │   │   ├── 007_grants.sql
+│   │   │   ├── 008_auditoria.sql
+│   │   │   └── 009_index.sql
+│   │   ├── seed/
+│   │   │   ├── 010_seed_clubes.sql
+│   │   │   ├── 020_seed_equipos.sql
+│   │   │   ├── 030_seed_personas.sql
+│   │   │   ├── 040_seed_persona_rol.sql
+│   │   │   ├── 041_seed_fichaje.sql
+│   │   │   ├── 050_seed_torneos.sql
+│   │   │   ├── 060_seed_planteles.sql
+│   │   │   ├── 070_seed_usuarios.sql
+│   │   │   └── 080_seed_inscripcion.sql
+│   │   └── 000_init_database.sql
+│   ├── .dockerignore
+│   ├── backup_hockey.sh
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/
+│   ├── public/
+│   │   └── vite.svg
+│   ├── src/
+│   │   ├── api/
+│   │   │   ├── config/
+│   │   │   │   └── index.ts
+│   │   │   ├── vistas/
+│   │   │   │   ├── goleadores.api.ts
+│   │   │   │   ├── personas.api.ts
+│   │   │   │   ├── plantel.api.ts
+│   │   │   │   ├── posiciones.api.ts
+│   │   │   │   ├── tarjetas.api.ts
+│   │   │   │   └── torneos.api.ts
+│   │   │   ├── auth.api.ts
+│   │   │   ├── axiosAdmin.ts
+│   │   │   ├── axiosPublic.ts
+│   │   │   ├── clubes.api.ts
+│   │   │   ├── equipos.api.ts
+│   │   │   ├── estadisticas.api.ts
+│   │   │   ├── fichajes.api.ts
+│   │   │   ├── index.ts
+│   │   │   ├── noticias.api.ts
+│   │   │   ├── partidos.api.ts
+│   │   │   ├── personas.api.ts
+│   │   │   ├── planteles.api.ts
+│   │   │   ├── plantelIntegrantes.api.ts
+│   │   │   ├── torneos.api.ts
+│   │   │   └── usuarios.api.ts
+│   │   ├── auth/
+│   │   │   ├── AuthContext.tsx
+│   │   │   ├── ProtectedRoute.tsx
+│   │   │   └── TokenManager.ts
+│   │   ├── components/
+│   │   │   ├── clubes/
+│   │   │   │   ├── ClubCard.module.css
+│   │   │   │   ├── ClubCard.tsx
+│   │   │   │   ├── ClubModal.module.css
+│   │   │   │   └── ClubModal.tsx
+│   │   │   ├── footer/
+│   │   │   │   ├── Footer.module.css
+│   │   │   │   └── Footer.tsx
+│   │   │   ├── navbar/
+│   │   │   │   ├── NavBar.module.css
+│   │   │   │   └── NavBar.tsx
+│   │   │   ├── planteles/
+│   │   │   │   └── PlantelActivo.tsx
+│   │   │   └── ui/
+│   │   │       ├── button/
+│   │   │       │   ├── Button.module.css
+│   │   │       │   └── Button.tsx
+│   │   │       └── modal/
+│   │   │           ├── Modal.module.css
+│   │   │           └── Modal.tsx
+│   │   ├── constants/
+│   │   │   └── enums.ts
+│   │   ├── hooks/
+│   │   │   ├── useEquipos.ts
+│   │   │   ├── useInscripcionesTorneo.ts
+│   │   │   ├── usePartidos.ts
+│   │   │   ├── usePersona.ts
+│   │   │   ├── usePersonaConRoles.ts
+│   │   │   ├── usePlantelActivo.ts
+│   │   │   ├── useTorneo.ts
+│   │   │   └── useTorneosActivos.ts
+│   │   ├── layouts/
+│   │   │   ├── MainLayout.module.css
+│   │   │   └── MainLayout.tsx
+│   │   ├── pages/
+│   │   │   ├── admin/
+│   │   │   │   ├── clubes/
+│   │   │   │   │   ├── ClubDetalle.module.css
+│   │   │   │   │   ├── ClubDetalle.tsx
+│   │   │   │   │   ├── Clubes.module.css
+│   │   │   │   │   └── Clubes.tsx
+│   │   │   │   ├── equipos/
+│   │   │   │   │   ├── EquipoDetalle.module.css
+│   │   │   │   │   ├── EquipoDetalle.tsx
+│   │   │   │   │   ├── PlantelEquipo.tsx
+│   │   │   │   │   ├── PlantelLista.module.css
+│   │   │   │   │   └── PlantelLista.tsx
+│   │   │   │   ├── noticias/
+│   │   │   │   │   ├── NoticiasForm.module.css
+│   │   │   │   │   └── NoticiasForm.tsx
+│   │   │   │   ├── panel/
+│   │   │   │   │   ├── PanelAdmin.module.css
+│   │   │   │   │   └── PanelAdmin.tsx
+│   │   │   │   ├── partidos/
+│   │   │   │   │   ├── PartidoPlanilla.module.css
+│   │   │   │   │   ├── PartidoPlanilla.tsx
+│   │   │   │   │   ├── PartidosPage.module.css
+│   │   │   │   │   └── PartidosPage.tsx
+│   │   │   │   ├── personas/
+│   │   │   │   │   ├── PersonaDetalle.module.css
+│   │   │   │   │   ├── PersonaDetalle.tsx
+│   │   │   │   │   ├── PersonaForm.module.css
+│   │   │   │   │   ├── PersonaForm.tsx
+│   │   │   │   │   ├── PersonaLista.module.css
+│   │   │   │   │   ├── PersonaLista.tsx
+│   │   │   │   │   ├── Personas.module.css
+│   │   │   │   │   └── Personas.tsx
+│   │   │   │   ├── torneos/
+│   │   │   │   │   ├── CrearTorneoForm.module.css
+│   │   │   │   │   ├── CrearTorneoForm.tsx
+│   │   │   │   │   ├── InscribirEquipoModal.module.css
+│   │   │   │   │   ├── InscribirEquipoModal.tsx
+│   │   │   │   │   ├── InscripcionesTorneoLista.module.css
+│   │   │   │   │   ├── InscripcionesTorneoLista.tsx
+│   │   │   │   │   ├── TorneoAdmin.module.css
+│   │   │   │   │   ├── TorneoDetalle.module.css
+│   │   │   │   │   ├── TorneoDetalle.tsx
+│   │   │   │   │   ├── TorneosAdmin.module.css
+│   │   │   │   │   └── TorneosAdmin.tsx
+│   │   │   │   └── usuarios/
+│   │   │   │       ├── CompletarRegistro.tsx
+│   │   │   │       ├── GestionUsuarios.module.css
+│   │   │   │       └── GestionUsuarios.tsx
+│   │   │   ├── error/
+│   │   │   │   └── Unauthorized.tsx
+│   │   │   ├── login/
+│   │   │   │   ├── Login.module.css
+│   │   │   │   ├── Login.tsx
+│   │   │   │   ├── ResetPassword.tsx
+│   │   │   │   └── SolicitarRecuperacion.tsx
+│   │   │   └── public/
+│   │   │       ├── clubes/
+│   │   │       │   ├── ClubesDetallePublic.module.css
+│   │   │       │   ├── ClubesDetallePublic.tsx
+│   │   │       │   ├── ClubesPage.module.css
+│   │   │       │   ├── ClubesPage.tsx
+│   │   │       │   ├── EquipoDetallePublic.module.css
+│   │   │       │   └── EquipoDetallePublic.tsx
+│   │   │       ├── home/
+│   │   │       │   ├── Home.module.css
+│   │   │       │   └── Home.tsx
+│   │   │       ├── noticias/
+│   │   │       │   ├── NoticiaDetalle.module.css
+│   │   │       │   ├── NoticiaDetalle.tsx
+│   │   │       │   ├── Noticias.module.css
+│   │   │       │   └── Noticias.tsx
+│   │   │       └── posiciones/
+│   │   │           ├── PosicionesPage.module.css
+│   │   │           └── PosicionesPage.tsx
+│   │   ├── services/
+│   │   │   └── PlanillaVacia.service.ts
+│   │   ├── styles/
+│   │   │   ├── globals.css
+│   │   │   ├── layout.css
+│   │   │   └── variables.css
+│   │   ├── types/
+│   │   │   ├── auth.ts
+│   │   │   ├── club.ts
+│   │   │   ├── equipo.ts
+│   │   │   ├── inscripcion.ts
+│   │   │   ├── persona.ts
+│   │   │   ├── personaRol.ts
+│   │   │   ├── plantel.ts
+│   │   │   ├── plantelIntegrante.ts
+│   │   │   ├── planteUI.ts
+│   │   │   ├── torneo.ts
+│   │   │   └── vistas.ts
+│   │   ├── utils/
+│   │   │   ├── auth.ts
+│   │   │   ├── groupPersona.ts
+│   │   │   └── jwt.ts
+│   │   ├── App.css
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── .gitignore
+│   ├── app@0.0.0
+│   ├── Dockerfile
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── README.md
+│   ├── tsconfig.app.json
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   ├── vite
+│   └── vite.config.ts
+├── .gitignore
+├── # Consultas DB
+├── # Reglas de negocio 
+├── docker-compose.yml
+├── EstructuraBackend.txt
+├── EstructuraFrontend.txt
+├── GuiaAvance.txt
+├── intrucciones.txt
+├── LICENSE
+├── nginx.conf
+└── README.md

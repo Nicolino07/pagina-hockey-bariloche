@@ -75,6 +75,7 @@ def obtener_plantel_activo(
 
     return plantel
 
+
 @router.get(
     "/{id_plantel}/integrantes",
     response_model=list[PlantelIntegranteRead],
@@ -82,7 +83,6 @@ def obtener_plantel_activo(
 def listar_integrantes(
     id_plantel: int,
     db: Session = Depends(get_db),
-    current_user=Depends(require_editor),
 ):
     return planteles_services.listar_integrantes_por_plantel(
         db=db,

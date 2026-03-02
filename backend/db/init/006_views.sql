@@ -642,6 +642,10 @@ CREATE OR REPLACE VIEW vw_partidos_detallados AS
 SELECT
     p.id_partido,
     p.id_torneo,
+    -- AGREGAMOS ESTOS DOS:
+    itl.id_equipo AS id_equipo_local,
+    itv.id_equipo AS id_equipo_visitante,
+    -- -----------------------
     t.nombre AS nombre_torneo,
     p.fecha,
     p.horario,
@@ -653,11 +657,9 @@ SELECT
     p.creado_por,
     p.creado_en,
     
-    -- Equipos
     el.nombre AS equipo_local_nombre,
     ev.nombre AS equipo_visitante_nombre,
 
-    -- Árbitros (Nombres procesados)
     TRIM(per_a1.apellido || ' ' || per_a1.nombre) AS nombre_arbitro1,
     TRIM(per_a2.apellido || ' ' || per_a2.nombre) AS nombre_arbitro2,
     CONCAT_WS('; ', 
@@ -665,7 +667,6 @@ SELECT
         TRIM(per_a2.apellido || ' ' || per_a2.nombre)
     ) AS arbitros,
 
-    -- Marcador Final
     COALESCE((SELECT COUNT(*) FROM gol g 
               JOIN participan_partido pp ON g.id_participante_partido = pp.id_participante_partido 
               JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante 
@@ -678,7 +679,6 @@ SELECT
               JOIN plantel pl ON pi.id_plantel = pl.id_plantel
               WHERE g.id_partido = p.id_partido AND ((pl.id_equipo = itv.id_equipo AND NOT g.es_autogol) OR (pl.id_equipo = itl.id_equipo AND g.es_autogol))), 0) AS goles_visitante,
 
-    -- LISTADO DE INTEGRANTES LOCAL
     (SELECT string_agg(per.apellido || '|' || per.nombre || '|' || COALESCE(pp.numero_camiseta::text, '') || '|' || pi.rol_en_plantel, '; ' ORDER BY pi.rol_en_plantel DESC, pp.numero_camiseta ASC)
     FROM participan_partido pp
     JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante
@@ -686,7 +686,6 @@ SELECT
     JOIN plantel pl ON pi.id_plantel = pl.id_plantel
     WHERE pp.id_partido = p.id_partido AND pl.id_equipo = itl.id_equipo) AS lista_jugadores_local,
 
-    -- LISTADO DE INTEGRANTES VISITANTE
     (SELECT string_agg(per.apellido || '|' || per.nombre || '|' || COALESCE(pp.numero_camiseta::text, '') || '|' || pi.rol_en_plantel, '; ' ORDER BY pi.rol_en_plantel DESC, pp.numero_camiseta ASC)
     FROM participan_partido pp
     JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante
@@ -694,7 +693,6 @@ SELECT
     JOIN plantel pl ON pi.id_plantel = pl.id_plantel
     WHERE pp.id_partido = p.id_partido AND pl.id_equipo = itv.id_equipo) AS lista_jugadores_visitante,
 
-    -- DETALLE GOLES LOCAL
     (SELECT string_agg(per.apellido || '|' || per.nombre || '|' || g.minuto || '|' || g.cuarto || '|' || g.es_autogol::text, '; ')
      FROM gol g 
      JOIN participan_partido pp ON g.id_participante_partido = pp.id_participante_partido
@@ -704,7 +702,6 @@ SELECT
      WHERE g.id_partido = p.id_partido 
      AND ((pl.id_equipo = itl.id_equipo AND NOT g.es_autogol) OR (pl.id_equipo = itv.id_equipo AND g.es_autogol))) AS lista_goles_local,
 
-    -- DETALLE TARJETAS LOCAL
     (SELECT string_agg(per.apellido || '|' || per.nombre || '|' || tj.minuto || '|' || tj.cuarto || '|' || tj.tipo::text, '; ')
      FROM tarjeta tj
      JOIN participan_partido pp ON tj.id_participante_partido = pp.id_participante_partido
@@ -713,7 +710,6 @@ SELECT
      JOIN plantel pl ON pi.id_plantel = pl.id_plantel
      WHERE tj.id_partido = p.id_partido AND pl.id_equipo = itl.id_equipo) AS lista_tarjetas_local,
 
-    -- DETALLE GOLES VISITANTE
     (SELECT string_agg(per.apellido || '|' || per.nombre || '|' || g.minuto || '|' || g.cuarto || '|' || g.es_autogol::text, '; ')
      FROM gol g 
      JOIN participan_partido pp ON g.id_participante_partido = pp.id_participante_partido
@@ -723,7 +719,6 @@ SELECT
      WHERE g.id_partido = p.id_partido 
      AND ((pl.id_equipo = itv.id_equipo AND NOT g.es_autogol) OR (pl.id_equipo = itl.id_equipo AND g.es_autogol))) AS lista_goles_visitante,
 
-    -- DETALLE TARJETAS VISITANTE
     (SELECT string_agg(per.apellido || '|' || per.nombre || '|' || tj.minuto || '|' || tj.cuarto || '|' || tj.tipo::text, '; ')
      FROM tarjeta tj
      JOIN participan_partido pp ON tj.id_participante_partido = pp.id_participante_partido
@@ -738,7 +733,6 @@ JOIN inscripcion_torneo itl ON p.id_inscripcion_local = itl.id_inscripcion
 JOIN equipo el ON itl.id_equipo = el.id_equipo
 JOIN inscripcion_torneo itv ON p.id_inscripcion_visitante = itv.id_inscripcion
 JOIN equipo ev ON itv.id_equipo = ev.id_equipo
--- Joins para obtener nombres de árbitros
 LEFT JOIN persona per_a1 ON p.id_arbitro1 = per_a1.id_persona
 LEFT JOIN persona per_a2 ON p.id_arbitro2 = per_a2.id_persona;
 

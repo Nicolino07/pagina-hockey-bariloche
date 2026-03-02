@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI
 from sqlalchemy.exc import IntegrityError  
 from slowapi import Limiter
@@ -24,24 +23,26 @@ from app import models  # noqa: F401
 # =====================================================
 limiter = Limiter(key_func=get_remote_address)
 
-
-# Leemos el entorno (usando el nombre exacto de tu .env)
+# Leemos el entorno
 ENV = os.getenv("ENVIRONMENT", "development")
+API_PREFIX = "/api"  # 🔥 Definimos el prefijo una vez
 
+# Configuración de Swagger - TODO bajo /api
 app = FastAPI(
     title="Hockey Bariloche API",
     version="1.1.0",
-    docs_url="/docs" if os.getenv("ENABLE_SWAGGER") == "True" else None,
-    redoc_url="/redoc" if os.getenv("ENABLE_SWAGGER") == "True" else None,
+    docs_url=f"{API_PREFIX}/docs" if os.getenv("ENABLE_SWAGGER") == "True" else None,  # 🔥 Cambiado
+    redoc_url=f"{API_PREFIX}/redoc" if os.getenv("ENABLE_SWAGGER") == "True" else None,  # 🔥 Cambiado
+    openapi_url=f"{API_PREFIX}/openapi.json" if os.getenv("ENABLE_SWAGGER") == "True" else None,  # 🔥 Importante!
 )
 
-# Obtenemos el string del .env y lo convertimos en una lista
+# CORS
 origins_str = os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:5173")
 origins = [origin.strip() for origin in origins_str.split(",")]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins, # 👈 Ahora usamos la lista dinámica
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -63,23 +64,14 @@ async def rate_limit_handler(request, exc):
         message="Demasiadas solicitudes",
     )
 
-# 🔹 Errores de dominio
 app.add_exception_handler(AppError, app_error_handler)
-
-# 🔹 Errores de integridad de base de datos
 app.add_exception_handler(IntegrityError, integrity_error_handler)
-
-# 🔹 Errores de límite de tasa
 app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
-
-# 🔹 Errores inesperados (SIEMPRE AL FINAL)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
-
 # =====================================================
-# Routers
+# Routers - Usamos el mismo prefijo
 # =====================================================
-
 from app.auth import router as auth
 from app.routers import (
     clubes_router as clubes,
@@ -95,27 +87,20 @@ from app.routers import (
     estadisticas_router as estadisticas,
 )
 
-
-
-
-
-@app.get("/")
+@app.get(f"{API_PREFIX}/")  # 🔥 También movemos el root
 def root():
     return {"message": "API Hockey Bariloche funcionando"}
 
-# =====================================================
-# Routers - AGREGAMOS EL PREFIX /api A TODOS
-# =====================================================
-
-app.include_router(auth.router, prefix="/api")
-app.include_router(clubes, prefix="/api")
-app.include_router(equipos, prefix="/api")
-app.include_router(personas, prefix="/api")
-app.include_router(planteles, prefix="/api")
-app.include_router(torneos, prefix="/api")
-app.include_router(inscripciones.router, prefix="/api")
-app.include_router(partido, prefix="/api")
-app.include_router(vistas, prefix="/api")
-app.include_router(fichajes, prefix="/api")
-app.include_router(noticias, prefix="/api")
-app.include_router(estadisticas, prefix="/api")
+# Todos los routers con el mismo prefijo
+app.include_router(auth.router, prefix=API_PREFIX)
+app.include_router(clubes, prefix=API_PREFIX)
+app.include_router(equipos, prefix=API_PREFIX)
+app.include_router(personas, prefix=API_PREFIX)
+app.include_router(planteles, prefix=API_PREFIX)
+app.include_router(torneos, prefix=API_PREFIX)
+app.include_router(inscripciones.router, prefix=API_PREFIX)
+app.include_router(partido, prefix=API_PREFIX)
+app.include_router(vistas, prefix=API_PREFIX)
+app.include_router(fichajes, prefix=API_PREFIX)
+app.include_router(noticias, prefix=API_PREFIX)
+app.include_router(estadisticas, prefix=API_PREFIX)

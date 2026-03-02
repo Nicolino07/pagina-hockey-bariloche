@@ -2,6 +2,7 @@
 from datetime import date, datetime
 from typing import Optional
 
+from app.schemas.persona import PersonaRead
 from pydantic import BaseModel, Field, ConfigDict
 from app.models.enums import RolPersonaTipo
 
@@ -35,6 +36,7 @@ class PlantelIntegranteUpdate(BaseModel):
 
 class PlantelIntegranteRead(PlantelIntegranteBase):
     id_plantel_integrante: int
+    persona: Optional[PersonaRead] = None
 
     creado_en: datetime
     actualizado_en: Optional [datetime] = None

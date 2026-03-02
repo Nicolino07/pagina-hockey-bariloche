@@ -1,7 +1,8 @@
 from datetime import date, time, datetime
-from typing import Optional
-
+from typing import Optional, List
 from pydantic import BaseModel, Field, ConfigDict
+
+
 
 class PartidoBase(BaseModel):
     id_torneo: Optional[int] = None
@@ -57,3 +58,43 @@ class PartidoUpdate(BaseModel):
 class PartidoResultadoUpdate(BaseModel):
  
     actualizado_por: Optional[str] = Field(None, max_length=100)
+
+
+
+class PartidoDetalle(BaseModel):
+    id_partido: int
+    id_torneo: int
+    nombre_torneo: str
+    fecha: date
+    horario: Optional[time] = None
+    ubicacion: Optional[str] = None
+    numero_fecha: Optional[int] = None
+    observaciones: Optional[str] = None
+    creado_por: Optional[str] = None
+    creado_en: Optional[datetime] = None
+    
+    # Equipos y Marcador
+    equipo_local_nombre: str
+    equipo_visitante_nombre: str
+    goles_local: int
+    goles_visitante: int
+
+    # Árbitros y Jueces
+    nombre_arbitro1: Optional[str] = None
+    nombre_arbitro2: Optional[str] = None
+    arbitros: Optional[str] = None
+    juez_mesa_local: Optional[str] = None
+    juez_mesa_visitante: Optional[str] = None
+    
+    # Listas concatenadas (Strings de la vista)
+    lista_jugadores_local: Optional[str] = None
+    lista_jugadores_visitante: Optional[str] = None
+    lista_goles_local: Optional[str] = None
+    lista_tarjetas_local: Optional[str] = None
+    lista_goles_visitante: Optional[str] = None
+    lista_tarjetas_visitante: Optional[str] = None
+
+    class Config:
+        # Esto es lo más importante: permite que Pydantic lea los 
+        # objetos de SQLAlchemy directamente (en Pydantic v2 se usa from_attributes)
+        from_attributes = True
