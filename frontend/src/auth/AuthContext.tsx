@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
-
+import axiosAdmin from '../api/axiosAdmin' 
 import { authUtils } from '../utils/auth'
 import { decodeJwt } from '../utils/jwt'
 import { setAccessToken, clearAccessToken } from '../auth/TokenManager'
@@ -28,39 +28,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const initAuth = () => {
-      const stored = authUtils.getAuthData()
+  const initAuth = async () => { // <--- Ahora es async
+    const stored = authUtils.getAuthData();
 
-      if (stored?.token) {
-        try {
-          // 🧠 Restaurar token en memoria
-          setAccessToken(stored.token)
+    if (stored?.token) {
+      try {
+        setAccessToken(stored.token);
+        
+        // 🛡️ VALIDACIÓN REAL: Preguntamos al servidor si el token sirve
+        const response = await axiosAdmin.get('/auth/me'); 
+        const payload = decodeJwt(stored.token);
 
-          const payload = decodeJwt(stored.token)
-
-          if (payload) {
-            const userInfo: User = {
-              id: Number(payload.sub),
-              email: payload.username,
-              rol: payload.rol,
-              ...stored.user
-            }
-
-            setUser(userInfo)
-          }
-        } catch (error) {
-          console.error('❌ Error inicializando auth:', error)
-          authUtils.clearAuth()
-          clearAccessToken()
-          setUser(null)
+        if (payload) {
+          setUser({
+            id: Number(payload.sub),
+            email: payload.username,
+            rol: payload.rol,
+            ...response.data // Usamos la info fresca del servidor
+          });
         }
+      } catch (error) {
+        console.error('❌ Token expirado o inválido:', error);
+        authUtils.clearAuth();
+        clearAccessToken();
+        setUser(null);
       }
-
-      setIsLoading(false)
     }
+    
+    // Solo cuando la API responde (o falla), dejamos de cargar
+    setIsLoading(false); 
+  };
 
-    initAuth()
-  }, [])
+  initAuth();
+}, []);
 
   const login = (token: string, userData?: Partial<User>) => {
     const payload = decodeJwt(token)

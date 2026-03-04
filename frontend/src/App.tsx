@@ -26,10 +26,9 @@ import ResetPasswordForm from "./pages/login/ResetPassword";
 import NoticiaDetalle from "./pages/public/noticias/NoticiaDetalle"
 import Noticias from "./pages/public/noticias/Noticias"
 import MainLayout from "./layouts/MainLayout"
-import { setAccessToken } from './auth/TokenManager'
-import { authUtils } from './utils/auth'
-import axiosAdmin from './api/axiosAdmin'
+
 import { useState, useEffect } from 'react';
+import { useAuth } from "./auth/AuthContext"
 
 
 
@@ -52,42 +51,28 @@ function ThemeToggle({ isDark, setIsDark }: { isDark: boolean, setIsDark: (v: bo
 }
 
 export default function App() {
-  // Estado del tema
   const [isDark, setIsDark] = useState(true);
+  const { isLoading } = useAuth(); // <--- Opcional: usar el loading aquí también
 
-  // Efecto para cambiar el atributo data-theme
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
   }, [isDark]);
 
-  // Efectos de Auth y HTTPS
+  // Efecto del escudo HTTPS (mantenlo si lo necesitas)
   useEffect(() => {
-    const initAuth = async () => {
-      const storedToken = authUtils.getAuthData()?.token
-      if (storedToken) {
-        setAccessToken(storedToken)
-        try { await axiosAdmin.get('/auth/me') } catch { }
-      }
-    }
-    initAuth()
-  }, [])
-
-  
-  useEffect(() => {
-    // Detectamos si estamos en producción (VPS)
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    
+    const isLocal = window.location.hostname === 'localhost';
     if (!isLocal) {
-      // Solo en el VPS inyectamos el upgrade a HTTPS
       const meta = document.createElement('meta');
       meta.httpEquiv = "Content-Security-Policy";
       meta.content = "upgrade-insecure-requests";
       document.head.appendChild(meta);
-      console.log("🛡️ Escudo HTTPS activo (Producción)");
-    } else {
-      console.log("🛠️ Modo desarrollo: HTTP permitido");
     }
   }, []);
+
+  // Si el contexto está validando el token, no renderizamos las rutas
+  if (isLoading) {
+    return <div className="loading-global">Cargando aplicación...</div>;
+  }
 
   return (
     <Routes>
