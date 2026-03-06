@@ -1,8 +1,24 @@
 .formGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Dos columnas por defecto */
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   width: 100%;
+  
+  /* --- SOLUCIÓN AL SCROLL --- */
+  max-height: 80vh;          /* No permite que el form sea más alto que el 80% de la pantalla */
+  overflow-y: auto;          /* Activa el scroll vertical si el contenido excede la altura */
+  padding-right: 8px;        /* Espacio para que la barra de scroll no tape los inputs */
+  overflow-x: hidden;        /* Evita scroll horizontal innecesario */
+}
+
+/* Mejora la visibilidad del scrollbar en modo oscuro */
+.formGrid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.formGrid::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border-radius: 10px;
 }
 
 .formGroup {
@@ -73,13 +89,16 @@
 
 @media (max-width: 600px) {
   .formGrid {
-    grid-template-columns: 1fr; /* Una sola columna en móviles */
+    grid-template-columns: 1fr;
     gap: 12px;
+    max-height: 70vh; /* Un poco más pequeño en móviles para dejar ver el fondo */
+    padding-bottom: 20px; /* Espacio extra para que el botón no quede pegado al borde */
   }
 
   .buttonGroup {
     grid-column: span 1;
-    flex-direction: column; /* Botones uno sobre otro para facilitar el touch */
+    flex-direction: column;
+    margin-top: 10px;
   }
 
   .formGroup input, 
