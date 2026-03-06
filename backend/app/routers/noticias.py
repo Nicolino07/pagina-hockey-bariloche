@@ -7,6 +7,7 @@ from datetime import datetime
 from app.database import get_db
 from app.models.noticia import Noticia
 from app.schemas.noticia import NoticiaCreate, NoticiaOut, NoticiaUpdate
+from app.dependencies.permissions import require_editor, require_admin
 
 router = APIRouter(prefix="/noticias", tags=["Noticias"])
 
@@ -37,7 +38,7 @@ def obtener_detalle_noticia(id_noticia: int, db: Session = Depends(get_db)):
 # --- RUTAS ADMINISTRATIVAS ---
 
 @router.post("/", response_model=NoticiaOut, status_code=status.HTTP_201_CREATED)
-def crear_nueva_noticia(noticia: NoticiaCreate, db: Session = Depends(get_db)):
+def crear_nueva_noticia(noticia: NoticiaCreate, db: Session = Depends(get_db), current_user=Depends(require_editor)):
     """ Crea una noticia desde el panel de administración """
     nueva_noticia = Noticia(**noticia.model_dump())
     db.add(nueva_noticia)
@@ -46,7 +47,7 @@ def crear_nueva_noticia(noticia: NoticiaCreate, db: Session = Depends(get_db)):
     return nueva_noticia
 
 @router.put("/{id_noticia}", response_model=NoticiaOut)
-def actualizar_noticia(id_noticia: int, noticia_update: NoticiaUpdate, db: Session = Depends(get_db)):
+def actualizar_noticia(id_noticia: int, noticia_update: NoticiaUpdate, db: Session = Depends(get_db), current_user=Depends(require_editor)):
     """ Actualiza una noticia existente """
     query = db.query(Noticia).filter(Noticia.id_noticia == id_noticia)
     noticia_db = query.first()
@@ -64,7 +65,7 @@ def actualizar_noticia(id_noticia: int, noticia_update: NoticiaUpdate, db: Sessi
     return noticia_db
 
 @router.delete("/{id_noticia}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_noticia(id_noticia: int, db: Session = Depends(get_db)):
+def eliminar_noticia(id_noticia: int, db: Session = Depends(get_db), current_user=Depends(require_admin)):
     """ 
     Soft Delete: No borra el registro, solo marca 'borrado_en'.
     Ideal para administradores que cometen errores.

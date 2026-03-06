@@ -45,7 +45,7 @@ export default function EquipoDetallePublic() {
           <div className={styles.jugadoresGrid}>
             {integrantes.length > 0 ? (
               integrantes.map((jugador) => (
-                <article key={jugador.id_persona} className={styles.playerCard}>
+                <article key={jugador.id_plantel_integrante ?? jugador.id_persona} className={styles.playerCard}>
                   <div className={styles.numberBadge}>
                     {jugador.numero_camiseta || '—'}
                   </div>

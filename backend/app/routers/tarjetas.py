@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.tarjeta import Tarjeta as TarjetaModel
 from app.schemas.tarjeta import Tarjeta, TarjetaCreate
+from app.dependencies.permissions import require_editor
 
 router = APIRouter(prefix="/tarjetas", tags=["Tarjetas"])
 
@@ -19,7 +20,7 @@ def get_tarjeta(id_tarjeta: int, db: Session = Depends(get_db)):
     return item
 
 @router.post("/", response_model=Tarjeta)
-def create_tarjeta(data: TarjetaCreate, db: Session = Depends(get_db)):
+def create_tarjeta(data: TarjetaCreate, db: Session = Depends(get_db), current_user=Depends(require_editor)):
     nuevo = TarjetaModel(**data.dict())
     db.add(nuevo)
     db.commit()
@@ -27,7 +28,7 @@ def create_tarjeta(data: TarjetaCreate, db: Session = Depends(get_db)):
     return nuevo
 
 @router.put("/{id_tarjeta}", response_model=Tarjeta)
-def update_tarjeta(id_tarjeta: int, data: TarjetaCreate, db: Session = Depends(get_db)):
+def update_tarjeta(id_tarjeta: int, data: TarjetaCreate, db: Session = Depends(get_db), current_user=Depends(require_editor)):
     item = db.query(TarjetaModel).filter(TarjetaModel.id_tarjeta == id_tarjeta).first()
     if not item:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
@@ -40,7 +41,7 @@ def update_tarjeta(id_tarjeta: int, data: TarjetaCreate, db: Session = Depends(g
     return item
 
 @router.delete("/{id_tarjeta}")
-def delete_tarjeta(id_tarjeta: int, db: Session = Depends(get_db)):
+def delete_tarjeta(id_tarjeta: int, db: Session = Depends(get_db), current_user=Depends(require_editor)):
     item = db.query(TarjetaModel).filter(TarjetaModel.id_tarjeta == id_tarjeta).first()
     if not item:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")

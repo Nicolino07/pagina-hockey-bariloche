@@ -277,9 +277,11 @@
   }
 
   .deleteBtn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
+    position: static;
+    order: 99;
+    margin-left: auto;
+    padding: 8px 12px;
+    flex-shrink: 0;
   }
 
   /* Ajuste de Resumen en Móvil */

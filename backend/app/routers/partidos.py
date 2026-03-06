@@ -34,7 +34,7 @@ def listar_partidos_recientes(
 def detalle_partido(partido_id: int, db: Session = Depends(get_db)):
     partido = get_partido_by_id(db, partido_id)
     if not partido:
-        return {"error": "Partido no encontrado"}, 404
+        raise HTTPException(status_code=404, detail="Partido no encontrado")
     return partido
 
 # 🔐 ADMIN/ EDITOR – carga de planilla completa

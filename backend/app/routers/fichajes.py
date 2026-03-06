@@ -13,6 +13,7 @@ from app.schemas.fichaje_rol import (
     FichajeRolBaja,
 )
 from app.services import fichajes_services
+from app.dependencies.permissions import require_editor, require_admin
 
 router = APIRouter(
     prefix="/fichajes",
@@ -29,6 +30,7 @@ router = APIRouter(
 def crear_fichaje(
     data: FichajeRolCreate,
     db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
 ):
     return fichajes_services.crear_fichaje(
         db=db,
@@ -49,6 +51,7 @@ def dar_baja_fichaje(
     id_fichaje_rol: int,
     data: FichajeRolBaja,
     db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
 ):
     return fichajes_services.dar_baja_fichaje(
         db=db,

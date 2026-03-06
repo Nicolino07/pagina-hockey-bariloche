@@ -390,8 +390,8 @@ export default function PartidoPlanilla() {
      
     {/* MODAL DE RESUMEN */}
       {showModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
+        <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
+          <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
             <h2>Resumen de Planilla</h2>
             
             <div className={styles.resumenGrid}>

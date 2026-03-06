@@ -74,7 +74,7 @@ def refresh(request: Request, response: Response, db: Session = Depends(get_db))
 
     response.set_cookie(
         key="refresh_token",
-        value=refresh_token,
+        value=new_refresh_token,
         httponly=True,
         secure=settings.cookie_secure,
         samesite=settings.cookie_samesite,
@@ -158,16 +158,10 @@ def confirmar_registro(payload: UserConfirm, db: Session = Depends(get_db)):
     try:
         data = jwt.decode(payload.token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
         
-        # ESTO ES PARA DEBUG: Mira la consola de Docker después de fallar
-        print(f"DEBUG: Contenido del token: {data}")
-        
         if data.get("type") != "invitation":
-            # Cambiamos el mensaje para saber qué tipo está llegando realmente
-            tipo_actual = data.get("type")
-            raise HTTPException(status_code=400, detail=f"Token tipo '{tipo_actual}' no es 'invitation'")
-            
-    except JWTError as e:
-        print(f"DEBUG: Error de JWT: {e}")
+            raise HTTPException(status_code=400, detail="Token no válido para registro")
+
+    except JWTError:
         raise HTTPException(status_code=400, detail="El link ha expirado o es corrupto")
 
 

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.posicion import Posicion
-from app.schemas.posicion import PosicionCreate, PosicionUpdate, PosicionOut
+from app.schemas.posicion import PosicionCreate, PosicionUpdate, Posicion as PosicionOut
 
 router = APIRouter(prefix="/posiciones", tags=["Posiciones"])
 

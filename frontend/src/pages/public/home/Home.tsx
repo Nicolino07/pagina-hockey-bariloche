@@ -13,6 +13,7 @@ export default function Home() {
   const [noticias, setNoticias] = useState<any[]>([]);
   const [partidos, setPartidos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingDetalle, setLoadingDetalle] = useState(false);
   const [selectedPartido, setSelectedPartido] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
   const [stats, setStats] = useState({ partidos_totales: 0, goles_totales: 0 });
@@ -50,7 +51,7 @@ export default function Home() {
 
   const handleVerDetalle = async (partido: any) => {
     try {
-      setLoading(true);
+      setLoadingDetalle(true);
       const detalle = await obtenerDetallePartido(partido.id_partido);
       setSelectedPartido(detalle);
       setShowModal(true);
@@ -58,7 +59,7 @@ export default function Home() {
       console.error("Error al cargar detalle:", error);
       alert("No se pudo obtener el detalle del encuentro.");
     } finally {
-      setLoading(false);
+      setLoadingDetalle(false);
     }
   };
 
@@ -202,8 +203,8 @@ export default function Home() {
                     </span>
                   </td>
                   <td data-label="Acciones">
-                    <Button variant="secondary" size="sm" onClick={() => handleVerDetalle(partido)}>
-                      📄 Detalle
+                    <Button variant="secondary" size="sm" onClick={() => handleVerDetalle(partido)} disabled={loadingDetalle}>
+                      {loadingDetalle ? "Cargando..." : "📄 Detalle"}
                     </Button>
                   </td>
                 </tr>

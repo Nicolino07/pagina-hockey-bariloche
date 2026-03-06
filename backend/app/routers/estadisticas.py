@@ -35,5 +35,7 @@ def obtener_estadisticas_globales(
         "partidos_totales": query_partidos.count(),
         "goles_totales": query_goles.count(),
         # Puedes agregar más contadores fácilmente:
-        "tarjetas_totales": db.query(Tarjeta).count() if not torneo_id else "..." 
+        "tarjetas_totales": db.query(Tarjeta).filter(Tarjeta.id_partido.in_(
+            db.query(Partido.id_partido).filter(Partido.id_torneo == torneo_id)
+        )).count() if torneo_id else db.query(Tarjeta).count()
     }

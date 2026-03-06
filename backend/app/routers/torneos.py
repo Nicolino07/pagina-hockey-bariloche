@@ -1,6 +1,7 @@
 # routes/torneos.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session 
+from sqlalchemy.orm import Session
+from sqlalchemy import func
 from datetime import date
 
 from app.database import get_db
@@ -11,7 +12,7 @@ from app.schemas.torneo import (
     TorneoUpdate,
     TorneoFinalizar
 )
-from app.dependencies.permissions import require_admin
+from app.dependencies.permissions import require_admin, require_superuser
 from app.models.usuario import Usuario
 from app.services import torneos_services
 
@@ -153,12 +154,11 @@ def reabrir_torneo(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# Opcional: Endpoint para eliminación física (solo desarrollo)
 @router.delete("/{id_torneo}/fisico", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_torneo_fisico(
     id_torneo: int,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_admin)
+    current_user: Usuario = Depends(require_superuser)
 ):
     """Eliminación física del torneo (PELIGROSO - solo para desarrollo)"""
     torneo = db.query(TorneoModel).filter(TorneoModel.id_torneo == id_torneo).first()
