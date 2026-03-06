@@ -89,3 +89,13 @@ export const getTablaPosiciones = async (torneoId: number) => {
   const response = await axiosPublic.get(`/posiciones/torneo/${torneoId}`);
   return response.data;
 };
+
+/**
+ * Trae el historial de partidos de un equipo por su id
+ */
+export const getHistorialPorEquipo = async (id_equipo: number, limit = 10) => {
+  const response = await axiosPublic.get(`/partidos/equipos/${id_equipo}`, {
+    params: { limit },
+  });
+  return response.data;
+};

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getClubById } from "../../../api/clubes.api";
 import { getEquiposByClub } from "../../../api/equipos.api";
-import { obtenerPosiciones } from "../../../api/vistas/posiciones.api"; // Tu API de posiciones
+import { obtenerPosiciones } from "../../../api/vistas/posiciones.api";
+import { getHistorialPorEquipo } from "../../../api/partidos.api";
 import type { Club } from "../../../types/club";
 import type { Equipo } from "../../../types/equipo";
 import type { FilaPosiciones } from "../../../types/vistas";
@@ -23,26 +24,23 @@ export default function ClubesDetallePublic() {
   const [integrantes, setIntegrantes] = useState<PlantelIntegrante[]>([]);
 
   useEffect(() => {
-    if (equipoSeleccionado) {
-      // 1. Cargar Partidos
-      fetch(`/api/partidos/equipos/${equipoSeleccionado.id_equipo}`)
-        .then(res => res.json())
-        .then(data => setPartidos(data));
+    if (!equipoSeleccionado) return;
 
-      // 2. Cargar Plantel Activo e Integrantes
-      getPlantelActivoByEquipo(equipoSeleccionado.id_equipo)
-        .then(plantel => {
-          if (plantel) {
-            return getIntegrantesByPlantel(plantel.id_plantel);
-          }
-          return [];
-        })
-        .then(data => setIntegrantes(data))
-        .catch(err => {
-          console.error("Error cargando plantel:", err);
-          setIntegrantes([]);
-        });
-    }
+    // Cargar Partidos
+    getHistorialPorEquipo(equipoSeleccionado.id_equipo)
+      .then(data => setPartidos(data))
+      .catch(() => setPartidos([]));
+
+    // Cargar Plantel Activo e Integrantes
+    getPlantelActivoByEquipo(equipoSeleccionado.id_equipo)
+      .then(plantel => {
+        if (plantel) {
+          return getIntegrantesByPlantel(plantel.id_plantel);
+        }
+        return [];
+      })
+      .then(data => setIntegrantes(data))
+      .catch(() => setIntegrantes([]));
   }, [equipoSeleccionado]);
 
 
@@ -68,18 +66,6 @@ export default function ClubesDetallePublic() {
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
   }, [id_club]);
-
-  useEffect(() => {
-    if (equipoSeleccionado) {
-      // Cargar Partidos
-      fetch(`/api/partidos/equipos/${equipoSeleccionado.id_equipo}`)
-        .then(res => res.json())
-        .then(data => setPartidos(data));
-      
-      // Cargar Posiciones (usando el id_torneo que viene en el equipo o partido)
-      // Nota: Si el equipo no tiene id_torneo directo, lo sacamos del primer partido
-    }
-  }, [equipoSeleccionado]);
 
   useEffect(() => {
       if (partidos.length > 0) {

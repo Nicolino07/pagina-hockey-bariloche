@@ -33,6 +33,10 @@ export default function PanelAdmin() {
           Noticias
         </Link>
 
+        <Link to="/admin/fichajes" className={styles.card}>
+          Fichajes
+        </Link>
+
 
       </section>
     </div>

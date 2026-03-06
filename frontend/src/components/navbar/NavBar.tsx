@@ -17,6 +17,8 @@ export default function Navbar() {
   const isSuper = user?.rol === "SUPERUSUARIO"
   const isAdminOrSuper = user?.rol === "ADMIN" || isSuper
 
+  const close = () => setMenuOpen(false)
+
   return (
     <>
       <header className={styles.navbar}>
@@ -24,10 +26,50 @@ export default function Navbar() {
           <Link to="/">Hockey Bariloche</Link>
         </div>
 
-        <button
-          className={styles.menuToggle}
-          onClick={() => setMenuOpen(true)}
-        >
+        {/* ---- NAV DESKTOP ---- */}
+        <nav className={styles.desktopNav}>
+          <Link to="/">Inicio</Link>
+          <Link to="/public/clubes">Clubes</Link>
+          <Link to="/public/posiciones">Posiciones</Link>
+
+          {isAuthenticated && (
+            <>
+              <span className={styles.separator} />
+              <Link to="/admin">Panel</Link>
+              <Link to="/admin/partidos">Partidos</Link>
+              <Link to="/admin/noticias">Noticias</Link>
+              <Link to="/admin/fichajes">Fichajes</Link>
+
+              {isAdminOrSuper && (
+                <>
+                  <Link to="/admin/torneos">Torneos</Link>
+                  <Link to="/admin/personas">Personas</Link>
+                </>
+              )}
+
+              {isSuper && (
+                <Link to="/login/usuarios" className={styles.superLink}>
+                  Staff
+                </Link>
+              )}
+            </>
+          )}
+        </nav>
+
+        {/* ---- DERECHA DESKTOP: usuario + salir / ingresar ---- */}
+        <div className={styles.desktopRight}>
+          {isAuthenticated ? (
+            <>
+              <span className={styles.userChip}>{user?.email}</span>
+              <button onClick={handleLogout} className={styles.logoutBtn}>Salir</button>
+            </>
+          ) : (
+            <Link to="/login" className={styles.loginLink}>Ingresar</Link>
+          )}
+        </div>
+
+        {/* ---- HAMBURGUESA (solo mobile) ---- */}
+        <button className={styles.menuToggle} onClick={() => setMenuOpen(true)}>
           ☰
         </button>
       </header>
@@ -35,63 +77,51 @@ export default function Navbar() {
       {/* Overlay */}
       <div
         className={`${styles.overlay} ${menuOpen ? styles.show : ""}`}
-        onClick={() => setMenuOpen(false)}
+        onClick={close}
       />
 
-      {/* Sidebar */}
+      {/* Sidebar (solo mobile) */}
       <aside className={`${styles.sidebar} ${menuOpen ? styles.open : ""}`}>
-        <button
-          className={styles.closeBtn}
-          onClick={() => setMenuOpen(false)}
-        >
-          ✕
-        </button>
+        <button className={styles.closeBtn} onClick={close}>✕</button>
 
         <nav className={styles.menu}>
-          {/* Públicos */}
-          <Link to="/" onClick={() => setMenuOpen(false)}>Inicio</Link>
-          <Link to="/public/clubes" onClick={() => setMenuOpen(false)}>Clubes</Link>
-          <Link to="/public/posiciones" onClick={() => setMenuOpen(false)}>Posiciones</Link>
+          <Link to="/" onClick={close}>Inicio</Link>
+          <Link to="/public/clubes" onClick={close}>Clubes</Link>
+          <Link to="/public/posiciones" onClick={close}>Posiciones</Link>
 
           {isAuthenticated && (
             <>
               <hr />
-              <Link to="/admin" onClick={() => setMenuOpen(false)}>Panel</Link>
-              <Link to="/admin/partidos" onClick={() => setMenuOpen(false)}>Partidos</Link>
-              <Link to="/admin/noticias" onClick={() => setMenuOpen(false)}>Noticias</Link>
+              <Link to="/admin" onClick={close}>Panel</Link>
+              <Link to="/admin/partidos" onClick={close}>Partidos</Link>
+              <Link to="/admin/noticias" onClick={close}>Noticias</Link>
+              <Link to="/admin/fichajes" onClick={close}>Fichajes</Link>
 
               {isAdminOrSuper && (
                 <>
-                  <Link to="/admin/clubes" onClick={() => setMenuOpen(false)}>Clubes</Link>
-                  <Link to="/admin/torneos" onClick={() => setMenuOpen(false)}>Torneos</Link>
-                  <Link to="/admin/personas" onClick={() => setMenuOpen(false)}>Personas</Link>
+                  <Link to="/admin/clubes" onClick={close}>Clubes (Admin)</Link>
+                  <Link to="/admin/torneos" onClick={close}>Torneos</Link>
+                  <Link to="/admin/personas" onClick={close}>Personas</Link>
                 </>
               )}
 
               {isSuper && (
-                <Link to="/login/usuarios" className={styles.superLink}
-                  onClick={() => setMenuOpen(false)}>
-                  👥 Gestionar Staff
+                <Link to="/login/usuarios" className={styles.superLink} onClick={close}>
+                  Gestionar Staff
                 </Link>
               )}
 
               <hr />
-
               <div className={styles.userInfo}>
                 <span>{user?.email}</span>
                 <span>{user?.rol}</span>
               </div>
-
-              <button onClick={handleLogout} className={styles.logout}>
-                Salir
-              </button>
+              <button onClick={handleLogout} className={styles.logout}>Salir</button>
             </>
           )}
 
           {!isAuthenticated && (
-            <Link to="/login" onClick={() => setMenuOpen(false)}>
-              Ingresar
-            </Link>
+            <Link to="/login" onClick={close}>Ingresar</Link>
           )}
         </nav>
       </aside>

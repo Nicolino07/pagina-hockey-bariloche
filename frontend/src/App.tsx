@@ -13,6 +13,7 @@ import PersonaDetalle from "./pages/admin/personas/PersonaDetalle"
 import PartidosPage from "./pages/admin/partidos/PartidosPage"
 import PartidoPlanilla from "./pages/admin/partidos/PartidoPlanilla"
 import NoticiasForm from "./pages/admin/noticias/NoticiasForm"
+import FichajesAdmin from "./pages/admin/fichajes/FichajesAdmin"
 
 import PosicionesPage from "./pages/public/posiciones/PosicionesPage"
 import ClubesPage from "./pages/public/clubes/ClubesPage"
@@ -107,6 +108,7 @@ export default function App() {
           <Route path="/admin/partidos" element={<PartidosPage />} />
           <Route path="/admin/partidos/:id_partido" element={<PartidoPlanilla />} />
           <Route path="/admin/noticias" element={<NoticiasForm />} />
+          <Route path="/admin/fichajes" element={<FichajesAdmin />} />
         </Route>
 
         {/* ADMIN ESTRUCTURAL */}
