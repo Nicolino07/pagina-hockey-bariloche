@@ -3,11 +3,11 @@ BEGIN;
 
 INSERT INTO usuario (username, email, password_hash, tipo, creado_por) VALUES
 (
-  'Nico_super',
-  'admin@pagina-hockey.com',
-  '$argon2id$v=19$m=65536,t=3,p=4$ds5ZixFC6H0PIcQ4Z0yJcQ$fVlPlZ4NnxO8khs1DXwJ5xW0dtxiNpBS//cw9nvGYQU',
+  'Nicolas_root',
+  'elias.nicolas.vargas@gmail.com',
+  '$argon2id$v=19$m=65536,t=3,p=4$HmPM+R8DoDTmvPf+PyfEuA$DtmLJsfLhdIfkYTWx8VEy8EWIE6I8ejI2TTUHXGibI8',
   'SUPERUSUARIO',
-  'seed'
+  'sistema_init'
 );
 -- password: admin123
 
