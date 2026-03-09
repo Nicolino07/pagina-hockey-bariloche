@@ -9,7 +9,7 @@ import PlantelEquipo from "../equipos/PlantelEquipo";
 
 import { crearEquipo, getEquiposByClub } from "../../../api/equipos.api";
 import { getPersonas as searchPersonas } from "../../../api/personas.api"; // Asegúrate de que este sea el nombre correcto
-import { getClubById } from "../../../api/clubes.api";
+import { getClubById, updateClub } from "../../../api/clubes.api";
 import { crearFichaje, getFichajesPorClub, darBajaFichaje } from "../../../api/fichajes.api";
 
 import type { Club } from "../../../types/club";
@@ -40,6 +40,10 @@ export default function ClubDetalle() {
   const [showFichados, setShowFichados] = useState(false); 
   const [saving, setSaving] = useState(false);
   const [equipoAbierto, setEquipoAbierto] = useState<number | null>(null);
+  const [showInfoClub, setShowInfoClub] = useState(false);
+  const [editandoClub, setEditandoClub] = useState(false);
+  const [clubForm, setClubForm] = useState({ direccion: "", telefono: "", email: "", provincia: "", ciudad: "" });
+  const [savingClub, setSavingClub] = useState(false);
 
   const [form, setForm] = useState<EquipoCreate>({
     nombre: "", categoria: "", genero: "", id_club: Number(id_club),
@@ -50,6 +54,17 @@ export default function ClubDetalle() {
     searchTerm: "",
     rol: "JUGADOR" // Valor inicial predeterminado
   });
+
+  const handleGuardarClub = async () => {
+    if (!id_club) return;
+    setSavingClub(true);
+    try {
+      const updated = await updateClub(Number(id_club), clubForm);
+      setClub(updated);
+      setEditandoClub(false);
+    } catch (err) { alert("Error al guardar"); }
+    finally { setSavingClub(false); }
+  };
 
   const cargarFichajes = async () => {
     if (!id_club) return;
@@ -69,6 +84,13 @@ export default function ClubDetalle() {
       ]);
       setClub(clubData);
       setEquipos(equiposData);
+      setClubForm({
+        direccion: clubData.direccion ?? "",
+        telefono: clubData.telefono ?? "",
+        email: clubData.email ?? "",
+        provincia: clubData.provincia ?? "",
+        ciudad: clubData.ciudad ?? "",
+      });
       await cargarFichajes();
     } catch (err) { console.error(err); } 
     finally { setLoading(false); }
@@ -164,9 +186,65 @@ export default function ClubDetalle() {
           <span className={styles.cityBadge}>{club.ciudad}</span>
         </div>
         <div className={styles.botones}>
+          <Button variant="secondary" onClick={() => { setShowInfoClub(!showInfoClub); setEditandoClub(false); }}>
+            {showInfoClub ? "Ocultar info" : "ℹ Info del club"}
+          </Button>
           <Button onClick={() => navigate("/admin/clubes")}>← Volver</Button>
         </div>
       </header>
+
+      {showInfoClub && (
+        <div className={styles.infoClubPanel}>
+          {!editandoClub ? (
+            <>
+              <div className={styles.infoClubGrid}>
+                <div className={styles.infoClubItem}>
+                  <span className={styles.infoLabel}>Provincia</span>
+                  <span className={styles.infoValue}>{club.provincia || <em>Sin datos</em>}</span>
+                </div>
+                <div className={styles.infoClubItem}>
+                  <span className={styles.infoLabel}>Ciudad</span>
+                  <span className={styles.infoValue}>{club.ciudad || <em>Sin datos</em>}</span>
+                </div>
+                <div className={styles.infoClubItem}>
+                  <span className={styles.infoLabel}>Dirección</span>
+                  <span className={styles.infoValue}>{club.direccion || <em>Sin datos</em>}</span>
+                </div>
+                <div className={styles.infoClubItem}>
+                  <span className={styles.infoLabel}>Teléfono</span>
+                  <span className={styles.infoValue}>{club.telefono || <em>Sin datos</em>}</span>
+                </div>
+                <div className={styles.infoClubItem}>
+                  <span className={styles.infoLabel}>Email</span>
+                  <span className={styles.infoValue}>{club.email || <em>Sin datos</em>}</span>
+                </div>
+              </div>
+              <div className={styles.infoClubActions}>
+                <Button variant="secondary" onClick={() => setEditandoClub(true)}>✏ Editar</Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className={styles.infoClubGrid}>
+                {(["provincia", "ciudad", "direccion", "telefono", "email"] as const).map((campo) => (
+                  <div key={campo} className={styles.infoClubItem}>
+                    <label className={styles.infoLabel}>{campo.charAt(0).toUpperCase() + campo.slice(1)}</label>
+                    <input
+                      className={styles.infoInput}
+                      value={clubForm[campo]}
+                      onChange={(e) => setClubForm({ ...clubForm, [campo]: e.target.value })}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className={styles.infoClubActions}>
+                <Button variant="secondary" onClick={() => setEditandoClub(false)}>Cancelar</Button>
+                <Button onClick={handleGuardarClub} disabled={savingClub}>Guardar</Button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       <div className={styles.actionBar}>
         <div className={styles.actionButtons}>

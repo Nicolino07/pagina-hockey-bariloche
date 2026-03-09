@@ -177,3 +177,65 @@
   gap: 10px;
   margin-top: 15px;
 }
+
+/* Panel info del club */
+.infoClubPanel {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.infoClubGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.infoClubItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.infoLabel {
+  color: #8ab4f8;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.infoValue {
+  color: #e0e0e0;
+  font-size: 0.95rem;
+}
+
+.infoValue em {
+  color: #555;
+  font-style: italic;
+}
+
+.infoInput {
+  background: #2d2d2d;
+  border: 1px solid #444;
+  color: white;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.infoInput:focus {
+  outline: none;
+  border-color: #8ab4f8;
+}
+
+.infoClubActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #333;
+  padding-top: 15px;
+}
