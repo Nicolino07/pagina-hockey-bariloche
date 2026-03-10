@@ -1,3 +1,16 @@
+/**
+ * App.tsx
+ * Componente raíz de la aplicación. Define el árbol de rutas completo.
+ *
+ * Estructura de rutas:
+ * - Rutas públicas: Home, Login, recuperación de contraseña, clubes, noticias, posiciones.
+ * - Rutas admin generales (EDITOR / ADMIN / SUPERUSUARIO): partidos, noticias, fichajes.
+ * - Rutas admin estructurales (ADMIN / SUPERUSUARIO): clubes, equipos, torneos, personas.
+ * - Rutas exclusivas SUPERUSUARIO: gestión de usuarios del sistema.
+ *
+ * También gestiona el modo oscuro/claro (ThemeToggle) y aplica la política
+ * de seguridad de contenido (CSP) en entornos de producción.
+ */
 import { Routes, Route } from "react-router-dom"
 import Login from "./pages/login/Login"
 import Home from "./pages/public/home/Home"

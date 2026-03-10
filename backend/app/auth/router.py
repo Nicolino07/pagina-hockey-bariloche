@@ -1,5 +1,26 @@
-# Este archivo contiene las rutas relacionadas con autenticación, gestión de usuarios e invitaciones.
-# app/auth/router.py
+"""
+app/auth/router.py
+Rutas de autenticación, gestión de usuarios e invitaciones.
+
+Endpoints públicos:
+  - POST /auth/login               → Obtiene access token y guarda refresh token en cookie.
+  - POST /auth/refresh             → Renueva el access token usando el refresh token.
+  - POST /auth/logout              → Invalida la sesión y elimina la cookie.
+  - GET  /auth/validar-invitacion  → Valida el token de invitación recibido por email.
+  - POST /auth/confirmar-registro  → Completa el registro del usuario invitado.
+  - POST /auth/recuperar-password  → Envía email de recuperación de contraseña.
+  - POST /auth/reset-password-confirm → Confirma el cambio de contraseña vía token.
+
+Endpoints protegidos (usuario autenticado):
+  - GET   /auth/me                   → Devuelve datos del usuario actual.
+  - PATCH /auth/cambiar-password     → Cambia la contraseña del usuario logueado.
+
+Endpoints exclusivos SUPERUSUARIO:
+  - POST  /auth/invitar              → Envía invitación por email a un nuevo usuario.
+  - GET   /auth/usuarios             → Lista todos los usuarios activos.
+  - PATCH /auth/usuarios/{id}/rol    → Cambia el rol de un usuario.
+  - PATCH /auth/usuarios/{id}/estado → Activa o desactiva un usuario.
+"""
 import os
 from app.services import usuarios_services
 from slowapi import Limiter
@@ -10,7 +31,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from slowapi.util import get_remote_address
 from app.database import get_db
-from app.dependencies.permissions import require_admin, require_superuser
+from app.dependencies.permissions import require_superuser
 from app.schemas.user import UserInviteRequest
 from app.auth.security import create_access_token
 from app.core.email import send_invite_email, send_reset_password_email
@@ -46,6 +67,11 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
+    """
+    Autentica al usuario con usuario y contraseña.
+    Devuelve un access token JWT y establece el refresh token en una cookie HTTP-only.
+    Limitado a 5 intentos por minuto por IP.
+    """
     access_token, refresh_token = login_user(
         db,
         form_data.username,
@@ -70,6 +96,7 @@ def login(
 
 @router.post("/refresh")
 def refresh(request: Request, response: Response, db: Session = Depends(get_db)):
+    """Renueva el access token usando el refresh token almacenado en cookie."""
     access_token, new_refresh_token = refresh_access_token(db, request)
 
     response.set_cookie(
@@ -86,6 +113,7 @@ def refresh(request: Request, response: Response, db: Session = Depends(get_db))
 
 @router.post("/logout")
 def logout(request: Request, response: Response, db: Session = Depends(get_db)):
+    """Invalida el refresh token en la base de datos y elimina la cookie del cliente."""
     logout_user(db, request)
     response.delete_cookie("refresh_token")
     return {"ok": True}
@@ -93,6 +121,7 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)):
 
 @router.get("/me")
 def me(user: Usuario = Depends(get_current_user)):
+    """Devuelve el ID, email y rol del usuario actualmente autenticado."""
     return {
         "id": user.id_usuario,
         "email": user.email,
@@ -100,7 +129,7 @@ def me(user: Usuario = Depends(get_current_user)):
     }
 
 
-
+# 🔐 SUPERUSUARIO
 @router.post("/invitar")
 async def invitar_usuario(
     payload: UserInviteRequest,
@@ -127,6 +156,10 @@ async def invitar_usuario(
 
 @router.get("/validar-invitacion/{token}")
 def validar_token_invitacion(token: str):
+    """
+    Valida el token de invitación recibido por email.
+    Devuelve el email y rol asociados si el token es válido y no ha expirado.
+    """
     try:
         # Decodificamos el token usando tu secret key
         payload = jwt.decode(
@@ -155,6 +188,10 @@ def validar_token_invitacion(token: str):
 
 @router.post("/confirmar-registro")
 def confirmar_registro(payload: UserConfirm, db: Session = Depends(get_db)):
+    """
+    Completa el registro del usuario invitado.
+    Verifica el token, crea la cuenta en la base de datos y la activa.
+    """
     try:
         data = jwt.decode(payload.token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
         
@@ -184,13 +221,13 @@ def confirmar_registro(payload: UserConfirm, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Cuenta activada exitosamente. Ya puedes iniciar sesión."}
 
-
+# 🔐 SUPERUSUARIO
 @router.get("/usuarios", response_model=List[UsuarioSchema]) # Usa el Schema aquí
 def get_usuarios(db: Session = Depends(get_db),
     admin = Depends(require_superuser)):
     return db.query(UsuarioModel).filter(UsuarioModel.borrado_en == None).all()
 
-
+# 🔐 SUPERUSUARIO
 # 2. Cambiar Rol
 @router.patch("/usuarios/{id_usuario}/rol")
 def cambiar_rol(
@@ -205,6 +242,7 @@ def cambiar_rol(
 
     return {"message": "Rol actualizado correctamente"}
 
+# 🔐 SUPERUSUARIO
 # 3. Cambiar Estado (Activo/Inactivo)
 @router.patch("/usuarios/{id_usuario}/estado")
 def cambiar_estado(
@@ -230,10 +268,14 @@ def cambiar_estado(
 # --- CAMBIO DE PASSWORD (LOGUEADO) ---
 @router.patch("/cambiar-password")
 def cambiar_password(
-    payload: PasswordChangeRequest, 
-    db: Session = Depends(get_db), 
+    payload: PasswordChangeRequest,
+    db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
+    """
+    Cambia la contraseña del usuario autenticado.
+    Verifica que la contraseña actual sea correcta antes de actualizar.
+    """
     # Verificar que la contraseña actual coincida
     if not verify_password(payload.old_password, current_user.password_hash):
         raise HTTPException(
@@ -272,6 +314,10 @@ async def recuperar_password(
 # --- CONFIRMAR RESET (PÚBLICO - VIENE DEL MAIL) ---
 @router.post("/reset-password-confirm")
 def reset_confirm(payload: ResetPasswordConfirm, db: Session = Depends(get_db)):
+    """
+    Confirma el restablecimiento de contraseña usando el token recibido por email.
+    Verifica que el token sea válido y de tipo 'reset' antes de actualizar la contraseña.
+    """
     try:
         data = jwt.decode(payload.token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
         if data.get("type") != "reset":

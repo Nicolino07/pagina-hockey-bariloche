@@ -12,7 +12,7 @@ from app.schemas.torneo import (
     TorneoUpdate,
     TorneoFinalizar
 )
-from app.dependencies.permissions import require_admin, require_superuser
+from app.dependencies.permissions import require_superuser
 from app.models.usuario import Usuario
 from app.services import torneos_services
 
@@ -44,12 +44,12 @@ def obtener_torneo(id_torneo: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=str(e))
 
 
-# 🔐 ADMIN - Crear torneo
+# 🔐 SUPERUSUARIO - Crear torneo
 @router.post("/", response_model=TorneoSchema, status_code=status.HTTP_201_CREATED)
 def crear_torneo(
     data: TorneoCreate,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(require_superuser),
 ):
     """Crea un nuevo torneo"""
     try:
@@ -58,13 +58,13 @@ def crear_torneo(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# 🔐 ADMIN - Actualizar torneo
+# 🔐 SUPERUSUARIO - Actualizar torneo
 @router.put("/{id_torneo}", response_model=TorneoSchema)
 def actualizar_torneo(
     id_torneo: int, 
     data: TorneoUpdate, 
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_admin)
+    current_user: Usuario = Depends(require_superuser)
 ):
     """Actualiza un torneo existente"""
     try:
@@ -73,12 +73,12 @@ def actualizar_torneo(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# 🔐 ADMIN - Soft Delete
+# 🔐 SUPERUSUARIO - Soft Delete
 @router.delete("/{id_torneo}", status_code=status.HTTP_200_OK)
 def eliminar_torneo_soft(
     id_torneo: int,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_admin)
+    current_user: Usuario = Depends(require_superuser)
 ):
     """Eliminación lógica (soft delete) de un torneo"""
     try:
@@ -92,13 +92,13 @@ def eliminar_torneo_soft(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# 🔐 ADMIN - Finalizar torneo
+# 🔐 SUPERUSUARIO - Finalizar torneo
 @router.post("/{id_torneo}/finalizar", response_model=TorneoSchema)
 def finalizar_torneo(
     id_torneo: int,
     data: TorneoFinalizar = None,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_admin)
+    current_user: Usuario = Depends(require_superuser)
 ):
     """Finaliza un torneo (marca como inactivo)"""
     try:
@@ -112,12 +112,12 @@ def finalizar_torneo(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# 🔐 ADMIN - Restaurar torneo
+# 🔐 SUPERUSUARIO - Restaurar torneo
 @router.post("/{id_torneo}/restaurar", response_model=TorneoSchema)
 def restaurar_torneo(
     id_torneo: int,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_admin)
+    current_user: Usuario = Depends(require_superuser)
 ):
     """Restaura un torneo previamente eliminado"""
     try:
@@ -126,12 +126,12 @@ def restaurar_torneo(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# 🔐 ADMIN - Reabrir torneo (si se necesita)
+# 🔐 SUPERUSUARIO - Reabrir torneo (si se necesita)
 @router.post("/{id_torneo}/reabrir", response_model=TorneoSchema)
 def reabrir_torneo(
     id_torneo: int,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_admin)
+    current_user: Usuario = Depends(require_superuser)
 ):
     """Reabre un torneo finalizado (lo marca como activo)"""
     try:
@@ -153,7 +153,7 @@ def reabrir_torneo(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
+# 🔐 SUPERUSUARIO
 @router.delete("/{id_torneo}/fisico", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_torneo_fisico(
     id_torneo: int,

@@ -1,3 +1,9 @@
+"""
+Rutas para la gestión de fichajes (vinculación de personas a clubes con un rol).
+- Crear fichaje: rol EDITOR o superior.
+- Dar de baja un fichaje: rol ADMIN o superior.
+- Consultas de fichajes activos por club/rol: acceso público.
+"""
 from app.models.fichaje_rol import FichajeRol
 from app.models.persona import Persona
 from fastapi import APIRouter, Depends, status
@@ -13,7 +19,7 @@ from app.schemas.fichaje_rol import (
     FichajeRolBaja,
 )
 from app.services import fichajes_services
-from app.dependencies.permissions import require_editor, require_admin
+from app.dependencies.permissions import require_admin
 
 router = APIRouter(
     prefix="/fichajes",
@@ -21,6 +27,7 @@ router = APIRouter(
 )
 
 
+# 🔐 ADMIN / SUPERUSUARIO
 @router.post(
     "",
     response_model=FichajeRolRead,
@@ -30,8 +37,13 @@ router = APIRouter(
 def crear_fichaje(
     data: FichajeRolCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(require_editor),
+    current_user=Depends(require_admin),
 ):
+    """
+    Registra un nuevo fichaje de una persona en un club con un rol determinado.
+    Si no se indica fecha de inicio, se usa la fecha actual.
+    Requiere rol EDITOR o superior.
+    """
     return fichajes_services.crear_fichaje(
         db=db,
         id_persona=data.id_persona,
@@ -42,6 +54,7 @@ def crear_fichaje(
     )
 
 
+# 🔐 ADMIN / SUPERUSUARIO
 @router.patch(
     "/{id_fichaje_rol}/baja",
     response_model=FichajeRolRead,
@@ -53,13 +66,16 @@ def dar_baja_fichaje(
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
+    """
+    Cierra un fichaje activo registrando la fecha de fin.
+    Requiere rol ADMIN o superior.
+    """
     return fichajes_services.dar_baja_fichaje(
         db=db,
         id_fichaje_rol=id_fichaje_rol,
         fecha_fin=data.fecha_fin,
         actualizado_por=data.actualizado_por,
     )
-
 
 
 @router.get(
@@ -73,6 +89,7 @@ def obtener_fichajes_activos_por_club_y_rol(
 ):
     """
     Devuelve personas fichadas activamente en un club con un rol específico.
+    Acceso público.
     """
     return (
         db.query(FichajeRol)
@@ -86,7 +103,6 @@ def obtener_fichajes_activos_por_club_y_rol(
     )
 
 
-
 @router.get(
     "/club/{id_club}",
     response_model=List[FichajeConPersona],
@@ -98,24 +114,24 @@ def obtener_fichajes_por_club(
     db: Session = Depends(get_db),
 ):
     """
-    Devuelve todos los fichajes de un club.
-    Si solo_activos=True, solo devuelve fichajes sin fecha_fin.
+    Devuelve todos los fichajes de un club con los datos de la persona.
+    Si `solo_activos=True` (por defecto), solo devuelve fichajes vigentes (sin fecha_fin).
+    Acceso público.
     """
     query = (
         db.query(FichajeRol)
         .join(Persona, FichajeRol.id_persona == Persona.id_persona)
         .filter(FichajeRol.id_club == id_club)
     )
-    
+
     if solo_activos:
         query = query.filter(
             FichajeRol.activo.is_(True),
             FichajeRol.fecha_fin.is_(None)
         )
-    
+
     fichajes = query.all()
-    
-    # Construir respuesta con datos de persona
+
     resultado = []
     for fichaje in fichajes:
         persona = db.get(Persona, fichaje.id_persona)
@@ -134,5 +150,5 @@ def obtener_fichajes_por_club(
             "persona_genero": persona.genero,
             "persona_nacimiento": persona.fecha_nacimiento,
         })
-    
+
     return resultado

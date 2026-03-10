@@ -1,3 +1,13 @@
+/**
+ * AuthContext.tsx
+ * Contexto global de autenticación de la aplicación.
+ *
+ * Provee el estado del usuario autenticado, métodos de login/logout
+ * y un indicador de carga mientras se valida el token contra el servidor.
+ *
+ * Al iniciar, intenta restaurar la sesión desde localStorage y valida
+ * el token con el endpoint /auth/me antes de renderizar las rutas protegidas.
+ */
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import axiosAdmin from '../api/axiosAdmin' 

@@ -1,13 +1,18 @@
+"""
+Rutas para la gestión de noticias del sitio.
+- Lectura: acceso público (solo noticias no eliminadas).
+- Creación y actualización: rol ADMIN o superior.
+- Eliminación (soft delete): rol ADMIN o superior.
+"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
 
-# Importa tus esquemas, modelos y la función get_db
 from app.database import get_db
 from app.models.noticia import Noticia
 from app.schemas.noticia import NoticiaCreate, NoticiaOut, NoticiaUpdate
-from app.dependencies.permissions import require_editor, require_admin
+from app.dependencies.permissions import require_admin
 
 router = APIRouter(prefix="/noticias", tags=["Noticias"])
 
@@ -36,9 +41,10 @@ def obtener_detalle_noticia(id_noticia: int, db: Session = Depends(get_db)):
 
 
 # --- RUTAS ADMINISTRATIVAS ---
-
+# 🔐 SUPERUSUARIO / ADMIN
 @router.post("/", response_model=NoticiaOut, status_code=status.HTTP_201_CREATED)
-def crear_nueva_noticia(noticia: NoticiaCreate, db: Session = Depends(get_db), current_user=Depends(require_editor)):
+def crear_nueva_noticia(noticia: NoticiaCreate, db: Session = Depends(get_db),
+                         current_user = Depends(require_admin)):
     """ Crea una noticia desde el panel de administración """
     nueva_noticia = Noticia(**noticia.model_dump())
     db.add(nueva_noticia)
@@ -46,8 +52,13 @@ def crear_nueva_noticia(noticia: NoticiaCreate, db: Session = Depends(get_db), c
     db.refresh(nueva_noticia)
     return nueva_noticia
 
+# 🔐 SUPERUSUARIO / ADMIN
 @router.put("/{id_noticia}", response_model=NoticiaOut)
-def actualizar_noticia(id_noticia: int, noticia_update: NoticiaUpdate, db: Session = Depends(get_db), current_user=Depends(require_editor)):
+def actualizar_noticia(
+    id_noticia: int,
+    noticia_update: NoticiaUpdate, 
+    db: Session = Depends(get_db), 
+    current_user=Depends(require_admin)):
     """ Actualiza una noticia existente """
     query = db.query(Noticia).filter(Noticia.id_noticia == id_noticia)
     noticia_db = query.first()
@@ -64,6 +75,7 @@ def actualizar_noticia(id_noticia: int, noticia_update: NoticiaUpdate, db: Sessi
     db.refresh(noticia_db)
     return noticia_db
 
+# 🔐 SUPERUSUARIO / ADMIN
 @router.delete("/{id_noticia}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_noticia(id_noticia: int, db: Session = Depends(get_db), current_user=Depends(require_admin)):
     """ 

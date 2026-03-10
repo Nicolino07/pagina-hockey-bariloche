@@ -1,3 +1,15 @@
+/**
+ * ProtectedRoute.tsx
+ * Componente de ruta protegida por autenticación y roles.
+ *
+ * Redirige al login si el usuario no está autenticado.
+ * Redirige a /unauthorized si el usuario no tiene el rol requerido.
+ * Muestra un indicador de carga mientras se verifica la sesión.
+ *
+ * Props:
+ *   allowedRoles: lista de roles permitidos (ej. ['ADMIN', 'SUPERUSUARIO']).
+ *                 Si se omite, solo verifica que el usuario esté autenticado.
+ */
 import { Navigate, Outlet } from "react-router-dom"
 import { useAuth } from "./AuthContext"
 

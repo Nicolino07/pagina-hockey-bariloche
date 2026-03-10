@@ -1,3 +1,10 @@
+"""
+Rutas para la gestión de equipos deportivos.
+Incluye operaciones CRUD y restauración de equipos eliminados.
+- Lectura: acceso público.
+- Creación y actualización: rol ADMIN o superior.
+- Eliminación y restauración: rol SUPERUSUARIO.
+"""
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -16,6 +23,10 @@ def listar_equipos(
     id_club: int | None = None,
     db: Session = Depends(get_db),
 ):
+    """
+    Devuelve la lista de equipos. Permite filtrar por nombre o por club.
+    Acceso público.
+    """
     return equipos_services.listar_equipos(db, nombre, id_club)
 
 # 🔓 Público
@@ -24,6 +35,7 @@ def obtener_equipo(
     equipo_id: int,
     db: Session = Depends(get_db),
 ):
+    """Devuelve los datos de un equipo específico por su ID. Acceso público."""
     return equipos_services.obtener_equipo(db, equipo_id)
 
 
@@ -34,6 +46,7 @@ def crear_equipo(
     db: Session = Depends(get_db),
     current_user = Depends(require_admin),
 ):
+    """Crea un nuevo equipo. Requiere rol ADMIN o SUPERUSUARIO."""
     return equipos_services.crear_equipo(db, data, current_user)
 
 
@@ -45,6 +58,7 @@ def actualizar_equipo(
     db: Session = Depends(get_db),
     current_user = Depends(require_admin),
 ):
+    """Actualiza los datos de un equipo existente. Requiere rol ADMIN o SUPERUSUARIO."""
     return equipos_services.actualizar_equipo(db, equipo_id, data, current_user)
 
 
@@ -55,6 +69,7 @@ def eliminar_equipo(
     db: Session = Depends(get_db),
     current_user = Depends(require_superuser),
 ):
+    """Elimina lógicamente (soft delete) un equipo. Solo accesible por SUPERUSUARIO."""
     equipos_services.eliminar_equipo(db, equipo_id, current_user)
 
 # 🔐 SUPERUSUARIO
@@ -64,4 +79,5 @@ def restore_equipo(
     db: Session = Depends(get_db),
     current_user = Depends(require_superuser),
 ):
+    """Restaura un equipo previamente eliminado. Solo accesible por SUPERUSUARIO."""
     return equipos_services.restaurar_equipo(db, equipo_id, current_user)
