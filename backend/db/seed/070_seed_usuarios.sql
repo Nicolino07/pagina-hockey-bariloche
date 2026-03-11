@@ -9,8 +9,6 @@ INSERT INTO usuario (username, email, password_hash, tipo, creado_por) VALUES
   'SUPERUSUARIO',
   'sistema_init'
 );
--- password: admin123
-
 
 COMMIT;
 

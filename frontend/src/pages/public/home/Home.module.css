@@ -231,11 +231,11 @@
 
 }
 
-/* Contenedor del Modal con más aire */
+/* Contenedor del Modal */
 .modalContent {
   background: #1e1e1e;
-  width: 95%; /* Un poco más ancho en tablets */
-  max-width: 950px; /* Aumentamos el ancho máximo */
+  width: 95%;
+  max-width: 950px;
   max-height: 85vh;
   border-radius: 32px;
   overflow-y: auto;
@@ -357,63 +357,44 @@
   margin: 10px 0;
 }
 
-.modalContent {
-  background: #1e1e1e;
-  width: 90%;
-  max-width: 850px;
-  max-height: 90vh;
-  border-radius: 28px;
-  overflow-y: auto;
-  border: 1px solid #3c4043;
-}
-
 .modalHeader {
-  padding: 30px;
+  padding: 24px 30px;
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   background: #252629;
-}
-
-.mainScoreBanner {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 40px;
-  padding: 40px 20px;
-  background: #202124;
   border-bottom: 1px solid #3c4043;
 }
 
-.bigTeamName {
-  font-size: 1.5rem;
-  font-weight: 700;
-  flex: 1;
-  text-align: center;
+.subHeader {
+  color: #9aa0a6;
+  font-size: 0.85rem;
+  margin: 4px 0 0 0;
 }
 
+.closeBtn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+}
 
 .refereeRibbon {
   background: #303134;
-  padding: 10px;
+  padding: 10px 20px;
   text-align: center;
   font-size: 0.85rem;
   color: #9aa0a6;
 }
 
-.detailsBody {
-  padding: 30px;
-}
-
-.teamSection h3 {
-  border-bottom: 1px solid #3c4043;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-}
-
-.infoGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
+.refereeItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .plantillaList {
@@ -426,12 +407,22 @@
   display: flex;
   gap: 12px;
   font-size: 0.9rem;
+  align-items: center;
 }
 
 .tshirt {
   color: #8ab4f8;
   font-weight: 800;
   width: 25px;
+  flex-shrink: 0;
+}
+
+.modalFooter {
+  padding: 15px 30px;
+  background: #252629;
+  border-top: 1px solid #3c4043;
+  font-size: 0.85rem;
+  color: #9aa0a6;
 }
 
 
@@ -447,10 +438,7 @@
 .amarilla { background-color: #ffeb3b; }
 .roja { background-color: #f44336; }
 
-@media (max-width: 768px) {
-  .infoGrid { grid-template-columns: 1fr; }
-  .header h1 { font-size: 2rem; }
-}
+/* placeholder removed - handled in main responsive block below */
 
 /* --- RESPONSIVIDAD GLOBAL --- */
 
@@ -524,23 +512,31 @@
     font-size: 0.75rem;
   }
 
+  /* En mobile, la celda "Encuentro" apila los nombres */
   .matchupRow {
+    flex-wrap: wrap;
     justify-content: flex-end;
-    text-align: right;
+    gap: 4px;
   }
 
-  /* Modal Adaptable */
+  /* Modal adaptable a pantalla completa */
   .modalContent {
     width: 100%;
-    height: 100vh;
-    max-height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
     border-radius: 0;
   }
 
   .mainScoreBanner {
     flex-direction: column;
-    gap: 20px;
-    padding: 30px 15px;
+    gap: 16px;
+    padding: 24px 16px;
+  }
+
+  /* En mobile los nombres van centrados, no derecha/izquierda */
+  .bigTeamName {
+    font-size: 1.2rem;
+    text-align: center !important;
   }
 
   .bigScore {
@@ -548,12 +544,21 @@
   }
 
   .infoGrid {
-    grid-template-columns: 1fr; /* Apilamos Plantilla e Incidencias */
-    gap: 40px;
+    grid-template-columns: 1fr;
+    gap: 30px;
   }
 
   .detailsBody {
-    padding: 20px;
+    padding: 20px 16px;
+    gap: 30px;
+  }
+
+  .modalHeader {
+    padding: 16px;
+  }
+
+  .closeBtn {
+    font-size: 1.6rem;
   }
 }
 

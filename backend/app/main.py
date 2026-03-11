@@ -88,6 +88,7 @@ from app.routers import (
     goles_router as goles,
     tarjetas_router as tarjetas,
     posiciones_router as posiciones,
+    fixture_router as fixture,
 )
 
 @app.get(f"{API_PREFIX}/")  # 🔥 También movemos el root
@@ -110,3 +111,4 @@ app.include_router(estadisticas, prefix=API_PREFIX)
 app.include_router(goles, prefix=API_PREFIX)
 app.include_router(tarjetas, prefix=API_PREFIX)
 app.include_router(posiciones, prefix=API_PREFIX)
+app.include_router(fixture, prefix=API_PREFIX)

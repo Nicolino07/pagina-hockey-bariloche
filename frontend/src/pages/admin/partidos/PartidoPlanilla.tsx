@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTorneosActivos } from "../../../hooks/useTorneosActivos";
 import { useInscripcionesTorneo } from "../../../hooks/useInscripcionesTorneo";
 import { usePlantelActivo } from "../../../hooks/usePlantelActivo";
 import { crearPlanillaPartido } from "../../../api/partidos.api";
+import { obtenerFixturePartido } from "../../../api/fixture.api";
 import Button from "../../../components/ui/button/Button";
 import styles from "./PartidoPlanilla.module.css";
 import { getPersonasArbitro } from "../../../api/vistas/personas.api";
@@ -28,9 +29,13 @@ interface Tarjeta {
 
 export default function PartidoPlanilla() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fixtureId = searchParams.get("fixture") ? Number(searchParams.get("fixture")) : null;
+
   const { torneos } = useTorneosActivos();
   const [torneoId, setTorneoId] = useState<number | undefined>(undefined);
   const { inscripciones } = useInscripcionesTorneo(torneoId);
+  const [idFixturePartido, setIdFixturePartido] = useState<number | null>(null);
 
   const [inscripcionLocal, setInscripcionLocal] = useState<any>(null);
   const [inscripcionVisitante, setInscripcionVisitante] = useState<any>(null);
@@ -66,6 +71,34 @@ export default function PartidoPlanilla() {
   const [goles, setGoles] = useState<Gol[]>([]);
   const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
   const [camisetas, setCamisetas] = useState<Record<number, string>>({});
+
+  // Si viene ?fixture=X, precargamos los datos del partido programado
+  useEffect(() => {
+    if (!fixtureId) return
+    obtenerFixturePartido(fixtureId).then(fp => {
+      setIdFixturePartido(fp.id_fixture_partido)
+      setTorneoId(fp.id_torneo)
+      setPartidoInfo(prev => ({
+        ...prev,
+        fecha: fp.fecha_programada ?? prev.fecha,
+        horario: fp.horario ? fp.horario.slice(0, 5) : prev.horario,
+        ubicacion: fp.ubicacion ?? "",
+        numero_fecha: fp.numero_fecha ? String(fp.numero_fecha) : "",
+      }))
+      // Los equipos se precargan cuando inscripciones ya cargó (siguiente efecto)
+    }).catch(console.error)
+  }, [fixtureId])
+
+  // Cuando las inscripciones cargan y hay fixture, preseleccionar equipos
+  useEffect(() => {
+    if (!fixtureId || inscripciones.length === 0) return
+    obtenerFixturePartido(fixtureId).then(fp => {
+      const local = inscripciones.find(i => i.id_equipo === fp.id_equipo_local) ?? null
+      const visitante = inscripciones.find(i => i.id_equipo === fp.id_equipo_visitante) ?? null
+      setInscripcionLocal(local)
+      setInscripcionVisitante(visitante)
+    }).catch(console.error)
+  }, [fixtureId, inscripciones])
 
   useEffect(() => {
     const cargarArbitros = async () => {
@@ -156,7 +189,8 @@ export default function PartidoPlanilla() {
         minuto: Number(t.minuto) || 0,
         cuarto: Number(t.cuarto) || null,
         observaciones: ""
-      }))
+      })),
+      id_fixture_partido: idFixturePartido,
     };
     try {
       await crearPlanillaPartido(payload);

@@ -1,0 +1,209 @@
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.loader {
+  text-align: center;
+  padding: 60px;
+  color: var(--text-muted, #9aa0a6);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+}
+
+.subtitle {
+  color: var(--text-muted, #9aa0a6);
+  font-size: 1rem;
+}
+
+/* Filtros */
+.filtroRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.filtroBtn {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color, #3c4043);
+  background: var(--bg-card, #202124);
+  color: var(--text-muted, #9aa0a6);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.filtroBtn:hover {
+  border-color: #8ab4f8;
+  color: #8ab4f8;
+}
+
+.filtroBtnActive {
+  background: rgba(138, 180, 248, 0.15);
+  border-color: #8ab4f8;
+  color: #8ab4f8;
+  font-weight: 700;
+}
+
+/* Grupos por fecha */
+.grupo {
+  margin-bottom: 40px;
+}
+
+.grupoTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #8ab4f8;
+  border-bottom: 1px solid var(--border-color, #3c4043);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Cards de partidos */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card {
+  background: var(--bg-card, #202124);
+  border: 1px solid var(--border-color, #3c4043);
+  border-radius: 16px;
+  padding: 20px 24px;
+  transition: border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: #8ab4f8;
+}
+
+.torneo {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #9aa0a6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.equipos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.equipo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.equipo:first-child {
+  text-align: right;
+}
+
+.equipo:last-child {
+  text-align: left;
+}
+
+.vs {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #9aa0a6;
+  background: var(--bg-main, #121212);
+  padding: 4px 10px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.info {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.infoItem {
+  font-size: 0.85rem;
+  color: #9aa0a6;
+}
+
+.infoMsg {
+  text-align: center;
+  color: var(--text-muted, #9aa0a6);
+  padding: 40px 0;
+  font-size: 0.95rem;
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 600px) {
+  .container {
+    padding: 24px 12px;
+  }
+
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .equipo {
+    font-size: 0.95rem;
+  }
+
+  /* En pantallas muy chicas, apilar equipos verticalmente */
+  .equipos {
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .equipo:first-child,
+  .equipo:last-child {
+    text-align: center;
+  }
+
+  .vs {
+    order: -1; /* "vs" arriba, luego local, luego visitante */
+  }
+
+  .info {
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .filtroRow {
+    gap: 8px;
+  }
+
+  .filtroBtn {
+    font-size: 0.82rem;
+    padding: 7px 14px;
+  }
+}

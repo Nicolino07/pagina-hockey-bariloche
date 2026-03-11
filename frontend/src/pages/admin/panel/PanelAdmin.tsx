@@ -21,6 +21,10 @@ export default function PanelAdmin() {
           Torneos
         </Link>
 
+        <Link to="/admin/fixture" className={styles.card}>
+          Fixture
+        </Link>
+
         <Link to="/admin/partidos" className={styles.card}>
           Partidos
         </Link>

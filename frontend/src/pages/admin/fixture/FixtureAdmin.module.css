@@ -1,0 +1,207 @@
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  color: var(--text-muted, #9aa0a6);
+  font-size: 1rem;
+}
+
+/* Selector de torneo */
+.selectorRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-muted, #9aa0a6);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.select {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #3c4043);
+  background: var(--bg-card, #202124);
+  color: var(--text-primary, #e8eaed);
+  font-size: 0.95rem;
+  min-width: 280px;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #3c4043);
+  background: var(--bg-card, #202124);
+  color: var(--text-primary, #e8eaed);
+  font-size: 0.95rem;
+}
+
+/* Formulario */
+.formCard {
+  background: var(--bg-card, #202124);
+  border: 1px solid var(--border-color, #3c4043);
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 32px;
+}
+
+.formTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.formActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.errorMsg {
+  color: #f28b82;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+/* Lista */
+.lista {
+  margin-top: 8px;
+}
+
+.infoMsg {
+  color: var(--text-muted, #9aa0a6);
+  font-size: 0.95rem;
+  padding: 16px 0;
+}
+
+.tablaWrap {
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tabla th {
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--bg-card, #202124);
+  border-bottom: 2px solid var(--border-color, #3c4043);
+  color: var(--text-muted, #9aa0a6);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tabla td {
+  padding: 12px 12px;
+  border-bottom: 1px solid var(--border-color, #3c4043);
+  vertical-align: middle;
+}
+
+.jugado td {
+  opacity: 0.5;
+}
+
+.badgePendiente {
+  background: rgba(138, 180, 248, 0.15);
+  color: #8ab4f8;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badgeJugado {
+  background: rgba(129, 201, 149, 0.15);
+  color: #81c995;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.acciones {
+  display: flex;
+  gap: 8px;
+}
+
+.btnCargar {
+  background: rgba(129, 201, 149, 0.15);
+  color: #81c995;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.btnCargar:hover {
+  background: rgba(129, 201, 149, 0.3);
+}
+
+.btnEditar {
+  background: rgba(138, 180, 248, 0.15);
+  color: #8ab4f8;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.btnEditar:hover {
+  background: rgba(138, 180, 248, 0.3);
+}
+
+.btnEliminar {
+  background: rgba(242, 139, 130, 0.15);
+  color: #f28b82;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.btnEliminar:hover {
+  background: rgba(242, 139, 130, 0.3);
+}

@@ -39,6 +39,8 @@ import SolicitarRecuperacion from "./pages/login/SolicitarRecuperacion"
 import ResetPasswordForm from "./pages/login/ResetPassword";
 import NoticiaDetalle from "./pages/public/noticias/NoticiaDetalle"
 import Noticias from "./pages/public/noticias/Noticias"
+import FixturePage from "./pages/public/fixture/FixturePage"
+import FixtureAdmin from "./pages/admin/fixture/FixtureAdmin"
 import MainLayout from "./layouts/MainLayout"
 
 import { useState, useEffect } from 'react';
@@ -109,7 +111,7 @@ export default function App() {
 
         <Route path="/noticias" element={<Noticias />} />
         <Route path="/noticias/:id" element={<NoticiaDetalle />} />
-        
+        <Route path="/fixture" element={<FixturePage />} />
 
         {/* ADMIN GENERAL */}
         <Route
@@ -118,7 +120,9 @@ export default function App() {
           }
         >
           <Route path="/admin" element={<PanelAdmin />} />
+          <Route path="/admin/fixture" element={<FixtureAdmin />} />
           <Route path="/admin/partidos" element={<PartidosPage />} />
+          <Route path="/admin/partidos/nueva-planilla" element={<PartidoPlanilla />} />
           <Route path="/admin/partidos/:id_partido" element={<PartidoPlanilla />} />
           <Route path="/admin/noticias" element={<NoticiasForm />} />
           <Route path="/admin/fichajes" element={<FichajesAdmin />} />

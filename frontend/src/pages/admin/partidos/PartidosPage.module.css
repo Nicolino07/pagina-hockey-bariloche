@@ -362,8 +362,10 @@
   
   /* Ajuste específico para la fila de equipos en la tabla móvil */
   .matchupRow {
+    flex-wrap: wrap;
     justify-content: flex-end;
     width: 100%;
+    gap: 4px;
   }
 }
 
@@ -409,4 +411,43 @@
     height: 100%;
     border-radius: 0; /* Modal full screen en móviles */
   }
+}
+
+.fixtureList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 360px;
+  overflow-y: auto;
+  margin: 16px 0;
+}
+
+.fixtureItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  background: #2a2a2a;
+  border: 1px solid #3c4043;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s;
+  color: #e8eaed;
+}
+
+.fixtureItem:hover {
+  border-color: #8ab4f8;
+  background: #333;
+}
+
+.fixtureEquipos {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.fixtureMeta {
+  font-size: 0.8rem;
+  color: #9aa0a6;
 }

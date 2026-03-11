@@ -19,6 +19,8 @@ from .inscripcion_torneo import InscripcionTorneo
 from .auditoria_log import AuditoriaLog
 from .mixins import AuditFieldsMixin, SoftDeleteMixin
 from .fichaje_rol import FichajeRol
+from .fixture_fecha import FixtureFecha
+from .fixture_partido import FixturePartido
 from .base import Base
 
 # Exportar todos los ENUMs 

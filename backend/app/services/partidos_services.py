@@ -9,6 +9,7 @@ from app.models.participan_partido import ParticipanPartido
 from app.models.gol import Gol
 from app.models.tarjeta import Tarjeta
 from app.models.plantel_integrante import PlantelIntegrante
+from app.models.fixture_partido import FixturePartido
 
 
 def crear_planilla_partido(db: Session, data, current_user):
@@ -104,6 +105,17 @@ def crear_planilla_partido(db: Session, data, current_user):
         # Disparo de triggers y fin
         partido.estado_partido = "TERMINADO"
         db.flush()
+
+        # =========================
+        # 5️⃣ Vincular fixture si viene
+        # =========================
+        if data.id_fixture_partido:
+            fp = db.get(FixturePartido, data.id_fixture_partido)
+            if fp and not fp.jugado:
+                fp.jugado = True
+                fp.id_partido_real = partido.id_partido
+                db.flush()
+
         db.commit()
         return partido
 

@@ -78,22 +78,26 @@ CREATE TABLE IF NOT EXISTS fixture_fecha (
 
 CREATE TABLE IF NOT EXISTS fixture_partido (
     id_fixture_partido  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_fixture_fecha    INT NOT NULL
+    id_fixture_fecha    INT
         REFERENCES fixture_fecha(id_fixture_fecha) ON DELETE CASCADE,
+    id_torneo           INT NOT NULL REFERENCES torneo(id_torneo) ON DELETE CASCADE,
     id_equipo_local     INT NOT NULL REFERENCES equipo(id_equipo),
     id_equipo_visitante INT NOT NULL REFERENCES equipo(id_equipo),
+
+    numero_fecha        INT,
+    fecha_programada    DATE,
+    horario             TIME,
+    ubicacion           VARCHAR(200),
 
     jugado              BOOLEAN NOT NULL DEFAULT FALSE,
     id_partido_real     INT REFERENCES partido(id_partido) ON DELETE SET NULL,
 
     creado_en           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     creado_por          VARCHAR(100),
+    actualizado_en      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT chk_fixture_equipos_distintos
-        CHECK (id_equipo_local <> id_equipo_visitante),
-
-    CONSTRAINT unq_fixture_partido
-        UNIQUE (id_fixture_fecha, id_equipo_local, id_equipo_visitante)
+        CHECK (id_equipo_local <> id_equipo_visitante)
 );
 
 

@@ -1,24 +1,39 @@
+from datetime import date, datetime, time
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
-class FixturePartidoBase(BaseModel):
-    id_fixture_fecha: int
+
+class FixturePartidoCreate(BaseModel):
+    """Datos para programar un partido futuro."""
+    id_torneo: int
     id_equipo_local: int
     id_equipo_visitante: int
+    fecha_programada: Optional[date] = None
+    horario: Optional[time] = None
+    ubicacion: Optional[str] = None
+    numero_fecha: Optional[int] = None
 
-class FixturePartidoCreate(FixturePartidoBase):
-    creado_por: Optional[str] = None
 
 class FixturePartidoUpdate(BaseModel):
-    jugado: Optional[bool] = None
-    id_partido_real: Optional[int] = None
+    """Campos editables de un partido programado."""
+    fecha_programada: Optional[date] = None
+    horario: Optional[time] = None
+    ubicacion: Optional[str] = None
+    numero_fecha: Optional[int] = None
 
-from datetime import datetime
-from pydantic import ConfigDict
 
-
-class FixturePartidoResponse(FixturePartidoBase):
+class FixturePartidoResponse(BaseModel):
     id_fixture_partido: int
+    id_torneo: int
+    id_equipo_local: int
+    id_equipo_visitante: int
+    nombre_equipo_local: Optional[str] = None
+    nombre_equipo_visitante: Optional[str] = None
+    nombre_torneo: Optional[str] = None
+    fecha_programada: Optional[date]
+    horario: Optional[time]
+    ubicacion: Optional[str]
+    numero_fecha: Optional[int]
     jugado: bool
     id_partido_real: Optional[int]
     creado_en: datetime

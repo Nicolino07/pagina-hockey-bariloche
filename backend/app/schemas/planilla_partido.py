@@ -72,4 +72,5 @@ class PlanillaPartidoCreate(BaseModel):
     participantes: ParticipantesPlanilla
     goles: list[GolPlanillaCreate] = []
     tarjetas: list[TarjetaPlanillaCreate] = []
+    id_fixture_partido: Optional[int] = None  # Si viene, se vincula el fixture al partido real
 

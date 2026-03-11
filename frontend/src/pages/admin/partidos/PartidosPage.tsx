@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import styles from "./PartidosPage.module.css";
 import Button from "../../../components/ui/button/Button";
 import { obtenerPartidosRecientes, obtenerDetallePartido } from "../../../api/partidos.api";
+import { listarProximosPartidos } from "../../../api/fixture.api";
 import { usePartidos } from "../../../hooks/usePartidos";
+import type { FixturePartido } from "../../../types/fixture";
 
 import { useTorneosActivos } from "../../../hooks/useTorneosActivos";
 import { useInscripcionesTorneo } from "../../../hooks/useInscripcionesTorneo";
-import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api"; 
+import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api";
 import { generarPlanillaPDF } from "../../../services/PlanillaVacia.service";
 
 export default function PartidosPage() {
@@ -18,6 +20,24 @@ export default function PartidosPage() {
   
   const navigate = useNavigate();
   const { parseIncidencias } = usePartidos();
+
+  // Estados para modal de fixture
+  const [showFixtureModal, setShowFixtureModal] = useState(false);
+  const [partidosPendientes, setPartidosPendientes] = useState<FixturePartido[]>([]);
+  const [loadingFixture, setLoadingFixture] = useState(false);
+
+  const abrirModalFixture = async () => {
+    setShowFixtureModal(true);
+    setLoadingFixture(true);
+    try {
+      const data = await listarProximosPartidos();
+      setPartidosPendientes(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingFixture(false);
+    }
+  };
 
   // Estados para Impresión de Planilla
   const { torneos } = useTorneosActivos();
@@ -144,6 +164,9 @@ export default function PartidosPage() {
         <div className={styles.botones}>
           <Button variant="outline" onClick={() => setShowPrintModal(true)}>
             🖨️ Imprimir Planilla Vacía
+          </Button>
+          <Button variant="outline" onClick={abrirModalFixture}>
+            📋 Desde fixture
           </Button>
           <Button variant="primary" onClick={() => navigate("/admin/partidos/nueva-planilla")}>
             + Cargar Resultado
@@ -349,6 +372,48 @@ export default function PartidosPage() {
             <div className={styles.modalFooter}>
                <p>Ubicación: <strong>{selectedPartido.ubicacion}</strong></p>
                <p className={styles.audit}>Cargado por: {selectedPartido.creado_por}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal fixture pendiente */}
+      {showFixtureModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowFixtureModal(false)}>
+          <div className={styles.modalContentSmall} onClick={e => e.stopPropagation()}>
+            <h3>Partidos pendientes del fixture</h3>
+            <p className={styles.modalHelp}>Seleccioná un partido para cargar su resultado.</p>
+
+            {loadingFixture ? (
+              <p>Cargando...</p>
+            ) : partidosPendientes.length === 0 ? (
+              <p className={styles.modalHelp}>No hay partidos pendientes en el fixture.</p>
+            ) : (
+              <div className={styles.fixtureList}>
+                {partidosPendientes.map(p => (
+                  <button
+                    key={p.id_fixture_partido}
+                    className={styles.fixtureItem}
+                    onClick={() => {
+                      setShowFixtureModal(false);
+                      navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`);
+                    }}
+                  >
+                    <span className={styles.fixtureEquipos}>
+                      {p.nombre_equipo_local} vs {p.nombre_equipo_visitante}
+                    </span>
+                    <span className={styles.fixtureMeta}>
+                      {p.nombre_torneo}
+                      {p.fecha_programada ? ` · ${p.fecha_programada}` : ""}
+                      {p.numero_fecha ? ` · Fecha ${p.numero_fecha}` : ""}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className={styles.modalActions}>
+              <Button variant="secondary" onClick={() => setShowFixtureModal(false)}>Cerrar</Button>
             </div>
           </div>
         </div>
