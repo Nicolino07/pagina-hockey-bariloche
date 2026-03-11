@@ -440,8 +440,8 @@ CREATE TABLE IF NOT EXISTS tarjeta (
 
 CREATE TABLE IF NOT EXISTS suspension (
     id_suspension           INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_persona_rol          INT NOT NULL 
-        REFERENCES persona_rol(id_persona_rol),
+    id_persona              INT NOT NULL
+        REFERENCES persona(id_persona),
     id_torneo               INT NOT NULL 
         REFERENCES torneo(id_torneo),
     id_partido_origen       INT 

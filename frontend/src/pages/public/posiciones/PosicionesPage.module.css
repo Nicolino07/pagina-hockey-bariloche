@@ -175,13 +175,38 @@
   border-collapse: collapse;
 }
 
+.statsTable th {
+  padding: 10px 10px;
+  text-align: center;
+  color: #9aa0a6;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-bottom: 1px solid #3c4043;
+}
+
 .statsTable td {
   padding: 12px 10px;
+  text-align: center;
+  vertical-align: middle;
   border-bottom: 1px solid #303134;
 }
 
+.statsTable tr:last-child td {
+  border-bottom: none;
+}
+
 .playerName { font-weight: 600; color: #fff; }
-.playerTeam { font-size: 0.75rem; color: #9aa0a6; }
+.playerTeam { font-size: 0.75rem; color: #9aa0a6; margin-top: 2px; }
+
+.bold { font-weight: 700; color: #fff; }
+
+.infoSmall {
+  font-size: 0.85rem;
+  color: #9aa0a6;
+  text-align: center;
+  padding: 16px 0;
+}
 
 /* Box de colores para tarjetas */
 .boxVerde, .boxAmarilla, .boxRoja, .boxTotal {

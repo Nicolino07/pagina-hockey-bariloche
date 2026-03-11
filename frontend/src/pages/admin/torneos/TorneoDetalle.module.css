@@ -80,6 +80,51 @@
   pointer-events: none;
 }
 
+/* --- TABLA DE POSICIONES --- */
+
+.tableCard {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 32px;
+}
+
+.responsiveScroll {
+  overflow-x: auto;
+}
+
+.posicionesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  color: #e0e0e0;
+}
+
+.posicionesTable th {
+  text-align: center;
+  padding: 8px;
+  color: #888;
+  font-weight: 500;
+  border-bottom: 1px solid #333;
+  white-space: nowrap;
+}
+
+.posicionesTable td {
+  text-align: center;
+  padding: 8px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.posicionesTable tr:last-child td {
+  border-bottom: none;
+}
+
+.posicionesTable td:nth-child(2) {
+  text-align: left;
+  font-weight: 500;
+}
+
 /* --- ESTADÍSTICAS --- */
 
 .statsGrid {

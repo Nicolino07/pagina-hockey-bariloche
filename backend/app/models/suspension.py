@@ -21,8 +21,8 @@ class Suspension(Base, AuditFieldsMixin):
 
     __table_args__ = (
         CheckConstraint(
-            "(tipo_suspension = 'por_partidos' AND fechas_suspension IS NOT NULL) OR "
-            "(tipo_suspension = 'por_fecha' AND fecha_fin_suspension IS NOT NULL)",
+            "(tipo_suspension = 'POR_PARTIDOS' AND fechas_suspension IS NOT NULL) OR "
+            "(tipo_suspension = 'POR_FECHA' AND fecha_fin_suspension IS NOT NULL)",
             name="chk_suspension_tipo_valido"
         ),
         CheckConstraint(

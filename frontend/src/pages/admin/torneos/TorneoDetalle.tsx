@@ -7,7 +7,9 @@ import Button from "../../../components/ui/button/Button"
 import InscribirEquipoModal from "./InscribirEquipoModal"
 import { obtenerGoleadoresTorneo } from "../../../api/vistas/goleadores.api"
 import { obtenerVallaMenosVencida } from "../../../api/vistas/valla.api"
-import type { GoleadorTorneo, VallaMenosVencida } from "../../../types/vistas"
+import { obtenerPosiciones } from "../../../api/vistas/posiciones.api"
+import { obtenerTarjetasAcumuladas } from "../../../api/vistas/tarjetas.api"
+import type { GoleadorTorneo, VallaMenosVencida, FilaPosiciones, TarjetaAcumulada } from "../../../types/vistas"
 
 import styles from "./TorneoDetalle.module.css"
 
@@ -25,17 +27,23 @@ export default function TorneoDetalle() {
   } = useInscripcionesTorneo(torneoId)
 
   const [open, setOpen] = useState(false)
+  const [tabla, setTabla] = useState<FilaPosiciones[]>([])
   const [goleadores, setGoleadores] = useState<GoleadorTorneo[]>([])
   const [valla, setValla] = useState<VallaMenosVencida[]>([])
+  const [tarjetas, setTarjetas] = useState<TarjetaAcumulada[]>([])
 
   useEffect(() => {
     if (!torneoId) return
     Promise.all([
+      obtenerPosiciones(torneoId),
       obtenerGoleadoresTorneo(torneoId),
       obtenerVallaMenosVencida(torneoId),
-    ]).then(([dataGol, dataValla]) => {
+      obtenerTarjetasAcumuladas(torneoId),
+    ]).then(([dataPos, dataGol, dataValla, dataTar]) => {
+      setTabla(dataPos)
       setGoleadores(dataGol)
       setValla(dataValla)
+      setTarjetas(dataTar)
     }).catch(err => console.error("Error cargando estadísticas:", err))
   }, [torneoId])
 
@@ -70,6 +78,42 @@ export default function TorneoDetalle() {
         inscripciones={inscripciones}
         onBaja={baja}
       />
+
+      {/* TABLA DE POSICIONES */}
+      <div className={styles.tableCard}>
+        <h3 className={styles.statsTitle}>Tabla de posiciones</h3>
+        {tabla.length > 0 ? (
+          <div className={styles.responsiveScroll}>
+            <table className={styles.posicionesTable}>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Equipo</th>
+                  <th>PTS</th>
+                  <th>PJ</th><th>PG</th><th>PE</th><th>PP</th>
+                  <th>GF</th><th>GC</th><th>DG</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tabla.map((fila, index) => (
+                  <tr key={fila.id_equipo}>
+                    <td>{index + 1}</td>
+                    <td>{fila.equipo}</td>
+                    <td><strong>{fila.puntos}</strong></td>
+                    <td>{fila.partidos_jugados}</td>
+                    <td>{fila.ganados}</td>
+                    <td>{fila.empatados}</td>
+                    <td>{fila.perdidos}</td>
+                    <td>{fila.goles_a_favor}</td>
+                    <td>{fila.goles_en_contra}</td>
+                    <td>{fila.diferencia_gol}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : <p className={styles.infoSmall}>Sin posiciones registradas.</p>}
+      </div>
 
       {/* ESTADÍSTICAS */}
       <div className={styles.statsGrid}>
@@ -129,6 +173,35 @@ export default function TorneoDetalle() {
               </tbody>
             </table>
           ) : <p className={styles.infoSmall}>Sin datos registrados.</p>}
+        </div>
+        {/* TARJETAS */}
+        <div className={styles.statsCard}>
+          <h3 className={styles.statsTitle}>Tarjetas</h3>
+          {tarjetas.length > 0 ? (
+            <table className={styles.statsTable}>
+              <thead>
+                <tr>
+                  <th>Jugador</th>
+                  <th>V</th>
+                  <th>A</th>
+                  <th>R</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tarjetas.slice(0, 5).map((t) => (
+                  <tr key={t.id_persona}>
+                    <td>
+                      <div>{t.nombre_persona} {t.apellido_persona}</div>
+                      <div className={styles.subText}>{t.equipo}</div>
+                    </td>
+                    <td>{t.total_verdes}</td>
+                    <td>{t.total_amarillas}</td>
+                    <td className={t.total_rojas > 0 ? styles.bold : ""}>{t.total_rojas}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : <p className={styles.infoSmall}>Sin tarjetas registradas.</p>}
         </div>
       </div>
 
