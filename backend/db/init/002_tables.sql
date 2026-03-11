@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS equipo (
     creado_por     VARCHAR(100),
     actualizado_por VARCHAR(100),
 
-    CONSTRAINT equipo_unq_club_categoria UNIQUE (id_club, nombre, categoria)
+    CONSTRAINT equipo_unq_club_categoria UNIQUE (id_club, nombre, categoria, genero)
 );
 
 -- ======================
