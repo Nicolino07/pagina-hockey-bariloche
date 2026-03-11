@@ -20,7 +20,7 @@ class Torneo(Base, AuditFieldsMixin, SoftDeleteMixin):
 
     __table_args__ = (
         CheckConstraint(
-            "fecha_fin IS NULL OR fecha_fin > fecha_inicio",
+            "fecha_fin IS NULL OR fecha_fin >= fecha_inicio",
             name="chk_torneo_fechas_validas"
         ),
         CheckConstraint(

@@ -53,6 +53,7 @@
 │   │   │   ├── estadisticas.py
 │   │   │   ├── fases.py
 │   │   │   ├── fichajes.py
+│   │   │   ├── fixture.py
 │   │   │   ├── goles.py
 │   │   │   ├── inscripciones_torneos.py
 │   │   │   ├── noticias.py
@@ -96,6 +97,7 @@
 │   │   │   ├── clubes_services.py
 │   │   │   ├── equipos_services.py
 │   │   │   ├── fichajes_services.py
+│   │   │   ├── fixture_services.py
 │   │   │   ├── inscripciones_services.py
 │   │   │   ├── partidos_services.py
 │   │   │   ├── personas_services.py
@@ -132,9 +134,11 @@
 │   │   │   └── 080_seed_inscripcion.sql
 │   │   └── 000_init_database.sql
 │   ├── .dockerignore
-│   ├── backup_hockey.sh
 │   ├── Dockerfile
 │   └── requirements.txt
+├── backups/
+│   ├── backup_hockey.sh
+│   └── restore_hockey.sh
 ├── frontend/
 │   ├── public/
 │   │   └── vite.svg
@@ -156,6 +160,7 @@
 │   │   │   ├── equipos.api.ts
 │   │   │   ├── estadisticas.api.ts
 │   │   │   ├── fichajes.api.ts
+│   │   │   ├── fixture.api.ts
 │   │   │   ├── index.ts
 │   │   │   ├── noticias.api.ts
 │   │   │   ├── partidos.api.ts
@@ -216,6 +221,12 @@
 │   │   │   │   │   ├── PlantelEquipo.tsx
 │   │   │   │   │   ├── PlantelLista.module.css
 │   │   │   │   │   └── PlantelLista.tsx
+│   │   │   │   ├── fichajes/
+│   │   │   │   │   ├── FichajesAdmin.module.css
+│   │   │   │   │   └── FichajesAdmin.tsx
+│   │   │   │   ├── fixture/
+│   │   │   │   │   ├── FixtureAdmin.module.css
+│   │   │   │   │   └── FixtureAdmin.tsx
 │   │   │   │   ├── noticias/
 │   │   │   │   │   ├── NoticiasForm.module.css
 │   │   │   │   │   └── NoticiasForm.tsx
@@ -243,7 +254,6 @@
 │   │   │   │   │   ├── InscribirEquipoModal.tsx
 │   │   │   │   │   ├── InscripcionesTorneoLista.module.css
 │   │   │   │   │   ├── InscripcionesTorneoLista.tsx
-│   │   │   │   │   ├── TorneoAdmin.module.css
 │   │   │   │   │   ├── TorneoDetalle.module.css
 │   │   │   │   │   ├── TorneoDetalle.tsx
 │   │   │   │   │   ├── TorneosAdmin.module.css
@@ -267,6 +277,9 @@
 │   │   │       │   ├── ClubesPage.tsx
 │   │   │       │   ├── EquipoDetallePublic.module.css
 │   │   │       │   └── EquipoDetallePublic.tsx
+│   │   │       ├── fixture/
+│   │   │       │   ├── FixturePage.module.css
+│   │   │       │   └── FixturePage.tsx
 │   │   │       ├── home/
 │   │   │       │   ├── Home.module.css
 │   │   │       │   └── Home.tsx
@@ -282,12 +295,12 @@
 │   │   │   └── PlanillaVacia.service.ts
 │   │   ├── styles/
 │   │   │   ├── globals.css
-│   │   │   ├── layout.css
 │   │   │   └── variables.css
 │   │   ├── types/
 │   │   │   ├── auth.ts
 │   │   │   ├── club.ts
 │   │   │   ├── equipo.ts
+│   │   │   ├── fixture.ts
 │   │   │   ├── inscripcion.ts
 │   │   │   ├── persona.ts
 │   │   │   ├── personaRol.ts
@@ -302,12 +315,14 @@
 │   │   │   └── jwt.ts
 │   │   ├── App.css
 │   │   ├── App.tsx
+│   │   ├── declaratios.d.ts
 │   │   └── main.tsx
 │   ├── .gitignore
 │   ├── app@0.0.0
 │   ├── Dockerfile
 │   ├── eslint.config.js
 │   ├── index.html
+│   ├── nginx.conf
 │   ├── package-lock.json
 │   ├── package.json
 │   ├── README.md
@@ -318,12 +333,11 @@
 │   └── vite.config.ts
 ├── .gitignore
 ├── # Consultas DB
-├── # Reglas de negocio 
+├── Arbol_repositorio.txt
+├── CLAUDE.md
 ├── docker-compose.yml
-├── EstructuraBackend.txt
-├── EstructuraFrontend.txt
-├── GuiaAvance.txt
 ├── intrucciones.txt
 ├── LICENSE
 ├── nginx.conf
+├── nginx.local.conf
 └── README.md

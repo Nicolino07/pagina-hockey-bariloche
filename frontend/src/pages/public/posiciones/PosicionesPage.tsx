@@ -4,11 +4,12 @@ import { listarTorneos } from "../../../api/torneos.api"
 import { obtenerPosiciones } from "../../../api/vistas/posiciones.api"
 import { obtenerTarjetasAcumuladas } from "../../../api/vistas/tarjetas.api"
 import { obtenerGoleadoresTorneo } from "../../../api/vistas/goleadores.api"
+import { obtenerVallaMenosVencida } from "../../../api/vistas/valla.api"
 // IMPORTANTE: Asegúrate de que esta ruta y nombre existan, antes tenías una confusión aquí
-import { listarInscripcionesTorneo } from "../../../api/torneos.api" 
+import { listarInscripcionesTorneo } from "../../../api/torneos.api"
 
 import type { Torneo } from "../../../types/torneo"
-import type { FilaPosiciones, TarjetaAcumulada, GoleadorTorneo } from "../../../types/vistas"
+import type { FilaPosiciones, TarjetaAcumulada, GoleadorTorneo, VallaMenosVencida } from "../../../types/vistas"
 import type { InscripcionTorneoDetalle } from "../../../types/inscripcion"
 
 import styles from "./PosicionesPage.module.css"
@@ -22,6 +23,7 @@ export default function PosicionesPage() {
   const [tabla, setTabla] = useState<FilaPosiciones[]>([])
   const [tarjetas, setTarjetas] = useState<TarjetaAcumulada[]>([])
   const [goleadores, setGoleadores] = useState<GoleadorTorneo[]>([])
+  const [valla, setValla] = useState<VallaMenosVencida[]>([])
   const [equipos, setEquipos] = useState<InscripcionTorneoDetalle[]>([])
   const [loadingDatos, setLoadingDatos] = useState(false)
 
@@ -44,13 +46,15 @@ export default function PosicionesPage() {
       obtenerPosiciones(torneoSeleccionado.id_torneo),
       obtenerTarjetasAcumuladas(torneoSeleccionado.id_torneo),
       obtenerGoleadoresTorneo(torneoSeleccionado.id_torneo),
-      listarInscripcionesTorneo(torneoSeleccionado.id_torneo)
+      listarInscripcionesTorneo(torneoSeleccionado.id_torneo),
+      obtenerVallaMenosVencida(torneoSeleccionado.id_torneo),
     ])
-      .then(([dataPos, dataTar, dataGol, dataEq]) => {
+      .then(([dataPos, dataTar, dataGol, dataEq, dataValla]) => {
         setTabla(dataPos)
         setTarjetas(dataTar)
         setGoleadores(dataGol)
         setEquipos(dataEq)
+        setValla(dataValla)
       })
       .catch(err => console.error("Error cargando datos del torneo:", err))
       .finally(() => setLoadingDatos(false))
@@ -158,6 +162,36 @@ export default function PosicionesPage() {
                       </tbody>
                     </table>
                   ) : <p className={styles.infoSmall}>Sin goles.</p>}
+                </div>
+
+                {/* VALLA MENOS VENCIDA */}
+                <div className={styles.statsCard}>
+                  <h3 className={styles.statsTitle}>Valla menos vencida</h3>
+                  {valla.length > 0 ? (
+                    <table className={styles.statsTable}>
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th className={styles.alignLeft}>Equipo</th>
+                          <th>GC</th>
+                          <th className={styles.hideMobile}>PJ</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {valla.slice(0, 5).map((v) => (
+                          <tr key={v.id_equipo}>
+                            <td>{v.ranking_en_torneo}</td>
+                            <td className={styles.alignLeft}>
+                              <div className={styles.playerName}>{v.nombre_equipo}</div>
+                              <div className={styles.playerTeam}>{v.nombre_club}</div>
+                            </td>
+                            <td className={styles.bold}>{v.goles_en_contra}</td>
+                            <td className={styles.hideMobile}>{v.partidos_jugados}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : <p className={styles.infoSmall}>Sin datos.</p>}
                 </div>
 
                 {/* TARJETAS */}

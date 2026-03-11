@@ -161,41 +161,64 @@
 
 @media (max-width: 600px) {
   .container {
-    padding: 24px 12px;
+    padding: 20px 10px;
   }
 
   .title {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
   }
 
   .card {
-    padding: 16px;
+    padding: 12px 14px;
+  }
+
+  .torneo {
+    font-size: 0.72rem;
+    margin-bottom: 8px;
+  }
+
+  /* Mantener layout horizontal en mobile, más compacto */
+  .equipos {
+    flex-direction: row;
+    gap: 6px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
   }
 
   .equipo {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  /* En pantallas muy chicas, apilar equipos verticalmente */
-  .equipos {
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
+  .equipo:first-child {
+    text-align: right;
   }
 
-  .equipo:first-child,
   .equipo:last-child {
-    text-align: center;
+    text-align: left;
   }
 
   .vs {
-    order: -1; /* "vs" arriba, luego local, luego visitante */
+    font-size: 0.75rem;
+    padding: 3px 7px;
+    flex-shrink: 0;
   }
 
   .info {
-    flex-direction: column;
-    gap: 6px;
-    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    justify-content: center;
+  }
+
+  .infoItem {
+    font-size: 0.78rem;
   }
 
   .filtroRow {

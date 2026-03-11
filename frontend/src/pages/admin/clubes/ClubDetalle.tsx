@@ -7,7 +7,7 @@ import Modal from "../../../components/ui/modal/Modal";
 import Button from "../../../components/ui/button/Button";
 import PlantelEquipo from "../equipos/PlantelEquipo";
 
-import { crearEquipo, getEquiposByClub } from "../../../api/equipos.api";
+import { crearEquipo, getEquiposByClub, updateEquipo, deleteEquipo } from "../../../api/equipos.api";
 import { getPersonas as searchPersonas } from "../../../api/personas.api"; // Asegúrate de que este sea el nombre correcto
 import { getClubById, updateClub } from "../../../api/clubes.api";
 import { crearFichaje, getFichajesPorClub, darBajaFichaje } from "../../../api/fichajes.api";
@@ -36,6 +36,11 @@ export default function ClubDetalle() {
   const [buscando, setBuscando] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showEditEquipoModal, setShowEditEquipoModal] = useState(false);
+  const [equipoAEditar, setEquipoAEditar] = useState<Equipo | null>(null);
+  const [editEquipoForm, setEditEquipoForm] = useState<{ nombre: string; categoria: string; genero: string }>({ nombre: "", categoria: "", genero: "" });
+  const [equipoAEliminar, setEquipoAEliminar] = useState<Equipo | null>(null);
+  const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
   const [showFichajeModal, setShowFichajeModal] = useState(false);
   const [showFichados, setShowFichados] = useState(false); 
   const [saving, setSaving] = useState(false);
@@ -161,6 +166,47 @@ export default function ClubDetalle() {
       await cargarFichajes();
     } catch (err) { alert("Error al fichar"); } 
     finally { setSaving(false); }
+  };
+
+  const handleOpenEditEquipo = (equipo: Equipo, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEquipoAEditar(equipo);
+    setEditEquipoForm({ nombre: equipo.nombre, categoria: equipo.categoria, genero: equipo.genero });
+    setShowEditEquipoModal(true);
+  };
+
+  const handleUpdateEquipo = async () => {
+    if (!equipoAEditar) return;
+    try {
+      setSaving(true);
+      const updated = await updateEquipo(equipoAEditar.id_equipo, editEquipoForm);
+      setEquipos(prev => prev.map(e => e.id_equipo === updated.id_equipo ? updated : e));
+      setShowEditEquipoModal(false);
+      setEquipoAEditar(null);
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || "Error al actualizar el equipo.";
+      alert(msg);
+    } finally { setSaving(false); }
+  };
+
+  const handleOpenDeleteEquipo = (equipo: Equipo, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEquipoAEliminar(equipo);
+    setShowConfirmDeleteModal(true);
+  };
+
+  const handleDeleteEquipo = async () => {
+    if (!equipoAEliminar) return;
+    try {
+      setSaving(true);
+      await deleteEquipo(equipoAEliminar.id_equipo);
+      setEquipos(prev => prev.filter(e => e.id_equipo !== equipoAEliminar.id_equipo));
+      setShowConfirmDeleteModal(false);
+      setEquipoAEliminar(null);
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || "Error al eliminar el equipo.";
+      alert(msg);
+    } finally { setSaving(false); }
   };
 
   const handleCreateEquipo = async () => {
@@ -294,23 +340,37 @@ export default function ClubDetalle() {
                 <span className={styles.equipoName}>{equipo.nombre}</span>
                 <span className={styles.equipoMeta}>{equipo.categoria} · {equipo.genero}</span>
               </div>
-              <button 
-                className={styles.manageBtn} 
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  navigate(`/admin/equipos/${equipo.id_equipo}`, {
-                    state: {
-                      id_club: club.id_club,
-                      clubNombre: club.nombre,
-                      equipoNombre: equipo.nombre,
-                      categoria: equipo.categoria,
-                      generoEquipo: equipo.genero
-                    }
-                  }); 
-                }}
-              >
-                Gestionar
-              </button>
+                <div className={styles.equipoActions}>
+                <button
+                  className={styles.manageBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/admin/equipos/${equipo.id_equipo}`, {
+                      state: {
+                        id_club: club.id_club,
+                        clubNombre: club.nombre,
+                        equipoNombre: equipo.nombre,
+                        categoria: equipo.categoria,
+                        generoEquipo: equipo.genero
+                      }
+                    });
+                  }}
+                >
+                  Gestionar
+                </button>
+                <button
+                  className={styles.editBtn}
+                  onClick={(e) => handleOpenEditEquipo(equipo, e)}
+                >
+                  ✏ Editar
+                </button>
+                <button
+                  className={styles.deleteBtn}
+                  onClick={(e) => handleOpenDeleteEquipo(equipo, e)}
+                >
+                  🗑 Eliminar
+                </button>
+              </div>
             </div>
             {equipoAbierto === equipo.id_equipo && (
               <div className={styles.plantelContainer}>
@@ -374,6 +434,46 @@ export default function ClubDetalle() {
               Fichar como {ROL_LABELS[fichajeForm.rol]}
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* MODAL EDITAR EQUIPO */}
+      <Modal open={showEditEquipoModal} title="Editar Equipo" onClose={() => setShowEditEquipoModal(false)}>
+        <div className={styles.modalForm}>
+          <div className={styles.formGroup}>
+            <label>Nombre</label>
+            <input value={editEquipoForm.nombre} onChange={(e) => setEditEquipoForm({...editEquipoForm, nombre: e.target.value})} />
+          </div>
+          <div className={styles.row}>
+            <div className={styles.formGroup}>
+              <label>Categoría</label>
+              <select value={editEquipoForm.categoria} onChange={(e) => setEditEquipoForm({...editEquipoForm, categoria: e.target.value})}>
+                <option value="">Seleccionar</option>
+                {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label>Género</label>
+              <select value={editEquipoForm.genero} onChange={(e) => setEditEquipoForm({...editEquipoForm, genero: e.target.value})}>
+                <option value="">Seleccionar</option>
+                {GENEROS.map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className={styles.modalActions}>
+            <Button variant="secondary" onClick={() => setShowEditEquipoModal(false)}>Cancelar</Button>
+            <Button onClick={handleUpdateEquipo} disabled={saving}>Guardar cambios</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* MODAL CONFIRMAR ELIMINACIÓN */}
+      <Modal open={showConfirmDeleteModal} title="Eliminar Equipo" onClose={() => setShowConfirmDeleteModal(false)}>
+        <p>¿Estás seguro de que querés eliminar el equipo <strong>{equipoAEliminar?.nombre}</strong>?</p>
+        <p className={styles.deleteWarning}>Esta acción es un soft-delete: el equipo quedará inactivo pero sus datos se conservan.</p>
+        <div className={styles.modalActions}>
+          <Button variant="secondary" onClick={() => setShowConfirmDeleteModal(false)}>Cancelar</Button>
+          <Button variant="danger" onClick={handleDeleteEquipo} disabled={saving}>Eliminar</Button>
         </div>
       </Modal>
 

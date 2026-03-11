@@ -66,6 +66,21 @@
   letter-spacing: 0.5px;
 }
 
+.fechaFin {
+  font-size: 0.8rem;
+  color: #9aa0a6;
+  margin-top: 4px;
+}
+
+.itemFinalizado {
+  border-color: #2a2a2a;
+  opacity: 0.85;
+}
+
+.itemFinalizado .nombre {
+  color: #bbb;
+}
+
 /* Grupo de Acciones */
 .actions {
   display: flex;

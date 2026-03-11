@@ -1,8 +1,10 @@
 from sqlalchemy.orm import Session
 
 from app.models.equipo import Equipo
+from app.models.inscripcion_torneo import InscripcionTorneo
+from app.models.torneo import Torneo
 from app.schemas.equipo import EquipoCreate, EquipoUpdate
-from app.core.exceptions import NotFoundError
+from app.core.exceptions import NotFoundError, ConflictError
 
 
 def listar_equipos(
@@ -50,7 +52,28 @@ def actualizar_equipo(
 ) -> Equipo:
     equipo = obtener_equipo(db, equipo_id)
 
-    for key, value in data.model_dump(exclude_unset=True).items():
+    campos = data.model_dump(exclude_unset=True)
+
+    # Si se intenta cambiar categoría o género, verificar que no haya torneos activos
+    if "categoria" in campos or "genero" in campos:
+        inscripcion_activa = (
+            db.query(InscripcionTorneo)
+            .join(Torneo, InscripcionTorneo.id_torneo == Torneo.id_torneo)
+            .filter(
+                InscripcionTorneo.id_equipo == equipo_id,
+                InscripcionTorneo.fecha_baja.is_(None),
+                Torneo.activo.is_(True),
+                Torneo.borrado_en.is_(None),
+            )
+            .first()
+        )
+        if inscripcion_activa:
+            raise ConflictError(
+                f"No se puede modificar la categoría o género del equipo '{equipo.nombre}' "
+                "porque tiene inscripciones activas en torneos en curso."
+            )
+
+    for key, value in campos.items():
         setattr(equipo, key, value)
 
     equipo.actualizado_por = current_user.username
@@ -59,7 +82,27 @@ def actualizar_equipo(
 
 
 def eliminar_equipo(db: Session, equipo_id: int, current_user) -> None:
+    """Elimina lógicamente un equipo. Bloquea si tiene inscripciones en torneos activos."""
     equipo = obtener_equipo(db, equipo_id)
+
+    inscripcion_activa = (
+        db.query(InscripcionTorneo)
+        .join(Torneo, InscripcionTorneo.id_torneo == Torneo.id_torneo)
+        .filter(
+            InscripcionTorneo.id_equipo == equipo_id,
+            InscripcionTorneo.fecha_baja.is_(None),
+            Torneo.activo.is_(True),
+            Torneo.borrado_en.is_(None),
+        )
+        .first()
+    )
+
+    if inscripcion_activa:
+        raise ConflictError(
+            f"El equipo '{equipo.nombre}' tiene inscripciones activas en torneos en curso. "
+            "Finalizá los torneos antes de eliminar el equipo."
+        )
+
     equipo.soft_delete(usuario=current_user.username)
 
 

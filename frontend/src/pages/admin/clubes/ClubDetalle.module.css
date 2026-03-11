@@ -119,6 +119,69 @@
   font-size: 0.9rem;
 }
 
+.manageBtn {
+  background: transparent;
+  color: #e0e0e0;
+  border: 1px solid #555;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.manageBtn:hover {
+  border-color: #e0e0e0;
+}
+
+.equipoActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.editBtn {
+  background: transparent;
+  color: #8ab4f8;
+  border: 1px solid #8ab4f8;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.editBtn:hover {
+  background: rgba(138, 180, 248, 0.15);
+}
+
+.deleteBtn {
+  background: transparent;
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.deleteBtn:hover {
+  background: #ff6b6b;
+  color: white;
+}
+
+.deleteWarning {
+  color: #9aa0a6;
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-top: 4px;
+}
+
 /* Estilos para los formularios dentro del Modal */
 .modalForm {
   display: flex;

@@ -14,8 +14,8 @@ class TorneoBase(BaseModel):
 
     @validator('fecha_fin')
     def validar_fecha_fin(cls, v, values):
-        if v and 'fecha_inicio' in values and v <= values['fecha_inicio']:
-            raise ValueError('La fecha de fin debe ser posterior a la fecha de inicio')
+        if v and 'fecha_inicio' in values and v < values['fecha_inicio']:
+            raise ValueError('La fecha de fin no puede ser anterior a la fecha de inicio')
         return v
 
 class TorneoCreate(TorneoBase):

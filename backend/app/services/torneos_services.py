@@ -1,7 +1,5 @@
 # app/services/torneos_services.py
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import and_
 from typing import Optional
 from datetime import date
 
@@ -98,7 +96,6 @@ def finalizar_torneo(
     
     # Finalizar torneo
     torneo.activo = False
-    torneo.actualizado_en = func.now()
     torneo.actualizado_por = current_user.username
     
     # Establecer fecha_fin
@@ -129,7 +126,7 @@ def restaurar_torneo(
         raise NotFoundError("Torneo no encontrado o no está eliminado")
     
     # Usar el método del mixin
-    torneo.restaurar(usuario=current_user.username)
+    torneo.restore(usuario=current_user.username)
     
     db.commit()
     db.refresh(torneo)
@@ -169,7 +166,6 @@ def actualizar_torneo(
     torneo.genero = GeneroTipo(data.genero) if isinstance(data.genero, str) else data.genero
     torneo.fecha_inicio = data.fecha_inicio
     torneo.fecha_fin = data.fecha_fin
-    torneo.actualizado_en = func.now()
     torneo.actualizado_por = current_user.username
     
     # Si se marca como inactivo y no tiene fecha_fin, establecerla

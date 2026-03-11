@@ -232,7 +232,7 @@ CREATE TABLE IF NOT EXISTS torneo (
     categoria       tipo_categoria NOT NULL,
     genero          tipo_genero NOT NULL,
     fecha_inicio    DATE DEFAULT CURRENT_DATE,
-    fecha_fin       DATE CHECK (fecha_fin > fecha_inicio),
+    fecha_fin       DATE CHECK (fecha_fin IS NULL OR fecha_fin >= fecha_inicio),
     activo          BOOLEAN DEFAULT TRUE,
     
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

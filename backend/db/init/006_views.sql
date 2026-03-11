@@ -737,4 +737,41 @@ LEFT JOIN persona per_a1 ON p.id_arbitro1 = per_a1.id_persona
 LEFT JOIN persona per_a2 ON p.id_arbitro2 = per_a2.id_persona;
 
 
+-- =====================================================
+-- v_valla_menos_vencida_torneo
+-- Ranking de equipos con menos goles recibidos por torneo
+-- Desempate: menor promedio de goles recibidos por partido
+-- =====================================================
+
+CREATE OR REPLACE VIEW v_valla_menos_vencida_torneo AS
+SELECT
+    t.id_torneo,
+    t.nombre AS nombre_torneo,
+    t.categoria,
+    t.genero,
+    eq.id_equipo,
+    eq.nombre AS nombre_equipo,
+    c.id_club,
+    c.nombre AS nombre_club,
+    pos.partidos_jugados,
+    pos.goles_en_contra,
+    CASE
+        WHEN pos.partidos_jugados > 0
+        THEN ROUND(pos.goles_en_contra::numeric / pos.partidos_jugados, 2)
+        ELSE NULL
+    END AS promedio_goles_recibidos,
+    RANK() OVER (
+        PARTITION BY t.id_torneo
+        ORDER BY pos.goles_en_contra ASC,
+                 CASE WHEN pos.partidos_jugados > 0
+                      THEN pos.goles_en_contra::numeric / pos.partidos_jugados
+                      ELSE 999 END ASC
+    ) AS ranking_en_torneo
+FROM posicion pos
+JOIN torneo t ON pos.id_torneo = t.id_torneo
+JOIN equipo eq ON pos.id_equipo = eq.id_equipo
+JOIN club c ON eq.id_club = c.id_club
+WHERE t.borrado_en IS NULL
+  AND pos.partidos_jugados > 0;
+
 COMMIT;

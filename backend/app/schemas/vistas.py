@@ -176,3 +176,18 @@ class GoleadorTorneo(BaseModel):
     goles_netos_en_torneo: int
     goles_totales_carrera: Optional[int] = 0
     ranking_en_torneo: int
+
+
+class VallaMenosVencida(BaseModel):
+    """Schema para la vista v_valla_menos_vencida_torneo"""
+    id_torneo: int
+    id_equipo: int
+    nombre_equipo: str
+    nombre_club: str
+    partidos_jugados: int
+    goles_en_contra: int
+    promedio_goles_recibidos: Optional[float] = None
+    ranking_en_torneo: int
+
+    class Config:
+        from_attributes = True

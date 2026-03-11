@@ -7,12 +7,13 @@ from typing import List, Optional
 
 from app.database import get_db
 from app.schemas.vistas import (
-    PlantelActivoIntegrante, 
-    PersonasArbitro, 
-    PosicionSchema, 
+    PlantelActivoIntegrante,
+    PersonasArbitro,
+    PosicionSchema,
     TarjetaDetalle,
     TarjetaAcumulada,
-    GoleadorTorneo
+    GoleadorTorneo,
+    VallaMenosVencida
 )
 
 
@@ -169,9 +170,22 @@ def get_tarjetas_acumuladas(
 @router.get("/goleadores/{id_torneo}", response_model=List[GoleadorTorneo])
 def get_goleadores_torneo(id_torneo: int, db: Session = Depends(get_db)):
     query = text("""
-        SELECT * FROM v_goleadores_torneo 
-        WHERE id_torneo = :id_torneo 
+        SELECT * FROM v_goleadores_torneo
+        WHERE id_torneo = :id_torneo
         ORDER BY goles_netos_en_torneo DESC
+        LIMIT 10
+    """)
+    result = db.execute(query, {"id_torneo": id_torneo}).mappings().all()
+    return result
+
+
+@router.get("/valla-menos-vencida/{id_torneo}", response_model=List[VallaMenosVencida])
+def get_valla_menos_vencida(id_torneo: int, db: Session = Depends(get_db)):
+    """Ranking de equipos con menos goles recibidos en el torneo."""
+    query = text("""
+        SELECT * FROM v_valla_menos_vencida_torneo
+        WHERE id_torneo = :id_torneo
+        ORDER BY goles_en_contra ASC, promedio_goles_recibidos ASC
         LIMIT 10
     """)
     result = db.execute(query, {"id_torneo": id_torneo}).mappings().all()

@@ -4,8 +4,10 @@ import type { InscripcionTorneoDetalle} from "../types/inscripcion"
 
 
 // LISTAR
-export async function listarTorneos(): Promise<Torneo[]> {
-  const res = await api.get<Torneo[]>("/torneos/")
+export async function listarTorneos(soloActivos: boolean = true): Promise<Torneo[]> {
+  const res = await api.get<Torneo[]>("/torneos/", {
+    params: { solo_activos: soloActivos }
+  })
   return res.data
 }
 
@@ -70,6 +72,12 @@ export const darDeBajaEquipoTorneo = async (
 // 🗑 Soft delete
 export async function eliminarTorneo(id_torneo: number) {
   const { data } = await api.delete(`/torneos/${id_torneo}`)
+  return data
+}
+
+// 🔁 Reabrir torneo
+export async function reabrirTorneo(id_torneo: number): Promise<Torneo> {
+  const { data } = await api.post(`/torneos/${id_torneo}/reabrir`)
   return data
 }
 

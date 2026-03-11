@@ -102,3 +102,14 @@ export interface GoleadorTorneo {
   goles_totales_carrera: number;
   ranking_en_torneo: number;
 }
+
+export interface VallaMenosVencida {
+  id_torneo: number;
+  id_equipo: number;
+  nombre_equipo: string;
+  nombre_club: string;
+  partidos_jugados: number;
+  goles_en_contra: number;
+  promedio_goles_recibidos: number | null;
+  ranking_en_torneo: number;
+}
