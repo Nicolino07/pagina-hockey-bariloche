@@ -3,10 +3,15 @@ import { usePlantelActivo } from "../../../hooks/usePlantelActivo"
 import type { PlantelActivoIntegrante } from "../../../types/vistas"
 import PlantelLista from "./PlantelLista"
 
-type Props = {
+interface Props {
+  /** ID del equipo cuyo plantel activo se quiere mostrar. */
   id_equipo: number
 }
 
+/**
+ * Componente que muestra el plantel activo de un equipo en modo solo lectura.
+ * Delega la renderización de la lista al componente PlantelLista.
+ */
 export default function PlantelEquipo({ id_equipo }: Props) {
   const { integrantes, loading, error, hasPlantel } =
     usePlantelActivo(id_equipo)

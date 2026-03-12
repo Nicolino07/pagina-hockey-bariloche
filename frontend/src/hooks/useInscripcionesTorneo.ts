@@ -7,6 +7,12 @@ import {
 
 import type { InscripcionTorneoDetalle } from "../types/inscripcion"
 
+/**
+ * Hook que gestiona las inscripciones de equipos a un torneo.
+ * No realiza peticiones si no se provee un ID de torneo.
+ * @param id_torneo - ID del torneo cuyas inscripciones se cargan (opcional).
+ * @returns Objeto con inscripciones, estado de carga, error, función de baja y recarga.
+ */
 export function useInscripcionesTorneo(id_torneo?: number) {
   const [inscripciones, setInscripciones] =
     useState<InscripcionTorneoDetalle[]>([])
@@ -31,6 +37,10 @@ export function useInscripcionesTorneo(id_torneo?: number) {
     }
   }, [id_torneo])
 
+  /**
+   * Da de baja a un equipo del torneo y recarga la lista de inscripciones.
+   * @param idEquipo - ID del equipo a dar de baja.
+   */
   const baja = async (idEquipo: number) => {
     if (!id_torneo) return
 

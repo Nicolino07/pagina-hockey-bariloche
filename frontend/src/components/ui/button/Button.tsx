@@ -1,15 +1,24 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react"
 import styles from "./Button.module.css"
 
+/** Variante visual del botón que determina su color y estilo. */
 type ButtonVariant = "primary" | "secondary" | "danger" | "outline"
-type ButtonSize = "sm" | "md" | "lg" // <--- Nuevos tamaños
+
+/** Tamaño del botón que afecta padding y tipografía. */
+type ButtonSize = "sm" | "md" | "lg"
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode
+  /** Estilo visual del botón. Por defecto: "primary". */
   variant?: ButtonVariant
-  size?: ButtonSize // <--- Prop opcional
+  /** Tamaño del botón. Por defecto: "md". */
+  size?: ButtonSize
 }
 
+/**
+ * Componente de botón reutilizable con soporte de variante y tamaño.
+ * Acepta todas las props nativas de HTMLButtonElement.
+ */
 export default function Button({
   children,
   variant = "primary",

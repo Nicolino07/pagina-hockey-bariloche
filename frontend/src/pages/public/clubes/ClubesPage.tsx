@@ -4,6 +4,10 @@ import { getClubes } from "../../../api/clubes.api" // Ajusta la ruta según tu 
 import type { Club } from "../../../types/club"
 import styles from "./ClubesPage.module.css"
 
+/**
+ * Página pública de listado de clubes.
+ * Permite buscar clubes por nombre y navegar al detalle de cada uno.
+ */
 export default function ClubesPage() {
   const [clubes, setClubes] = useState<Club[]>([])
   const [loading, setLoading] = useState(true)

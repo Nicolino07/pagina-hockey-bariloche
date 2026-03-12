@@ -11,6 +11,11 @@ interface Props {
   onSuccess: () => void
 }
 
+/**
+ * Formulario inline para crear un nuevo torneo.
+ * @param onCancel - Callback invocado al cancelar sin guardar.
+ * @param onSuccess - Callback invocado tras crear el torneo exitosamente.
+ */
 export default function CrearTorneoForm({ onCancel, onSuccess }: Props) {
   const [form, setForm] = useState<{
     nombre: string

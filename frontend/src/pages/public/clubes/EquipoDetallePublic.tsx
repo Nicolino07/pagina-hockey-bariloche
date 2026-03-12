@@ -5,6 +5,10 @@ import { getEquipoById } from "../../../api/equipos.api"
 import type { Equipo } from "../../../types/equipo"
 import styles from "./EquipoDetallePublic.module.css"
 
+/**
+ * Página pública de detalle de un equipo.
+ * Muestra los integrantes del plantel activo del equipo indicado por URL.
+ */
 export default function EquipoDetallePublic() {
   const { id_equipo } = useParams<{ id_equipo: string }>()
   const navigate = useNavigate()

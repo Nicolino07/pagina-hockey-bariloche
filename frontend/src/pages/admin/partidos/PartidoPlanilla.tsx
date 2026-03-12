@@ -11,7 +11,7 @@ import { getPersonasArbitro } from "../../../api/vistas/personas.api";
 import type { PersonasArbitro, PlantelActivoIntegrante } from "../../../types/vistas";
 import { TIPOS_GOL, TIPOS_TARJETA } from "../../../constants/enums";
 
-// Tipado para evitar el "rojo" en las incidencias
+/** Representa un gol registrado en la planilla del partido. */
 interface Gol {
   id_plantel_integrante: string | number;
   minuto: string | number;
@@ -20,6 +20,7 @@ interface Gol {
   es_autogol: boolean;
 }
 
+/** Representa una tarjeta disciplinaria registrada en la planilla del partido. */
 interface Tarjeta {
   id_plantel_integrante: string | number;
   tipo: string;
@@ -27,6 +28,13 @@ interface Tarjeta {
   cuarto: string | number;
 }
 
+/**
+ * Página administrativa para cargar la planilla de un partido.
+ * Permite seleccionar torneo, equipos, jugadores participantes, árbitros,
+ * y registrar goles y tarjetas. Puede precargarse desde un fixture existente
+ * pasando `?fixture=<id>` como parámetro de URL.
+ * Al confirmar, envía la planilla completa al backend en un solo request.
+ */
 export default function PartidoPlanilla() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -72,7 +80,7 @@ export default function PartidoPlanilla() {
   const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
   const [camisetas, setCamisetas] = useState<Record<number, string>>({});
 
-  // Si viene ?fixture=X, precargamos los datos del partido programado
+  // Si viene ?fixture=X, precarga fecha, horario, ubicación y número de fecha del partido programado.
   useEffect(() => {
     if (!fixtureId) return
     obtenerFixturePartido(fixtureId).then(fp => {
@@ -89,7 +97,7 @@ export default function PartidoPlanilla() {
     }).catch(console.error)
   }, [fixtureId])
 
-  // Cuando las inscripciones cargan y hay fixture, preseleccionar equipos
+  // Una vez que las inscripciones están disponibles, preselecciona los equipos del fixture.
   useEffect(() => {
     if (!fixtureId || inscripciones.length === 0) return
     obtenerFixturePartido(fixtureId).then(fp => {
@@ -100,6 +108,7 @@ export default function PartidoPlanilla() {
     }).catch(console.error)
   }, [fixtureId, inscripciones])
 
+  // Carga la lista de árbitros habilitados al montar el componente.
   useEffect(() => {
     const cargarArbitros = async () => {
       try {
@@ -112,8 +121,10 @@ export default function PartidoPlanilla() {
     cargarArbitros();
   }, []);
 
-  // --- HANDLERS (Iguales a tu lógica original) ---
-
+  /**
+   * Cambia el torneo seleccionado y reinicia equipos, jugadores e incidencias.
+   * @param id - ID del torneo como string proveniente del select.
+   */
   const handleTorneoChange = (id: string) => {
     setTorneoId(id ? Number(id) : undefined);
     setInscripcionLocal(null);
@@ -123,6 +134,11 @@ export default function PartidoPlanilla() {
     setTarjetas([]);
   };
 
+  /**
+   * Selecciona un equipo (local o visitante) y valida que no sea el mismo en ambos lados.
+   * @param idInscripcion - ID de la inscripción como string proveniente del select.
+   * @param side - Lado del partido: "local" o "visitante".
+   */
   const handleEquipoChange = (idInscripcion: string, side: 'local' | 'visitante') => {
     const idNum = Number(idInscripcion);
     const opuesto = side === 'local' ? inscripcionVisitante : inscripcionLocal;
@@ -142,11 +158,21 @@ export default function PartidoPlanilla() {
     }
   };
 
+  /**
+   * Elimina una incidencia (gol o tarjeta) del array correspondiente por su índice.
+   * @param index - Posición en el array a eliminar.
+   * @param tipo - Tipo de incidencia: "gol" o "tarjeta".
+   */
   const eliminarFila = (index: number, tipo: 'gol' | 'tarjeta') => {
     if (tipo === 'gol') setGoles(goles.filter((_, i) => i !== index));
     else setTarjetas(tarjetas.filter((_, i) => i !== index));
   };
 
+  /**
+   * Construye el payload completo y envía la planilla del partido al backend.
+   * Incluye datos del partido, participantes con camisetas, goles y tarjetas.
+   * Navega hacia atrás al guardar exitosamente.
+   */
   const enviarPlanilla = async () => {
     if (!torneoId || !inscripcionLocal || !inscripcionVisitante) {
       alert("Faltan datos básicos del partido");
@@ -205,6 +231,11 @@ export default function PartidoPlanilla() {
     }
   };
 
+  /**
+   * Retorna el nombre completo de un jugador buscando en ambos planteles.
+   * @param id - ID del integrante del plantel.
+   * @returns String con "Apellido, Nombre" o "Desconocido" si no se encuentra.
+   */
   const getPlayerName = (id: any) => {
     const p = [...plantelLocal, ...plantelVisitante].find(x => x.id_plantel_integrante === Number(id));
     return p ? `${p.apellido_persona}, ${p.nombre_persona}` : "Desconocido";

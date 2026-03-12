@@ -16,6 +16,15 @@ interface Props {
   onInscripto: () => void
 }
 
+/**
+ * Modal para inscribir equipos en un torneo.
+ * Filtra los equipos disponibles por categoría y género del torneo,
+ * e indica cuáles ya están inscriptos para evitar duplicados.
+ * @param torneo - Torneo al que se inscribirán los equipos.
+ * @param inscripciones - Inscripciones actuales para detectar duplicados.
+ * @param onClose - Callback para cerrar el modal.
+ * @param onInscripto - Callback invocado tras inscribir un equipo exitosamente.
+ */
 export default function InscribirEquipoModal({
   torneo,
   inscripciones,
@@ -30,6 +39,10 @@ export default function InscribirEquipoModal({
       e.genero === torneo.genero
   )
 
+  /**
+   * Inscribe un equipo en el torneo y notifica al componente padre.
+   * @param idEquipo - ID del equipo a inscribir.
+   */
   const handleInscribir = async (idEquipo: number) => {
     try {
       await inscribirEquipoTorneo(torneo.id_torneo, idEquipo)

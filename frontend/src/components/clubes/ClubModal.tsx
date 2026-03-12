@@ -1,18 +1,28 @@
 import { useEffect, useState } from "react"
 import type { Club, ClubCreate } from "../../types/club"
 
-type Props = {
+interface Props {
+  /** Si es true, el modal es visible. */
   open: boolean
+  /** Club a editar, o null para crear uno nuevo. */
   club: Club | null
+  /** Callback invocado al cerrar el modal sin guardar. */
   onClose: () => void
+  /** Callback invocado con los datos del formulario al confirmar el guardado. */
   onSave: (data: ClubCreate) => void
 }
 
+/**
+ * Modal para crear o editar un club.
+ * Prellena el formulario con los datos del club si se está editando.
+ * No renderiza nada si `open` es false.
+ */
 export default function ClubModal({ open, club, onClose, onSave }: Props) {
   const [form, setForm] = useState<ClubCreate>({
     nombre: "", provincia: "", ciudad: "", direccion: "", telefono: "", email: "",
   })
 
+  // Prellena el formulario con los datos del club cuando se abre el modal en modo edición.
   useEffect(() => {
     if (open && club) {
       setForm({

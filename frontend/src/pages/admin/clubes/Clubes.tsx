@@ -10,6 +10,11 @@ import ClubCard from "../../../components/clubes/ClubCard"
 import { getClubes, crearClub } from "../../../api/clubes.api"
 import type { Club, ClubCreate } from "../../../types/club"
 
+/**
+ * Página administrativa de gestión de clubes.
+ * Lista todos los clubes con opción de crear uno nuevo mediante modal.
+ * Al hacer clic en un club navega a su página de detalle.
+ */
 export default function Clubes() {
   // ======================
   // State
@@ -59,6 +64,10 @@ export default function Clubes() {
   // ======================
   // Handlers
   // ======================
+  /**
+   * Actualiza el campo correspondiente del formulario de creación de club.
+   * @param e - Evento de cambio del input.
+   */
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -70,6 +79,10 @@ export default function Clubes() {
     }))
   }
 
+  /**
+   * Valida y envía el formulario para crear un nuevo club.
+   * Agrega el club creado al listado local sin recargar la página.
+   */
   const handleCreateClub = async () => {
     if (
       !form.nombre.trim() ||

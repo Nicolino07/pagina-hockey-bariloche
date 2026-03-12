@@ -12,6 +12,12 @@ import { useInscripcionesTorneo } from "../../../hooks/useInscripcionesTorneo";
 import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api";
 import { generarPlanillaPDF } from "../../../services/PlanillaVacia.service";
 
+/**
+ * Página administrativa de gestión de partidos.
+ * Lista el historial de encuentros con detalle en modal.
+ * Permite cargar resultados desde cero o desde el fixture,
+ * e imprimir planillas vacías en PDF para completar en campo.
+ */
 export default function PartidosPage() {
   const [partidos, setPartidos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +32,9 @@ export default function PartidosPage() {
   const [partidosPendientes, setPartidosPendientes] = useState<FixturePartido[]>([]);
   const [loadingFixture, setLoadingFixture] = useState(false);
 
+  /**
+   * Abre el modal de fixture y carga los partidos pendientes programados.
+   */
   const abrirModalFixture = async () => {
     setShowFixtureModal(true);
     setLoadingFixture(true);
@@ -47,12 +56,14 @@ export default function PartidosPage() {
   const [equipoL, setEquipoL] = useState<any>(null);
   const [equipoV, setEquipoV] = useState<any>(null);
 
+  // Carga el historial de partidos recientes al montar el componente.
   useEffect(() => {
     cargarPartidos();
   }, []);
 
   
 
+  /** Obtiene el historial de partidos recientes y actualiza el estado. */
   const cargarPartidos = async () => {
     try {
       const data = await obtenerPartidosRecientes(); 
@@ -64,7 +75,11 @@ export default function PartidosPage() {
     }
   };
 
-  // Función auxiliar para obtener y filtrar planteles igual que lo hace tu hook
+  /**
+   * Obtiene el plantel activo de un equipo filtrando solo integrantes con persona asignada.
+   * @param idEquipo - ID del equipo cuyo plantel se quiere obtener.
+   * @returns Array de integrantes válidos, o array vacío si no hay plantel.
+   */
   const obtenerPlantelFiltrado = async (idEquipo: number) => {
     const data = await getPlantelActivoPorEquipo(idEquipo);
     if (data && data.length > 0) {
@@ -78,6 +93,10 @@ export default function PartidosPage() {
     return [];
   };
 
+  /**
+   * Obtiene los planteles de ambos equipos y genera el PDF de planilla vacía para imprimir.
+   * Requiere que ambos equipos estén seleccionados en el modal de impresión.
+   */
   const prepararImpresion = async () => {
     if (!equipoL || !equipoV) return alert("Selecciona ambos equipos");
     
@@ -109,6 +128,10 @@ export default function PartidosPage() {
     }
   };
 
+  /**
+   * Carga el detalle completo de un partido y abre el modal de visualización.
+   * @param partido - Objeto partido con al menos `id_partido`.
+   */
   const handleVerDetalle = async (partido: any) => {
   try {
     setLoading(true); // Reutilizamos tu estado de loading
@@ -123,6 +146,12 @@ export default function PartidosPage() {
   }
 };
 
+  /**
+   * Parsea el string de plantilla de la DB y retorna un array de jugadores/staff.
+   * @param str - String con integrantes separados por "; " y campos por "|".
+   *              Formato: "Apellido|Nombre|Camiseta|Rol; ...".
+   * @returns Array con nombreCompleto, camiseta y rol de cada integrante.
+   */
   const parsePlantilla = (str: string) => {
     if (!str) return [];
     return str.split("; ").map(item => {
@@ -141,6 +170,11 @@ export default function PartidosPage() {
     });
   };
 
+  /**
+   * Retorna el ícono visual correspondiente al tipo de tarjeta disciplinaria.
+   * @param tipo - Tipo de tarjeta: "VERDE", "AMARILLA" o "ROJA".
+   * @returns Elemento JSX con el ícono, o null si el tipo no aplica.
+   */
   const renderIconoTarjeta = (tipo?: string) => {
   switch (tipo) {
     case "VERDE":

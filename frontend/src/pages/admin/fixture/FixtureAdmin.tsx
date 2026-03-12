@@ -13,6 +13,7 @@ import type { FixturePartido, FixturePartidoCreate, FixturePartidoUpdate } from 
 import Button from "../../../components/ui/button/Button"
 import styles from "./FixtureAdmin.module.css"
 
+/** Valores iniciales vacíos para el formulario de programación de partido. */
 const FORM_VACIO: FixturePartidoCreate = {
   id_torneo: 0,
   id_equipo_local: 0,
@@ -23,6 +24,12 @@ const FORM_VACIO: FixturePartidoCreate = {
   numero_fecha: undefined,
 }
 
+/**
+ * Página administrativa de gestión del fixture.
+ * Permite seleccionar un torneo, ver sus partidos programados y
+ * crear, editar o eliminar partidos del fixture.
+ * Los partidos ya jugados se muestran en modo solo lectura.
+ */
 export default function FixtureAdmin() {
   const navigate = useNavigate()
   const [torneos, setTorneos] = useState<Torneo[]>([])
@@ -37,12 +44,12 @@ export default function FixtureAdmin() {
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Cargar torneos al montar
+  // Carga la lista de torneos disponibles al montar el componente.
   useEffect(() => {
     listarTorneos().then(setTorneos).catch(console.error)
   }, [])
 
-  // Cuando cambia el torneo, cargar inscripciones y fixture
+  // Recarga inscripciones y partidos del fixture al seleccionar un torneo distinto.
   useEffect(() => {
     if (!torneoId) return
     setInscripciones([])
@@ -61,6 +68,7 @@ export default function FixtureAdmin() {
       .finally(() => setLoadingPartidos(false))
   }, [torneoId])
 
+  /** Abre el formulario en modo creación con el torneo actual preseleccionado. */
   function abrirFormularioNuevo() {
     setEditando(null)
     setForm({ ...FORM_VACIO, id_torneo: torneoId! })
@@ -68,6 +76,10 @@ export default function FixtureAdmin() {
     setMostrarFormulario(true)
   }
 
+  /**
+   * Abre el formulario en modo edición precargando los datos del partido seleccionado.
+   * @param p - Partido del fixture a editar.
+   */
   function abrirFormularioEdicion(p: FixturePartido) {
     setEditando(p)
     setForm({
@@ -83,12 +95,17 @@ export default function FixtureAdmin() {
     setMostrarFormulario(true)
   }
 
+  /** Cierra el formulario y limpia el estado de edición y error. */
   function cerrarFormulario() {
     setMostrarFormulario(false)
     setEditando(null)
     setError(null)
   }
 
+  /**
+   * Guarda el partido del fixture: crea uno nuevo o actualiza el existente según el modo.
+   * Valida que ambos equipos estén seleccionados y sean distintos antes de enviar.
+   */
   async function handleGuardar() {
     if (!form.id_equipo_local || !form.id_equipo_visitante) {
       setError("Seleccioná ambos equipos.")
@@ -128,6 +145,10 @@ export default function FixtureAdmin() {
     }
   }
 
+  /**
+   * Elimina un partido del fixture tras confirmación del usuario.
+   * @param id - ID del partido del fixture a eliminar.
+   */
   async function handleEliminar(id: number) {
     if (!confirm("¿Eliminar este partido del fixture?")) return
     try {
@@ -138,6 +159,7 @@ export default function FixtureAdmin() {
     }
   }
 
+  /** Mapa de id_equipo → nombre_equipo construido desde las inscripciones del torneo. */
   const equiposPorId = Object.fromEntries(
     inscripciones.map(i => [i.id_equipo, i.nombre_equipo])
   )

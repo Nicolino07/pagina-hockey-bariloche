@@ -5,6 +5,11 @@ import { obtenerNoticiaPorId } from "../../../api/noticias.api"; // ✅ Usamos l
 import Button from "../../../components/ui/button/Button";
 import styles from "./NoticiaDetalle.module.css";
 
+/**
+ * Página pública de detalle de una noticia.
+ * Carga la noticia por su ID desde la URL y muestra título, imagen,
+ * epígrafe y el cuerpo del texto separado en párrafos.
+ */
 export default function NoticiaDetalle() {
   const { id } = useParams();
   const navigate = useNavigate();

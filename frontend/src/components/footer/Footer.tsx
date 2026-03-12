@@ -1,5 +1,6 @@
 import styles from "./Footer.module.css"
 
+/** Pie de página global con información de autoría y contacto. */
 export default function Footer() {
   return (
     <footer className={styles.footer}>

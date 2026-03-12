@@ -6,6 +6,11 @@ import { decodeJwt } from "../../utils/jwt"
 import styles from "./Login.module.css"
 import { Link } from "react-router-dom"
 
+/**
+ * Página de inicio de sesión.
+ * Autentica al usuario con email y contraseña, decodifica el JWT recibido
+ * y guarda los datos de sesión en el contexto de autenticación.
+ */
 export default function Login() {
   const navigate = useNavigate()
   const { login } = useAuth()

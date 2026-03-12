@@ -1,4 +1,6 @@
 // frontend/src/utils/jwt.ts - VERSIÓN COMPLETA Y CORRECTA
+
+/** Estructura del payload decodificado de un JWT del sistema. */
 export type JwtPayload = {
   sub: string
   username: string
@@ -8,6 +10,11 @@ export type JwtPayload = {
   type?: string
 }
 
+/**
+ * Decodifica el payload de un JWT sin verificar la firma.
+ * @param token - Token JWT en formato header.payload.signature.
+ * @returns Payload decodificado o null si el token es inválido.
+ */
 export function decodeJwt(token: string): JwtPayload | null {
   try {
     // Verificar formato básico
@@ -48,6 +55,11 @@ export function decodeJwt(token: string): JwtPayload | null {
   }
 }
 
+/**
+ * Verifica si un token JWT ha expirado comparando su campo `exp` con la hora actual.
+ * @param token - Token JWT a evaluar.
+ * @returns true si el token está expirado o es inválido, false si aún es válido.
+ */
 export function isTokenExpired(token: string): boolean {
   const payload = decodeJwt(token)
   if (!payload || !payload.exp) return true
@@ -62,6 +74,11 @@ export function isTokenExpired(token: string): boolean {
   return isExpired
 }
 
+/**
+ * Retorna los segundos restantes de vida del token.
+ * @param token - Token JWT a evaluar.
+ * @returns Segundos restantes, o 0 si ya expiró o es inválido.
+ */
 export function getTokenTimeLeft(token: string): number {
   const payload = decodeJwt(token)
   if (!payload?.exp) return 0
@@ -70,6 +87,12 @@ export function getTokenTimeLeft(token: string): number {
   return Math.max(0, payload.exp - now) // segundos restantes
 }
 
+/**
+ * Indica si el token está próximo a expirar dentro del umbral dado.
+ * @param token - Token JWT a evaluar.
+ * @param thresholdMinutes - Minutos de anticipación para considerar vencimiento inminente (default: 5).
+ * @returns true si el token vence dentro del umbral, false en caso contrario.
+ */
 export function isTokenAboutToExpire(token: string, thresholdMinutes = 5): boolean {
   try {
     const timeLeft = getTokenTimeLeft(token)

@@ -3,13 +3,22 @@ import type { ReactNode } from "react"
 import styles from "./Modal.module.css"
 
 interface ModalProps {
+  /** Si es true, el modal es visible. */
   open: boolean
+  /** Título que se muestra en el encabezado del modal. */
   title?: string
+  /** Contenido del cuerpo del modal. */
   children: ReactNode
+  /** Callback invocado al cerrar el modal (clic en overlay o botón ✕). */
   onClose: () => void
-  titleClassName?: string 
+  /** Clase CSS adicional para personalizar el estilo del título. */
+  titleClassName?: string
 }
 
+/**
+ * Modal genérico reutilizable con overlay, título y botón de cierre.
+ * Cierra al hacer clic fuera del contenido. No renderiza nada si `open` es false.
+ */
 export default function Modal({
   open,
   title,

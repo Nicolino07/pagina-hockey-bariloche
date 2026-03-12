@@ -11,6 +11,7 @@ import Button from "../../../components/ui/button/Button";
 import Modal from "../../../components/ui/modal/Modal";
 import styles from "./EquipoDetalle.module.css";
 
+/** Mapa de valores de rol a etiquetas legibles para mostrar en la UI. */
 const ROL_LABELS: Record<string, string> = {
   JUGADOR: "Jugador",
   DT: "Director Técnico",
@@ -20,6 +21,7 @@ const ROL_LABELS: Record<string, string> = {
   DELEGADO: "Delegado",
 };
 
+/** Representa un fichaje activo de una persona en el club, usado para poblar el modal de agregar. */
 interface FichajeActivo {
   id_fichaje_rol: number;
   id_persona: number;
@@ -31,6 +33,12 @@ interface FichajeActivo {
   fecha_inicio: string;
 }
 
+/**
+ * Página administrativa de detalle de un equipo.
+ * Muestra el plantel activo y permite agregar integrantes desde los fichajes
+ * del club o crear un plantel inicial si aún no existe ninguno.
+ * Recibe datos del equipo y club via `location.state` desde la página anterior.
+ */
 export default function EquipoDetalle() {
   const navigate = useNavigate();
   const { id_equipo } = useParams<{ id_equipo: string }>();
@@ -63,12 +71,13 @@ export default function EquipoDetalle() {
 
   const tienePlantelCreado = id_plantel !== null;
   
-  // Mapeo limpio asegurando que existan los datos mínimos para la lista
+  // Filtra integrantes que tengan id_plantel_integrante válido para evitar errores en la lista.
   const integrantesValidos = useMemo(() => {
     if (!integrantes) return [];
     return integrantes.filter(i => i.id_plantel_integrante !== null);
   }, [integrantes]);
 
+  // Preselecciona el filtro de género según el género del equipo al abrir el modal de agregar.
   useEffect(() => {
     if (modalType === "agregar" && generoEquipo) {
       const g = generoEquipo.toUpperCase();
@@ -76,8 +85,8 @@ export default function EquipoDetalle() {
     }
   }, [modalType, generoEquipo]);
 
+  // Carga los fichajes activos del club al abrir el modal de agregar integrante.
   useEffect(() => {
-    // Verificamos que exista id_club antes de disparar la carga
     if (modalType !== "agregar" || !id_club) return;
 
     const cargarFichajes = async () => {
@@ -103,6 +112,10 @@ export default function EquipoDetalle() {
   cargarFichajes();
 }, [modalType, id_club]); // Se dispara cuando se abre el modal O cambia el id_club
 
+  /**
+   * Filtra los fichajes del club según el rol seleccionado, el género (solo para JUGADOR)
+   * y el texto de búsqueda por nombre/apellido o documento.
+   */
   const fichajesFiltrados = useMemo(() => {
     return fichajes.filter((f) => {
       // 1. Coincidencia de Rol (Siempre obligatoria)
@@ -124,8 +137,13 @@ export default function EquipoDetalle() {
     });
   }, [fichajes, rolSeleccionado, genero, busqueda]);
 
+  /** Abre el modal de creación de plantel si no existe, o el de agregar integrante si ya hay uno. */
   const handleOpenAdd = () => !tienePlantelCreado ? setModalType("crear_plantel") : setModalType("agregar");
 
+  /**
+   * Crea el plantel inicial del equipo y luego abre el modal para agregar integrantes.
+   * Si el plantel ya existe (409), simplemente recarga y abre el modal de agregar.
+   */
   const handleCrearPlantelInicial = async () => {
     if (!equipoId) return;
     try {
@@ -137,6 +155,10 @@ export default function EquipoDetalle() {
     }
   };
 
+  /**
+   * Agrega un integrante al plantel activo a partir de su fichaje vigente en el club.
+   * @param f - Fichaje activo de la persona a incorporar al plantel.
+   */
   const handleAgregar = async (f: FichajeActivo) => {
     if (!id_plantel) return;
     try {
@@ -151,6 +173,9 @@ export default function EquipoDetalle() {
     } catch (err: any) { alert(err.response?.data?.detail || "Error al agregar"); }
   };
 
+  /**
+   * Ejecuta la baja del integrante seleccionado del plantel activo tras confirmación.
+   */
   const handleBajaConfirmada = async () => {
     if (!integranteAEliminar?.id) return;
     try {

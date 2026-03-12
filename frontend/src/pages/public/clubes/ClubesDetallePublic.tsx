@@ -13,6 +13,12 @@ import type { PlantelIntegrante } from "../../../types/plantelIntegrante";
 import styles from "./ClubesDetallePublic.module.css";
 
 
+/**
+ * Página pública de detalle de un club.
+ * Muestra los equipos del club como categorías seleccionables.
+ * Al seleccionar un equipo, carga sus partidos recientes, tabla de
+ * posiciones, cuerpo técnico y plantilla de jugadores.
+ */
 export default function ClubesDetallePublic() {
   const { id_club } = useParams<{ id_club: string }>();
   const [club, setClub] = useState<Club | null>(null);
@@ -23,6 +29,7 @@ export default function ClubesDetallePublic() {
   const [loading, setLoading] = useState(true);
   const [integrantes, setIntegrantes] = useState<PlantelIntegrante[]>([]);
 
+  // Recarga partidos e integrantes del plantel al cambiar el equipo seleccionado.
   useEffect(() => {
     if (!equipoSeleccionado) return;
 
@@ -45,7 +52,12 @@ export default function ClubesDetallePublic() {
 
 
 
-  // Utilidad para parsear los strings de la vista SQL
+  /**
+   * Parsea el string de goleadores proveniente de la vista SQL.
+   * @param listaStr - String con goleadores separados por "; " y campos por "|".
+   *                   Formato esperado: "Apellido|Nombre|Minuto|Cuarto; ...".
+   * @returns Array de objetos con apellido, inicial del nombre, minuto y cuarto.
+   */
   const parsearGoleadores = (listaStr: string) => {
     if (!listaStr) return [];
     return listaStr.split('; ').map(item => {
@@ -54,6 +66,7 @@ export default function ClubesDetallePublic() {
     });
   };
 
+  // Carga el club y sus equipos al montar el componente o cambiar el id_club.
   useEffect(() => {
     if (!id_club) return;
     setLoading(true);
@@ -67,6 +80,7 @@ export default function ClubesDetallePublic() {
       .finally(() => setLoading(false));
   }, [id_club]);
 
+  // Carga la tabla de posiciones del torneo del primer partido disponible.
   useEffect(() => {
       if (partidos.length > 0) {
           obtenerPosiciones(partidos[0].id_torneo).then(setPosiciones);

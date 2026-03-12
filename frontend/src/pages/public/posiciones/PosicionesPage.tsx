@@ -14,6 +14,12 @@ import type { InscripcionTorneoDetalle } from "../../../types/inscripcion"
 
 import styles from "./PosicionesPage.module.css"
 
+/**
+ * Página pública de estadísticas por torneo.
+ * Permite seleccionar un torneo y ver su tabla de posiciones,
+ * goleadores, valla menos vencida, tarjetas acumuladas y equipos inscriptos.
+ * Todas las peticiones al seleccionar un torneo se ejecutan en paralelo.
+ */
 export default function PosicionesPage() {
   const [torneos, setTorneos] = useState<Torneo[]>([])
   const [loading, setLoading] = useState(true)

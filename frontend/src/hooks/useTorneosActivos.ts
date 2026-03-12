@@ -3,7 +3,11 @@ import { listarTorneos } from "../api/torneos.api"
 import type { Torneo } from "../types/torneo"
 import { useEffect, useState, useCallback } from "react"
 
-
+/**
+ * Hook que carga la lista de torneos activos.
+ * Expone `refetch` para recargar manualmente cuando sea necesario.
+ * @returns Objeto con la lista de torneos, estado de carga, error y función de recarga.
+ */
 export function useTorneosActivos() {
   const [torneos, setTorneos] = useState<Torneo[]>([])
   const [loading, setLoading] = useState(true)

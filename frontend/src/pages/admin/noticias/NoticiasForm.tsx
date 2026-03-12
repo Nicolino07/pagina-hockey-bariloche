@@ -3,6 +3,11 @@ import { obtenerNoticiasRecientes, crearNoticia, eliminarNoticia } from "../../.
 import Button from "../../../components/ui/button/Button";
 import styles from "./NoticiasForm.module.css";
 
+/**
+ * Página administrativa de gestión de noticias.
+ * Incluye formulario para publicar nuevas noticias con vista previa en tiempo real,
+ * y un listado de las últimas noticias con opción de eliminar.
+ */
 export default function Noticias() {
   const [noticias, setNoticias] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -18,6 +23,9 @@ export default function Noticias() {
     fetchNoticias();
   }, []);
 
+  /**
+   * Carga las últimas 10 noticias y actualiza el listado del panel.
+   */
   const fetchNoticias = async () => {
     const data = await obtenerNoticiasRecientes(10);
     setNoticias(data);
@@ -42,6 +50,10 @@ export default function Noticias() {
     }
   };
 
+  /**
+   * Solicita confirmación y elimina una noticia por su ID.
+   * @param id - ID de la noticia a eliminar.
+   */
   const handleDelete = async (id: number) => {
     if (confirm("¿Estás seguro de eliminar esta noticia?")) {
       await eliminarNoticia(id);

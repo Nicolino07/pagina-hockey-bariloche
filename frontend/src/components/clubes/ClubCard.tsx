@@ -1,11 +1,17 @@
 import styles from "./ClubCard.module.css"
 import type { Club } from "../../types/club"
 
-type Props = {
+interface Props {
+  /** Club a mostrar en la tarjeta. */
   club: Club
+  /** Callback invocado al hacer clic en la tarjeta. */
   onClick: (club: Club) => void
 }
 
+/**
+ * Tarjeta visual que representa un club en el listado.
+ * Muestra nombre y ciudad, y ejecuta el callback al ser clickeada.
+ */
 export default function ClubCard({ club, onClick }: Props) {
   return (
     <div

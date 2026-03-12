@@ -76,6 +76,21 @@
   letter-spacing: 1px;
 }
 
+/* Bloque por día */
+.diaBloque {
+  margin-bottom: 24px;
+}
+
+.diaTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted, #9aa0a6);
+  margin-bottom: 10px;
+  padding-left: 4px;
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
+}
+
 /* Tabla de partidos */
 .tabla {
   background: var(--bg-card, #202124);

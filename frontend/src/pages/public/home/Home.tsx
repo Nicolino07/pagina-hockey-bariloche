@@ -8,6 +8,11 @@ import { usePartidos } from "../../../hooks/usePartidos";
 import { obtenerNoticiasRecientes } from "../../../api/noticias.api"; 
 import { obtenerStatsGlobales } from "../../../api/estadisticas.api";
 
+/**
+ * Página de inicio pública.
+ * Muestra estadísticas globales (partidos y goles), las últimas noticias
+ * y los últimos encuentros jugados con detalle en modal al hacer clic.
+ */
 export default function Home() {
 
   const [noticias, setNoticias] = useState<any[]>([]);
@@ -21,7 +26,7 @@ export default function Home() {
   const { parseIncidencias } = usePartidos();
 
 
- // Unificamos todo en un solo efecto de carga al montar el componente
+  // Carga en paralelo partidos recientes, noticias y estadísticas globales al montar el componente.
   useEffect(() => {
     const cargarTodo = async () => {
       setLoading(true);
@@ -49,6 +54,10 @@ export default function Home() {
 
 
 
+  /**
+   * Carga el detalle completo de un partido y abre el modal de visualización.
+   * @param partido - Objeto de partido con al menos `id_partido`.
+   */
   const handleVerDetalle = async (partido: any) => {
     try {
       setLoadingDetalle(true);
@@ -63,6 +72,11 @@ export default function Home() {
     }
   };
 
+  /**
+   * Parsea el string de plantilla de la DB y retorna un array de jugadores.
+   * @param str - String con jugadores separados por "; " y campos por "|".
+   * @returns Array con nombreCompleto, camiseta y rol de cada integrante.
+   */
   const parsePlantilla = (str: string) => {
     if (!str) return [];
     return str.split("; ").map(item => {
@@ -82,6 +96,11 @@ export default function Home() {
     });
   };
 
+  /**
+   * Retorna el ícono visual correspondiente al tipo de tarjeta disciplinaria.
+   * @param tipo - Tipo de tarjeta: "VERDE", "AMARILLA" o "ROJA".
+   * @returns Elemento JSX con el ícono, o null si el tipo no aplica.
+   */
   const renderIconoTarjeta = (tipo?: string) => {
     switch (tipo) {
       case "VERDE":

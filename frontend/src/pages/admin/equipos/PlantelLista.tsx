@@ -3,10 +3,16 @@ import styles from "./PlantelLista.module.css";
 
 interface Props {
   integrantes: PlantelActivoIntegrante[];
+  /** Si es true, muestra el botón de baja para cada integrante. */
   editable?: boolean;
+  /** Callback invocado al hacer clic en "Dar de Baja" de un integrante. */
   onEliminar?: (integrante: PlantelActivoIntegrante) => void;
 }
 
+/**
+ * Componente de lista de integrantes de un plantel.
+ * En modo editable muestra el botón de baja; en modo solo lectura es solo informativo.
+ */
 export default function PlantelLista({
   integrantes,
   editable = false,

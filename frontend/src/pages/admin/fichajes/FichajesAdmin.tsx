@@ -12,6 +12,7 @@ const ROLES = [
   'DELEGADO', 'ASISTENTE', 'MEDICO', 'PREPARADOR_FISICO'
 ]
 
+/** Representa un fichaje activo devuelto por la API de fichajes. */
 interface FichajeActivo {
   id_fichaje_rol: number
   id_persona: number
@@ -27,10 +28,18 @@ interface FichajeActivo {
   persona_genero: string
 }
 
+/** Tipos de modal que pueden estar activos en la página de fichajes. */
 type ModalTipo = 'nuevo' | 'baja' | 'transferir' | null
 
+/** Retorna la fecha actual en formato ISO (YYYY-MM-DD). */
 const hoy = () => new Date().toISOString().split("T")[0]
 
+/**
+ * Página administrativa de gestión de fichajes.
+ * Permite seleccionar un club y ver sus fichajes activos.
+ * Desde aquí se puede crear un nuevo fichaje, dar de baja uno existente
+ * o realizar un pase (transferencia) a otro club.
+ */
 export default function FichajesAdmin() {
   const [clubes, setClubes] = useState<Club[]>([])
   const [personas, setPersonas] = useState<Persona[]>([])
@@ -56,6 +65,7 @@ export default function FichajesAdmin() {
   const [rolTransfer, setRolTransfer] = useState("JUGADOR")
   const [fechaTransfer, setFechaTransfer] = useState(hoy())
 
+  // Carga la lista de clubes y personas al montar el componente.
   useEffect(() => {
     Promise.all([getClubes(), getPersonas()]).then(([c, p]) => {
       setClubes(c)
@@ -63,6 +73,7 @@ export default function FichajesAdmin() {
     })
   }, [])
 
+  // Recarga los fichajes activos del club cada vez que cambia el club seleccionado.
   useEffect(() => {
     if (!clubId) { setFichajes([]); return }
     setLoadingFichajes(true)
@@ -72,6 +83,10 @@ export default function FichajesAdmin() {
       .finally(() => setLoadingFichajes(false))
   }, [clubId])
 
+  /**
+   * Filtra personas por nombre/apellido o documento a partir de al menos 2 caracteres.
+   * Limita los resultados a 8 para no saturar el dropdown de sugerencias.
+   */
   const personasFiltradas = useMemo(() =>
     busqueda.length >= 2
       ? personas.filter(p =>
@@ -82,11 +97,13 @@ export default function FichajesAdmin() {
     [busqueda, personas]
   )
 
+  /** Recarga la lista de fichajes activos del club seleccionado actualmente. */
   const recargarFichajes = () => {
     if (!clubId) return
     getFichajesPorClub(clubId, true).then(setFichajes).catch(console.error)
   }
 
+  /** Cierra el modal activo y resetea todos los estados del formulario a sus valores iniciales. */
   const cerrarModal = () => {
     setModal(null)
     setFichajeSeleccionado(null)
@@ -100,17 +117,29 @@ export default function FichajesAdmin() {
     setFechaTransfer(hoy())
   }
 
+  /**
+   * Abre el modal de pase preseleccionando el fichaje y manteniendo el rol actual.
+   * @param f - Fichaje activo de la persona a transferir.
+   */
   const abrirTransferir = (f: FichajeActivo) => {
     setFichajeSeleccionado(f)
     setRolTransfer(f.rol)
     setModal('transferir')
   }
 
+  /**
+   * Abre el modal de baja preseleccionando el fichaje.
+   * @param f - Fichaje activo a dar de baja.
+   */
   const abrirBaja = (f: FichajeActivo) => {
     setFichajeSeleccionado(f)
     setModal('baja')
   }
 
+  /**
+   * Crea un nuevo fichaje para la persona seleccionada en el club activo.
+   * Recarga la lista y cierra el modal al completarse.
+   */
   const handleNuevoFichaje = async () => {
     if (!personaSeleccionada || !clubId) return
     setSaving(true)
@@ -130,6 +159,10 @@ export default function FichajesAdmin() {
     }
   }
 
+  /**
+   * Da de baja el fichaje seleccionado seteando su fecha de fin.
+   * Recarga la lista y cierra el modal al completarse.
+   */
   const handleDarDeBaja = async () => {
     if (!fichajeSeleccionado) return
     setSaving(true)
@@ -147,6 +180,10 @@ export default function FichajesAdmin() {
     }
   }
 
+  /**
+   * Realiza el pase del fichaje: da de baja en el club actual y crea uno nuevo en el destino.
+   * Ambas operaciones se ejecutan de forma secuencial en la misma fecha de pase.
+   */
   const handleTransferir = async () => {
     if (!fichajeSeleccionado || !clubDestino) return
     setSaving(true)
@@ -171,6 +208,10 @@ export default function FichajesAdmin() {
     }
   }
 
+  /**
+   * Retorna el nombre del club por su ID, o "—" si no se encuentra.
+   * @param id - ID del club a buscar.
+   */
   const clubNombre = (id: number) => clubes.find(c => c.id_club === id)?.nombre ?? "—"
 
   return (

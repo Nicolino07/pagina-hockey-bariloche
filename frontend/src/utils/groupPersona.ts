@@ -1,6 +1,7 @@
 // utils/groupPersonas.ts
 import type { PersonaRolRow } from "../types/personaRol"
 
+/** Persona con sus roles y estado de fichaje agrupados. */
 export interface PersonaAgrupada {
   id_persona: number
   nombre: string
@@ -12,6 +13,12 @@ export interface PersonaAgrupada {
   }[]
 }
 
+/**
+ * Agrupa una lista plana de filas persona-rol en objetos por persona,
+ * acumulando todos los roles de cada una.
+ * @param rows - Lista de filas con datos de persona y rol.
+ * @returns Array de personas con sus roles agrupados.
+ */
 export function agruparPorPersona(rows: PersonaRolRow[]): PersonaAgrupada[] {
   const map = new Map<number, PersonaAgrupada>()
 

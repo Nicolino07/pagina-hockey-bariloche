@@ -12,6 +12,16 @@ interface Props {
   disabled?: boolean;
 }
 
+/**
+ * Formulario reutilizable para crear o editar datos de una persona.
+ * Se puede usar en modo edición (con `initialData`) o creación (sin él).
+ * En modo solo lectura (`disabled`) oculta los botones de acción.
+ * @param initialData - Datos iniciales para prellenar el formulario al editar.
+ * @param onSubmit - Callback asíncrono invocado con los datos del formulario al guardar.
+ * @param onCancel - Callback invocado al cancelar sin guardar.
+ * @param isSaving - Indica si se está procesando el guardado (deshabilita el botón).
+ * @param disabled - Si es true, todos los campos y botones quedan deshabilitados.
+ */
 export default function PersonaForm({ initialData, onSubmit, onCancel, isSaving, disabled }: Props) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<PersonaFormData>({

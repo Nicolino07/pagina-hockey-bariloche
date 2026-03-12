@@ -4,6 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { obtenerNoticiasRecientes } from "../../../api/noticias.api";
 import styles from "./Noticias.module.css";
 
+/**
+ * Página pública de noticias.
+ * Lista todas las novedades de la asociación en formato grilla.
+ * Al hacer clic en una noticia navega al detalle de la misma.
+ */
 export default function Noticias() {
   const [noticias, setNoticias] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

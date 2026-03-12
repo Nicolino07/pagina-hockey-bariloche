@@ -8,6 +8,11 @@ import axiosAdmin from "../../../api/axiosAdmin";
 import PersonaForm from "./PersonaForm";
 import Button from "../../../components/ui/button/Button";
 
+/**
+ * Página administrativa de detalle de una persona.
+ * Carga los datos completos de la persona y sus roles habilitantes desde la vista.
+ * Permite editar información personal, asignar nuevos roles y dar de baja roles existentes.
+ */
 export default function PersonaDetalle() {
   const { id_persona } = useParams<{ id_persona: string }>();
   const navigate = useNavigate();
@@ -27,6 +32,7 @@ export default function PersonaDetalle() {
   const [showAddRol, setShowAddRol] = useState(false);
   const [selectedRol, setSelectedRol] = useState("");
 
+  // Carga los datos completos de la persona al montar o cambiar el id de la URL.
   useEffect(() => {
     const fetchFullData = async () => {
       try {
@@ -44,6 +50,10 @@ export default function PersonaDetalle() {
 
   const personaVista = personas[0];
 
+  /**
+   * Guarda los cambios del formulario de persona, normalizando género y documento.
+   * @param formData - Datos del formulario con el género en formato corto (F/M/X).
+   */
   const handleSavePersona = async (formData: any) => {
     try {
       setIsSaving(true);
@@ -68,6 +78,10 @@ export default function PersonaDetalle() {
     }
   };
 
+  /**
+   * Asigna el rol seleccionado a la persona con fecha de inicio en el día actual.
+   * Muestra alerta si el rol ya existe o si ocurre un error del servidor.
+   */
   const handleAsignarRolHabilitante = async () => {
     if (!selectedRol) return alert("Selecciona un rol");
     try {
@@ -86,6 +100,11 @@ export default function PersonaDetalle() {
     }
   };
 
+  /**
+   * Da de baja un rol habilitante cerrando su vigencia (setea fecha_hasta).
+   * Solicita confirmación antes de proceder. Falla si hay fichajes activos vinculados.
+   * @param idPersonaRol - ID del registro de persona_rol a cerrar.
+   */
   const handleCerrarRol = async (idPersonaRol: number) => {
     if (!window.confirm("¿Seguro que deseas dar de baja este rol? Recuerda que si tiene fichajes activos, la base de datos podría impedirlo.")) return;
     try {

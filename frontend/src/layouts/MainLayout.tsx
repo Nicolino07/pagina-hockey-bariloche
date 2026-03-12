@@ -3,6 +3,10 @@ import Navbar from "../components/navbar/NavBar"
 import Footer from "../components/footer/Footer"
 import styles from "./MainLayout.module.css"
 
+/**
+ * Layout principal de la aplicación pública.
+ * Compone Navbar + contenido de la ruta activa (Outlet) + Footer.
+ */
 export default function MainLayout() {
   return (
     <div className={styles.layout}>

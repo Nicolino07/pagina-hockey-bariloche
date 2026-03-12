@@ -3,6 +3,11 @@ import { useState } from 'react';
 import AxiosPublic from '../../../api/axiosPublic';
 import styles from "../../login/Login.module.css"; // Reutilizamos tus estilos de login
 
+/**
+ * Página de finalización de registro por invitación.
+ * Valida el token de invitación desde la URL y permite al nuevo usuario
+ * crear su nombre de usuario y contraseña para activar su cuenta.
+ */
 const CompletarRegistro = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

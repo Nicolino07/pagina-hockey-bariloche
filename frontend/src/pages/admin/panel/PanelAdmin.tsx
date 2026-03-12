@@ -2,6 +2,11 @@
 import { Link } from "react-router-dom"
 import styles from "./PanelAdmin.module.css"
 
+/**
+ * Dashboard principal del panel administrativo.
+ * Muestra accesos directos a las secciones de gestión: clubes, torneos,
+ * fixture, partidos, personas, noticias y fichajes.
+ */
 export default function PanelAdmin() {
   return (
     <div className={styles.panel}>

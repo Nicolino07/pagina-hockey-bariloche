@@ -13,6 +13,11 @@ import type { Torneo } from "../../../types/torneo"
 
 import styles from "./TorneosAdmin.module.css"
 
+/**
+ * Página administrativa de gestión de torneos.
+ * Permite alternar entre torneos activos y finalizados,
+ * crear nuevos torneos, y finalizar, reabrir o eliminar los existentes.
+ */
 export default function TorneosAdmin() {
   const navigate = useNavigate()
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -34,6 +39,11 @@ export default function TorneosAdmin() {
 
   useEffect(() => { cargarTorneos() }, [cargarTorneos])
 
+  /**
+   * Solicita confirmación y elimina (oculta) un torneo.
+   * @param id - ID del torneo a eliminar.
+   * @param e - Evento de click para evitar propagación al item de la lista.
+   */
   const handleEliminar = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation()
     if (!confirm("¿Eliminar torneo? Se ocultará pero no se borrará definitivamente.")) return
@@ -46,6 +56,11 @@ export default function TorneosAdmin() {
     }
   }
 
+  /**
+   * Solicita confirmación y marca un torneo como finalizado.
+   * @param id - ID del torneo a finalizar.
+   * @param e - Evento de click para evitar propagación al item de la lista.
+   */
   const handleFinalizar = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation()
     if (!confirm("¿Finalizar torneo?")) return
@@ -58,6 +73,11 @@ export default function TorneosAdmin() {
     }
   }
 
+  /**
+   * Solicita confirmación y reactiva un torneo finalizado.
+   * @param id - ID del torneo a reabrir.
+   * @param e - Evento de click para evitar propagación al item de la lista.
+   */
   const handleReabrir = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation()
     if (!confirm("¿Reabrir torneo? Volverá a estar activo.")) return

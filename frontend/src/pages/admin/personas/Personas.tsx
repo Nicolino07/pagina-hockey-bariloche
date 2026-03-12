@@ -17,6 +17,11 @@ const ICONOS_ROLES: Record<string, string> = {
   DELEGADO: "👔",
 };
 
+/**
+ * Página administrativa de gestión de personas.
+ * Lista personas con búsqueda por nombre/apellido y filtro por rol.
+ * Permite crear una nueva persona asignándole un rol inicial desde un modal.
+ */
 export default function Personas() {
   const { personas, loading, error, refresh } = usePersonaConRoles();
   const navigate = useNavigate();
@@ -36,6 +41,10 @@ export default function Personas() {
     })
     .sort((a, b) => (a.apellido || "").toLowerCase().localeCompare((b.apellido || "").toLowerCase()));
 
+  /**
+   * Crea una nueva persona con el rol seleccionado y recarga el listado.
+   * @param formData - Datos del formulario de la persona a crear.
+   */
   const handleCreatePersona = async (formData: any) => {
     try {
       setIsSaving(true);

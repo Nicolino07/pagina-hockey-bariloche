@@ -2,13 +2,19 @@ import { useEffect, useState } from "react"
 import { getPlantelActivoPorEquipo } from "../../api/vistas/plantel.api"
 
 interface Props {
+  /** ID del equipo cuyo plantel activo se quiere mostrar. */
   idEquipo: number
 }
 
+/**
+ * Componente que lista los integrantes activos del plantel de un equipo.
+ * Muestra apellido, nombre, rol en el plantel y número de camiseta si existe.
+ */
 export default function PlantelActivo({ idEquipo }: Props) {
   const [integrantes, setIntegrantes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Carga los integrantes del plantel activo al montar o cambiar el equipo.
   useEffect(() => {
     const load = async () => {
       try {

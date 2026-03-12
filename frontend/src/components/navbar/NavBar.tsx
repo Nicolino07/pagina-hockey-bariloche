@@ -3,11 +3,19 @@ import { useAuth } from "../../auth/AuthContext"
 import { useState } from "react"
 import styles from "./NavBar.module.css"
 
+/**
+ * Barra de navegación principal de la aplicación.
+ * Muestra los links públicos siempre, y los links del panel admin
+ * solo cuando el usuario está autenticado.
+ * Los links de gestión de usuarios/torneos se muestran solo para ADMIN y SUPERUSUARIO.
+ * En mobile utiliza un menú lateral (sidebar) activado por el botón hamburguesa.
+ */
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
+  /** Cierra la sesión del usuario, navega al inicio y cierra el menú mobile. */
   const handleLogout = () => {
     logout()
     navigate("/")

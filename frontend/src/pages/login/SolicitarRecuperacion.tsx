@@ -5,6 +5,11 @@ import styles from "./Login.module.css";
 import { Link, useNavigate } from "react-router-dom"
 import Button from "../../components/ui/button/Button";
 
+/**
+ * Página de solicitud de recuperación de contraseña.
+ * Envía un email con link de reseteo. Por seguridad muestra mensaje
+ * de éxito independientemente de si el email existe en el sistema.
+ */
 export default function SolicitarRecuperacion() {
   const navigate = useNavigate()
   const [email, setEmail] = useState("");

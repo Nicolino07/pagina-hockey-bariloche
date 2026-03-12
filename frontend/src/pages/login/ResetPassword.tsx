@@ -6,6 +6,11 @@ import styles from "./Login.module.css";
 import Button from "../../components/ui/button/Button";
 
 
+/**
+ * Página de reseteo de contraseña.
+ * Lee el token de recuperación desde la URL y permite al usuario
+ * establecer una nueva contraseña. Redirige al login tras el éxito.
+ */
 export default function ResetPasswordForm() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

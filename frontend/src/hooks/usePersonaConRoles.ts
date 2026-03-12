@@ -6,11 +6,19 @@ import type { PersonaRolClub, PersonaAgrupada } from "../types/persona"
 
 
 
+/** Opciones de filtrado para el hook usePersonaConRoles. */
 interface UsePersonaOptions {
   idPersona?: number;
 }
 
-export function usePersonaConRoles(options?: UsePersonaOptions) { // <-- Añadimos opciones
+/**
+ * Hook que carga todas las personas con sus roles y clubes agrupados.
+ * Permite filtrar por persona específica mediante `options.idPersona`.
+ * Expone `refresh` para recargar los datos manualmente.
+ * @param options - Opciones opcionales de filtrado.
+ * @returns Objeto con personas agrupadas, estado de carga, error y función de recarga.
+ */
+export function usePersonaConRoles(options?: UsePersonaOptions) {
   const [personasRaw, setPersonasRaw] = useState<PersonaRolClub[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

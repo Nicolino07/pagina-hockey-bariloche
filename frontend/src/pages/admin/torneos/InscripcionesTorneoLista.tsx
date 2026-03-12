@@ -10,6 +10,11 @@ type Props = {
   onBaja: (idEquipo: number) => void
 }
 
+/**
+ * Lista de equipos inscriptos en un torneo con opción de dar de baja.
+ * @param inscripciones - Lista de inscripciones activas del torneo.
+ * @param onBaja - Callback invocado con el ID del equipo a dar de baja.
+ */
 export default function InscripcionesTorneoLista({
   inscripciones,
   onBaja,

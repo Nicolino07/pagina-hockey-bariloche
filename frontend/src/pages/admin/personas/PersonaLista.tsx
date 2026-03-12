@@ -2,6 +2,11 @@ import { usePersonaConRoles } from "../../../hooks/usePersonaConRoles";
 import type { PersonaAgrupada } from "../../../types/persona";
 import styles from "./PersonasList.module.css";
 
+/**
+ * Componente de tabla que lista todas las personas con sus roles y estado de fichaje.
+ * Muestra el rol principal y los roles adicionales de forma compacta.
+ * Utiliza el hook `usePersonaConRoles` para obtener los datos agrupados por persona.
+ */
 export const PersonasList = () => {
   const { personas, loading, error } = usePersonaConRoles();
 
