@@ -88,7 +88,7 @@ export const generarPlanillaPDF = (datos: any) => {
       body: filasJugadores.map((p) => [
         '', 
         p.numero_camiseta || '', 
-        p.apellido_persona ? `${p.apellido_persona}, ${p.nombre_persona}` : '',
+        p.apellido_persona ? nombreCompleto(p) : '',
         '', '', '', ''
       ]),
       theme: 'grid',
