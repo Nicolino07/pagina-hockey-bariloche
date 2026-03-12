@@ -186,6 +186,7 @@ export default function PersonaDetalle() {
               <option value="JUGADOR">JUGADOR</option>
               <option value="DT">DT</option>
               <option value="ARBITRO">ARBITRO</option>
+              <option value="ASISTENTE">ASISTENTE</option>
               <option value="PREPARADOR_FISICO">PREPARADOR FÍSICO</option>
               <option value="MEDICO">MÉDICO</option>
               <option value="DELEGADO">DELEGADO</option>
