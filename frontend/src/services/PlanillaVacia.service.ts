@@ -1,7 +1,22 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const nombreCompleto = (p: any) => p ? `${p.apellido_persona || ''}, ${p.nombre_persona || ''}`.trim().replace(/^,\s*/, '') : '';
+const formatearNombre = (apellido: string, nombre: string): string => {
+  const apellidos = apellido.trim().split(/\s+/);
+  const nombres = nombre.trim().split(/\s+/);
+  const apellidoFormato = apellidos.length > 1
+    ? `${apellidos[0]} ${apellidos[1][0]}.`
+    : apellidos[0];
+  return `${apellidoFormato}, ${nombres.join(' ')}`;
+};
+
+const nombreCompleto = (p: any): string => {
+  if (!p) return '';
+  const apellido = p.apellido_persona || '';
+  const nombre = p.nombre_persona || '';
+  if (!apellido && !nombre) return '';
+  return formatearNombre(apellido, nombre);
+};
 
 export const generarPlanillaPDF = (datos: any) => {
   const { torneo, local, visitante, plantelLocal, plantelVisitante, cuerpoTecnicoLocal = [], cuerpoTecnicoVisitante = [] } = datos;
