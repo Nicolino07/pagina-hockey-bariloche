@@ -80,17 +80,14 @@ export default function PartidosPage() {
    * @param idEquipo - ID del equipo cuyo plantel se quiere obtener.
    * @returns Array de integrantes válidos, o array vacío si no hay plantel.
    */
-  const obtenerPlantelFiltrado = async (idEquipo: number) => {
+  const obtenerDatosPlantel = async (idEquipo: number) => {
     const data = await getPlantelActivoPorEquipo(idEquipo);
-    if (data && data.length > 0) {
-      // Quitamos la condición de rol === "JUGADOR" 
-      // para que incluya DT, Ayudante, etc.
-      return data.filter((i: any) => 
-        i.id_persona !== null && 
-        i.id_persona !== undefined
-      );
-    }
-    return [];
+    if (!data || data.length === 0) return { jugadores: [], cuerpoTecnico: [] };
+    const conPersona = data.filter((i: any) => i.id_persona !== null && i.id_persona !== undefined);
+    return {
+      jugadores: conPersona.filter((i: any) => i.rol_en_plantel === "JUGADOR"),
+      cuerpoTecnico: conPersona.filter((i: any) => i.rol_en_plantel !== "JUGADOR"),
+    };
   };
 
   /**
@@ -99,24 +96,27 @@ export default function PartidosPage() {
    */
   const prepararImpresion = async () => {
     if (!equipoL || !equipoV) return alert("Selecciona ambos equipos");
-    
+
     try {
       setLoading(true);
-      
-      // Usamos la lógica de filtrado consistente con el hook
-      const pLocal = await obtenerPlantelFiltrado(equipoL.id_equipo);
-      const pVisit = await obtenerPlantelFiltrado(equipoV.id_equipo);
 
-      if (pLocal.length === 0 && pVisit.length === 0) {
-        alert("Atención: No se encontraron integrantes con datos de persona en estos equipos.");
+      const [datosLocal, datosVisit] = await Promise.all([
+        obtenerDatosPlantel(equipoL.id_equipo),
+        obtenerDatosPlantel(equipoV.id_equipo),
+      ]);
+
+      if (datosLocal.jugadores.length === 0 && datosVisit.jugadores.length === 0) {
+        alert("Atención: No se encontraron jugadores en estos equipos.");
       }
 
       generarPlanillaPDF({
         torneo: selTorneo,
         local: equipoL,
         visitante: equipoV,
-        plantelLocal: pLocal,
-        plantelVisitante: pVisit
+        plantelLocal: datosLocal.jugadores,
+        plantelVisitante: datosVisit.jugadores,
+        cuerpoTecnicoLocal: datosLocal.cuerpoTecnico,
+        cuerpoTecnicoVisitante: datosVisit.cuerpoTecnico,
       });
       
       setShowPrintModal(false);

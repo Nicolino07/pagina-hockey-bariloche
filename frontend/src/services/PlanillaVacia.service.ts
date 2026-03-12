@@ -1,8 +1,10 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
+const nombreCompleto = (p: any) => p ? `${p.apellido_persona || ''}, ${p.nombre_persona || ''}`.trim().replace(/^,\s*/, '') : '';
+
 export const generarPlanillaPDF = (datos: any) => {
-  const { torneo, local, visitante, plantelLocal, plantelVisitante } = datos;
+  const { torneo, local, visitante, plantelLocal, plantelVisitante, cuerpoTecnicoLocal = [], cuerpoTecnicoVisitante = [] } = datos;
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   
@@ -91,11 +93,27 @@ export const generarPlanillaPDF = (datos: any) => {
   const ySeccionMedia = Math.max(finalYPlantelL, finalYPlantelV) + 5;
 
   // --- 3. FILA TRIPLE: CARGOS LOCAL | RESULTADOS | CARGOS VISITANTE ---
+  const buscarPorRol = (cuerpo: any[], rol: string) =>
+    cuerpo.find((i: any) => i.rol_en_plantel === rol);
+
+  const cargosParaPlantel = (cuerpo: any[]) => {
+    const dt = buscarPorRol(cuerpo, 'DT');
+    const aux = buscarPorRol(cuerpo, 'ASISTENTE');
+    const prep = buscarPorRol(cuerpo, 'PREPARADOR_FISICO');
+    return [
+      ['CAPITÁN', ''],
+      ['DT', dt ? nombreCompleto(dt) : ''],
+      ['AUX', aux ? nombreCompleto(aux) : ''],
+      ['PREP. FÍS.', prep ? nombreCompleto(prep) : ''],
+      ['MESA', ''],
+    ];
+  };
+
   autoTable(doc, {
     startY: ySeccionMedia,
     margin: { left: marginLeft },
     tableWidth: 60,
-    body: [['CAPITÁN', ''], ['DT', ''], ['AUX', ''], ['MESA', '']],
+    body: cargosParaPlantel(cuerpoTecnicoLocal),
     theme: 'grid',
     styles: { fontSize: 10, cellPadding: 1 },
     columnStyles: { 0: { cellWidth: 18, fontStyle: 'bold' } }
@@ -117,7 +135,7 @@ export const generarPlanillaPDF = (datos: any) => {
     startY: ySeccionMedia,
     margin: { left: 142 },
     tableWidth: 60,
-    body: [['CAPITÁN', ''], ['DT', ''], ['AUX', ''], ['MESA', '']],
+    body: cargosParaPlantel(cuerpoTecnicoVisitante),
     theme: 'grid',
     styles: { fontSize: 10, cellPadding: 1 },
     columnStyles: { 0: { cellWidth: 18, fontStyle: 'bold' } }
