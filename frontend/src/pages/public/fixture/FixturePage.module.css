@@ -76,48 +76,47 @@
   letter-spacing: 1px;
 }
 
-/* Cards de partidos */
-.cards {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.card {
+/* Tabla de partidos */
+.tabla {
   background: var(--bg-card, #202124);
   border: 1px solid var(--border-color, #3c4043);
-  border-radius: 16px;
-  padding: 20px 24px;
-  transition: border-color 0.2s ease;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.card:hover {
-  border-color: #8ab4f8;
+.row {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-color, #3c4043);
 }
 
-.torneo {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #9aa0a6;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 12px;
+.row:last-child {
+  border-bottom: none;
+}
+
+.row:hover {
+  background: rgba(138, 180, 248, 0.05);
 }
 
 .equipos {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
 }
 
 .equipo {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
-  text-align: center;
   flex: 1;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .equipo:first-child {
@@ -129,25 +128,26 @@
 }
 
 .vs {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: #9aa0a6;
   background: var(--bg-main, #121212);
-  padding: 4px 10px;
-  border-radius: 6px;
+  padding: 3px 8px;
+  border-radius: 5px;
   flex-shrink: 0;
 }
 
 .info {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
+  gap: 10px;
+  flex-shrink: 0;
+  align-items: center;
 }
 
 .infoItem {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: #9aa0a6;
+  white-space: nowrap;
 }
 
 .infoMsg {
@@ -168,57 +168,29 @@
     font-size: 1.6rem;
   }
 
-  .card {
-    padding: 12px 14px;
-  }
-
-  .torneo {
-    font-size: 0.72rem;
-    margin-bottom: 8px;
-  }
-
-  /* Mantener layout horizontal en mobile, más compacto */
-  .equipos {
-    flex-direction: row;
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 14px;
     gap: 6px;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
+  }
+
+  .equipos {
+    gap: 6px;
   }
 
   .equipo {
-    font-size: 0.85rem;
-    font-weight: 700;
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .equipo:first-child {
-    text-align: right;
-  }
-
-  .equipo:last-child {
-    text-align: left;
-  }
-
-  .vs {
-    font-size: 0.75rem;
-    padding: 3px 7px;
-    flex-shrink: 0;
+    font-size: 0.88rem;
   }
 
   .info {
-    flex-direction: row;
+    justify-content: center;
     flex-wrap: wrap;
     gap: 6px 10px;
-    justify-content: center;
   }
 
   .infoItem {
-    font-size: 0.78rem;
+    font-size: 0.75rem;
   }
 
   .filtroRow {
