@@ -66,14 +66,16 @@ export function usePersonaConRoles(options?: UsePersonaOptions) {
 
       const persona = map[item.id_persona]
 
+      // Si no tiene rol, no agregar entrada de rol
+      if (!item.rol) continue
+
       let rol = persona.roles.find(
         r => r.rol === item.rol && r.estado_fichaje === item.estado_fichaje
       )
 
       if (!rol) {
         rol = {
-          // Usamos una clave compuesta ya que no existe id_persona_rol en PersonaRolClub
-          id_persona_rol: Number(`${item.id_persona}${item.rol.length > 0 ? item.rol.charCodeAt(0) : 0}${item.estado_fichaje.length > 0 ? item.estado_fichaje.charCodeAt(0) : 0}`),
+          id_persona_rol: Number(`${item.id_persona}${item.rol.charCodeAt(0)}${item.estado_fichaje.length > 0 ? item.estado_fichaje.charCodeAt(0) : 0}`),
           rol: item.rol,
           estado_fichaje: item.estado_fichaje,
           clubes: [],
