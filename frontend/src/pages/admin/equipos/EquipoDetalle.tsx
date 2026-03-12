@@ -16,6 +16,7 @@ const ROL_LABELS: Record<string, string> = {
   JUGADOR: "Jugador",
   DT: "Director Técnico",
   ARBITRO: "Árbitro",
+  ASISTENTE: "Asistente",
   PREPARADOR_FISICO: "Prep. Físico",
   MEDICO: "Médico",
   DELEGADO: "Delegado",
