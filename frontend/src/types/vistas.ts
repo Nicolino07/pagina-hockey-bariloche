@@ -55,6 +55,7 @@ export interface PersonaConRoles {
 export interface PersonasArbitro {
 
   id_persona_rol: number
+  id_persona: number
   nombre: string
   apellido: string
   documento?: number | null

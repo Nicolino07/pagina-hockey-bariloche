@@ -266,11 +266,11 @@ export default function PartidoPlanilla() {
         <div className={styles.gridForm}>
           <select value={partidoInfo.id_arbitro1} onChange={e => setPartidoInfo({...partidoInfo, id_arbitro1: e.target.value})}>
             <option value="">Árbitro 1</option>
-            {arbitrosList.map(a => <option key={a.id_persona_rol} value={a.id_persona_rol}>{a.apellido}, {a.nombre}</option>)}
+            {arbitrosList.map(a => <option key={a.id_persona_rol} value={a.id_persona}>{a.apellido}, {a.nombre}</option>)}
           </select>
           <select value={partidoInfo.id_arbitro2} onChange={e => setPartidoInfo({...partidoInfo, id_arbitro2: e.target.value})}>
             <option value="">Árbitro 2</option>
-            {arbitrosList.map(a => <option key={a.id_persona_rol} value={a.id_persona_rol}>{a.apellido}, {a.nombre}</option>)}
+            {arbitrosList.map(a => <option key={a.id_persona_rol} value={a.id_persona}>{a.apellido}, {a.nombre}</option>)}
           </select>
           <input type="text" placeholder="Ubicación" value={partidoInfo.ubicacion} onChange={e => setPartidoInfo({...partidoInfo, ubicacion: e.target.value})} />
         </div>
@@ -475,8 +475,8 @@ export default function PartidoPlanilla() {
                 <h4>Autoridades</h4>
                 <div className={styles.autoridadesGrid}>
                   <div>
-                    <p><strong>Árbitro 1:</strong> {arbitrosList.find(a => a.id_persona_rol === Number(partidoInfo.id_arbitro1))?.apellido || 'No asignado'}</p>
-                    <p><strong>Árbitro 2:</strong> {arbitrosList.find(a => a.id_persona_rol === Number(partidoInfo.id_arbitro2))?.apellido || 'No asignado'}</p>
+                    <p><strong>Árbitro 1:</strong> {arbitrosList.find(a => a.id_persona === Number(partidoInfo.id_arbitro1))?.apellido || 'No asignado'}</p>
+                    <p><strong>Árbitro 2:</strong> {arbitrosList.find(a => a.id_persona === Number(partidoInfo.id_arbitro2))?.apellido || 'No asignado'}</p>
                     {partidoInfo.id_arbitro1 && partidoInfo.id_arbitro1 === partidoInfo.id_arbitro2 && (
                       <span className={styles.errorText}>⚠️ Los árbitros no pueden ser iguales</span>
                     )}
