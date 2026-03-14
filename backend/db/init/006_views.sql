@@ -534,15 +534,16 @@ ORDER BY p.apellido, p.nombre, pr.rol;
 -- ====================================
 
 CREATE VIEW vista_arbitros_activos AS
-SELECT 
-    pr.id_persona_rol, 
-    p.nombre, 
-    p.apellido, 
-    p.documento, 
-    pr.rol 
+SELECT
+    pr.id_persona_rol,
+    p.id_persona,
+    p.nombre,
+    p.apellido,
+    p.documento,
+    pr.rol
 FROM persona p
 JOIN persona_rol pr ON p.id_persona = pr.id_persona
-WHERE pr.rol = 'ARBITRO' 
+WHERE pr.rol = 'ARBITRO'
   AND pr.fecha_hasta IS NULL;
 
 

@@ -62,7 +62,7 @@ export default function ClubesDetallePublic() {
     if (!listaStr) return [];
     return listaStr.split('; ').map(item => {
       const [apellido, nombre, min, cuarto] = item.split('|');
-      return { apellido, nombre: nombre[0], min, cuarto }; // Retorna inicial del nombre
+      return { apellido, nombre: nombre?.[0] ?? '', min, cuarto };
     });
   };
 
@@ -84,6 +84,8 @@ export default function ClubesDetallePublic() {
   useEffect(() => {
       if (partidos.length > 0) {
           obtenerPosiciones(partidos[0].id_torneo).then(setPosiciones);
+      } else {
+          setPosiciones([]);
       }
   }, [partidos]);
 
