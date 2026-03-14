@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTorneosActivos } from "../../../hooks/useTorneosActivos";
 import { useInscripcionesTorneo } from "../../../hooks/useInscripcionesTorneo";
 import { usePlantelActivo } from "../../../hooks/usePlantelActivo";
-import { crearPlanillaPartido } from "../../../api/partidos.api";
+import { crearPlanillaPartido, getPartidoParaEditar, actualizarPlanillaPartido } from "../../../api/partidos.api";
 import { obtenerFixturePartido } from "../../../api/fixture.api";
 import Button from "../../../components/ui/button/Button";
 import styles from "./PartidoPlanilla.module.css";
@@ -39,6 +39,8 @@ export default function PartidoPlanilla() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const fixtureId = searchParams.get("fixture") ? Number(searchParams.get("fixture")) : null;
+  const partidoId = searchParams.get("partido") ? Number(searchParams.get("partido")) : null;
+  const [modoEdicion, setModoEdicion] = useState(false);
 
   const { torneos } = useTorneosActivos();
   const [torneoId, setTorneoId] = useState<number | undefined>(undefined);
@@ -108,6 +110,77 @@ export default function PartidoPlanilla() {
     }).catch(console.error)
   }, [fixtureId, inscripciones])
 
+  // Si viene ?partido=X, carga los datos del partido para edición
+  useEffect(() => {
+    if (!partidoId) return
+    setModoEdicion(true)
+    getPartidoParaEditar(partidoId).then(p => {
+      setTorneoId(p.id_torneo)
+      setPartidoInfo(prev => ({
+        ...prev,
+        fecha: p.fecha,
+        horario: p.horario ? p.horario.slice(0, 5) : prev.horario,
+        ubicacion: p.ubicacion ?? "",
+        numero_fecha: p.numero_fecha ? String(p.numero_fecha) : "",
+        id_arbitro1: p.id_arbitro1 ? String(p.id_arbitro1) : "",
+        id_arbitro2: p.id_arbitro2 ? String(p.id_arbitro2) : "",
+        juez_mesa_local: p.juez_mesa_local ?? "",
+        juez_mesa_visitante: p.juez_mesa_visitante ?? "",
+        observaciones: p.observaciones ?? "",
+      }))
+      setCapitanes({
+        local: p.id_capitan_local ?? 0,
+        visitante: p.id_capitan_visitante ?? 0,
+      })
+      // Goles y tarjetas se precargan cuando inscripciones y planteles estén listos
+      const golesPrec = p.goles.map((g: any) => ({
+        id_plantel_integrante: String(g.id_plantel_integrante),
+        minuto: String(g.minuto),
+        cuarto: g.cuarto ? String(g.cuarto) : "",
+        referencia_gol: g.referencia_gol,
+        es_autogol: g.es_autogol,
+      }))
+      const tarjetasPrec = p.tarjetas.map((t: any) => ({
+        id_plantel_integrante: String(t.id_plantel_integrante),
+        tipo: t.tipo,
+        minuto: t.minuto ? String(t.minuto) : "",
+        cuarto: t.cuarto ? String(t.cuarto) : "",
+      }))
+      setGoles(golesPrec)
+      setTarjetas(tarjetasPrec)
+      // Camisetas
+      const camisetasMap: Record<number, string> = {}
+      ;[...p.participantes_local, ...p.participantes_visitante].forEach((pp: any) => {
+        if (pp.numero_camiseta) camisetasMap[pp.id_plantel_integrante] = pp.numero_camiseta
+      })
+      setCamisetas(camisetasMap)
+    }).catch(console.error)
+  }, [partidoId])
+
+  // Precargar inscripciones y equipos en modo edición
+  useEffect(() => {
+    if (!partidoId || !modoEdicion || inscripciones.length === 0) return
+    getPartidoParaEditar(partidoId).then(p => {
+      const local = inscripciones.find(i => i.id_inscripcion === p.id_inscripcion_local) ?? null
+      const visitante = inscripciones.find(i => i.id_inscripcion === p.id_inscripcion_visitante) ?? null
+      setInscripcionLocal(local)
+      setInscripcionVisitante(visitante)
+    }).catch(console.error)
+  }, [partidoId, modoEdicion, inscripciones])
+
+  // Precargar participantes seleccionados en modo edición una vez que los planteles están listos
+  useEffect(() => {
+    if (!partidoId || !modoEdicion || !plantelLocal.length || !plantelVisitante.length) return
+    getPartidoParaEditar(partidoId).then(p => {
+      const localIds = p.participantes_local.map((pp: any) => pp.id_plantel_integrante)
+      const visitanteIds = p.participantes_visitante.map((pp: any) => pp.id_plantel_integrante)
+      setSeleccionados({
+        local: localIds,
+        visitante: visitanteIds,
+      })
+    }).catch(console.error)
+  }, [partidoId, modoEdicion, plantelLocal.length, plantelVisitante.length])
+
   // Carga la lista de árbitros habilitados al montar el componente.
   useEffect(() => {
     const cargarArbitros = async () => {
@@ -171,6 +244,7 @@ export default function PartidoPlanilla() {
   /**
    * Construye el payload completo y envía la planilla del partido al backend.
    * Incluye datos del partido, participantes con camisetas, goles y tarjetas.
+   * Si está en modo edición, actualiza un partido existente. Sino, crea uno nuevo.
    * Navega hacia atrás al guardar exitosamente.
    */
   const enviarPlanilla = async () => {
@@ -219,8 +293,13 @@ export default function PartidoPlanilla() {
       id_fixture_partido: idFixturePartido,
     };
     try {
-      await crearPlanillaPartido(payload);
-      alert("Planilla guardada con éxito.");
+      if (modoEdicion && partidoId) {
+        await actualizarPlanillaPartido(partidoId, payload);
+        alert("Planilla actualizada con éxito.");
+      } else {
+        await crearPlanillaPartido(payload);
+        alert("Planilla guardada con éxito.");
+      }
       navigate(-1);
     } catch (error) {
       console.error(error);
@@ -245,7 +324,7 @@ export default function PartidoPlanilla() {
     <div className={styles.container}>
       <div className={styles.headerPage}>
         <Button variant="primary" size="sm" onClick={() => navigate(-1)}>← Volver</Button>
-        <h1>Nueva Planilla de Partido</h1>
+        <h1>{modoEdicion ? "Editar Planilla de Partido" : "Nueva Planilla de Partido"}</h1>
       </div>
 
       {/* DATOS DEL PARTIDO */}
@@ -542,12 +621,12 @@ export default function PartidoPlanilla() {
               <Button variant="outline" onClick={() => setShowModal(false)}>
                 Seguir editando
               </Button>
-              <Button 
-                variant="primary" 
-                onClick={enviarPlanilla} 
+              <Button
+                variant="primary"
+                onClick={enviarPlanilla}
                 disabled={loading || (partidoInfo.id_arbitro1 === partidoInfo.id_arbitro2 && partidoInfo.id_arbitro1 !== "")}
               >
-                {loading ? "Confirmando..." : "Confirmar y Finalizar"}
+                {loading ? (modoEdicion ? "Actualizando..." : "Confirmando...") : (modoEdicion ? "Actualizar y Finalizar" : "Confirmar y Finalizar")}
               </Button>
             </div>
           </div>

@@ -11,13 +11,15 @@ from app.database import get_db
 from app.dependencies.permissions import require_admin, require_editor
 from app.models.partido import Partido
 from app.schemas.partido import PartidoBase, PartidoDetalle
-from app.schemas.planilla_partido import PlanillaPartidoCreate
+from app.schemas.planilla_partido import PlanillaPartidoCreate, PartidoEdicionResponse
 
 from app.services.partidos_services import (
     crear_planilla_partido,
     get_partido_by_id,
     get_ultimos_partidos,
     get_historial_por_equipo,
+    get_partido_edicion,
+    actualizar_planilla_partido,
 )
 
 router = APIRouter(
@@ -103,3 +105,34 @@ def listar_historial_equipo(
     if not partidos:
         return []
     return partidos
+
+
+# 🔐 EDITOR / ADMIN / SUPERUSUARIO
+@router.get("/planilla/{id_partido}/editar", response_model=PartidoEdicionResponse)
+def obtener_planilla_para_editar(
+    id_partido: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
+):
+    """
+    Obtiene los datos estructurados de un partido para precarga en modo edición.
+    Incluye participantes (separados local/visitante), goles y tarjetas.
+    Requiere rol EDITOR o superior.
+    """
+    return get_partido_edicion(db, id_partido)
+
+
+@router.put("/planilla/{id_partido}", response_model=PartidoBase)
+def actualizar_planilla(
+    id_partido: int,
+    data: PlanillaPartidoCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
+):
+    """
+    Actualiza la planilla completa de un partido existente.
+    Borra y recrea participantes, goles y tarjetas.
+    Mantiene el id_partido para preservar referencias (como fixture_partido).
+    Requiere rol EDITOR o superior.
+    """
+    return actualizar_planilla_partido(db, id_partido, data, current_user)

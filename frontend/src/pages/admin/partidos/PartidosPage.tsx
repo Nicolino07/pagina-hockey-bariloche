@@ -228,6 +228,8 @@ export default function PartidosPage() {
         <h3>Historial de Encuentros</h3>
         {loading && !showPrintModal ? (
           <p className={styles.loadingText}>Cargando datos...</p>
+        ) : partidos.length === 0 ? (
+          <p className={styles.loadingText}>No hay partidos cargados.</p>
         ) : (
           <table className={styles.table}>
             <thead>
@@ -246,8 +248,8 @@ export default function PartidosPage() {
                   <td>{partido.nombre_torneo}</td>
                   <td>
                     <div className={styles.matchupRow}>
-                      <strong>{partido.equipo_local_nombre}</strong> 
-                      <small className={styles.vsLabel}>vs</small> 
+                      <strong>{partido.equipo_local_nombre}</strong>
+                      <small className={styles.vsLabel}>vs</small>
                       <strong>{partido.equipo_visitante_nombre}</strong>
                     </div>
                   </td>
@@ -257,9 +259,14 @@ export default function PartidosPage() {
                     </span>
                   </td>
                   <td>
-                    <Button variant="secondary" size="sm" onClick={() => handleVerDetalle(partido)}>
-                      📄 Detalle
-                    </Button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <Button variant="secondary" size="sm" onClick={() => handleVerDetalle(partido)}>
+                        📄 Detalle
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/admin/partidos/nueva-planilla?partido=${partido.id_partido}`)}>
+                        ✏️ Editar
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}

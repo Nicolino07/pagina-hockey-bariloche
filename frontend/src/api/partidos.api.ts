@@ -57,6 +57,43 @@ export const eliminarPartido = async (id_partido: number) => {
 };
 
 /**
+ * Obtiene los datos estructurados de un partido para edición
+ * Incluye participantes, goles y tarjetas separados
+ */
+export const getPartidoParaEditar = async (id_partido: number) => {
+  try {
+    const response = await api.get(`/partidos/planilla/${id_partido}/editar`, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error: any) {
+    const mensaje = error.response?.data?.detail || "Error al obtener partido";
+    console.error("Error en getPartidoParaEditar:", mensaje);
+    throw new Error(mensaje);
+  }
+};
+
+/**
+ * Actualiza la planilla completa de un partido existente
+ * Borra y recrea participantes, goles y tarjetas
+ */
+export const actualizarPlanillaPartido = async (id_partido: number, data: any) => {
+  try {
+    const response = await api.put(`/partidos/planilla/${id_partido}`, data, {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    const mensaje = error.response?.data?.detail || "Error al actualizar el partido";
+    console.error("Error en actualizarPlanillaPartido:", mensaje);
+    throw new Error(mensaje);
+  }
+};
+
+/**
  * Obtiene el detalle completo de un partido por su ID
  */
 export const obtenerDetallePartido = async (partidoId: number) => {
