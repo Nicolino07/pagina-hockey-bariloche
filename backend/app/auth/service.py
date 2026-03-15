@@ -147,8 +147,11 @@ def logout_user(db: Session, request: Request):
     )
 
     if token:
-        token.revoked = True
-        token.revoked_at = datetime.utcnow()
-        db.commit()
+        try:
+            token.revoked = True
+            token.revoked_at = datetime.utcnow()
+            db.commit()
+        except Exception:
+            db.rollback()
 
     return {"message": "Logged out"}

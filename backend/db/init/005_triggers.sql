@@ -306,17 +306,17 @@ BEGIN
     IF NEW.expires_at < CURRENT_TIMESTAMP THEN
         RAISE EXCEPTION 'Refresh token expirado';
     END IF;
-    
+
     IF NEW.revoked = TRUE THEN
         RAISE EXCEPTION 'Refresh token revocado';
     END IF;
-    
+
     RETURN NEW;
 END;
 $$;
 
 CREATE TRIGGER trg_validar_refresh_token
-BEFORE INSERT OR UPDATE ON refresh_token
+BEFORE INSERT ON refresh_token
 FOR EACH ROW
 EXECUTE FUNCTION fn_validar_refresh_token();
 
