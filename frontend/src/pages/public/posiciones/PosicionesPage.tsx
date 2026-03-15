@@ -168,6 +168,9 @@ export default function PosicionesPage() {
                       </tbody>
                     </table>
                   ) : <p className={styles.infoSmall}>Sin goles.</p>}
+                  <button className={styles.verRankingBtn} onClick={() => navigate(`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=goleadores`)}>
+                    Ver ranking completo →
+                  </button>
                 </div>
 
                 {/* VALLA MENOS VENCIDA */}
@@ -198,6 +201,9 @@ export default function PosicionesPage() {
                       </tbody>
                     </table>
                   ) : <p className={styles.infoSmall}>Sin datos.</p>}
+                  <button className={styles.verRankingBtn} onClick={() => navigate(`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=valla`)}>
+                    Ver ranking completo →
+                  </button>
                 </div>
 
                 {/* TARJETAS */}
@@ -207,6 +213,7 @@ export default function PosicionesPage() {
                     <table className={styles.statsTable}>
                       <thead>
                         <tr>
+                          <th>#</th>
                           <th className={styles.alignLeft}>Jugador</th>
                           <th><span className={styles.boxVerde}>V</span></th>
                           <th><span className={styles.boxAmarilla}>A</span></th>
@@ -215,8 +222,9 @@ export default function PosicionesPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {tarjetas.slice(0, 5).map(t => (
+                        {tarjetas.slice(0, 5).map((t, index) => (
                           <tr key={t.id_persona}>
+                            <td>{index + 1}</td>
                             <td className={styles.alignLeft}>
                               <div className={styles.playerName}>{t.nombre_persona} {t.apellido_persona}</div>
                               <div className={styles.playerTeam}>{t.equipo}</div>
@@ -230,6 +238,9 @@ export default function PosicionesPage() {
                       </tbody>
                     </table>
                   ) : <p className={styles.infoSmall}>Sin tarjetas.</p>}
+                  <button className={styles.verRankingBtn} onClick={() => navigate(`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=tarjetas`)}>
+                    Ver ranking completo →
+                  </button>
                 </div>
               </div>
 

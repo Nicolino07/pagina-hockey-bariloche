@@ -208,6 +208,25 @@
   padding: 16px 0;
 }
 
+.verRankingBtn {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 8px 0;
+  background: none;
+  border: 1px solid #3c4043;
+  border-radius: 8px;
+  color: #8ab4f8;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.verRankingBtn:hover {
+  border-color: #8ab4f8;
+  background: rgba(138, 180, 248, 0.07);
+}
+
 /* Box de colores para tarjetas */
 .boxVerde, .boxAmarilla, .boxRoja, .boxTotal {
   display: inline-block;

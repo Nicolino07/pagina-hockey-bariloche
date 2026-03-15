@@ -160,8 +160,8 @@ def get_tarjetas_acumuladas(
         query_str += " AND id_equipo = :id_equipo"
         params["id_equipo"] = id_equipo
 
-    # Ordenamos por las más graves primero
-    query_str += " ORDER BY total_rojas DESC, total_amarillas DESC"
+    # Ordenamos por total de tarjetas primero, luego por las más graves como desempate
+    query_str += " ORDER BY total_tarjetas DESC, total_rojas DESC, total_amarillas DESC"
 
     result = db.execute(text(query_str), params).mappings().all()
     return result
