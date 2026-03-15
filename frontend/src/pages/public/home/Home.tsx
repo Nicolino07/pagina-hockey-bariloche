@@ -145,8 +145,9 @@ export default function Home() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div>
-          <h1>Hockey Bariloche</h1>
+        <div className={styles.headerTitle}>
+          <img src="/logo_icon.png" alt="Logo" className={styles.headerLogo} />
+          <h1>Asociación Hockey Bariloche</h1>
         </div>
       </header>
 

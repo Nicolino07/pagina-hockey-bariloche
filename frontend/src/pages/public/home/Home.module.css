@@ -16,6 +16,19 @@
   border-radius: 24px;
 }
 
+.headerTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.headerLogo {
+  height: 64px;
+  width: 64px;
+  object-fit: contain;
+}
+
 .header h1 {
   font-size: 3rem;
   font-weight: 800;

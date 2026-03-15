@@ -31,7 +31,7 @@ export default function Navbar() {
     <>
       <header className={styles.navbar}>
         <div className={styles.logo}>
-          <Link to="/">Hockey Bariloche</Link>
+          <Link to="/"><img src="/logoAHBLS.png" alt="Hockey Bariloche" height={40} className={styles.logoImg} /></Link>
         </div>
 
         {/* ---- NAV DESKTOP ---- */}

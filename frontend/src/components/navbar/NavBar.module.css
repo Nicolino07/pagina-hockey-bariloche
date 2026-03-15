@@ -16,6 +16,12 @@
   font-weight: bold;
 }
 
+.logoImg {
+  border-radius: 30%;
+  object-fit: cover;
+  display: block;
+}
+
 .menuToggle {
   background: none;
   border: none;
