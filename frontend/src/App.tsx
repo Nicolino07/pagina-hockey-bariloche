@@ -40,6 +40,7 @@ import ResetPasswordForm from "./pages/login/ResetPassword";
 import NoticiaDetalle from "./pages/public/noticias/NoticiaDetalle"
 import Noticias from "./pages/public/noticias/Noticias"
 import FixturePage from "./pages/public/fixture/FixturePage"
+import ResultadosPage from "./pages/public/resultados/ResultadosPage"
 import FixtureAdmin from "./pages/admin/fixture/FixtureAdmin"
 import MainLayout from "./layouts/MainLayout"
 
@@ -112,6 +113,7 @@ export default function App() {
         <Route path="/noticias" element={<Noticias />} />
         <Route path="/noticias/:id" element={<NoticiaDetalle />} />
         <Route path="/fixture" element={<FixturePage />} />
+        <Route path="/resultados" element={<ResultadosPage />} />
 
         {/* ADMIN GENERAL */}
         <Route

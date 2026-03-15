@@ -101,6 +101,34 @@ export default function Home() {
    * @param tipo - Tipo de tarjeta: "VERDE", "AMARILLA" o "ROJA".
    * @returns Elemento JSX con el ícono, o null si el tipo no aplica.
    */
+  const agruparGoles = (str: string) => {
+    const items = parseIncidencias(str);
+    const map = new Map<string, { jugador: string; esAutogol: boolean; tiempos: { min: number; label: string }[] }>();
+    items.forEach(g => {
+      const key = `${g.jugador}|${g.esAutogol}`;
+      if (!map.has(key)) map.set(key, { jugador: g.jugador, esAutogol: g.esAutogol, tiempos: [] });
+      map.get(key)!.tiempos.push({ min: Number(g.minuto), label: `${g.minuto}'(${g.cuarto}C)` });
+    });
+    return Array.from(map.values()).map(g => ({
+      ...g,
+      tiempos: g.tiempos.sort((a, b) => a.min - b.min).map(t => t.label),
+    }));
+  };
+
+  const agruparTarjetas = (str: string) => {
+    const items = parseIncidencias(str);
+    const map = new Map<string, { jugador: string; tipoTarjeta?: string; tiempos: { min: number; label: string }[] }>();
+    items.forEach(t => {
+      const key = `${t.jugador}|${t.tipoTarjeta}`;
+      if (!map.has(key)) map.set(key, { jugador: t.jugador, tipoTarjeta: t.tipoTarjeta, tiempos: [] });
+      map.get(key)!.tiempos.push({ min: Number(t.minuto), label: `${t.minuto}'(${t.cuarto}C)` });
+    });
+    return Array.from(map.values()).map(t => ({
+      ...t,
+      tiempos: t.tiempos.sort((a, b) => a.min - b.min).map(x => x.label),
+    }));
+  };
+
   const renderIconoTarjeta = (tipo?: string) => {
     switch (tipo) {
       case "VERDE":
@@ -207,7 +235,7 @@ export default function Home() {
             <tbody>
               {partidos.map((partido) => (
                 <tr key={partido.id_partido}>
-                  <td data-label="Fecha">📅 {new Date(partido.fecha).toLocaleDateString()}</td>
+                  <td data-label="Fecha">📅 {new Date(partido.fecha + "T00:00:00").toLocaleDateString()}</td>
                   <td data-label="Torneo">{partido.nombre_torneo}</td>
                   <td data-label="Encuentro">
                     <div className={styles.matchupRow}>
@@ -240,7 +268,7 @@ export default function Home() {
               <div>
                 <h2>{selectedPartido.nombre_torneo}</h2>
                 <p className={styles.subHeader}>
-                  Fecha {selectedPartido.numero_fecha} | {new Date(selectedPartido.fecha).toLocaleDateString()}
+                  Fecha {selectedPartido.numero_fecha} | {new Date(selectedPartido.fecha + "T00:00:00").toLocaleDateString()}
                 </p>
               </div>
               <button className={styles.closeBtn} onClick={() => setShowModal(false)}>×</button>
@@ -283,24 +311,22 @@ export default function Home() {
                   </div>
                   <div className={styles.infoCol}>
                     <label>🏑 Goles / 🎴 Sanciones</label>
-                    {parseIncidencias(selectedPartido.lista_goles_local).map((g, i) => (
+                    {agruparGoles(selectedPartido.lista_goles_local).map((g, i) => (
                       <div key={i} className={styles.incidenciaItem}>
-                        <span>
-                          🏑 {g.jugador} {g.esAutogol && <strong className={styles.autogol}>(En contra)</strong>}
-                        </span>
-                        <small>{g.minuto}' ({g.cuarto}C)</small>
+                        <div className={styles.incRow}>
+                          <span>🏑 {g.jugador} {g.esAutogol && <strong className={styles.autogol}>(En contra)</strong>}</span>
+                          {g.tiempos.length > 1 && <span className={styles.incCount}>x{g.tiempos.length}</span>}
+                        </div>
+                        <small className={styles.incTiempos}>{g.tiempos.join("  ")}</small>
                       </div>
                     ))}
-                    {parseIncidencias(selectedPartido.lista_tarjetas_local).map((t, i) => (
+                    {agruparTarjetas(selectedPartido.lista_tarjetas_local).map((t, i) => (
                       <div key={i} className={styles.incidenciaItem}>
-                        <span className={styles.cardWrapper}>
-                          {renderIconoTarjeta(t.tipoTarjeta)}
-                          {t.jugador}
-                        </span>
-
-                        <small>
-                          {t.minuto}' ({t.cuarto}C)
-                        </small>
+                        <div className={styles.incRow}>
+                          <span className={styles.cardWrapper}>{renderIconoTarjeta(t.tipoTarjeta)}{t.jugador}</span>
+                          {t.tiempos.length > 1 && <span className={styles.incCount}>x{t.tiempos.length}</span>}
+                        </div>
+                        <small className={styles.incTiempos}>{t.tiempos.join("  ")}</small>
                       </div>
                     ))}
                   </div>
@@ -313,16 +339,16 @@ export default function Home() {
               <div className={styles.teamSection}>
                 <h3 className={styles.visitanteTitle}>🚩 {selectedPartido.equipo_visitante_nombre}</h3>
                 <div className={styles.infoGrid}>
-                   <div className={styles.infoCol}>
+                  <div className={styles.infoCol}>
                     <label>📋 Plantilla</label>
                     <div className={styles.plantillaList}>
                       {parsePlantilla(selectedPartido.lista_jugadores_visitante).map((j, i) => (
                         <div key={i} className={styles.jugadorRow}>
                           <span className={styles.tshirt}>
                             {j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}
-                          </span> 
+                          </span>
                           <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
-                            {j.nombreCompleto} 
+                            {j.nombreCompleto}
                             {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
                           </span>
                         </div>
@@ -331,24 +357,22 @@ export default function Home() {
                   </div>
                   <div className={styles.infoCol}>
                     <label>🏑 Goles / 🎴 Sanciones</label>
-                    {parseIncidencias(selectedPartido.lista_goles_visitante).map((g, i) => (
+                    {agruparGoles(selectedPartido.lista_goles_visitante).map((g, i) => (
                       <div key={i} className={styles.incidenciaItem}>
-                        <span>
-                          🏑 {g.jugador} {g.esAutogol && <strong className={styles.autogol}>(En contra)</strong>}
-                        </span>
-                        <small>{g.minuto}' ({g.cuarto}C)</small>
+                        <div className={styles.incRow}>
+                          <span>🏑 {g.jugador} {g.esAutogol && <strong className={styles.autogol}>(En contra)</strong>}</span>
+                          {g.tiempos.length > 1 && <span className={styles.incCount}>x{g.tiempos.length}</span>}
+                        </div>
+                        <small className={styles.incTiempos}>{g.tiempos.join("  ")}</small>
                       </div>
                     ))}
-                    {parseIncidencias(selectedPartido.lista_tarjetas_visitante).map((t, i) => (
+                    {agruparTarjetas(selectedPartido.lista_tarjetas_visitante).map((t, i) => (
                       <div key={i} className={styles.incidenciaItem}>
-                        <span className={styles.cardWrapper}>
-                          {renderIconoTarjeta(t.tipoTarjeta)}
-                          {t.jugador}
-                        </span>
-
-                        <small>
-                          {t.minuto}' ({t.cuarto}C)
-                        </small>
+                        <div className={styles.incRow}>
+                          <span className={styles.cardWrapper}>{renderIconoTarjeta(t.tipoTarjeta)}{t.jugador}</span>
+                          {t.tiempos.length > 1 && <span className={styles.incCount}>x{t.tiempos.length}</span>}
+                        </div>
+                        <small className={styles.incTiempos}>{t.tiempos.join("  ")}</small>
                       </div>
                     ))}
                   </div>

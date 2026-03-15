@@ -27,6 +27,34 @@ export default function PartidosPage() {
   const navigate = useNavigate();
   const { parseIncidencias } = usePartidos();
 
+  const agruparGoles = (str: string) => {
+    const items = parseIncidencias(str);
+    const map = new Map<string, { jugador: string; esAutogol: boolean; tiempos: { min: number; label: string }[] }>();
+    items.forEach(g => {
+      const key = `${g.jugador}|${g.esAutogol}`;
+      if (!map.has(key)) map.set(key, { jugador: g.jugador, esAutogol: g.esAutogol, tiempos: [] });
+      map.get(key)!.tiempos.push({ min: Number(g.minuto), label: `${g.minuto}'(${g.cuarto}C)` });
+    });
+    return Array.from(map.values()).map(g => ({
+      ...g,
+      tiempos: g.tiempos.sort((a, b) => a.min - b.min).map(t => t.label),
+    }));
+  };
+
+  const agruparTarjetas = (str: string) => {
+    const items = parseIncidencias(str);
+    const map = new Map<string, { jugador: string; tipoTarjeta?: string; tiempos: { min: number; label: string }[] }>();
+    items.forEach(t => {
+      const key = `${t.jugador}|${t.tipoTarjeta}`;
+      if (!map.has(key)) map.set(key, { jugador: t.jugador, tipoTarjeta: t.tipoTarjeta, tiempos: [] });
+      map.get(key)!.tiempos.push({ min: Number(t.minuto), label: `${t.minuto}'(${t.cuarto}C)` });
+    });
+    return Array.from(map.values()).map(t => ({
+      ...t,
+      tiempos: t.tiempos.sort((a, b) => a.min - b.min).map(x => x.label),
+    }));
+  };
+
   // Estados para modal de fixture
   const [showFixtureModal, setShowFixtureModal] = useState(false);
   const [partidosPendientes, setPartidosPendientes] = useState<FixturePartido[]>([]);
@@ -56,12 +84,14 @@ export default function PartidosPage() {
   const [equipoL, setEquipoL] = useState<any>(null);
   const [equipoV, setEquipoV] = useState<any>(null);
 
+  // Filtros
+  const [filtroTorneo, setFiltroTorneo] = useState<string>("");
+  const [filtroFecha, setFiltroFecha] = useState<string>("");
+
   // Carga el historial de partidos recientes al montar el componente.
   useEffect(() => {
     cargarPartidos();
   }, []);
-
-  
 
   /** Obtiene el historial de partidos recientes y actualiza el estado. */
   const cargarPartidos = async () => {
@@ -202,7 +232,7 @@ export default function PartidosPage() {
           <Button variant="outline" onClick={abrirModalFixture}>
             📋 Desde fixture
           </Button>
-          <Button variant="primary" onClick={() => navigate("/admin/partidos/nueva-planilla")}>
+          <Button variant="outline" onClick={() => navigate("/admin/partidos/nueva-planilla")}>
             + Cargar Resultado
           </Button>
           <Button variant="secondary" onClick={() => navigate("/admin")}>
@@ -211,25 +241,38 @@ export default function PartidosPage() {
         </div>
       </header>
 
-      <section className={styles.stats}>
-        <div className={styles.statCard}>
-          <span>Partidos Registrados</span>
-          <strong>{partidos.length}</strong>
-        </div>
-        <div className={styles.statCard}>
-          <span>Último Resultado</span>
-          <small>
-            {partidos[0] ? `${partidos[0].equipo_local_nombre} ${partidos[0].goles_local} - ${partidos[0].goles_visitante} ${partidos[0].equipo_visitante_nombre}` : "---"}
-          </small>
-        </div>
-      </section>
-
       <div className={styles.tableContainer}>
         <h3>Historial de Encuentros</h3>
+
+        <div className={styles.filterBar}>
+          <select value={filtroTorneo} onChange={e => { setFiltroTorneo(e.target.value); setFiltroFecha(""); }}>
+            <option value="">— Seleccionar torneo —</option>
+            {Array.from(new Set(partidos.map(p => p.id_torneo))).map(idT => {
+              const torneo = torneos.find(t => t.id_torneo === idT);
+              const partido = partidos.find(p => p.id_torneo === idT);
+              const anio = partido ? partido.fecha.slice(0, 4) : "";
+              const label = torneo
+                ? `${torneo.nombre} — Cat. ${torneo.categoria} (${anio})`
+                : partido?.nombre_torneo ?? String(idT);
+              return <option key={idT} value={idT}>{label}</option>;
+            })}
+          </select>
+          <select value={filtroFecha} onChange={e => setFiltroFecha(e.target.value)} disabled={!filtroTorneo}>
+            <option value="">— Seleccionar día —</option>
+            {Array.from(new Set(
+              partidos
+                .filter(p => !filtroTorneo || p.id_torneo === Number(filtroTorneo))
+                .map(p => p.fecha.slice(0, 10))
+            )).sort((a, b) => b.localeCompare(a)).map(f => (
+              <option key={f} value={f}>{new Date(f + "T00:00:00").toLocaleDateString()}</option>
+            ))}
+          </select>
+        </div>
+
         {loading && !showPrintModal ? (
           <p className={styles.loadingText}>Cargando datos...</p>
-        ) : partidos.length === 0 ? (
-          <p className={styles.loadingText}>No hay partidos cargados.</p>
+        ) : !filtroTorneo ? (
+          <p className={styles.loadingText}>Seleccioná un torneo para ver los partidos.</p>
         ) : (
           <table className={styles.table}>
             <thead>
@@ -242,9 +285,12 @@ export default function PartidosPage() {
               </tr>
             </thead>
             <tbody>
-              {partidos.map((partido) => (
+              {partidos
+                .filter(p => p.id_torneo === Number(filtroTorneo))
+                .filter(p => !filtroFecha || p.fecha.slice(0, 10) === filtroFecha)
+                .map((partido) => (
                 <tr key={partido.id_partido}>
-                  <td>📅 {new Date(partido.fecha).toLocaleDateString()}</td>
+                  <td>📅 {new Date(partido.fecha + "T00:00:00").toLocaleDateString()}</td>
                   <td>{partido.nombre_torneo}</td>
                   <td>
                     <div className={styles.matchupRow}>
@@ -282,7 +328,7 @@ export default function PartidosPage() {
               <div>
                 <h2>{selectedPartido.nombre_torneo}</h2>
                 <p className={styles.subHeader}>
-                  Fecha {selectedPartido.numero_fecha} | {new Date(selectedPartido.fecha).toLocaleDateString()}
+                  Fecha {selectedPartido.numero_fecha} | {new Date(selectedPartido.fecha + "T00:00:00").toLocaleDateString()}
                 </p>
               </div>
               <button className={styles.closeBtn} onClick={() => setShowModal(false)}>×</button>
@@ -336,24 +382,22 @@ export default function PartidosPage() {
                   </div>
                   <div className={styles.infoCol}>
                     <label>🏑 Goles / 🎴 Sanciones</label>
-                    {parseIncidencias(selectedPartido.lista_goles_local).map((g, i) => (
+                    {agruparGoles(selectedPartido.lista_goles_local).map((g, i) => (
                       <div key={i} className={styles.incidenciaItem}>
-                        <span>
-                          🏑 {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}
-                        </span>
-                        <small>{g.minuto}' ({g.cuarto}C)</small>
+                        <div className={styles.incRow}>
+                          <span>🏑 {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}</span>
+                          {g.tiempos.length > 1 && <span className={styles.incCount}>x{g.tiempos.length}</span>}
+                        </div>
+                        <small className={styles.incTiempos}>{g.tiempos.join("  ")}</small>
                       </div>
                     ))}
-                   {parseIncidencias(selectedPartido.lista_tarjetas_local).map((t, i) => (
+                    {agruparTarjetas(selectedPartido.lista_tarjetas_local).map((t, i) => (
                       <div key={i} className={styles.incidenciaItem}>
-                        <span>
-                          {renderIconoTarjeta(t.tipoTarjeta)}
-                          {t.jugador}
-                        </span>
-
-                        <small>
-                          {t.minuto}' ({t.cuarto}C)
-                        </small>
+                        <div className={styles.incRow}>
+                          <span>{renderIconoTarjeta(t.tipoTarjeta)}{t.jugador}</span>
+                          {t.tiempos.length > 1 && <span className={styles.incCount}>x{t.tiempos.length}</span>}
+                        </div>
+                        <small className={styles.incTiempos}>{t.tiempos.join("  ")}</small>
                       </div>
                     ))}
                   </div>
@@ -385,24 +429,22 @@ export default function PartidosPage() {
                   </div>
                   <div className={styles.infoCol}>
                     <label>🏑 Goles / 🎴 Sanciones</label>
-                    {parseIncidencias(selectedPartido.lista_goles_visitante).map((g, i) => (
+                    {agruparGoles(selectedPartido.lista_goles_visitante).map((g, i) => (
                       <div key={i} className={styles.incidenciaItem}>
-                        <span>
-                          🏑 {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}
-                        </span>
-                        <small>{g.minuto}' ({g.cuarto}C)</small>
+                        <div className={styles.incRow}>
+                          <span>🏑 {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}</span>
+                          {g.tiempos.length > 1 && <span className={styles.incCount}>x{g.tiempos.length}</span>}
+                        </div>
+                        <small className={styles.incTiempos}>{g.tiempos.join("  ")}</small>
                       </div>
                     ))}
-                    {parseIncidencias(selectedPartido.lista_tarjetas_visitante).map((t, i) => (
+                    {agruparTarjetas(selectedPartido.lista_tarjetas_visitante).map((t, i) => (
                       <div key={i} className={styles.incidenciaItem}>
-                        <span>
-                          {renderIconoTarjeta(t.tipoTarjeta)}
-                          {t.jugador}
-                        </span>
-
-                        <small>
-                          {t.minuto}' ({t.cuarto}C)
-                        </small>
+                        <div className={styles.incRow}>
+                          <span>{renderIconoTarjeta(t.tipoTarjeta)}{t.jugador}</span>
+                          {t.tiempos.length > 1 && <span className={styles.incCount}>x{t.tiempos.length}</span>}
+                        </div>
+                        <small className={styles.incTiempos}>{t.tiempos.join("  ")}</small>
                       </div>
                     ))}
                   </div>

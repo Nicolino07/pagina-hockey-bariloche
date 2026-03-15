@@ -71,14 +71,28 @@
   color: #8ab4f8;
 }
 
-.playerHeader {
+.selectAllLabel {
   display: flex;
-  gap: 10px;
-  padding: 10px 0;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #888;
+  font-size: 0.75rem;
+  padding: 8px 0 4px 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.playerHeader {
+  display: grid;
+  grid-template-columns: 24px 45px 1fr 24px;
+  gap: 12px;
+  align-items: center;
+  padding: 6px 12px 6px 0;
   font-size: 0.75rem;
   color: #666;
   font-weight: bold;
   text-transform: uppercase;
+  border-bottom: 1px solid #333;
 }
 
 .playerList {
@@ -89,10 +103,11 @@
 }
 
 .playerItem {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 24px 45px 1fr 24px;
   gap: 12px;
-  padding: 8px 0;
+  align-items: center;
+  padding: 8px 12px 8px 0;
   border-bottom: 1px solid #2a2a2a;
 }
 
@@ -143,6 +158,7 @@
 
 .eventRow {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 10px;
   align-items: center;
@@ -155,9 +171,15 @@
   padding: 6px;
   border-radius: 4px;
   font-size: 0.85rem;
+  min-width: 0;
 }
 
-.eventRow input[type="number"] { width: 60px; }
+.eventRow select:first-child {
+  flex: 1;
+  min-width: 140px;
+}
+
+.eventRow input[type="text"] { width: 55px; }
 
 .checkboxLabel {
   font-size: 0.75rem;
@@ -199,6 +221,32 @@
 }
 
 .resumenGrid { display: flex; flex-direction: column; gap: 20px; }
+
+.resumenResultado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  background: #111;
+  border-radius: 10px;
+  border: 1px solid #333;
+}
+
+.resumenEquipo {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #ccc;
+  flex: 1;
+  text-align: center;
+}
+
+.resumenMarcador {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #fff;
+  letter-spacing: 4px;
+}
 
 .divider { border: 0; border-top: 1px solid #333; margin: 10px 0; }
 

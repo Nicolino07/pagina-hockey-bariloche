@@ -36,7 +36,7 @@
 
 /* --- VARIANTES CON BORDE --- */
 .primary {
-  background-color: var(--boton-oscuro);
+  background-color: #2563eb;
   color: white;
 }
 .primary:hover:not(:disabled) {

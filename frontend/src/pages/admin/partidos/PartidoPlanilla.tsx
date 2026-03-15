@@ -330,7 +330,7 @@ export default function PartidoPlanilla() {
       {/* DATOS DEL PARTIDO */}
       <section className={styles.section}>
         <div className={styles.gridForm}>
-          <select onChange={(e) => handleTorneoChange(e.target.value)}>
+          <select value={torneoId ?? ""} onChange={(e) => handleTorneoChange(e.target.value)}>
             <option value="">Torneo</option>
             {torneos.map((t: any) => (
               <option key={t.id_torneo} value={t.id_torneo}>{t.nombre} - {t.genero} - {t.categoria}</option>
@@ -391,11 +391,22 @@ export default function PartidoPlanilla() {
             <div key={side} className={styles.column}>
               <h3>{equipo || (side === 'local' ? 'Local' : 'Visitante')}</h3>
 
+              <label className={styles.selectAllLabel}>
+                <input
+                  type="checkbox"
+                  checked={lista.length > 0 && lista.every(p => seleccionados[side].includes(p.id_plantel_integrante as number))}
+                  onChange={e => setSeleccionados(prev => ({
+                    ...prev,
+                    [side]: e.target.checked ? lista.map(p => p.id_plantel_integrante as number) : []
+                  }))}
+                />
+                Seleccionar todos
+              </label>
               <div className={styles.playerHeader}>
-                <span className={styles.colAsistencia}>Asist.</span>
-                <span className={styles.colNumero}>#</span>
-                <span className={styles.colNombre}>Jugador</span>
-                <span className={styles.colCapitan}>Cap</span>
+                <span>Asist.</span>
+                <span>#</span>
+                <span>Jugador</span>
+                <span>Cap</span>
               </div>
               <div className={styles.playerList}>
                 {lista.map(p => {
@@ -416,13 +427,15 @@ export default function PartidoPlanilla() {
                       
                       {/* Renderizado condicional del campo camiseta */}
                       {esJugador ? (
-                        <input 
-                          type="number" 
-                          placeholder="#" 
-                          className={styles.inputCamiseta} 
-                          value={camisetas[pid] || ""} 
-                          onChange={(e) => setCamisetas({ ...camisetas, [pid]: e.target.value })} 
-                          disabled={!seleccionados[side].includes(pid)} 
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          placeholder="#"
+                          className={styles.inputCamiseta}
+                          value={camisetas[pid] || ""}
+                          onChange={(e) => setCamisetas({ ...camisetas, [pid]: e.target.value.replace(/\D/g, "") })}
+                          disabled={!seleccionados[side].includes(pid)}
                         />
                       ) : (
                         <div className={styles.inputCamisetaPlaceholder} /> // Un div vacío para mantener la alineación
@@ -486,8 +499,8 @@ export default function PartidoPlanilla() {
                 </optgroup>
               </select>
               <select value={gol.referencia_gol} onChange={e => { const n = [...goles]; n[index].referencia_gol = e.target.value; setGoles(n); }}>{TIPOS_GOL.map(t => <option key={t} value={t}>{t}</option>)}</select>
-              <input type="number" placeholder="Min" value={gol.minuto} onChange={e => { const n = [...goles]; n[index].minuto = e.target.value; setGoles(n); }} />
-              <input type="number" placeholder="4°" value={gol.cuarto} onChange={e => { const n = [...goles]; n[index].cuarto = e.target.value; setGoles(n); }} />
+              <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Min" value={gol.minuto} onChange={e => { const n = [...goles]; n[index].minuto = e.target.value.replace(/\D/g, ""); setGoles(n); }} />
+              <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="4°" value={gol.cuarto} onChange={e => { const n = [...goles]; n[index].cuarto = e.target.value.replace(/\D/g, ""); setGoles(n); }} />
               <label className={styles.checkboxLabel}><input type="checkbox" checked={gol.es_autogol} onChange={e => { const n = [...goles]; n[index].es_autogol = e.target.checked; setGoles(n); }} /> Autogol</label>
               <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'gol')}>✕</button>
             </div>
@@ -519,8 +532,8 @@ export default function PartidoPlanilla() {
                 </optgroup>
               </select>
               <select value={t.tipo} onChange={e => { const n = [...tarjetas]; n[index].tipo = e.target.value; setTarjetas(n); }}>{TIPOS_TARJETA.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}</select>
-              <input type="number" placeholder="Min" value={t.minuto} onChange={e => { const n = [...tarjetas]; n[index].minuto = e.target.value; setTarjetas(n); }} />
-              <input type="number" placeholder="4°" value={t.cuarto} onChange={e => { const n = [...tarjetas]; n[index].cuarto = e.target.value; setTarjetas(n); }} />
+              <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Min" value={t.minuto} onChange={e => { const n = [...tarjetas]; n[index].minuto = e.target.value.replace(/\D/g, ""); setTarjetas(n); }} />
+              <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="4°" value={t.cuarto} onChange={e => { const n = [...tarjetas]; n[index].cuarto = e.target.value.replace(/\D/g, ""); setTarjetas(n); }} />
               <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'tarjeta')}>✕</button>
             </div>
           ))}
@@ -542,9 +555,24 @@ export default function PartidoPlanilla() {
               {/* DATOS GENERALES */}
               <div className={styles.resumenHeader}>
                 <p><strong>Torneo:</strong> {torneos.find((t: any) => t.id_torneo === torneoId)?.nombre}</p>
-                <p><strong>Partido:</strong> {inscripcionLocal?.nombre_equipo} vs {inscripcionVisitante?.nombre_equipo}</p>
                 <p><strong>Fecha/Hora:</strong> {partidoInfo.fecha} - {partidoInfo.horario} (Fecha {partidoInfo.numero_fecha})</p>
                 <p><strong>Ubicación:</strong> {partidoInfo.ubicacion || 'No definida'}</p>
+              </div>
+
+              <div className={styles.resumenResultado}>
+                <span className={styles.resumenEquipo}>{inscripcionLocal?.nombre_equipo}</span>
+                <span className={styles.resumenMarcador}>
+                  {goles.filter(g => {
+                    const enLocal = plantelLocal.some(p => p.id_plantel_integrante === Number(g.id_plantel_integrante));
+                    return enLocal ? !g.es_autogol : g.es_autogol;
+                  }).length}
+                  {" - "}
+                  {goles.filter(g => {
+                    const enVisitante = plantelVisitante.some(p => p.id_plantel_integrante === Number(g.id_plantel_integrante));
+                    return enVisitante ? !g.es_autogol : g.es_autogol;
+                  }).length}
+                </span>
+                <span className={styles.resumenEquipo}>{inscripcionVisitante?.nombre_equipo}</span>
               </div>
 
               <hr className={styles.divider} />

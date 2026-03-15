@@ -335,12 +335,35 @@
 /* Incidencias (Goles/Tarjetas) */
 .incidenciaItem {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 4px;
   background: rgba(255, 255, 255, 0.03);
-  padding: 12px 16px;
+  padding: 10px 16px;
   border-radius: 12px;
   margin-bottom: 10px;
+}
+
+.incRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.incCount {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #8ab4f8;
+  background: rgba(138, 180, 248, 0.1);
+  padding: 1px 7px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.incTiempos {
+  color: #9aa0a6;
+  font-size: 0.78rem;
+  letter-spacing: 0.3px;
 }
 
 .cardWrapper {

@@ -252,12 +252,34 @@
 /* Incidencias (Goles/Tarjetas) */
 .incidenciaItem {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
   background: #222;
   margin-bottom: 5px;
   border-radius: 6px;
+}
+
+.incRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.incCount {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #8ab4f8;
+  background: rgba(138, 180, 248, 0.1);
+  padding: 1px 7px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.incTiempos {
+  color: #9aa0a6;
+  font-size: 0.78rem;
 }
 
 .cardIcon {
@@ -279,6 +301,29 @@
   border-radius: 12px;
   width: 400px;
   border: 1px solid #333;
+}
+
+.filterBar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filterBar select {
+  padding: 8px 12px;
+  background: #2d2d2d;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  min-width: 180px;
+  cursor: pointer;
+}
+
+.filterBar select:focus {
+  outline: none;
+  border-color: #666;
 }
 
 .printForm {

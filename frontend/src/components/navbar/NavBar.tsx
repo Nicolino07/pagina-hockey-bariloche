@@ -40,6 +40,7 @@ export default function Navbar() {
           <Link to="/public/clubes">Clubes</Link>
           <Link to="/public/posiciones">Posiciones</Link>
           <Link to="/fixture">Fixture</Link>
+          <Link to="/resultados">Resultados</Link>
 
           {isAuthenticated && (
             <>
@@ -99,6 +100,7 @@ export default function Navbar() {
           <Link to="/public/clubes" onClick={close}>Clubes</Link>
           <Link to="/public/posiciones" onClick={close}>Posiciones</Link>
           <Link to="/fixture" onClick={close}>Fixture</Link>
+          <Link to="/resultados" onClick={close}>Resultados</Link>
 
           {isAuthenticated && (
             <>
