@@ -55,12 +55,12 @@ export default function RankingPage() {
 
   return (
     <div className={styles.container}>
-      <button className={styles.backBtn} onClick={() => navigate("/public/posiciones")}>
-        ← Volver a estadísticas
+      <button className={styles.backBtn} onClick={() => navigate(-1)}>
+        ← Volver
       </button>
 
       <header className={styles.header}>
-        <h1 className={styles.title}>Ranking completo</h1>
+        <h1 className={styles.title}>Estadisticas</h1>
       </header>
 
       {/* Selector de torneo */}

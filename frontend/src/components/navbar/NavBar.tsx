@@ -39,6 +39,7 @@ export default function Navbar() {
           <Link to="/">Inicio</Link>
           <Link to="/public/clubes">Clubes</Link>
           <Link to="/public/posiciones">Posiciones</Link>
+          <Link to="/public/ranking">Estadísticas</Link>
           <Link to="/fixture">Fixture</Link>
           <Link to="/resultados">Resultados</Link>
 
@@ -99,6 +100,7 @@ export default function Navbar() {
           <Link to="/" onClick={close}>Inicio</Link>
           <Link to="/public/clubes" onClick={close}>Clubes</Link>
           <Link to="/public/posiciones" onClick={close}>Posiciones</Link>
+          <Link to="/public/ranking" onClick={close}>Estadísticas</Link>
           <Link to="/fixture" onClick={close}>Fixture</Link>
           <Link to="/resultados" onClick={close}>Resultados</Link>
 
