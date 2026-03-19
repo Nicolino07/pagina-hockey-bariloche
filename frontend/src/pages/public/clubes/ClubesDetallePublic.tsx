@@ -99,12 +99,13 @@ export default function ClubesDetallePublic() {
         {/* 1. SELECTOR DE CATEGORÍAS */}
         <div className={styles.categorySelector}>
           {equipos.map((eq) => (
-            <button 
+            <button
               key={eq.id_equipo}
               className={equipoSeleccionado?.id_equipo === eq.id_equipo ? styles.catBtnActive : styles.catBtn}
               onClick={() => setEquipoSeleccionado(eq)}
             >
-              {eq.nombre}
+              <span className={styles.catBtnNombre}>{eq.nombre}</span>
+              <span className={styles.catBtnMeta}>{eq.categoria} · {eq.genero}</span>
             </button>
           ))}
         </div>

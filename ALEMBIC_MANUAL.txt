@@ -1,0 +1,145 @@
+=====================================================
+  MANUAL DE USO - ALEMBIC + DEPLOY
+  Sistema Hockey Bariloche
+=====================================================
+
+
+-----------------------------------------------------
+1. CONCEPTOS BÁSICOS
+-----------------------------------------------------
+
+Alembic es el gestor de migraciones de base de datos.
+Solo se usa cuando cambia el SCHEMA de la DB:
+  - Nueva tabla
+  - Nueva columna
+  - Nuevo valor en un ENUM
+  - Modificar o eliminar columna/tabla
+
+Si el cambio es solo código Python o Frontend,
+NO hace falta correr Alembic.
+
+
+-----------------------------------------------------
+2. FLUJO COMPLETO: CAMBIO DE SCHEMA EN LOCAL
+-----------------------------------------------------
+
+Paso 1 - Modificar el modelo Python en:
+  backend/app/models/
+
+Paso 2 - Actualizar también el SQL en:
+  backend/db/init/ (para entornos nuevos con down -v)
+
+Paso 3 - Generar la migración (con contenedores corriendo):
+  docker compose exec api alembic revision --autogenerate -m "descripcion del cambio"
+
+Paso 4 - Revisar el archivo generado en:
+  backend/alembic/versions/
+  (IMPORTANTE: siempre revisar antes de aplicar)
+
+Paso 5 - Aplicar la migración:
+  docker compose exec api alembic upgrade head
+
+Paso 6 - Verificar estado:
+  docker compose exec api alembic current
+
+
+-----------------------------------------------------
+3. COMANDOS ALEMBIC ÚTILES
+-----------------------------------------------------
+
+Ver estado actual:
+  docker compose exec api alembic current
+
+Ver historial de migraciones:
+  docker compose exec api alembic history
+
+Aplicar todas las migraciones pendientes:
+  docker compose exec api alembic upgrade head
+
+Retroceder una migración:
+  docker compose exec api alembic downgrade -1
+
+Retroceder al inicio:
+  docker compose exec api alembic downgrade base
+
+Generar migración automática:
+  docker compose exec api alembic revision --autogenerate -m "descripcion"
+
+Generar migración vacía (para escribir a mano):
+  docker compose exec api alembic revision -m "descripcion"
+
+
+-----------------------------------------------------
+4. FLUJO DE DEPLOY - SOLO CÓDIGO (sin cambios de schema)
+-----------------------------------------------------
+
+EN LOCAL:
+  git add .
+  git commit -m "descripcion"
+  git push
+
+EN EL VPS:
+  git pull
+  docker compose up --build -d
+
+
+-----------------------------------------------------
+5. FLUJO DE DEPLOY - CON CAMBIOS DE SCHEMA
+-----------------------------------------------------
+
+EN LOCAL:
+  git add .
+  git commit -m "descripcion"
+  git push
+
+EN EL VPS:
+  git pull
+  docker compose up --build -d
+  docker compose exec api alembic upgrade head
+
+
+-----------------------------------------------------
+6. FLUJO LOCAL CON down -v (reset completo)
+-----------------------------------------------------
+
+Cuando hacés down -v la DB se borra y se recrea desde
+los scripts SQL. Alembic no sabe que existió antes,
+así que hay que hacer stamp head de nuevo.
+
+  docker compose down -v
+  docker compose up --build -d
+  docker compose exec api alembic stamp head
+
+NOTA: El stamp head en local NO aplica migraciones,
+solo registra que la DB ya está al día.
+En el VPS nunca uses down -v (borra todos los datos).
+
+
+-----------------------------------------------------
+7. DIFERENCIA LOCAL vs VPS
+-----------------------------------------------------
+
+LOCAL:
+  - Podés usar down -v sin problema (no hay datos reales)
+  - Después de down -v → stamp head
+  - Después de cambio de schema → upgrade head
+
+VPS:
+  - NUNCA usar down -v (destruye datos de producción)
+  - Solo: git pull → up --build -d → upgrade head
+  - El upgrade head aplica solo las migraciones pendientes
+    y no toca los datos existentes
+
+
+-----------------------------------------------------
+8. UBICACIÓN DE ARCHIVOS
+-----------------------------------------------------
+
+  backend/alembic.ini               → configuración
+  backend/alembic/env.py            → conexión a la DB
+  backend/alembic/versions/         → archivos de migración
+  backend/db/init/001_enums.sql     → enums (para entornos nuevos)
+  backend/db/init/002_tables.sql    → tablas (para entornos nuevos)
+
+
+=====================================================

@@ -23,7 +23,7 @@
 }
 
 .catBtn, .catBtnActive {
-  padding: 10px 20px;
+  padding: 8px 18px;
   border-radius: 25px;
   border: 1px solid #3c4043;
   background: transparent;
@@ -32,6 +32,23 @@
   white-space: nowrap;
   font-weight: 500;
   transition: 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.catBtnNombre {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.catBtnMeta {
+  font-size: 0.7rem;
+  font-weight: 400;
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .catBtnActive {
