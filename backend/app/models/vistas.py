@@ -13,7 +13,7 @@ class ClubPersonaRol(Base):
     id_club: Mapped[int] = mapped_column(Integer, primary_key=True)
     id_persona: Mapped[int] = mapped_column(Integer, primary_key=True)
     rol: Mapped[RolPersonaTipo] = mapped_column(
-        Enum(RolPersonaTipo, name="rolpersonatipo"),
+        Enum(RolPersonaTipo, name="tipo_rol_persona"),
         primary_key=True
     )
 

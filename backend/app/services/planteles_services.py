@@ -354,6 +354,10 @@ def validar_genero_para_jugador(
     if genero_persona is None:
         raise ValidationError("No se pudo determinar el género de la persona")
 
+    # Equipo MIXTO acepta jugadores de cualquier género
+    if genero_equipo == "MIXTO":
+        return
+
     if genero_equipo != genero_persona:
         raise ValidationError(
             "El género de la persona no coincide con el del equipo"

@@ -14,6 +14,21 @@ def inscribir_equipo_en_torneo(
     current_user,
 ) -> InscripcionTorneo:
 
+    torneo = db.get(Torneo, id_torneo)
+    if not torneo:
+        raise NotFoundError("El torneo no existe")
+
+    equipo = db.get(Equipo, id_equipo)
+    if not equipo:
+        raise NotFoundError("El equipo no existe")
+
+    # Torneo MIXTO solo admite equipos MIXTO; equipos MIXTO solo en torneos MIXTO
+    if torneo.genero.value != equipo.genero.value:
+        raise ValidationError(
+            f"El género del equipo ({equipo.genero.value}) "
+            f"no coincide con el del torneo ({torneo.genero.value})"
+        )
+
     inscripcion_activa = (
         db.query(InscripcionTorneo)
         .filter(

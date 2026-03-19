@@ -42,7 +42,7 @@ class Torneo(Base, AuditFieldsMixin, SoftDeleteMixin):
     )
 
     genero: Mapped[GeneroTipo] = mapped_column(
-        Enum(GeneroTipo, name="tipo_genero_competencia"),
+        Enum(GeneroTipo, name="tipo_genero"),
         nullable=False
     )
 

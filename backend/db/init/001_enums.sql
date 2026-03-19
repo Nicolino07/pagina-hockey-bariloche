@@ -11,7 +11,8 @@ BEGIN;
 -- =====================================================
 CREATE TYPE tipo_genero AS ENUM (
   'MASCULINO',
-  'FEMENINO'
+  'FEMENINO',
+  'MIXTO'
 );
 
 

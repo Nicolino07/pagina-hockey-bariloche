@@ -6,6 +6,7 @@
 export const GENEROS = [
   "MASCULINO",
   "FEMENINO",
+  "MIXTO",
 ] as const
 
 export type TipoGenero = typeof GENEROS[number]

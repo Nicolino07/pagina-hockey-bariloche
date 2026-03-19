@@ -93,7 +93,7 @@ export default function CrearTorneoForm({ onCancel, onSuccess }: Props) {
         >
           {GENEROS.map(gen => (
             <option key={gen} value={gen}>
-              {gen === "MASCULINO" ? "Masculino" : "Femenino"}
+              {gen === "MASCULINO" ? "Masculino" : gen === "FEMENINO" ? "Femenino" : "Mixto"}
             </option>
           ))}
         </select>
