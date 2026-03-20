@@ -515,7 +515,7 @@ export default function PartidosPage() {
                 setEquipoL(null); setEquipoV(null);
               }}>
                 <option value="">Seleccionar Torneo...</option>
-                {torneos.map(t => <option key={t.id_torneo} value={t.id_torneo}>{t.nombre}</option>)}
+                {torneos.map(t => <option key={t.id_torneo} value={t.id_torneo}>{t.nombre} - {t.genero} - {t.categoria}</option>)}
               </select>
 
               <select disabled={!selTorneo} value={equipoL?.id_inscripcion || ""} onChange={(e) => setEquipoL(inscripciones.find(i => i.id_inscripcion === Number(e.target.value)))}>
