@@ -16,6 +16,9 @@ def _enriquecer(fp: FixturePartido) -> dict:
     data["nombre_equipo_local"] = fp.equipo_local.nombre if fp.equipo_local else None
     data["nombre_equipo_visitante"] = fp.equipo_visitante.nombre if fp.equipo_visitante else None
     data["nombre_torneo"] = fp.torneo.nombre if fp.torneo else None
+    data["categoria"] = fp.torneo.categoria.value if fp.torneo else None
+    data["division"] = fp.torneo.division if fp.torneo else None
+    data["genero"] = fp.torneo.genero.value if fp.torneo else None
     return data
 
 

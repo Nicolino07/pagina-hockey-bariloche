@@ -98,6 +98,28 @@ export default function PosicionesPage() {
 
           {loadingDatos ? (
             <p className={styles.infoMsg}>Cargando datos del torneo...</p>
+          ) : torneoSeleccionado.categoria === "SUB_12" ? (
+            <>
+              <p className={styles.infoMsg}>Esta categoría no tiene tabla de posiciones ni estadísticas individuales.</p>
+              {/* SECCIÓN EQUIPOS */}
+              <div className={styles.equiposDivider}>
+                <h3 className={styles.statsTitle}>Equipos Inscriptos</h3>
+                <div className={styles.equiposGrid}>
+                  {equipos.map((eq) => (
+                    <button
+                      key={eq.id_equipo}
+                      className={styles.equipoItem}
+                      onClick={() => navigate(`/public/equipos/${eq.id_equipo}`)}
+                    >
+                      <div className={styles.equipoInfo}>
+                        <span className={styles.equipoName}>{eq.nombre_equipo}</span>
+                        <span className={styles.equipoLabel}>Ver plantel →</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
           ) : (
             <>
               {/* TABLA DE POSICIONES */}

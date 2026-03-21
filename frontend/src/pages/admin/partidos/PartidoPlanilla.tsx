@@ -356,11 +356,21 @@ export default function PartidoPlanilla() {
         <div className={styles.gridForm}>
           <select value={partidoInfo.id_arbitro1} onChange={e => setPartidoInfo({...partidoInfo, id_arbitro1: e.target.value})}>
             <option value="">Árbitro 1</option>
-            {arbitrosList.map(a => <option key={a.id_persona_rol} value={a.id_persona}>{a.apellido}, {a.nombre}</option>)}
+            {arbitrosList
+              .filter(a => {
+                const enPlantel = new Set([...plantelLocal, ...plantelVisitante].map(p => p.id_persona));
+                return !enPlantel.has(a.id_persona);
+              })
+              .map(a => <option key={a.id_persona_rol} value={a.id_persona}>{a.apellido}, {a.nombre}</option>)}
           </select>
           <select value={partidoInfo.id_arbitro2} onChange={e => setPartidoInfo({...partidoInfo, id_arbitro2: e.target.value})}>
             <option value="">Árbitro 2</option>
-            {arbitrosList.map(a => <option key={a.id_persona_rol} value={a.id_persona}>{a.apellido}, {a.nombre}</option>)}
+            {arbitrosList
+              .filter(a => {
+                const enPlantel = new Set([...plantelLocal, ...plantelVisitante].map(p => p.id_persona));
+                return !enPlantel.has(a.id_persona);
+              })
+              .map(a => <option key={a.id_persona_rol} value={a.id_persona}>{a.apellido}, {a.nombre}</option>)}
           </select>
           <input type="text" placeholder="Ubicación" value={partidoInfo.ubicacion} onChange={e => setPartidoInfo({...partidoInfo, ubicacion: e.target.value})} />
         </div>
@@ -422,8 +432,7 @@ export default function PartidoPlanilla() {
               <div className={styles.playerList}>
                 {lista.map(p => {
                   const pid = p.id_plantel_integrante as number;
-                  // Verificamos si es Jugador (asumiendo que el string es "JUGADOR")
-                  const esJugador = p.rol_en_plantel === "JUGADOR"; 
+                  const esJugador = p.rol_en_plantel === "JUGADOR";
 
                   return (
                     <div key={pid} className={styles.playerItem}>

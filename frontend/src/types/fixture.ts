@@ -6,6 +6,9 @@ export interface FixturePartido {
   nombre_equipo_local: string | null
   nombre_equipo_visitante: string | null
   nombre_torneo: string | null
+  categoria: string | null
+  division: string | null
+  genero: string | null
   fecha_programada: string | null
   horario: string | null
   ubicacion: string | null

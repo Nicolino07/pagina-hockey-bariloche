@@ -85,13 +85,13 @@ export default function Home() {
       const nombre = parts[1];
       const camiseta = parts[2];
       const rol = parts[3] || "JUGADOR";
+      const capitan = parts[4] === "true";
 
-
-      return { 
-        nombreCompleto: `${apellido}, ${nombre}`, 
+      return {
+        nombreCompleto: `${apellido}, ${nombre}`,
         camiseta: (camiseta === "" || camiseta === "null") ? null : camiseta,
-        rol: rol
-       
+        rol,
+        capitan,
       };
     });
   };
@@ -303,7 +303,8 @@ export default function Home() {
                             {j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}
                           </span> 
                           <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
-                            {j.nombreCompleto} 
+                            {j.nombreCompleto}
+                            {j.capitan && <small className={styles.capitanTag}> (C)</small>}
                             {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
                           </span>
                         </div>

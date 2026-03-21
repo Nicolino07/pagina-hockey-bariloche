@@ -30,6 +30,9 @@ class FixturePartidoResponse(BaseModel):
     nombre_equipo_local: Optional[str] = None
     nombre_equipo_visitante: Optional[str] = None
     nombre_torneo: Optional[str] = None
+    categoria: Optional[str] = None
+    division: Optional[str] = None
+    genero: Optional[str] = None
     fecha_programada: Optional[date]
     horario: Optional[time]
     ubicacion: Optional[str]

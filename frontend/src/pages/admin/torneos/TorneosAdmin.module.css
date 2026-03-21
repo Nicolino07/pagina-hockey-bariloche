@@ -60,10 +60,37 @@
 }
 
 .meta {
-  font-size: 0.9rem;
-  color: #888;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tagCategoria,
+.tagDivision,
+.tagGenero {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.tagCategoria {
+  background: #1a3a5c;
+  color: #8ab4f8;
+}
+
+.tagDivision {
+  background: #2a3a1a;
+  color: #81c784;
+}
+
+.tagGenero {
+  background: #3a1a3a;
+  color: #ce93d8;
 }
 
 .fechaFin {

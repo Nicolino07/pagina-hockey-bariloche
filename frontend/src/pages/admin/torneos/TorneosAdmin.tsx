@@ -133,7 +133,11 @@ export default function TorneosAdmin() {
             >
               <div>
                 <div className={styles.nombre}>{t.nombre}</div>
-                <div className={styles.meta}>{t.categoria}{t.division ? ` ${t.division}` : ""} – {t.genero}</div>
+                <div className={styles.meta}>
+                  <span className={styles.tagCategoria}>{t.categoria.replace(/_/g, " ")}</span>
+                  {t.division && <span className={styles.tagDivision}>{t.division}</span>}
+                  <span className={styles.tagGenero}>{t.genero}</span>
+                </div>
                 {verFinalizados && t.fecha_fin && (
                   <div className={styles.fechaFin}>Finalizado: {t.fecha_fin}</div>
                 )}

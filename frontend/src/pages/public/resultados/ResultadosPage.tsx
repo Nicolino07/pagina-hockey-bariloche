@@ -42,6 +42,7 @@ export default function ResultadosPage() {
         nombreCompleto: `${parts[0]}, ${parts[1]}`,
         camiseta: (parts[2] === "" || parts[2] === "null") ? null : parts[2],
         rol: parts[3] || "JUGADOR",
+        capitan: parts[4] === "true",
       };
     });
   };
@@ -101,8 +102,11 @@ export default function ResultadosPage() {
             const torneo = torneos.find(t => t.id_torneo === idT);
             const partido = partidos.find(p => p.id_torneo === idT);
             const anio = partido ? partido.fecha.slice(0, 4) : "";
+            const cat = torneo ? torneo.categoria.replace(/_/g, " ") : "";
+            const div = torneo?.division ? ` ${torneo.division}` : "";
+            const gen = torneo ? ` · ${torneo.genero === "FEMENINO" ? "Femenino" : torneo.genero === "MASCULINO" ? "Masculino" : "Mixto"}` : "";
             const label = torneo
-              ? `${torneo.nombre} — Cat. ${torneo.categoria}${torneo.division ? ` ${torneo.division}` : ""} (${anio})`
+              ? `${torneo.nombre} ${anio} — ${cat}${div}${gen}`
               : partido?.nombre_torneo ?? String(idT);
             return <option key={idT} value={idT}>{label}</option>;
           })}
@@ -180,6 +184,7 @@ export default function ResultadosPage() {
                           <span className={styles.tshirt}>{j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}</span>
                           <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
                             {j.nombreCompleto}
+                            {j.capitan && <small className={styles.capitanTag}> (C)</small>}
                             {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
                           </span>
                         </div>
@@ -194,6 +199,7 @@ export default function ResultadosPage() {
                           <span className={styles.tshirt}>{j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}</span>
                           <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
                             {j.nombreCompleto}
+                            {j.capitan && <small className={styles.capitanTag}> (C)</small>}
                             {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
                           </span>
                         </div>

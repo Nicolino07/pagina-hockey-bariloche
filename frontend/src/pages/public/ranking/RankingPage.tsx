@@ -74,7 +74,7 @@ export default function RankingPage() {
           <option value="">Seleccionar torneo...</option>
           {torneos.map(t => (
             <option key={t.id_torneo} value={t.id_torneo}>
-              {t.nombre} {new Date(t.fecha_inicio).getFullYear()} — {t.categoria}{t.division ? ` ${t.division}` : ""}
+              {t.nombre} {new Date(t.fecha_inicio).getFullYear()} — {t.categoria}{t.division ? ` ${t.division}` : ""} · {t.genero}
             </option>
           ))}
         </select>
@@ -97,13 +97,15 @@ export default function RankingPage() {
 
       {!torneoSeleccionado ? (
         <p className={styles.info}>Seleccioná un torneo para ver el ranking.</p>
+      ) : nombreTorneo?.categoria === "SUB_12" ? (
+        <p className={styles.info}>Esta categoría no registra goles ni tarjetas individuales.</p>
       ) : loading ? (
         <p className={styles.info}>Cargando...</p>
       ) : (
         <div className={styles.tableCard}>
           {nombreTorneo && (
             <p className={styles.torneoLabel}>
-              {nombreTorneo.nombre} — Categoría {nombreTorneo.categoria}{nombreTorneo.division ? ` ${nombreTorneo.division}` : ""}
+              {nombreTorneo.nombre} — {nombreTorneo.categoria}{nombreTorneo.division ? ` ${nombreTorneo.division}` : ""} · {nombreTorneo.genero}
             </p>
           )}
 

@@ -59,6 +59,7 @@ export default function PartidosPage() {
   const [showFixtureModal, setShowFixtureModal] = useState(false);
   const [partidosPendientes, setPartidosPendientes] = useState<FixturePartido[]>([]);
   const [loadingFixture, setLoadingFixture] = useState(false);
+  const [filtroFixture, setFiltroFixture] = useState("");
 
   /**
    * Abre el modal de fixture y carga los partidos pendientes programados.
@@ -190,12 +191,14 @@ export default function PartidosPage() {
       const apellido = parts[0];
       const nombre = parts[1];
       const camiseta = parts[2];
-      const rol = parts[3] || "JUGADOR"; // Si no existe el 4to campo, es Jugador
+      const rol = parts[3] || "JUGADOR";
+      const capitan = parts[4] === "true";
 
-      return { 
-        nombreCompleto: `${apellido}, ${nombre}`, 
+      return {
+        nombreCompleto: `${apellido}, ${nombre}`,
         camiseta: (camiseta === "" || camiseta === "null") ? null : camiseta,
-        rol: rol
+        rol,
+        capitan,
       };
     });
   };
@@ -251,8 +254,11 @@ export default function PartidosPage() {
               const torneo = torneos.find(t => t.id_torneo === idT);
               const partido = partidos.find(p => p.id_torneo === idT);
               const anio = partido ? partido.fecha.slice(0, 4) : "";
+              const cat = torneo ? torneo.categoria.replace(/_/g, " ") : "";
+              const div = torneo?.division ? ` ${torneo.division}` : "";
+              const gen = torneo ? ` · ${torneo.genero === "FEMENINO" ? "Femenino" : torneo.genero === "MASCULINO" ? "Masculino" : "Mixto"}` : "";
               const label = torneo
-                ? `${torneo.nombre} — Cat. ${torneo.categoria}${torneo.division ? ` ${torneo.division}` : ""} (${anio})`
+                ? `${torneo.nombre} ${anio} — ${cat}${div}${gen}`
                 : partido?.nombre_torneo ?? String(idT);
               return <option key={idT} value={idT}>{label}</option>;
             })}
@@ -370,6 +376,7 @@ export default function PartidosPage() {
                           <span className={styles.tshirt}>{j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}</span>
                           <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
                             {j.nombreCompleto}
+                            {j.capitan && <small className={styles.capitanTag}> (C)</small>}
                             {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
                           </span>
                         </div>
@@ -384,6 +391,7 @@ export default function PartidosPage() {
                           <span className={styles.tshirt}>{j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}</span>
                           <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
                             {j.nombreCompleto}
+                            {j.capitan && <small className={styles.capitanTag}> (C)</small>}
                             {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
                           </span>
                         </div>
@@ -404,6 +412,7 @@ export default function PartidosPage() {
                               <span className={styles.tshirt}>{j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}</span>
                               <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
                                 {j.nombreCompleto}
+                                {j.capitan && <small className={styles.capitanTag}> (C)</small>}
                                 {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
                               </span>
                             </div>
@@ -447,6 +456,7 @@ export default function PartidosPage() {
                               <span className={styles.tshirt}>{j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}</span>
                               <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
                                 {j.nombreCompleto}
+                                {j.capitan && <small className={styles.capitanTag}> (C)</small>}
                                 {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
                               </span>
                             </div>
@@ -493,7 +503,14 @@ export default function PartidosPage() {
         <div className={styles.modalOverlay} onClick={() => setShowFixtureModal(false)}>
           <div className={styles.modalContentSmall} onClick={e => e.stopPropagation()}>
             <h3>Partidos pendientes del fixture</h3>
-            <p className={styles.modalHelp}>Seleccioná un partido para cargar su resultado.</p>
+
+            <input
+              className={styles.filtroInput}
+              placeholder="Buscar por equipo, torneo, categoría..."
+              value={filtroFixture}
+              onChange={e => setFiltroFixture(e.target.value)}
+              autoFocus
+            />
 
             {loadingFixture ? (
               <p>Cargando...</p>
@@ -501,12 +518,26 @@ export default function PartidosPage() {
               <p className={styles.modalHelp}>No hay partidos pendientes en el fixture.</p>
             ) : (
               <div className={styles.fixtureList}>
-                {partidosPendientes.map(p => (
+                {partidosPendientes
+                  .filter(p => {
+                    const q = filtroFixture.toLowerCase();
+                    return (
+                      !q ||
+                      p.nombre_equipo_local?.toLowerCase().includes(q) ||
+                      p.nombre_equipo_visitante?.toLowerCase().includes(q) ||
+                      p.nombre_torneo?.toLowerCase().includes(q) ||
+                      p.categoria?.toLowerCase().includes(q) ||
+                      p.division?.toLowerCase().includes(q) ||
+                      p.genero?.toLowerCase().includes(q)
+                    );
+                  })
+                  .map(p => (
                   <button
                     key={p.id_fixture_partido}
                     className={styles.fixtureItem}
                     onClick={() => {
                       setShowFixtureModal(false);
+                      setFiltroFixture("");
                       navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`);
                     }}
                   >
@@ -515,6 +546,9 @@ export default function PartidosPage() {
                     </span>
                     <span className={styles.fixtureMeta}>
                       {p.nombre_torneo}
+                      {p.categoria && ` · ${p.categoria.replace(/_/g, " ")}`}
+                      {p.division && ` ${p.division}`}
+                      {p.genero && ` · ${p.genero}`}
                       {p.fecha_programada ? ` · ${p.fecha_programada}` : ""}
                       {p.numero_fecha ? ` · Fecha ${p.numero_fecha}` : ""}
                     </span>
@@ -524,7 +558,7 @@ export default function PartidosPage() {
             )}
 
             <div className={styles.modalActions}>
-              <Button variant="secondary" onClick={() => setShowFixtureModal(false)}>Cerrar</Button>
+              <Button variant="secondary" onClick={() => { setShowFixtureModal(false); setFiltroFixture(""); }}>Cerrar</Button>
             </div>
           </div>
         </div>

@@ -336,6 +336,13 @@
   font-style: italic;
 }
 
+.capitanTag {
+  color: #f9a825;
+  font-weight: 700;
+  font-size: 0.75rem;
+  margin-left: 4px;
+}
+
 .rolTag {
   background: #303134;
   padding: 2px 8px;

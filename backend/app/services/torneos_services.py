@@ -20,12 +20,13 @@ def crear_torneo(
         Torneo.nombre == data.nombre,
         Torneo.categoria == data.categoria,
         Torneo.genero == data.genero,
+        Torneo.division == data.division,
         Torneo.borrado_en.is_(None)  # Solo buscar torneos no eliminados
     ).first()
-    
+
     if torneo_existente:
         raise ConflictError(
-            "Ya existe un torneo activo con ese nombre, categoría y género"
+            "Ya existe un torneo activo con ese nombre, categoría, división y género"
         )
     
     # Crear el torneo
@@ -142,27 +143,30 @@ def actualizar_torneo(
     """Actualiza un torneo existente"""
     torneo = obtener_torneo_activo(db, id_torneo)
     
-    # Verificar unicidad si se cambia el nombre, categoría o género
-    if (data.nombre != torneo.nombre or 
-        data.categoria != torneo.categoria.value or 
-        data.genero != torneo.genero.value):
-        
+    # Verificar unicidad si se cambia el nombre, categoría, división o género
+    if (data.nombre != torneo.nombre or
+        data.categoria != torneo.categoria.value or
+        data.genero != torneo.genero.value or
+        data.division != torneo.division):
+
         torneo_existente = db.query(Torneo).filter(
             Torneo.nombre == data.nombre,
             Torneo.categoria == CategoriaTipo(data.categoria) if isinstance(data.categoria, str) else data.categoria,
             Torneo.genero == GeneroTipo(data.genero) if isinstance(data.genero, str) else data.genero,
+            Torneo.division == data.division,
             Torneo.borrado_en.is_(None),
             Torneo.id_torneo != id_torneo
         ).first()
-        
+
         if torneo_existente:
             raise ConflictError(
-                "Ya existe otro torneo activo con ese nombre, categoría y género"
+                "Ya existe otro torneo activo con ese nombre, categoría, división y género"
             )
     
     # Actualizar campos
     torneo.nombre = data.nombre
     torneo.categoria = CategoriaTipo(data.categoria) if isinstance(data.categoria, str) else data.categoria
+    torneo.division = data.division
     torneo.genero = GeneroTipo(data.genero) if isinstance(data.genero, str) else data.genero
     torneo.fecha_inicio = data.fecha_inicio
     torneo.fecha_fin = data.fecha_fin
