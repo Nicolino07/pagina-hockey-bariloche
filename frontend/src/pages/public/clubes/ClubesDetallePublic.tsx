@@ -105,7 +105,7 @@ export default function ClubesDetallePublic() {
               onClick={() => setEquipoSeleccionado(eq)}
             >
               <span className={styles.catBtnNombre}>{eq.nombre}</span>
-              <span className={styles.catBtnMeta}>{eq.categoria}{eq.division ? ` ${eq.division}` : ""} · {eq.genero}</span>
+              <span className={styles.catBtnMeta}>{eq.categoria.replace(/_/g, " ")}{eq.division ? ` ${eq.division}` : ""} · {eq.genero === "FEMENINO" ? "Femenino" : eq.genero === "MASCULINO" ? "Masculino" : "Mixto"}</span>
             </button>
           ))}
         </div>

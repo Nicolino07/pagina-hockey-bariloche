@@ -16,45 +16,54 @@
 /* 1. SELECTOR DE CATEGORÍAS */
 .categorySelector {
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 24px;
-  overflow-x: auto;
-  padding-bottom: 10px;
 }
 
 .catBtn, .catBtnActive {
-  padding: 8px 18px;
-  border-radius: 25px;
+  padding: 10px 18px;
+  border-radius: 10px;
   border: 1px solid #3c4043;
-  background: transparent;
+  background: #1e1e1e;
   color: #9aa0a6;
   cursor: pointer;
-  white-space: nowrap;
   font-weight: 500;
-  transition: 0.3s;
+  transition: 0.2s;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2px;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 130px;
+}
+
+.catBtn:hover {
+  border-color: #8ab4f8;
+  background: #252525;
 }
 
 .catBtnNombre {
   font-size: 0.9rem;
   font-weight: 600;
+  color: #e0e0e0;
 }
 
 .catBtnMeta {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 400;
-  opacity: 0.75;
+  opacity: 0.8;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .catBtnActive {
-  background: #3c4043;
+  background: #1a2a3a;
   color: #8ab4f8;
   border-color: #8ab4f8;
+}
+
+.catBtnActive .catBtnNombre {
+  color: #8ab4f8;
 }
 
 /* 2. HEADER */
