@@ -36,6 +36,9 @@ export default function EquipoDetallePublic() {
         <button className={styles.backBtn} onClick={() => navigate(-1)}>← Volver</button>
         <div className={styles.equipoTitleBlock}>
           <h1 className={styles.title}>{equipo.nombre}</h1>
+          <p className={styles.equipoMeta}>
+            {equipo.categoria}{equipo.division ? ` ${equipo.division}` : ""} · {equipo.genero}
+          </p>
           <span className={styles.badge}>
             {hasPlantel ? "Plantel Confirmado" : "Sin Plantel"}
           </span>

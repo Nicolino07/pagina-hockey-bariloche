@@ -42,6 +42,14 @@
   letter-spacing: -1px;
 }
 
+.equipoMeta {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: #9aa0a6;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
 .badge {
   background: rgba(138, 180, 248, 0.1);
   color: #8ab4f8;

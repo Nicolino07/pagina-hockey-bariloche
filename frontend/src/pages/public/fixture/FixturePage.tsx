@@ -39,7 +39,7 @@ interface GrupoTorneo {
 function buildLabel(torneo: Torneo | null, partido: FixturePartido): string {
   if (torneo) {
     const año = torneo.fecha_inicio ? torneo.fecha_inicio.slice(0, 4) : ""
-    return `${torneo.nombre} · ${torneo.genero} · ${torneo.categoria}${año ? ` · ${año}` : ""}`
+    return `${torneo.nombre} · ${torneo.genero} · ${torneo.categoria}${torneo.division ? ` ${torneo.division}` : ""}${año ? ` · ${año}` : ""}`
   }
   return partido.nombre_torneo ?? `Torneo #${partido.id_torneo}`
 }
@@ -152,7 +152,7 @@ export default function FixturePage() {
             className={`${styles.filtroBtn} ${torneoId === t.id_torneo ? styles.filtroBtnActive : ""}`}
             onClick={() => setTorneoId(t.id_torneo)}
           >
-            {t.nombre} · {t.genero} · {t.categoria}
+            {t.nombre} · {t.genero} · {t.categoria}{t.division ? ` ${t.division}` : ""}
           </button>
         ))}
       </div>

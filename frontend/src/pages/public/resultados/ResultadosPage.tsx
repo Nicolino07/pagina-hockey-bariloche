@@ -102,7 +102,7 @@ export default function ResultadosPage() {
             const partido = partidos.find(p => p.id_torneo === idT);
             const anio = partido ? partido.fecha.slice(0, 4) : "";
             const label = torneo
-              ? `${torneo.nombre} — Cat. ${torneo.categoria} (${anio})`
+              ? `${torneo.nombre} — Cat. ${torneo.categoria}${torneo.division ? ` ${torneo.division}` : ""} (${anio})`
               : partido?.nombre_torneo ?? String(idT);
             return <option key={idT} value={idT}>{label}</option>;
           })}

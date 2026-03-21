@@ -103,7 +103,7 @@ export default function RankingPage() {
         <div className={styles.tableCard}>
           {nombreTorneo && (
             <p className={styles.torneoLabel}>
-              {nombreTorneo.nombre} — Categoría {nombreTorneo.categoria}
+              {nombreTorneo.nombre} — Categoría {nombreTorneo.categoria}{nombreTorneo.division ? ` ${nombreTorneo.division}` : ""}
             </p>
           )}
 
