@@ -35,7 +35,7 @@ class Equipo(Base, AuditFieldsMixin, SoftDeleteMixin):
     categoria: Mapped[CategoriaTipo] = mapped_column(
         Enum(
             CategoriaTipo,
-            name="categoria_tipo",
+            name="tipo_categoria",
             native_enum=True
         ),
         nullable=False
