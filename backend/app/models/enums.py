@@ -9,8 +9,7 @@ class GeneroTipo(str, enum.Enum):
 
 class CategoriaTipo(str, enum.Enum):
     """Nivel/categoría deportiva"""
-    A = 'A'
-    B = 'B'
+    MAYORES = 'MAYORES'
     SUB_19 = 'SUB_19'
     SUB_16 = 'SUB_16'
     SUB_14 = 'SUB_14'

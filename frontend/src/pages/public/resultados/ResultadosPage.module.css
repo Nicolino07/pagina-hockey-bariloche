@@ -224,6 +224,12 @@
   gap: 50px;
 }
 
+.sub12Grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
 .infoCol label {
   display: block;
   color: #8ab4f8;

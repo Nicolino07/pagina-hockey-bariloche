@@ -1,14 +1,16 @@
 import { useState } from "react"
 import Button from "../../../components/ui/button/Button"
-import { crearTorneo } from "../../../api/torneos.api"
+import { crearTorneo, actualizarTorneo } from "../../../api/torneos.api"
 import type { TipoGenero, TipoCategoria } from  "../../../constants/enums"
 import { GENEROS, CATEGORIAS } from "../../../constants/enums"
+import type { Torneo } from "../../../types/torneo"
 
 import styles from "./CrearTorneoForm.module.css"
 
 interface Props {
   onCancel: () => void
   onSuccess: () => void
+  torneoEditar?: Torneo
 }
 
 /**
@@ -16,17 +18,21 @@ interface Props {
  * @param onCancel - Callback invocado al cancelar sin guardar.
  * @param onSuccess - Callback invocado tras crear el torneo exitosamente.
  */
-export default function CrearTorneoForm({ onCancel, onSuccess }: Props) {
+export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: Props) {
+  const modoEdicion = !!torneoEditar
+
   const [form, setForm] = useState<{
     nombre: string
     categoria: TipoCategoria
+    division: string | null
     genero: TipoGenero
     fecha_inicio: string
   }>({
-    nombre: "",
-    categoria: "A",
-    genero: "FEMENINO",
-    fecha_inicio: "",
+    nombre: torneoEditar?.nombre ?? "",
+    categoria: torneoEditar?.categoria ?? "MAYORES",
+    division: torneoEditar?.division ?? null,
+    genero: torneoEditar?.genero ?? "FEMENINO",
+    fecha_inicio: torneoEditar?.fecha_inicio ?? "",
   })
 
   const [loading, setLoading] = useState(false)
@@ -45,10 +51,17 @@ export default function CrearTorneoForm({ onCancel, onSuccess }: Props) {
     setError(null)
 
     try {
-      await crearTorneo(form)
+      if (modoEdicion && torneoEditar) {
+        await actualizarTorneo(torneoEditar.id_torneo, {
+          ...form,
+          activo: torneoEditar.activo,
+        })
+      } else {
+        await crearTorneo(form)
+      }
       onSuccess()
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Error al crear torneo")
+      setError(err.response?.data?.message ?? (modoEdicion ? "Error al actualizar torneo" : "Error al crear torneo"))
     } finally {
       setLoading(false)
     }
@@ -77,10 +90,22 @@ export default function CrearTorneoForm({ onCancel, onSuccess }: Props) {
         >
           {CATEGORIAS.map(cat => (
             <option key={cat} value={cat}>
-              {cat.replace("_", " ")}
+              {cat.replace(/_/g, " ")}
             </option>
           ))}
         </select>
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>División <span className={styles.optional}>(opcional)</span></label>
+        <input
+          className={styles.input}
+          name="division"
+          value={form.division ?? ""}
+          onChange={handleChange}
+          placeholder="Ej: A, B, Desarrollo..."
+          maxLength={30}
+        />
       </div>
 
       <div className={styles.field}>
@@ -118,7 +143,7 @@ export default function CrearTorneoForm({ onCancel, onSuccess }: Props) {
           Cancelar
         </Button>
         <Button type="submit" disabled={loading}>
-          {loading ? "Creando…" : "Crear torneo"}
+          {loading ? (modoEdicion ? "Guardando…" : "Creando…") : (modoEdicion ? "Guardar cambios" : "Crear torneo")}
         </Button>
       </div>
     </form>

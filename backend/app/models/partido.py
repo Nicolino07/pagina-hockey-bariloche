@@ -106,6 +106,10 @@ class Partido(Base, AuditFieldsMixin):
         nullable=False
     )
 
+    # Resultado manual (solo para categorías sin desglose de goles, ej: SUB_12)
+    goles_local_manual: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    goles_visitante_manual: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+
     # Mesa / organización
     juez_mesa_local: Mapped[Optional[str]] = mapped_column(String(100))
     juez_mesa_visitante: Mapped[Optional[str]] = mapped_column(String(100))
@@ -146,6 +150,7 @@ class PartidoDetallado(Base):
     id_equipo_local = Column(Integer)
     id_equipo_visitante = Column(Integer)
     nombre_torneo = Column(String)
+    categoria_torneo = Column(String)
     fecha = Column(Date)
     horario = Column(Time)
     ubicacion = Column(String)

@@ -61,7 +61,7 @@ export default function TorneoDetalle() {
         <div>
           <h2 className={styles.title}>{torneo.nombre}</h2>
           <p className={styles.meta}>
-            Categoría {torneo.categoria} – {torneo.genero} –{" "}
+            Categoría {torneo.categoria}{torneo.division ? ` ${torneo.division}` : ""} – {torneo.genero} –{" "}
             {new Date(torneo.fecha_inicio).getFullYear()}
           </p>
         </div>

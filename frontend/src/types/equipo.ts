@@ -1,10 +1,11 @@
-import type { TipoCategoria, TipoGenero } from "./enums"
+import type { TipoCategoria, TipoGenero } from "../constants/enums"
 
 export type Equipo = {
   id_equipo: number
   nombre: string
   id_club: number
   categoria: TipoCategoria
+  division?: string | null
   genero: TipoGenero
 
   creado_en: string
@@ -19,6 +20,7 @@ export type EquipoCreate = {
   nombre: string
   id_club: number
   categoria: TipoCategoria
+  division?: string | null
   genero: TipoGenero
 }
 

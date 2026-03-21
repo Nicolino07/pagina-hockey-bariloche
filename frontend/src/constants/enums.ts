@@ -15,16 +15,17 @@ export type TipoGenero = typeof GENEROS[number]
 // Categoría deportiva
 // =====================
 export const CATEGORIAS = [
-  "A",
-  "B",
+  "MAYORES",
   "SUB_19",
   "SUB_16",
   "SUB_14",
-  "SUB_14_DESARROLLO",
   "SUB_12",
 ] as const
 
 export type TipoCategoria = typeof CATEGORIAS[number]
+
+export const DIVISIONES_MAYORES = ["A", "B"] as const
+export type TipoDivision = typeof DIVISIONES_MAYORES[number] | string | null
 
 // =====================
 // Rol de persona

@@ -105,7 +105,7 @@ export default function ClubesDetallePublic() {
               onClick={() => setEquipoSeleccionado(eq)}
             >
               <span className={styles.catBtnNombre}>{eq.nombre}</span>
-              <span className={styles.catBtnMeta}>{eq.categoria} · {eq.genero}</span>
+              <span className={styles.catBtnMeta}>{eq.categoria}{eq.division ? ` ${eq.division}` : ""} · {eq.genero}</span>
             </button>
           ))}
         </div>
@@ -116,7 +116,7 @@ export default function ClubesDetallePublic() {
             <div className={styles.clubLogo}>{club.nombre.substring(0,2).toUpperCase()}</div>
             <div>
               <h1>{club.nombre}</h1>
-              <p>{equipoSeleccionado?.categoria} - {equipoSeleccionado?.genero}</p>
+              <p>{equipoSeleccionado?.categoria}{equipoSeleccionado?.division ? ` ${equipoSeleccionado.division}` : ""} - {equipoSeleccionado?.genero}</p>
             </div>
           </div>
         </header>

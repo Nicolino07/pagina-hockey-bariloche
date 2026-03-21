@@ -1,5 +1,5 @@
 import api from "./axiosAdmin"
-import type { Torneo, TorneoCreate } from "../types/torneo"
+import type { Torneo, TorneoCreate, TorneoUpdate } from "../types/torneo"
 import type { InscripcionTorneoDetalle} from "../types/inscripcion"
 
 
@@ -68,6 +68,15 @@ export const darDeBajaEquipoTorneo = async (
   )
 }
 
+
+// ✏️ Actualizar torneo
+export async function actualizarTorneo(
+  id_torneo: number,
+  data: TorneoUpdate
+): Promise<Torneo> {
+  const { data: res } = await api.put(`/torneos/${id_torneo}`, data)
+  return res
+}
 
 // 🗑 Soft delete
 export async function eliminarTorneo(id_torneo: number) {

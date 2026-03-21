@@ -320,6 +320,7 @@ SELECT
 
     e.nombre        AS nombre_equipo,
     e.categoria     AS categoria_equipo,
+    e.division      AS division_equipo,
     e.genero        AS genero_equipo,
 
     c.id_club,

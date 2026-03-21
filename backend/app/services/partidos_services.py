@@ -253,6 +253,8 @@ def get_partido_edicion(db: Session, id_partido: int):
         "ubicacion": partido.ubicacion,
         "observaciones": partido.observaciones,
         "numero_fecha": partido.numero_fecha,
+        "goles_local_manual": partido.goles_local_manual,
+        "goles_visitante_manual": partido.goles_visitante_manual,
         "participantes_local": participantes_local,
         "participantes_visitante": participantes_visitante,
         "goles": goles,
@@ -290,6 +292,8 @@ def actualizar_planilla_partido(db: Session, id_partido: int, data, current_user
         partido.ubicacion = data.partido.ubicacion
         partido.observaciones = data.partido.observaciones
         partido.numero_fecha = data.partido.numero_fecha
+        partido.goles_local_manual = data.partido.goles_local_manual
+        partido.goles_visitante_manual = data.partido.goles_visitante_manual
 
         # =========================
         # 2️⃣ Eliminar participantes (cascade borra goles y tarjetas)

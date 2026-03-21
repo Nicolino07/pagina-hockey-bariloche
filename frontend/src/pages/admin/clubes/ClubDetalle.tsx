@@ -13,7 +13,7 @@ import { getClubById, updateClub } from "../../../api/clubes.api";
 import { crearFichaje, getFichajesPorClub, darBajaFichaje } from "../../../api/fichajes.api";
 
 import type { Club } from "../../../types/club";
-import type { Equipo, EquipoCreate } from "../../../types/equipo";
+import type { Equipo, EquipoCreate, EquipoUpdate } from "../../../types/equipo";
 import { GENEROS, CATEGORIAS } from "../../../constants/enums";
 
 // Definición local de etiquetas para el select
@@ -38,7 +38,7 @@ export default function ClubDetalle() {
   const [showModal, setShowModal] = useState(false);
   const [showEditEquipoModal, setShowEditEquipoModal] = useState(false);
   const [equipoAEditar, setEquipoAEditar] = useState<Equipo | null>(null);
-  const [editEquipoForm, setEditEquipoForm] = useState<{ nombre: string; categoria: string; genero: string }>({ nombre: "", categoria: "", genero: "" });
+  const [editEquipoForm, setEditEquipoForm] = useState<EquipoUpdate>({ nombre: "", categoria: undefined, division: null, genero: undefined });
   const [equipoAEliminar, setEquipoAEliminar] = useState<Equipo | null>(null);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
   const [showFichajeModal, setShowFichajeModal] = useState(false);
@@ -51,7 +51,7 @@ export default function ClubDetalle() {
   const [savingClub, setSavingClub] = useState(false);
 
   const [form, setForm] = useState<EquipoCreate>({
-    nombre: "", categoria: "", genero: "", id_club: Number(id_club),
+    nombre: "", categoria: "MAYORES", division: null, genero: "FEMENINO", id_club: Number(id_club),
   });
 
   const [fichajeForm, setFichajeForm] = useState({
@@ -171,7 +171,7 @@ export default function ClubDetalle() {
   const handleOpenEditEquipo = (equipo: Equipo, e: React.MouseEvent) => {
     e.stopPropagation();
     setEquipoAEditar(equipo);
-    setEditEquipoForm({ nombre: equipo.nombre, categoria: equipo.categoria, genero: equipo.genero });
+    setEditEquipoForm({ nombre: equipo.nombre, categoria: equipo.categoria, division: equipo.division ?? null, genero: equipo.genero });
     setShowEditEquipoModal(true);
   };
 
@@ -216,7 +216,7 @@ export default function ClubDetalle() {
       const nuevoEquipo = await crearEquipo(form);
       setEquipos((prev) => [...prev, nuevoEquipo]);
       setShowModal(false);
-      setForm({ ...form, nombre: "", categoria: "", genero: "" });
+      setForm({ ...form, nombre: "", categoria: "MAYORES", division: null, genero: "FEMENINO" });
     } catch (err) { alert("Error al crear equipo"); } 
     finally { setSaving(false); }
   };
@@ -338,7 +338,7 @@ export default function ClubDetalle() {
             <div className={styles.equipoHeader} onClick={() => setEquipoAbierto(equipoAbierto === equipo.id_equipo ? null : equipo.id_equipo)}>
               <div>
                 <span className={styles.equipoName}>{equipo.nombre}</span>
-                <span className={styles.equipoMeta}>{equipo.categoria} · {equipo.genero}</span>
+                <span className={styles.equipoMeta}>{equipo.categoria}{equipo.division ? ` ${equipo.division}` : ""} · {equipo.genero}</span>
               </div>
                 <div className={styles.equipoActions}>
                 <button
@@ -351,6 +351,7 @@ export default function ClubDetalle() {
                         clubNombre: club.nombre,
                         equipoNombre: equipo.nombre,
                         categoria: equipo.categoria,
+                        division: equipo.division,
                         generoEquipo: equipo.genero
                       }
                     });
@@ -447,14 +448,18 @@ export default function ClubDetalle() {
           <div className={styles.row}>
             <div className={styles.formGroup}>
               <label>Categoría</label>
-              <select value={editEquipoForm.categoria} onChange={(e) => setEditEquipoForm({...editEquipoForm, categoria: e.target.value})}>
+              <select value={editEquipoForm.categoria ?? ""} onChange={(e) => setEditEquipoForm({...editEquipoForm, categoria: e.target.value as EquipoUpdate["categoria"], division: null})}>
                 <option value="">Seleccionar</option>
                 {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className={styles.formGroup}>
+              <label>División <small>(opcional)</small></label>
+              <input value={editEquipoForm.division ?? ""} onChange={(e) => setEditEquipoForm({...editEquipoForm, division: e.target.value || null})} placeholder="Ej: A, B, Desarrollo..." maxLength={30} />
+            </div>
+            <div className={styles.formGroup}>
               <label>Género</label>
-              <select value={editEquipoForm.genero} onChange={(e) => setEditEquipoForm({...editEquipoForm, genero: e.target.value})}>
+              <select value={editEquipoForm.genero ?? ""} onChange={(e) => setEditEquipoForm({...editEquipoForm, genero: e.target.value as EquipoUpdate["genero"]})}>
                 <option value="">Seleccionar</option>
                 {GENEROS.map(g => <option key={g} value={g}>{g}</option>)}
               </select>
@@ -487,14 +492,18 @@ export default function ClubDetalle() {
           <div className={styles.row}>
             <div className={styles.formGroup}>
               <label>Categoría</label>
-              <select value={form.categoria} onChange={(e) => setForm({...form, categoria: e.target.value})}>
+              <select value={form.categoria} onChange={(e) => setForm({...form, categoria: e.target.value as EquipoCreate["categoria"], division: null})}>
                 <option value="">Seleccionar</option>
                 {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className={styles.formGroup}>
+              <label>División <small>(opcional)</small></label>
+              <input value={form.division ?? ""} onChange={(e) => setForm({...form, division: e.target.value || null})} placeholder="Ej: A, B, Desarrollo..." maxLength={30} />
+            </div>
+            <div className={styles.formGroup}>
               <label>Género</label>
-              <select value={form.genero} onChange={(e) => setForm({...form, genero: e.target.value})}>
+              <select value={form.genero} onChange={(e) => setForm({...form, genero: e.target.value as EquipoCreate["genero"]})}>
                 <option value="">Seleccionar</option>
                 {GENEROS.map(g => <option key={g} value={g}>{g}</option>)}
               </select>

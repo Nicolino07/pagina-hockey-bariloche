@@ -85,7 +85,7 @@ export default function PosicionesPage() {
           >
             <span className={styles.badge}>{torneo.genero}</span>
             <h2 className={styles.torneoNombre}>{torneo.nombre} - {new Date(torneo.fecha_inicio).getFullYear()}</h2>
-            <p className={styles.categoria}>Categoría {torneo.categoria}</p>
+            <p className={styles.categoria}>Categoría {torneo.categoria}{torneo.division ? ` ${torneo.division}` : ""}</p>
           </article>
         ))}
       </div>

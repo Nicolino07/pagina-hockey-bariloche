@@ -169,11 +169,11 @@ export default function ResultadosPage() {
             </div>
 
             <div className={styles.detailsBody}>
-              <div className={styles.teamSection}>
-                <h3 className={styles.localTitle}>🏠 {selectedPartido.equipo_local_nombre}</h3>
-                <div className={styles.infoGrid}>
-                  <div className={styles.infoCol}>
-                    <label>📋 Plantilla</label>
+              {selectedPartido.categoria_torneo === "SUB_12" ? (
+                /* Vista simplificada para SUB_12: solo plantilla, sin goles ni tarjetas */
+                <div className={styles.sub12Grid}>
+                  <div className={styles.teamSection}>
+                    <h3 className={styles.localTitle}>🏠 {selectedPartido.equipo_local_nombre}</h3>
                     <div className={styles.plantillaList}>
                       {parsePlantilla(selectedPartido.lista_jugadores_local).map((j, i) => (
                         <div key={i} className={styles.jugadorRow}>
@@ -186,37 +186,8 @@ export default function ResultadosPage() {
                       ))}
                     </div>
                   </div>
-                  <div className={styles.infoCol}>
-                    <label>🏑 Goles / 🎴 Sanciones</label>
-                    {agruparGoles(selectedPartido.lista_goles_local).map((g, i) => (
-                      <div key={i} className={styles.incidenciaItem}>
-                        <div className={styles.incRow}>
-                          <span>🏑 {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}</span>
-                          {g.tiempos.length > 1 && <span className={styles.incCount}>x{g.tiempos.length}</span>}
-                        </div>
-                        <small className={styles.incTiempos}>{g.tiempos.join("  ")}</small>
-                      </div>
-                    ))}
-                    {agruparTarjetas(selectedPartido.lista_tarjetas_local).map((t, i) => (
-                      <div key={i} className={styles.incidenciaItem}>
-                        <div className={styles.incRow}>
-                          <span className={styles.cardWrapper}>{renderIconoTarjeta(t.tipoTarjeta)}{t.jugador}</span>
-                          {t.tiempos.length > 1 && <span className={styles.incCount}>x{t.tiempos.length}</span>}
-                        </div>
-                        <small className={styles.incTiempos}>{t.tiempos.join("  ")}</small>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <hr className={styles.divider} />
-
-              <div className={styles.teamSection}>
-                <h3 className={styles.visitanteTitle}>🚩 {selectedPartido.equipo_visitante_nombre}</h3>
-                <div className={styles.infoGrid}>
-                  <div className={styles.infoCol}>
-                    <label>📋 Plantilla</label>
+                  <div className={styles.teamSection}>
+                    <h3 className={styles.visitanteTitle}>🚩 {selectedPartido.equipo_visitante_nombre}</h3>
                     <div className={styles.plantillaList}>
                       {parsePlantilla(selectedPartido.lista_jugadores_visitante).map((j, i) => (
                         <div key={i} className={styles.jugadorRow}>
@@ -229,29 +200,94 @@ export default function ResultadosPage() {
                       ))}
                     </div>
                   </div>
-                  <div className={styles.infoCol}>
-                    <label>🏑 Goles / 🎴 Sanciones</label>
-                    {agruparGoles(selectedPartido.lista_goles_visitante).map((g, i) => (
-                      <div key={i} className={styles.incidenciaItem}>
-                        <div className={styles.incRow}>
-                          <span>🏑 {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}</span>
-                          {g.tiempos.length > 1 && <span className={styles.incCount}>x{g.tiempos.length}</span>}
-                        </div>
-                        <small className={styles.incTiempos}>{g.tiempos.join("  ")}</small>
-                      </div>
-                    ))}
-                    {agruparTarjetas(selectedPartido.lista_tarjetas_visitante).map((t, i) => (
-                      <div key={i} className={styles.incidenciaItem}>
-                        <div className={styles.incRow}>
-                          <span className={styles.cardWrapper}>{renderIconoTarjeta(t.tipoTarjeta)}{t.jugador}</span>
-                          {t.tiempos.length > 1 && <span className={styles.incCount}>x{t.tiempos.length}</span>}
-                        </div>
-                        <small className={styles.incTiempos}>{t.tiempos.join("  ")}</small>
-                      </div>
-                    ))}
-                  </div>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div className={styles.teamSection}>
+                    <h3 className={styles.localTitle}>🏠 {selectedPartido.equipo_local_nombre}</h3>
+                    <div className={styles.infoGrid}>
+                      <div className={styles.infoCol}>
+                        <label>📋 Plantilla</label>
+                        <div className={styles.plantillaList}>
+                          {parsePlantilla(selectedPartido.lista_jugadores_local).map((j, i) => (
+                            <div key={i} className={styles.jugadorRow}>
+                              <span className={styles.tshirt}>{j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}</span>
+                              <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
+                                {j.nombreCompleto}
+                                {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className={styles.infoCol}>
+                        <label>🏑 Goles / 🎴 Sanciones</label>
+                        {agruparGoles(selectedPartido.lista_goles_local).map((g, i) => (
+                          <div key={i} className={styles.incidenciaItem}>
+                            <div className={styles.incRow}>
+                              <span>🏑 {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}</span>
+                              {g.tiempos.length > 1 && <span className={styles.incCount}>x{g.tiempos.length}</span>}
+                            </div>
+                            <small className={styles.incTiempos}>{g.tiempos.join("  ")}</small>
+                          </div>
+                        ))}
+                        {agruparTarjetas(selectedPartido.lista_tarjetas_local).map((t, i) => (
+                          <div key={i} className={styles.incidenciaItem}>
+                            <div className={styles.incRow}>
+                              <span className={styles.cardWrapper}>{renderIconoTarjeta(t.tipoTarjeta)}{t.jugador}</span>
+                              {t.tiempos.length > 1 && <span className={styles.incCount}>x{t.tiempos.length}</span>}
+                            </div>
+                            <small className={styles.incTiempos}>{t.tiempos.join("  ")}</small>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <hr className={styles.divider} />
+
+                  <div className={styles.teamSection}>
+                    <h3 className={styles.visitanteTitle}>🚩 {selectedPartido.equipo_visitante_nombre}</h3>
+                    <div className={styles.infoGrid}>
+                      <div className={styles.infoCol}>
+                        <label>📋 Plantilla</label>
+                        <div className={styles.plantillaList}>
+                          {parsePlantilla(selectedPartido.lista_jugadores_visitante).map((j, i) => (
+                            <div key={i} className={styles.jugadorRow}>
+                              <span className={styles.tshirt}>{j.rol === "JUGADOR" ? (j.camiseta || '-') : '📋'}</span>
+                              <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
+                                {j.nombreCompleto}
+                                {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className={styles.infoCol}>
+                        <label>🏑 Goles / 🎴 Sanciones</label>
+                        {agruparGoles(selectedPartido.lista_goles_visitante).map((g, i) => (
+                          <div key={i} className={styles.incidenciaItem}>
+                            <div className={styles.incRow}>
+                              <span>🏑 {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}</span>
+                              {g.tiempos.length > 1 && <span className={styles.incCount}>x{g.tiempos.length}</span>}
+                            </div>
+                            <small className={styles.incTiempos}>{g.tiempos.join("  ")}</small>
+                          </div>
+                        ))}
+                        {agruparTarjetas(selectedPartido.lista_tarjetas_visitante).map((t, i) => (
+                          <div key={i} className={styles.incidenciaItem}>
+                            <div className={styles.incRow}>
+                              <span className={styles.cardWrapper}>{renderIconoTarjeta(t.tipoTarjeta)}{t.jugador}</span>
+                              {t.tiempos.length > 1 && <span className={styles.incCount}>x{t.tiempos.length}</span>}
+                            </div>
+                            <small className={styles.incTiempos}>{t.tiempos.join("  ")}</small>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className={styles.modalFooter}>

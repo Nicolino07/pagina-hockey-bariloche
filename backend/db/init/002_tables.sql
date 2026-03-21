@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS equipo (
     id_club        INT NOT NULL 
         REFERENCES club(id_club) ON UPDATE CASCADE ON DELETE RESTRICT,
     categoria      tipo_categoria NOT NULL,
+    division       VARCHAR(30) DEFAULT NULL,
     genero         tipo_genero NOT NULL,
 
     creado_en      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -45,7 +46,7 @@ CREATE TABLE IF NOT EXISTS equipo (
     creado_por     VARCHAR(100),
     actualizado_por VARCHAR(100),
 
-    CONSTRAINT equipo_unq_club_categoria UNIQUE (id_club, nombre, categoria, genero)
+    CONSTRAINT equipo_unq_club_categoria UNIQUE (id_club, nombre, categoria, division, genero)
 );
 
 -- ======================
@@ -230,6 +231,7 @@ CREATE TABLE IF NOT EXISTS torneo (
     id_torneo       INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre          VARCHAR(100) NOT NULL CHECK (nombre <> ''),
     categoria       tipo_categoria NOT NULL,
+    division        VARCHAR(30) DEFAULT NULL,
     genero          tipo_genero NOT NULL,
     fecha_inicio    DATE DEFAULT CURRENT_DATE,
     fecha_fin       DATE CHECK (fecha_fin IS NULL OR fecha_fin >= fecha_inicio),

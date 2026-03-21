@@ -20,6 +20,7 @@ export interface InscripcionTorneoDetalle {
   nombre_club: string
 
   categoria_equipo: TipoCategoria
+  division_equipo: string | null
   genero_equipo: TipoGenero
 
   fecha_inscripcion: string

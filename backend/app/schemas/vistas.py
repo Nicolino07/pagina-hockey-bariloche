@@ -48,6 +48,7 @@ class InscripcionTorneoDetalle(BaseModel):
 
     nombre_equipo: str
     categoria_equipo: str
+    division_equipo: Optional[str] = None
     genero_equipo: str
 
     id_club: int

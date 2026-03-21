@@ -185,7 +185,7 @@ export default function FixtureAdmin() {
           <option value="">— Seleccioná un torneo —</option>
           {torneos.map(t => (
             <option key={t.id_torneo} value={t.id_torneo}>
-              {t.nombre} — {t.categoria} {t.genero}
+              {t.nombre} — {t.categoria}{t.division ? ` ${t.division}` : ""} {t.genero}
             </option>
           ))}
         </select>

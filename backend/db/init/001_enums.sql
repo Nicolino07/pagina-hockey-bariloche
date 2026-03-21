@@ -20,12 +20,10 @@ CREATE TYPE tipo_genero AS ENUM (
 -- Categoría deportiva
 -- =====================================================
 CREATE TYPE tipo_categoria AS ENUM (
-  'A',
-  'B',
+  'MAYORES',
   'SUB_19',
   'SUB_16',
   'SUB_14',
-  'SUB_14_DESARROLLO',
   'SUB_12'
 );
 

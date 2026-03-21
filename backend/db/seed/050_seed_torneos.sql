@@ -1,11 +1,10 @@
 
 BEGIN;
 
-INSERT INTO torneo (nombre, categoria, genero, creado_por) 
+INSERT INTO torneo (nombre, categoria, division, genero, creado_por)
 VALUES
-
-    ('Torneo Apertura', 'B', 'FEMENINO', 'seed'),
-    ('Torneo Clausura', 'A', 'MASCULINO', 'seed');
+    ('Torneo Apertura', 'MAYORES', 'B', 'FEMENINO',  'seed'),
+    ('Torneo Clausura', 'MAYORES', 'A', 'MASCULINO', 'seed');
 
 
 COMMIT;

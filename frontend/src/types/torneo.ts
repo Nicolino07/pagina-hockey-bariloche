@@ -5,6 +5,7 @@ export interface Torneo {
   id_torneo: number
   nombre: string
   categoria: TipoCategoria
+  division?: string | null
   genero: TipoGenero
   fecha_inicio: string
   fecha_fin: string | null
@@ -18,7 +19,18 @@ export interface Torneo {
 export interface TorneoCreate {
   nombre: string
   categoria: TipoCategoria
+  division?: string | null
   genero: TipoGenero
   fecha_inicio?: string | null
   fecha_fin?: string | null
+}
+
+export interface TorneoUpdate {
+  nombre: string
+  categoria: TipoCategoria
+  division?: string | null
+  genero: TipoGenero
+  fecha_inicio: string
+  fecha_fin?: string | null
+  activo: boolean
 }

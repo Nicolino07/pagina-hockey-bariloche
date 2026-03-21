@@ -21,6 +21,7 @@ import styles from "./TorneosAdmin.module.css"
 export default function TorneosAdmin() {
   const navigate = useNavigate()
   const [mostrarForm, setMostrarForm] = useState(false)
+  const [torneoEditar, setTorneoEditar] = useState<Torneo | undefined>(undefined)
   const [verFinalizados, setVerFinalizados] = useState(false)
   const [torneos, setTorneos] = useState<Torneo[]>([])
   const [loading, setLoading] = useState(true)
@@ -98,7 +99,7 @@ export default function TorneosAdmin() {
         </h2>
         <div className={styles.botones}>
           {!verFinalizados && (
-            <Button onClick={() => setMostrarForm(true)}>➕ Crear torneo</Button>
+            <Button onClick={() => { setTorneoEditar(undefined); setMostrarForm(true) }}>➕ Crear torneo</Button>
           )}
           <Button
             variant="secondary"
@@ -112,8 +113,9 @@ export default function TorneosAdmin() {
 
       {mostrarForm && (
         <CrearTorneoForm
-          onCancel={() => setMostrarForm(false)}
-          onSuccess={() => { setMostrarForm(false); cargarTorneos() }}
+          torneoEditar={torneoEditar}
+          onCancel={() => { setMostrarForm(false); setTorneoEditar(undefined) }}
+          onSuccess={() => { setMostrarForm(false); setTorneoEditar(undefined); cargarTorneos() }}
         />
       )}
 
@@ -131,13 +133,20 @@ export default function TorneosAdmin() {
             >
               <div>
                 <div className={styles.nombre}>{t.nombre}</div>
-                <div className={styles.meta}>{t.categoria} – {t.genero}</div>
+                <div className={styles.meta}>{t.categoria}{t.division ? ` ${t.division}` : ""} – {t.genero}</div>
                 {verFinalizados && t.fecha_fin && (
                   <div className={styles.fechaFin}>Finalizado: {t.fecha_fin}</div>
                 )}
               </div>
 
               <div className={styles.actions}>
+                <Button
+                  variant="secondary"
+                  disabled={procesandoId === t.id_torneo}
+                  onClick={(e) => { e.stopPropagation(); setTorneoEditar(t); setMostrarForm(true) }}
+                >
+                  ✏️ Editar
+                </Button>
                 {verFinalizados ? (
                   <Button
                     variant="secondary"

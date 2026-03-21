@@ -10,6 +10,7 @@ class EquipoBase(BaseModel):
     nombre: str = Field(..., min_length=1, max_length=100)
     id_club: int = Field(..., gt=0)
     categoria: CategoriaTipo  # ENUM
+    division: Optional[str] = Field(None, max_length=30)
     genero: GeneroTipo  # ENUM
 
 
@@ -54,6 +55,7 @@ class EquipoCreate(EquipoBase):
 class EquipoUpdate(BaseModel):
     nombre: Optional[str] = Field(None, min_length=1, max_length=100)
     categoria: Optional[CategoriaTipo] = None  # ← ENUM opcional
+    division: Optional[str] = Field(None, max_length=30)
     genero: Optional[GeneroTipo] = None  # ← ENUM opcional
     actualizado_por: Optional[str] = Field(None, max_length=100)
     

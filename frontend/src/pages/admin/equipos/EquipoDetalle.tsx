@@ -46,12 +46,13 @@ export default function EquipoDetalle() {
   const equipoId = id_equipo ? Number(id_equipo) : undefined;
   const location = useLocation();
 
-  const { id_club, clubNombre, equipoNombre, categoria, generoEquipo } = 
+  const { id_club, clubNombre, equipoNombre, categoria, division, generoEquipo } =
     (location.state || {}) as {
       id_club?: number;
       clubNombre?: string;
       equipoNombre?: string;
       categoria?: string;
+      division?: string | null;
       generoEquipo?: string;
     };
 
@@ -197,7 +198,7 @@ export default function EquipoDetalle() {
         <Button variant="secondary" onClick={() => navigate(-1)}>← Volver</Button>
         <div className={styles.titleInfo}>
             <h1>{equipoNombre} <small className={styles.subtext}>({clubNombre})</small></h1>
-            <p>{categoria} · {generoEquipo}</p>
+            <p>{categoria}{division ? ` ${division}` : ""} · {generoEquipo}</p>
         </div>
         <Button onClick={handleOpenAdd}>+ Agregar Integrante</Button>
       </header>

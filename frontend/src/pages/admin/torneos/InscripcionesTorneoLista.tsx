@@ -27,7 +27,7 @@ export default function InscripcionesTorneoLista({
             <span className={styles.equipo}>{i.nombre_equipo}</span>
             <span className={styles.club}>{i.nombre_club}</span>
             <span className={styles.meta}>
-              {i.genero_equipo} – {i.categoria_equipo}
+              {i.genero_equipo} – {i.categoria_equipo}{i.division_equipo ? ` ${i.division_equipo}` : ""}
             </span>
           </div>
 

@@ -74,7 +74,7 @@ export default function RankingPage() {
           <option value="">Seleccionar torneo...</option>
           {torneos.map(t => (
             <option key={t.id_torneo} value={t.id_torneo}>
-              {t.nombre} {new Date(t.fecha_inicio).getFullYear()} — {t.categoria}
+              {t.nombre} {new Date(t.fecha_inicio).getFullYear()} — {t.categoria}{t.division ? ` ${t.division}` : ""}
             </option>
           ))}
         </select>

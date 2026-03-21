@@ -10,6 +10,7 @@ from sqlalchemy import (
     CheckConstraint,
     Enum,
 )
+
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 from app.models.enums import CategoriaTipo, GeneroTipo
@@ -39,6 +40,12 @@ class Torneo(Base, AuditFieldsMixin, SoftDeleteMixin):
     categoria: Mapped[CategoriaTipo] = mapped_column(
         Enum(CategoriaTipo, name="tipo_categoria"),
         nullable=False
+    )
+
+    division: Mapped[Optional[str]] = mapped_column(
+        String(30),
+        nullable=True,
+        default=None
     )
 
     genero: Mapped[GeneroTipo] = mapped_column(

@@ -36,6 +36,7 @@ export default function InscribirEquipoModal({
   const equiposFiltrados = equipos.filter(
     (e: Equipo) =>
       e.categoria === torneo.categoria &&
+      (e.division ?? null) === (torneo.division ?? null) &&
       e.genero === torneo.genero
   )
 

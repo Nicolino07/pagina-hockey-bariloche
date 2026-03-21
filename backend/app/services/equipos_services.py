@@ -54,8 +54,10 @@ def actualizar_equipo(
 
     campos = data.model_dump(exclude_unset=True)
 
-    # Si se intenta cambiar categoría o género, verificar que no haya torneos activos
-    if "categoria" in campos or "genero" in campos:
+    # Si se intenta cambiar categoría o género (valores realmente distintos), verificar que no haya torneos activos
+    categoria_cambia = "categoria" in campos and campos["categoria"] != equipo.categoria
+    genero_cambia = "genero" in campos and campos["genero"] != equipo.genero
+    if categoria_cambia or genero_cambia:
         inscripcion_activa = (
             db.query(InscripcionTorneo)
             .join(Torneo, InscripcionTorneo.id_torneo == Torneo.id_torneo)

@@ -30,6 +30,10 @@ class PartidoPlanillaCreate(BaseModel):
     observaciones: Optional[str] = None
     numero_fecha: Optional[int] = None
 
+    # Solo para SUB_12: resultado manual sin desglose de goles
+    goles_local_manual: Optional[int] = Field(None, ge=0)
+    goles_visitante_manual: Optional[int] = Field(None, ge=0)
+
 # ---------------------------
 # Participantes
 # ---------------------------
@@ -125,6 +129,8 @@ class PartidoEdicionResponse(BaseModel):
     ubicacion: Optional[str] = None
     observaciones: Optional[str] = None
     numero_fecha: Optional[int] = None
+    goles_local_manual: Optional[int] = None
+    goles_visitante_manual: Optional[int] = None
     participantes_local: list[ParticipanteEdicion] = []
     participantes_visitante: list[ParticipanteEdicion] = []
     goles: list[GolEdicion] = []

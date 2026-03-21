@@ -7,6 +7,7 @@ from app.models.enums import CategoriaTipo, GeneroTipo
 class TorneoBase(BaseModel):
     nombre: str = Field(..., min_length=1, max_length=100)
     categoria: CategoriaTipo
+    division: Optional[str] = Field(None, max_length=30)
     genero: GeneroTipo
     fecha_inicio: date = Field(default_factory=date.today)
     fecha_fin: Optional[date] = None

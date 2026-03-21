@@ -81,6 +81,10 @@ export default function PartidoPlanilla() {
   const [goles, setGoles] = useState<Gol[]>([]);
   const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
   const [camisetas, setCamisetas] = useState<Record<number, string>>({});
+  const [golesManual, setGolesManual] = useState({ local: "", visitante: "" });
+
+  const torneoSeleccionado = torneos.find((t: any) => t.id_torneo === torneoId);
+  const esSub12 = torneoSeleccionado?.categoria === "SUB_12";
 
   // Si viene ?fixture=X, precarga fecha, horario, ubicación y número de fecha del partido programado.
   useEffect(() => {
@@ -148,6 +152,10 @@ export default function PartidoPlanilla() {
       }))
       setGoles(golesPrec)
       setTarjetas(tarjetasPrec)
+      setGolesManual({
+        local: p.goles_local_manual != null ? String(p.goles_local_manual) : "",
+        visitante: p.goles_visitante_manual != null ? String(p.goles_visitante_manual) : "",
+      })
       // Camisetas
       const camisetasMap: Record<number, string> = {}
       ;[...p.participantes_local, ...p.participantes_visitante].forEach((pp: any) => {
@@ -205,6 +213,7 @@ export default function PartidoPlanilla() {
     setSeleccionados({ local: [], visitante: [] });
     setGoles([]);
     setTarjetas([]);
+    setGolesManual({ local: "", visitante: "" });
   };
 
   /**
@@ -270,7 +279,9 @@ export default function PartidoPlanilla() {
         juez_mesa_visitante: partidoInfo.juez_mesa_visitante || null,
         ubicacion: partidoInfo.ubicacion,
         observaciones: partidoInfo.observaciones,
-        numero_fecha: numFechaVal > 0 ? numFechaVal : null
+        numero_fecha: numFechaVal > 0 ? numFechaVal : null,
+        goles_local_manual: esSub12 ? (Number(golesManual.local) >= 0 ? Number(golesManual.local) : null) : null,
+        goles_visitante_manual: esSub12 ? (Number(golesManual.visitante) >= 0 ? Number(golesManual.visitante) : null) : null,
       },
       participantes: {
         local: seleccionados.local.map(id => ({ id_plantel_integrante: id, numero_camiseta: camisetas[id] || null })),
@@ -333,7 +344,7 @@ export default function PartidoPlanilla() {
           <select value={torneoId ?? ""} onChange={(e) => handleTorneoChange(e.target.value)}>
             <option value="">Torneo</option>
             {torneos.map((t: any) => (
-              <option key={t.id_torneo} value={t.id_torneo}>{t.nombre} - {t.genero} - {t.categoria}</option>
+              <option key={t.id_torneo} value={t.id_torneo}>{t.nombre} - {t.genero} - {t.categoria}{t.division ? ` ${t.division}` : ""}</option>
             ))}
           </select>
           <input type="number" placeholder="N° Fecha" value={partidoInfo.numero_fecha} onChange={e => setPartidoInfo({...partidoInfo, numero_fecha: e.target.value})} />
@@ -468,77 +479,107 @@ export default function PartidoPlanilla() {
       </div>
 
       {/* INCIDENCIAS */}
-      <div className={styles.incidencias}>
-        <section className={styles.eventSection}>
-          <div className={styles.headerRow}>
-            <h3>Goles</h3>
-            <Button onClick={() => setGoles([...goles, { id_plantel_integrante: "", minuto: "", cuarto: "", referencia_gol: "GJ", es_autogol: false }])} size="sm" variant="secondary">+ Gol</Button>
-          </div>
-          {goles.map((gol, index) => (
-            <div key={index} className={styles.eventRow}>
-              <select value={String(gol.id_plantel_integrante)} onChange={e => { const n = [...goles]; n[index].id_plantel_integrante = e.target.value; setGoles(n); }}>
-                <option value="">Autor</option>
-                <optgroup label={inscripcionLocal?.nombre_equipo || "Local"}>
-                  {plantelLocal
-                  .filter(p => 
-                    seleccionados.local.includes(p.id_plantel_integrante as number) &&
-                    p.rol_en_plantel === "JUGADOR").map(p => (
-                    <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
-                      {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label={inscripcionVisitante?.nombre_equipo || "Visitante"}>
-                  {plantelVisitante.filter(p => 
-                    seleccionados.visitante.includes(p.id_plantel_integrante as number) &&
-                    p.rol_en_plantel === "JUGADOR").map(p => (
-                    <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
-                      {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
-              <select value={gol.referencia_gol} onChange={e => { const n = [...goles]; n[index].referencia_gol = e.target.value; setGoles(n); }}>{TIPOS_GOL.map(t => <option key={t} value={t}>{t}</option>)}</select>
-              <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Min" value={gol.minuto} onChange={e => { const n = [...goles]; n[index].minuto = e.target.value.replace(/\D/g, ""); setGoles(n); }} />
-              <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="4°" value={gol.cuarto} onChange={e => { const n = [...goles]; n[index].cuarto = e.target.value.replace(/\D/g, ""); setGoles(n); }} />
-              <label className={styles.checkboxLabel}><input type="checkbox" checked={gol.es_autogol} onChange={e => { const n = [...goles]; n[index].es_autogol = e.target.checked; setGoles(n); }} /> Autogol</label>
-              <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'gol')}>✕</button>
+      {esSub12 ? (
+        /* SUB_12: solo resultado manual, sin goles ni tarjetas */
+        <section className={styles.section}>
+          <h3>Resultado Final</h3>
+          <div className={styles.gridForm}>
+            <div>
+              <label>{inscripcionLocal?.nombre_equipo || "Local"}</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="Goles local"
+                value={golesManual.local}
+                onChange={e => setGolesManual(prev => ({ ...prev, local: e.target.value }))}
+              />
             </div>
-          ))}
+            <div className={styles.vs}>VS</div>
+            <div>
+              <label>{inscripcionVisitante?.nombre_equipo || "Visitante"}</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="Goles visitante"
+                value={golesManual.visitante}
+                onChange={e => setGolesManual(prev => ({ ...prev, visitante: e.target.value }))}
+              />
+            </div>
+          </div>
         </section>
+      ) : (
+        <div className={styles.incidencias}>
+          <section className={styles.eventSection}>
+            <div className={styles.headerRow}>
+              <h3>Goles</h3>
+              <Button onClick={() => setGoles([...goles, { id_plantel_integrante: "", minuto: "", cuarto: "", referencia_gol: "GJ", es_autogol: false }])} size="sm" variant="secondary">+ Gol</Button>
+            </div>
+            {goles.map((gol, index) => (
+              <div key={index} className={styles.eventRow}>
+                <select value={String(gol.id_plantel_integrante)} onChange={e => { const n = [...goles]; n[index].id_plantel_integrante = e.target.value; setGoles(n); }}>
+                  <option value="">Autor</option>
+                  <optgroup label={inscripcionLocal?.nombre_equipo || "Local"}>
+                    {plantelLocal
+                    .filter(p =>
+                      seleccionados.local.includes(p.id_plantel_integrante as number) &&
+                      p.rol_en_plantel === "JUGADOR").map(p => (
+                      <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                        {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label={inscripcionVisitante?.nombre_equipo || "Visitante"}>
+                    {plantelVisitante.filter(p =>
+                      seleccionados.visitante.includes(p.id_plantel_integrante as number) &&
+                      p.rol_en_plantel === "JUGADOR").map(p => (
+                      <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                        {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                <select value={gol.referencia_gol} onChange={e => { const n = [...goles]; n[index].referencia_gol = e.target.value; setGoles(n); }}>{TIPOS_GOL.map(t => <option key={t} value={t}>{t}</option>)}</select>
+                <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Min" value={gol.minuto} onChange={e => { const n = [...goles]; n[index].minuto = e.target.value.replace(/\D/g, ""); setGoles(n); }} />
+                <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="4°" value={gol.cuarto} onChange={e => { const n = [...goles]; n[index].cuarto = e.target.value.replace(/\D/g, ""); setGoles(n); }} />
+                <label className={styles.checkboxLabel}><input type="checkbox" checked={gol.es_autogol} onChange={e => { const n = [...goles]; n[index].es_autogol = e.target.checked; setGoles(n); }} /> Autogol</label>
+                <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'gol')}>✕</button>
+              </div>
+            ))}
+          </section>
 
-        <section className={styles.eventSection}>
-          <div className={styles.headerRow}>
-            <h3>Tarjetas</h3>
-            <Button onClick={() => setTarjetas([...tarjetas, { id_plantel_integrante: "", tipo: "VERDE", minuto: "", cuarto: "" }])} size="sm" variant="secondary">+ Tarjeta</Button>
-          </div>
-          {tarjetas.map((t, index) => (
-            <div key={index} className={styles.eventRow}>
-              <select value={String(t.id_plantel_integrante)} onChange={e => { const n = [...tarjetas]; n[index].id_plantel_integrante = e.target.value; setTarjetas(n); }}>
-                <option value="">Sancionado</option>
-                <optgroup label={inscripcionLocal?.nombre_equipo || "Local"}>
-                  {plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante as number)).map(p => (
-                    <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
-                      {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label={inscripcionVisitante?.nombre_equipo || "Visitante"}>
-                  {plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante as number)).map(p => (
-                    <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
-                      {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
-              <select value={t.tipo} onChange={e => { const n = [...tarjetas]; n[index].tipo = e.target.value; setTarjetas(n); }}>{TIPOS_TARJETA.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}</select>
-              <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Min" value={t.minuto} onChange={e => { const n = [...tarjetas]; n[index].minuto = e.target.value.replace(/\D/g, ""); setTarjetas(n); }} />
-              <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="4°" value={t.cuarto} onChange={e => { const n = [...tarjetas]; n[index].cuarto = e.target.value.replace(/\D/g, ""); setTarjetas(n); }} />
-              <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'tarjeta')}>✕</button>
+          <section className={styles.eventSection}>
+            <div className={styles.headerRow}>
+              <h3>Tarjetas</h3>
+              <Button onClick={() => setTarjetas([...tarjetas, { id_plantel_integrante: "", tipo: "VERDE", minuto: "", cuarto: "" }])} size="sm" variant="secondary">+ Tarjeta</Button>
             </div>
-          ))}
-        </section>
-      </div>
+            {tarjetas.map((t, index) => (
+              <div key={index} className={styles.eventRow}>
+                <select value={String(t.id_plantel_integrante)} onChange={e => { const n = [...tarjetas]; n[index].id_plantel_integrante = e.target.value; setTarjetas(n); }}>
+                  <option value="">Sancionado</option>
+                  <optgroup label={inscripcionLocal?.nombre_equipo || "Local"}>
+                    {plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante as number)).map(p => (
+                      <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                        {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label={inscripcionVisitante?.nombre_equipo || "Visitante"}>
+                    {plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante as number)).map(p => (
+                      <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                        {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                <select value={t.tipo} onChange={e => { const n = [...tarjetas]; n[index].tipo = e.target.value; setTarjetas(n); }}>{TIPOS_TARJETA.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}</select>
+                <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Min" value={t.minuto} onChange={e => { const n = [...tarjetas]; n[index].minuto = e.target.value.replace(/\D/g, ""); setTarjetas(n); }} />
+                <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="4°" value={t.cuarto} onChange={e => { const n = [...tarjetas]; n[index].cuarto = e.target.value.replace(/\D/g, ""); setTarjetas(n); }} />
+                <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'tarjeta')}>✕</button>
+              </div>
+            ))}
+          </section>
+        </div>
+      )}
 
       <footer className={styles.footer}>
         <Button variant="primary" size="md" onClick={() => setShowModal(true)}>Revisar y Guardar Partido</Button>
@@ -562,15 +603,19 @@ export default function PartidoPlanilla() {
               <div className={styles.resumenResultado}>
                 <span className={styles.resumenEquipo}>{inscripcionLocal?.nombre_equipo}</span>
                 <span className={styles.resumenMarcador}>
-                  {goles.filter(g => {
-                    const enLocal = plantelLocal.some(p => p.id_plantel_integrante === Number(g.id_plantel_integrante));
-                    return enLocal ? !g.es_autogol : g.es_autogol;
-                  }).length}
+                  {esSub12
+                    ? (golesManual.local !== "" ? golesManual.local : "—")
+                    : goles.filter(g => {
+                        const enLocal = plantelLocal.some(p => p.id_plantel_integrante === Number(g.id_plantel_integrante));
+                        return enLocal ? !g.es_autogol : g.es_autogol;
+                      }).length}
                   {" - "}
-                  {goles.filter(g => {
-                    const enVisitante = plantelVisitante.some(p => p.id_plantel_integrante === Number(g.id_plantel_integrante));
-                    return enVisitante ? !g.es_autogol : g.es_autogol;
-                  }).length}
+                  {esSub12
+                    ? (golesManual.visitante !== "" ? golesManual.visitante : "—")
+                    : goles.filter(g => {
+                        const enVisitante = plantelVisitante.some(p => p.id_plantel_integrante === Number(g.id_plantel_integrante));
+                        return enVisitante ? !g.es_autogol : g.es_autogol;
+                      }).length}
                 </span>
                 <span className={styles.resumenEquipo}>{inscripcionVisitante?.nombre_equipo}</span>
               </div>
@@ -628,21 +673,23 @@ export default function PartidoPlanilla() {
 
               <hr className={styles.divider} />
 
-              {/* INCIDENCIAS (Goles y Tarjetas) */}
-              <div className={styles.resumenListas}>
-                <div>
-                  <h4>Goles</h4>
-                  {goles.length === 0 ? <p className={styles.emptyResumen}>Sin goles registrados</p> : goles.map((g, i) => (
-                    <p key={i}>• {getPlayerName(g.id_plantel_integrante)} (Min {g.minuto} - {g.cuarto}C) {g.es_autogol ? '(En contra)' : ''}</p>
-                  ))}
+              {/* INCIDENCIAS (Goles y Tarjetas) — solo categorías que no sean SUB_12 */}
+              {!esSub12 && (
+                <div className={styles.resumenListas}>
+                  <div>
+                    <h4>Goles</h4>
+                    {goles.length === 0 ? <p className={styles.emptyResumen}>Sin goles registrados</p> : goles.map((g, i) => (
+                      <p key={i}>• {getPlayerName(g.id_plantel_integrante)} (Min {g.minuto} - {g.cuarto}C) {g.es_autogol ? '(En contra)' : ''}</p>
+                    ))}
+                  </div>
+                  <div>
+                    <h4>Tarjetas</h4>
+                    {tarjetas.length === 0 ? <p className={styles.emptyResumen}>Sin tarjetas registradas</p> : tarjetas.map((t, i) => (
+                      <p key={i}>• {t.tipo} - {getPlayerName(t.id_plantel_integrante)} (Min {t.minuto} - {t.cuarto}C)</p>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <h4>Tarjetas</h4>
-                  {tarjetas.length === 0 ? <p className={styles.emptyResumen}>Sin tarjetas registradas</p> : tarjetas.map((t, i) => (
-                    <p key={i}>• {t.tipo} - {getPlayerName(t.id_plantel_integrante)} (Min {t.minuto} - {t.cuarto}C)</p>
-                  ))}
-                </div>
-              </div>
+              )}
             </div>
 
             <div className={styles.modalActions}>

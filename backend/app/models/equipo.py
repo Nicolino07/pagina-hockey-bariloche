@@ -4,7 +4,8 @@ from sqlalchemy import (
     String,
     ForeignKey,
     Enum,
-    CheckConstraint
+    CheckConstraint,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
@@ -16,6 +17,7 @@ class Equipo(Base, AuditFieldsMixin, SoftDeleteMixin):
 
     __table_args__ = (
         CheckConstraint("nombre <> ''", name="chk_equipo_nombre_no_vacio"),
+        UniqueConstraint("id_club", "nombre", "categoria", "division", "genero", name="equipo_unq_club_categoria"),
     )
 
     id_equipo: Mapped[int] = mapped_column(primary_key=True)
@@ -37,6 +39,12 @@ class Equipo(Base, AuditFieldsMixin, SoftDeleteMixin):
             native_enum=True
         ),
         nullable=False
+    )
+
+    division: Mapped[Optional[str]] = mapped_column(
+        String(30),
+        nullable=True,
+        default=None
     )
 
     genero: Mapped[GeneroTipo] = mapped_column(
