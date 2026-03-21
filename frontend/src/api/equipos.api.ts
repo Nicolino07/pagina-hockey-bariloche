@@ -63,6 +63,7 @@ function mapEquipoFromApi(data: any): Equipo {
     nombre: data.nombre,
     id_club: data.id_club,
     categoria: data.categoria,
+    division: data.division ?? null,
     genero: data.genero,
 
     creado_en: data.creado_en,

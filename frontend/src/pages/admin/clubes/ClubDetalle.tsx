@@ -338,7 +338,7 @@ export default function ClubDetalle() {
             <div className={styles.equipoHeader} onClick={() => setEquipoAbierto(equipoAbierto === equipo.id_equipo ? null : equipo.id_equipo)}>
               <div>
                 <span className={styles.equipoName}>{equipo.nombre}</span>
-                <span className={styles.equipoMeta}>{equipo.categoria}{equipo.division ? ` ${equipo.division}` : ""} · {equipo.genero}</span>
+                <span className={styles.equipoMeta}>{equipo.categoria.replace(/_/g, " ")}{equipo.division ? ` - ${equipo.division}` : ""} - {equipo.genero}</span>
               </div>
                 <div className={styles.equipoActions}>
                 <button
