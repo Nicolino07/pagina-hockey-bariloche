@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { listarTorneos } from "../../../api/torneos.api"
 import { listarProximosPartidos } from "../../../api/fixture.api"
 import type { Torneo } from "../../../types/torneo"
@@ -82,6 +83,7 @@ const GENERO_ICON: Record<string, string> = {
 }
 
 export default function FixturePage() {
+  const navigate = useNavigate()
   const [torneos, setTorneos] = useState<Torneo[]>([])
   const [torneoId, setTorneoId] = useState<number | null>(null)
   const [partidos, setPartidos] = useState<FixturePartido[]>([])
@@ -137,6 +139,8 @@ export default function FixturePage() {
 
   return (
     <div className={styles.container}>
+
+      <button className={styles.backBtn} onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/")}>← Volver</button>
 
       <header className={styles.header}>
         <h1 className={styles.title}>Fixture</h1>

@@ -111,6 +111,7 @@ export default function App() {
         <Route path="/public/clubes" element={<ClubesPage />} />
         <Route path="/public/clubes/:id_club" element={<ClubesDetallePublic />} />
         <Route path="/public/clubes/:id_club/equipos/:id_equipo" element={<EquipoDetallePublic />} />
+        <Route path="/public/equipos/:id_equipo" element={<EquipoDetallePublic />} />
 
         <Route path="/noticias" element={<Noticias />} />
         <Route path="/noticias/:id" element={<NoticiaDetalle />} />

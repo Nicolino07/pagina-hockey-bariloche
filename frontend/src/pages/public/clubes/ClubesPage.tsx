@@ -26,6 +26,8 @@ export default function ClubesPage() {
   return (
     <div className={styles.container}>
 
+      <button className={styles.backBtn} onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/")}>← Volver</button>
+
       <header className={styles.header}>
         <h1 className={styles.title}>Clubes</h1>
         <p className={styles.subtitle}>Instituciones que forman parte de la liga</p>

@@ -33,7 +33,7 @@ export default function EquipoDetallePublic() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate(`/public/clubes/${id_club}`)}>← Volver</button>
+        <button className={styles.backBtn} onClick={() => window.history.length > 1 ? navigate(-1) : navigate(id_club ? `/public/clubes/${id_club}` : "/public/clubes")}>← Volver</button>
         <div className={styles.equipoTitleBlock}>
           <h1 className={styles.title}>{equipo.nombre}</h1>
           <p className={styles.equipoMeta}>

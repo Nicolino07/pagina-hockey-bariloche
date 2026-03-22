@@ -107,7 +107,7 @@ export default function RankingPage() {
   return (
     <div className={styles.container}>
 
-      <button className={styles.backBtn} onClick={() => navigate("/")}>← Volver</button>
+      <button className={styles.backBtn} onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/")}>← Volver</button>
 
       <header className={styles.header}>
         <h1 className={styles.title}>Estadísticas</h1>

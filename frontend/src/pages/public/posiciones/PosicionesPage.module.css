@@ -459,3 +459,6 @@
   background: var(--border-color);
   border-radius: 10px;
 }
+
+.backBtn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.88rem; padding: 0; margin-bottom: 20px; display: inline-block; }
+.backBtn:hover { color: var(--text-main); }

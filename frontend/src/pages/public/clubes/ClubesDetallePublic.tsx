@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getClubById } from "../../../api/clubes.api";
 import { getEquiposByClub } from "../../../api/equipos.api";
 import { obtenerPosiciones } from "../../../api/vistas/posiciones.api";
@@ -20,6 +20,7 @@ import styles from "./ClubesDetallePublic.module.css";
  * posiciones, cuerpo técnico y plantilla de jugadores.
  */
 export default function ClubesDetallePublic() {
+  const navigate = useNavigate()
   const { id_club } = useParams<{ id_club: string }>();
   const [club, setClub] = useState<Club | null>(null);
   const [equipos, setEquipos] = useState<Equipo[]>([]);
@@ -104,6 +105,8 @@ export default function ClubesDetallePublic() {
   return (
     <div className={styles.mainWrapper}>
       <div className={styles.container}>
+
+        <button className={styles.backBtn} onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/public/clubes")}>← Volver</button>
 
         <div className={styles.layout}>
 

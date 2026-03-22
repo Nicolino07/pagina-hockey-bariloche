@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { listarTorneos } from "../../../api/torneos.api"
 import { obtenerPosiciones } from "../../../api/vistas/posiciones.api"
 import { obtenerTarjetasAcumuladas } from "../../../api/vistas/tarjetas.api"
@@ -26,6 +26,7 @@ const GENERO_ICON: Record<string, string> = {
 }
 
 export default function PosicionesPage() {
+  const navigate = useNavigate()
   const [torneos, setTorneos] = useState<Torneo[]>([])
   const [loading, setLoading] = useState(true)
   const [selectorAbierto, setSelectorAbierto] = useState(false)
@@ -104,6 +105,8 @@ export default function PosicionesPage() {
 
   return (
     <div className={styles.container}>
+
+      <button className={styles.backBtn} onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/")}>← Volver</button>
 
       <header className={styles.header}>
         <h1 className={styles.title}>Posiciones</h1>

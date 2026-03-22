@@ -421,3 +421,5 @@
   color: #8ab4f8;
   border-bottom: 1px solid #8ab4f8;
 }
+.backBtn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.88rem; padding: 0; margin-bottom: 20px; display: inline-block; }
+.backBtn:hover { color: var(--text-main); }
