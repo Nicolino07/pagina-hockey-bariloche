@@ -38,7 +38,7 @@ export default function NoticiaDetalle() {
 
   return (
     <div className={styles.container}>
-      <Button variant="secondary" onClick={() => navigate(-1)} className={styles.backBtn}>
+      <Button variant="secondary" onClick={() => navigate("/noticias")} className={styles.backBtn}>
         ← Volver
       </Button>
 

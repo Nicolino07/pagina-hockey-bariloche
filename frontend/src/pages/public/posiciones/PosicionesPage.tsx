@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { listarTorneos } from "../../../api/torneos.api"
 import { obtenerPosiciones } from "../../../api/vistas/posiciones.api"
 import { obtenerTarjetasAcumuladas } from "../../../api/vistas/tarjetas.api"
@@ -29,8 +29,6 @@ export default function PosicionesPage() {
   const [torneos, setTorneos] = useState<Torneo[]>([])
   const [loading, setLoading] = useState(true)
   const [selectorAbierto, setSelectorAbierto] = useState(false)
-  const navigate = useNavigate()
-
   const [torneoSeleccionado, setTorneoSeleccionado] = useState<Torneo | null>(null)
   const [tabla, setTabla] = useState<FilaPosiciones[]>([])
   const [tarjetas, setTarjetas] = useState<TarjetaAcumulada[]>([])
@@ -214,16 +212,16 @@ export default function PosicionesPage() {
                 <h3 className={styles.statsTitle}>Equipos Inscriptos</h3>
                 <div className={styles.equiposGrid}>
                   {equipos.map(eq => (
-                    <button
+                    <Link
                       key={eq.id_equipo}
                       className={styles.equipoItem}
-                      onClick={() => navigate(`/public/equipos/${eq.id_equipo}`)}
+                      to={`/public/equipos/${eq.id_equipo}`}
                     >
                       <div className={styles.equipoInfo}>
                         <span className={styles.equipoName}>{eq.nombre_equipo}</span>
                         <span className={styles.equipoLabel}>Ver plantel →</span>
                       </div>
-                    </button>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -307,9 +305,9 @@ export default function PosicionesPage() {
                       </tbody>
                     </table>
                   ) : <p className={styles.infoSmall}>Sin goles.</p>}
-                  <button className={styles.verRankingBtn} onClick={() => navigate(`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=goleadores`)}>
+                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=goleadores`}>
                     Ver ranking completo →
-                  </button>
+                  </Link>
                 </div>
 
                 <div className={styles.statsCard}>
@@ -339,9 +337,9 @@ export default function PosicionesPage() {
                       </tbody>
                     </table>
                   ) : <p className={styles.infoSmall}>Sin datos.</p>}
-                  <button className={styles.verRankingBtn} onClick={() => navigate(`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=valla`)}>
+                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=valla`}>
                     Ver ranking completo →
-                  </button>
+                  </Link>
                 </div>
 
                 <div className={styles.statsCard}>
@@ -375,9 +373,9 @@ export default function PosicionesPage() {
                       </tbody>
                     </table>
                   ) : <p className={styles.infoSmall}>Sin tarjetas.</p>}
-                  <button className={styles.verRankingBtn} onClick={() => navigate(`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=tarjetas`)}>
+                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=tarjetas`}>
                     Ver ranking completo →
-                  </button>
+                  </Link>
                 </div>
 
               </div>
@@ -387,16 +385,16 @@ export default function PosicionesPage() {
                 <h3 className={styles.statsTitle}>Equipos Inscriptos</h3>
                 <div className={styles.equiposGrid}>
                   {equipos.map(eq => (
-                    <button
+                    <Link
                       key={eq.id_equipo}
                       className={styles.equipoItem}
-                      onClick={() => navigate(`/public/clubes/${eq.id_club}/equipos/${eq.id_equipo}`)}
+                      to={`/public/equipos/${eq.id_equipo}`}
                     >
                       <div className={styles.equipoInfo}>
                         <span className={styles.equipoName}>{eq.nombre_equipo}</span>
                         <span className={styles.equipoLabel}>Ver plantel →</span>
                       </div>
-                    </button>
+                    </Link>
                   ))}
                 </div>
               </div>

@@ -10,7 +10,7 @@ import styles from "./EquipoDetallePublic.module.css"
  * Muestra los integrantes del plantel activo del equipo indicado por URL.
  */
 export default function EquipoDetallePublic() {
-  const { id_equipo } = useParams<{ id_equipo: string }>()
+  const { id_equipo, id_club } = useParams<{ id_equipo: string; id_club: string }>()
   const navigate = useNavigate()
   
   const [equipo, setEquipo] = useState<Equipo | null>(null)
@@ -33,7 +33,7 @@ export default function EquipoDetallePublic() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate(-1)}>← Volver</button>
+        <button className={styles.backBtn} onClick={() => navigate(`/public/clubes/${id_club}`)}>← Volver</button>
         <div className={styles.equipoTitleBlock}>
           <h1 className={styles.title}>{equipo.nombre}</h1>
           <p className={styles.equipoMeta}>
