@@ -174,9 +174,12 @@ class GoleadorTorneo(BaseModel):
     nombre: str
     apellido: str
     nombre_equipo: str
-    goles_en_torneo: Optional[int] = 0  # Permite que sea None o dale un default
+    goles_en_torneo: Optional[int] = 0
     goles_netos_en_torneo: int
+    autogoles_en_torneo: Optional[int] = 0
     goles_totales_carrera: Optional[int] = 0
+    partidos_jugados: int = 0
+    promedio_goles: Optional[float] = None
     ranking_en_torneo: int
 
 

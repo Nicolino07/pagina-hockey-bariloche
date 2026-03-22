@@ -554,10 +554,10 @@ WHERE pr.rol = 'ARBITRO'
 -- =====================================================
 
 CREATE OR REPLACE VIEW v_goleadores_torneo AS
-WITH 
+WITH
 -- Goles válidos por jugador y torneo
 goles_por_torneo AS (
-    SELECT 
+    SELECT
         p.id_persona,
         p.nombre,
         p.apellido,
@@ -591,9 +591,23 @@ goles_por_torneo AS (
              t.id_torneo, t.nombre, t.categoria, t.genero, t.fecha_inicio, t.fecha_fin,
              c.id_club, c.nombre, eq.id_equipo, eq.nombre
 ),
+-- Partidos jugados por persona en cada torneo (apariciones en participan_partido)
+partidos_jugados_torneo AS (
+    SELECT
+        pi.id_persona,
+        pa.id_torneo,
+        COUNT(DISTINCT pa.id_partido) AS partidos_jugados
+    FROM participan_partido pp
+    INNER JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante
+    INNER JOIN partido pa ON pp.id_partido = pa.id_partido
+    INNER JOIN torneo t ON pa.id_torneo = t.id_torneo
+    WHERE t.borrado_en IS NULL
+      AND pa.estado_partido = 'TERMINADO'
+    GROUP BY pi.id_persona, pa.id_torneo
+),
 -- Goles totales en la carrera del jugador (válidos)
 goles_carrera AS (
-    SELECT 
+    SELECT
         p.id_persona,
         COUNT(g.id_gol) AS goles_totales_carrera,
         COUNT(g.id_gol) FILTER (WHERE g.es_autogol = TRUE) AS autogoles_totales_carrera,
@@ -601,14 +615,14 @@ goles_carrera AS (
     FROM persona p
     LEFT JOIN plantel_integrante pi ON p.id_persona = pi.id_persona
     LEFT JOIN participan_partido pp ON pi.id_plantel_integrante = pp.id_plantel_integrante
-    LEFT JOIN gol g ON pp.id_participante_partido = g.id_participante_partido 
+    LEFT JOIN gol g ON pp.id_participante_partido = g.id_participante_partido
         AND g.estado_gol = 'VALIDO'
     LEFT JOIN partido pa ON g.id_partido = pa.id_partido
     LEFT JOIN torneo t ON pa.id_torneo = t.id_torneo AND t.borrado_en IS NULL
     WHERE p.borrado_en IS NULL
     GROUP BY p.id_persona
 )
-SELECT 
+SELECT
     gt.id_persona,
     gt.nombre,
     gt.apellido,
@@ -626,12 +640,20 @@ SELECT
     gt.goles_en_torneo,
     gt.autogoles_en_torneo,
     gt.goles_netos_en_torneo,
+    COALESCE(pj.partidos_jugados, 0) AS partidos_jugados,
+    CASE
+        WHEN COALESCE(pj.partidos_jugados, 0) > 0
+        THEN ROUND(gt.goles_netos_en_torneo::numeric / pj.partidos_jugados, 2)
+        ELSE NULL
+    END AS promedio_goles,
     COALESCE(gc.goles_totales_carrera, 0) AS goles_totales_carrera,
     COALESCE(gc.autogoles_totales_carrera, 0) AS autogoles_totales_carrera,
     COALESCE(gc.torneos_disputados, 0) AS torneos_disputados,
     -- Ranking en el torneo actual
     RANK() OVER (PARTITION BY gt.id_torneo ORDER BY gt.goles_netos_en_torneo DESC) AS ranking_en_torneo
 FROM goles_por_torneo gt
+LEFT JOIN partidos_jugados_torneo pj
+       ON pj.id_persona = gt.id_persona AND pj.id_torneo = gt.id_torneo
 LEFT JOIN goles_carrera gc ON gt.id_persona = gc.id_persona;
 
 -- =======================================

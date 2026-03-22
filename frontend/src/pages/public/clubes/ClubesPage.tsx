@@ -1,13 +1,9 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { getClubes } from "../../../api/clubes.api" // Ajusta la ruta según tu estructura
+import { getClubes } from "../../../api/clubes.api"
 import type { Club } from "../../../types/club"
 import styles from "./ClubesPage.module.css"
 
-/**
- * Página pública de listado de clubes.
- * Permite buscar clubes por nombre y navegar al detalle de cada uno.
- */
 export default function ClubesPage() {
   const [clubes, setClubes] = useState<Club[]>([])
   const [loading, setLoading] = useState(true)
@@ -16,62 +12,61 @@ export default function ClubesPage() {
 
   useEffect(() => {
     getClubes()
-      .then(data => setClubes(data))
-      .catch(err => console.error("Error:", err))
+      .then(data => setClubes([...data].sort((a, b) => a.nombre.localeCompare(b.nombre))))
+      .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
 
-  // Filtrado simple por nombre
-  const clubesFiltrados = clubes.filter(c => 
+  const clubesFiltrados = clubes.filter(c =>
     c.nombre.toLowerCase().includes(filtro.toLowerCase())
   )
 
-  if (loading) return <div className={styles.loader}>Cargando instituciones...</div>
+  if (loading) return <div className={styles.loader}>Cargando clubes...</div>
 
   return (
     <div className={styles.container}>
+
       <header className={styles.header}>
-        <h1 className={styles.title}>Nuestros Clubes</h1>
-        <p className={styles.subtitle}>Explora las instituciones que forman parte de la liga.</p>
-        
+        <h1 className={styles.title}>Clubes</h1>
+        <p className={styles.subtitle}>Instituciones que forman parte de la liga</p>
         <div className={styles.searchBar}>
-          <input 
-            type="text" 
-            placeholder="Buscar club por nombre..." 
+          <input
+            type="text"
+            placeholder="Buscar club..."
             value={filtro}
-            onChange={(e) => setFiltro(e.target.value)}
+            onChange={e => setFiltro(e.target.value)}
             className={styles.searchInput}
           />
         </div>
       </header>
 
-      <div className={styles.grid}>
-        {clubesFiltrados.map((club) => (
-          <article 
-            key={club.id_club} 
-            className={styles.clubCard}
-            onClick={() => navigate(`/public/clubes/${club.id_club}`)}
-          >
-            <div className={styles.logoContainer}>
-              {/* Aquí irá la imagen del logo en el futuro */}
-              <div className={styles.logoPlaceholder}>
-                {club.nombre.substring(0, 2).toUpperCase()}
-              </div>
-            </div>
-            <div className={styles.clubInfo}>
-              <h2 className={styles.clubName}>{club.nombre}</h2>
-              {club.ciudad && <p className={styles.localidad}>{club.ciudad}</p>}
-              <button className={styles.viewBtn}>Ver Equipos</button>
-            </div>
-          </article>
-        ))}
-      </div>
+      {clubesFiltrados.length === 0 ? (
+        <p className={styles.noResults}>No se encontraron clubes para "{filtro}"</p>
+      ) : (
+        <div className={styles.tabla}>
+          {/* Header de la tabla */}
+          <div className={styles.tablaHeader}>
+            <span className={styles.grupoIcono}>🏒</span>
+            <span className={styles.tablaHeaderTitulo}>CLUBES AHBLS</span>
+          </div>
 
-      {clubesFiltrados.length === 0 && !loading && (
-        <div className={styles.noResults}>
-          No se encontraron clubes que coincidan con "{filtro}"
+          {/* Filas */}
+          {clubesFiltrados.map(club => (
+            <button
+              key={club.id_club}
+              className={styles.row}
+              onClick={() => navigate(`/public/clubes/${club.id_club}`)}
+            >
+              <span className={styles.clubNombre}>{club.nombre}</span>
+              {club.ciudad && (
+                <span className={styles.clubCiudad}>📍 {club.ciudad}</span>
+              )}
+              <span className={styles.rowChevron}>›</span>
+            </button>
+          ))}
         </div>
       )}
+
     </div>
   )
 }

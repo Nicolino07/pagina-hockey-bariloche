@@ -1,5 +1,5 @@
 .container {
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 40px 20px;
 }
@@ -7,104 +7,138 @@
 .loader {
   text-align: center;
   padding: 60px;
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
 }
 
 .header {
   text-align: center;
-  margin-bottom: 36px;
+  margin-bottom: 32px;
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 800;
-  margin-bottom: 8px;
   letter-spacing: -1px;
+  margin-bottom: 6px;
 }
 
 .subtitle {
-  color: var(--text-muted, #9aa0a6);
-  font-size: 1rem;
-}
-
-/* Filtros */
-.filtroRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 40px;
-}
-
-.filtroBtn {
-  padding: 8px 18px;
-  border-radius: 20px;
-  border: 1px solid var(--border-color, #3c4043);
-  background: var(--bg-card, #202124);
-  color: var(--text-muted, #9aa0a6);
-  font-size: 0.88rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.filtroBtn:hover {
-  border-color: #8ab4f8;
-  color: #8ab4f8;
-}
-
-.filtroBtnActive {
-  background: rgba(138, 180, 248, 0.15);
-  border-color: #8ab4f8;
-  color: #8ab4f8;
-  font-weight: 700;
-}
-
-/* Grupos por fecha */
-.grupo {
-  margin-bottom: 40px;
-}
-
-.grupoTitle {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #8ab4f8;
-  border-bottom: 1px solid var(--border-color, #3c4043);
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Bloque por día */
-.diaBloque {
-  margin-bottom: 24px;
-}
-
-.diaTitle {
+  color: var(--text-muted);
   font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-muted, #9aa0a6);
-  margin-bottom: 10px;
-  padding-left: 4px;
-  text-transform: capitalize;
-  letter-spacing: 0.3px;
 }
 
-/* Tabla de partidos */
-.tabla {
-  background: var(--bg-card, #202124);
-  border: 1px solid var(--border-color, #3c4043);
-  border-radius: 12px;
+/* ── Layout principal ───────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ── Columna partidos (izquierda) ───────────── */
+.colPartidos {
+  min-width: 0;
+}
+
+/* ── Lista de grupos ────────────────────────── */
+.grupos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Bloque por torneo ──────────────────────── */
+.grupo {
+  border-radius: var(--radius-md);
   overflow: hidden;
+  border: 1px solid var(--border-color);
 }
 
+.grupoHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: var(--color-accent02);
+  border: none;
+  cursor: pointer;
+  gap: 12px;
+  text-align: left;
+}
+
+.grupoHeaderIzq {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.grupoIcono {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.grupoNombre {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grupoBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.25);
+  color: #ffffff;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.grupoChevron {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+/* ── Cuerpo del grupo ───────────────────────── */
+.grupoCuerpo {
+  background: var(--bg-card);
+}
+
+/* ── Sub-bloque por día ─────────────────────── */
+.diaBloque {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.diaBloque:last-child {
+  border-bottom: none;
+}
+
+.diaLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  padding: 7px 18px 5px;
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* ── Fila de partido ────────────────────────── */
 .row {
   display: flex;
   align-items: center;
-  padding: 12px 20px;
-  gap: 12px;
-  border-bottom: 1px solid var(--border-color, #3c4043);
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.15s ease;
 }
 
 .row:last-child {
@@ -112,20 +146,50 @@
 }
 
 .row:hover {
-  background: rgba(138, 180, 248, 0.05);
+  background: rgba(35, 60, 107, 0.04);
+}
+
+.horarioCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 76px;
+  max-width: 76px;
+  padding: 10px 8px;
+  border-right: 1px solid var(--border-color);
+  gap: 2px;
+}
+
+.horario {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.ubicacion {
+  font-size: 0.63rem;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 68px;
 }
 
 .equipos {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
   flex: 1;
+  gap: 10px;
+  padding: 10px 16px;
   min-width: 0;
 }
 
 .equipo {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   flex: 1;
   min-width: 0;
@@ -134,45 +198,205 @@
   white-space: nowrap;
 }
 
-.equipo:first-child {
-  text-align: right;
-}
+.equipo:first-child { text-align: right; }
+.equipo:last-child  { text-align: left; }
 
-.equipo:last-child {
-  text-align: left;
-}
-
-.vs {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #9aa0a6;
-  background: var(--bg-main, #121212);
-  padding: 3px 8px;
-  border-radius: 5px;
+.separador {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
-.info {
+/* ── Columna lateral de torneos ─────────────── */
+.colTorneos {
+  position: sticky;
+  top: 24px;
+}
+
+/* Botón toggle solo visible en mobile */
+.selectorMobileToggle {
+  display: none;
+}
+
+.torneosCard {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.torneosCardHeader {
   display: flex;
-  gap: 10px;
-  flex-shrink: 0;
   align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--color-accent02);
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
-.infoItem {
-  font-size: 0.82rem;
-  color: #9aa0a6;
+.torneosFiltroTodos {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.torneoFila {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+  gap: 8px;
+}
+
+.torneoFila:last-child {
+  border-bottom: none;
+}
+
+.torneoFila:hover {
+  background: rgba(35, 60, 107, 0.06);
+}
+
+.torneoFilaActiva {
+  background: rgba(35, 60, 107, 0.12);
+}
+
+.torneoFilaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.torneoFilaNombre {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.torneoFilaBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.torneoFilaBadge {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--color-accent02);
+  padding: 3px 8px;
+  border-radius: 4px;
   white-space: nowrap;
 }
 
+.torneoFilaCheck {
+  font-size: 0.9rem;
+  color: var(--text-main);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.torneosVacio {
+  padding: 20px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.historicosHeader {
+  padding: 8px 16px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  background: var(--bg-main);
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.historicosBtn {
+  width: 100%;
+  padding: 11px 16px;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: color 0.15s, background 0.15s;
+}
+.historicosBtn:hover:not(:disabled) {
+  color: var(--text-main);
+  background: rgba(35, 60, 107, 0.05);
+}
+.historicosBtn:disabled { opacity: 0.5; cursor: default; }
+
+/* ── Mensajes ────────────────────────────────── */
 .infoMsg {
   text-align: center;
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   padding: 40px 0;
   font-size: 0.95rem;
 }
 
-/* --- Responsive --- */
+/* ── Responsive ─────────────────────────────── */
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .colTorneos {
+    position: static;
+    order: -1;
+  }
+
+  /* En mobile: mostrar botón toggle y ocultar la tarjeta por defecto */
+  .selectorMobileToggle {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 16px;
+    background: var(--color-accent02);
+    border: none;
+    border-radius: var(--radius-md);
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 4px;
+  }
+
+  /* La tarjeta se oculta por defecto en mobile */
+  .torneosCard {
+    display: none;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  /* Se muestra solo cuando el toggle está activo */
+  .torneosCardAbierta {
+    display: block;
+  }
+}
 
 @media (max-width: 600px) {
   .container {
@@ -183,37 +407,26 @@
     font-size: 1.6rem;
   }
 
-  .row {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 10px 14px;
-    gap: 6px;
+  .grupoNombre {
+    font-size: 0.8rem;
   }
 
-  .equipos {
-    gap: 6px;
+  .horarioCol {
+    min-width: 60px;
+    max-width: 60px;
+    padding: 8px 6px;
+  }
+
+  .horario {
+    font-size: 0.8rem;
   }
 
   .equipo {
-    font-size: 0.88rem;
+    font-size: 0.85rem;
   }
 
-  .info {
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 6px 10px;
-  }
-
-  .infoItem {
-    font-size: 0.75rem;
-  }
-
-  .filtroRow {
-    gap: 8px;
-  }
-
-  .filtroBtn {
-    font-size: 0.82rem;
-    padding: 7px 14px;
+  .equipos {
+    padding: 8px 10px;
+    gap: 6px;
   }
 }

@@ -28,6 +28,7 @@ export default function ClubesDetallePublic() {
   const [partidos, setPartidos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [integrantes, setIntegrantes] = useState<PlantelIntegrante[]>([]);
+  const [selectorAbierto, setSelectorAbierto] = useState(false);
 
   // Recarga partidos e integrantes del plantel al cambiar el equipo seleccionado.
   useEffect(() => {
@@ -73,8 +74,16 @@ export default function ClubesDetallePublic() {
     Promise.all([getClubById(Number(id_club)), getEquiposByClub(Number(id_club))])
       .then(([dataClub, dataEquipos]) => {
         setClub(dataClub);
-        setEquipos(dataEquipos);
-        if (dataEquipos.length > 0) setEquipoSeleccionado(dataEquipos[0]);
+        const ORDEN_CATEGORIA: Record<string, number> = {
+          MAYORES: 0, SUB_19: 1, SUB_16: 2, SUB_14: 3, SUB_12: 4,
+        }
+        const ordenados = [...dataEquipos].sort((a, b) => {
+          const catDiff = (ORDEN_CATEGORIA[a.categoria] ?? 99) - (ORDEN_CATEGORIA[b.categoria] ?? 99)
+          if (catDiff !== 0) return catDiff
+          return (a.division ?? "").localeCompare(b.division ?? "")
+        });
+        setEquipos(ordenados);
+        if (ordenados.length > 0) setEquipoSeleccionado(ordenados[0]);
       })
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
@@ -95,20 +104,50 @@ export default function ClubesDetallePublic() {
   return (
     <div className={styles.mainWrapper}>
       <div className={styles.container}>
-        
-        {/* 1. SELECTOR DE CATEGORÍAS */}
-        <div className={styles.categorySelector}>
-          {equipos.map((eq) => (
+
+        <div className={styles.layout}>
+
+          {/* ── Columna izquierda: selector de equipos ── */}
+          <aside className={styles.colSelector}>
+            {/* Toggle solo visible en mobile */}
             <button
-              key={eq.id_equipo}
-              className={equipoSeleccionado?.id_equipo === eq.id_equipo ? styles.catBtnActive : styles.catBtn}
-              onClick={() => setEquipoSeleccionado(eq)}
+              className={styles.selectorMobileToggle}
+              onClick={() => setSelectorAbierto(v => !v)}
             >
-              <span className={styles.catBtnNombre}>{eq.nombre}</span>
-              <span className={styles.catBtnMeta}>{eq.categoria.replace(/_/g, " ")}{eq.division ? ` ${eq.division}` : ""} · {eq.genero === "FEMENINO" ? "Femenino" : eq.genero === "MASCULINO" ? "Masculino" : "Mixto"}</span>
+              <span>🏒 {equipoSeleccionado?.nombre ?? "Seleccionar equipo"}</span>
+              <span>{selectorAbierto ? "∧" : "∨"}</span>
             </button>
-          ))}
-        </div>
+
+            <div className={`${styles.equiposTabla} ${selectorAbierto ? styles.equiposTablaAbierta : ""}`}>
+              <div className={styles.equiposTablaHeader}>
+                <span>🏒</span>
+                <span>{club.nombre.toUpperCase()}</span>
+              </div>
+              {equipos.map((eq) => {
+                const activo = equipoSeleccionado?.id_equipo === eq.id_equipo;
+                return (
+                  <button
+                    key={eq.id_equipo}
+                    className={`${styles.equipoFila} ${activo ? styles.equipoFilaActiva : ""}`}
+                    onClick={() => { setEquipoSeleccionado(eq); setSelectorAbierto(false); }}
+                  >
+                    <div className={styles.equipoFilaInfo}>
+                      <span className={styles.equipoFilaNombre}>{eq.nombre}</span>
+                      <div className={styles.equipoFilaBadges}>
+                        <span className={styles.equipoFilaBadge}>{eq.categoria.replace(/_/g, " ")}</span>
+                        <span className={styles.equipoFilaBadge}>{eq.genero === "FEMENINO" ? "♀ Fem." : eq.genero === "MASCULINO" ? "♂ Masc." : "⚥ Mixto"}</span>
+                        {eq.division && <span className={styles.equipoFilaBadge}>{eq.division}</span>}
+                      </div>
+                    </div>
+                    {activo && <span className={styles.equipoFilaCheck}>✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+
+          {/* ── Columna derecha: contenido ── */}
+          <div className={styles.colContenido}>
 
         {/* 2. HEADER DEL CLUB */}
         <header className={styles.header}>
@@ -228,6 +267,9 @@ export default function ClubesDetallePublic() {
               ))}
           </div>
         </section>
+
+          </div> {/* fin colContenido */}
+        </div> {/* fin layout */}
 
       </div>
     </div>

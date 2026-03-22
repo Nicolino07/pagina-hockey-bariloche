@@ -100,7 +100,10 @@ export interface GoleadorTorneo {
   nombre_equipo: string;
   goles_en_torneo: number;
   goles_netos_en_torneo: number;
+  autogoles_en_torneo: number;
   goles_totales_carrera: number;
+  partidos_jugados: number;
+  promedio_goles: number | null;
   ranking_en_torneo: number;
 }
 

@@ -5,7 +5,6 @@ import { obtenerPosiciones } from "../../../api/vistas/posiciones.api"
 import { obtenerTarjetasAcumuladas } from "../../../api/vistas/tarjetas.api"
 import { obtenerGoleadoresTorneo } from "../../../api/vistas/goleadores.api"
 import { obtenerVallaMenosVencida } from "../../../api/vistas/valla.api"
-// IMPORTANTE: Asegúrate de que esta ruta y nombre existan, antes tenías una confusión aquí
 import { listarInscripcionesTorneo } from "../../../api/torneos.api"
 
 import type { Torneo } from "../../../types/torneo"
@@ -14,16 +13,23 @@ import type { InscripcionTorneoDetalle } from "../../../types/inscripcion"
 
 import styles from "./PosicionesPage.module.css"
 
-/**
- * Página pública de estadísticas por torneo.
- * Permite seleccionar un torneo y ver su tabla de posiciones,
- * goleadores, valla menos vencida, tarjetas acumuladas y equipos inscriptos.
- * Todas las peticiones al seleccionar un torneo se ejecutan en paralelo.
- */
+const ORDEN_CATEGORIA: Record<string, number> = {
+  MAYORES: 0, SUB_19: 1, SUB_16: 2, SUB_14: 3, SUB_12: 4,
+}
+
+const CATEGORIA_LABEL: Record<string, string> = {
+  MAYORES: "Mayores", SUB_19: "Sub 19", SUB_16: "Sub 16", SUB_14: "Sub 14", SUB_12: "Sub 12",
+}
+
+const GENERO_ICON: Record<string, string> = {
+  MASCULINO: "♂", FEMENINO: "♀", MIXTO: "⚥",
+}
+
 export default function PosicionesPage() {
   const [torneos, setTorneos] = useState<Torneo[]>([])
   const [loading, setLoading] = useState(true)
-  const navigate = useNavigate();
+  const [selectorAbierto, setSelectorAbierto] = useState(false)
+  const navigate = useNavigate()
 
   const [torneoSeleccionado, setTorneoSeleccionado] = useState<Torneo | null>(null)
   const [tabla, setTabla] = useState<FilaPosiciones[]>([])
@@ -32,22 +38,47 @@ export default function PosicionesPage() {
   const [valla, setValla] = useState<VallaMenosVencida[]>([])
   const [equipos, setEquipos] = useState<InscripcionTorneoDetalle[]>([])
   const [loadingDatos, setLoadingDatos] = useState(false)
+  const [torneosHistoricos, setTorneosHistoricos] = useState<Torneo[]>([])
+  const [verHistoricos, setVerHistoricos] = useState(false)
+  const [loadingHistoricos, setLoadingHistoricos] = useState(false)
 
-  // 1. Cargar lista de torneos al inicio
   useEffect(() => {
     listarTorneos()
-      .then(data => setTorneos(data))
-      .catch(err => console.error("Error al cargar torneos:", err))
+      .then(data => {
+        const ordenados = [...data].sort((a, b) => {
+          const catDiff = (ORDEN_CATEGORIA[a.categoria] ?? 99) - (ORDEN_CATEGORIA[b.categoria] ?? 99)
+          if (catDiff !== 0) return catDiff
+          return (a.division ?? "").localeCompare(b.division ?? "")
+        })
+        setTorneos(ordenados)
+      })
+      .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
 
-  // 2. UN SOLO useEffect para cargar todo lo del torneo seleccionado
+  function cargarHistoricos() {
+    if (verHistoricos) return
+    setLoadingHistoricos(true)
+    listarTorneos(false)
+      .then(todos => {
+        const activosIds = new Set(torneos.map(t => t.id_torneo))
+        const historicos = todos
+          .filter(t => !activosIds.has(t.id_torneo))
+          .sort((a, b) => {
+            const catDiff = (ORDEN_CATEGORIA[a.categoria] ?? 99) - (ORDEN_CATEGORIA[b.categoria] ?? 99)
+            if (catDiff !== 0) return catDiff
+            return (a.division ?? "").localeCompare(b.division ?? "")
+          })
+        setTorneosHistoricos(historicos)
+        setVerHistoricos(true)
+      })
+      .catch(console.error)
+      .finally(() => setLoadingHistoricos(false))
+  }
+
   useEffect(() => {
     if (!torneoSeleccionado) return
-
     setLoadingDatos(true)
-    
-    // Ejecutamos todas las peticiones en paralelo para mejor rendimiento
     Promise.all([
       obtenerPosiciones(torneoSeleccionado.id_torneo),
       obtenerTarjetasAcumuladas(torneoSeleccionado.id_torneo),
@@ -62,50 +93,127 @@ export default function PosicionesPage() {
         setEquipos(dataEq)
         setValla(dataValla)
       })
-      .catch(err => console.error("Error cargando datos del torneo:", err))
+      .catch(console.error)
       .finally(() => setLoadingDatos(false))
   }, [torneoSeleccionado])
+
+  function seleccionar(torneo: Torneo) {
+    setTorneoSeleccionado(torneo)
+    setSelectorAbierto(false)
+  }
 
   if (loading) return <div className={styles.loader}>Cargando torneos...</div>
 
   return (
     <div className={styles.container}>
+
       <header className={styles.header}>
-        <h1 className={styles.title}>Torneos Activos</h1>
-        <p className={styles.subtitle}>Selecciona un torneo para ver sus estadísticas.</p>
+        <h1 className={styles.title}>Posiciones</h1>
+        <p className={styles.subtitle}>Seleccioná un torneo para ver sus estadísticas</p>
       </header>
 
-      {/* GRID DE SELECCIÓN */}
-      <div className={styles.grid}>
-        {torneos.map((torneo) => (
-          <article 
-            key={torneo.id_torneo} 
-            className={`${styles.card} ${torneoSeleccionado?.id_torneo === torneo.id_torneo ? styles.activeCard : ""}`}
-            onClick={() => setTorneoSeleccionado(torneo)}
+      <div className={styles.layout}>
+
+        {/* ── Columna izquierda: selector de torneos ── */}
+        <aside className={styles.colSelector}>
+          {/* Toggle mobile */}
+          <button
+            className={styles.selectorMobileToggle}
+            onClick={() => setSelectorAbierto(v => !v)}
           >
-            <span className={styles.badge}>{torneo.genero}</span>
-            <h2 className={styles.torneoNombre}>{torneo.nombre} - {new Date(torneo.fecha_inicio).getFullYear()}</h2>
-            <p className={styles.categoria}>Categoría {torneo.categoria}{torneo.division ? ` ${torneo.division}` : ""}</p>
-          </article>
-        ))}
-      </div>
+            <span>🏆 {torneoSeleccionado
+              ? `${torneoSeleccionado.nombre} · ${CATEGORIA_LABEL[torneoSeleccionado.categoria] ?? torneoSeleccionado.categoria}`
+              : "Seleccionar torneo"}
+            </span>
+            <span>{selectorAbierto ? "∧" : "∨"}</span>
+          </button>
 
-      {torneoSeleccionado && (
-        <section className={styles.detailsSection}>
-          <h2 className={styles.sectionTitle}>
-            Estadísticas - {torneoSeleccionado.nombre} 
-          </h2>
+          <div className={`${styles.torneosTabla} ${selectorAbierto ? styles.torneosTablaAbierta : ""}`}>
+            <div className={styles.torneosTablaHeader}>
+              <span>🏆</span>
+              <span>TORNEOS ACTIVOS</span>
+            </div>
+            {torneos.map(t => {
+              const activo = torneoSeleccionado?.id_torneo === t.id_torneo
+              return (
+                <button
+                  key={t.id_torneo}
+                  className={`${styles.torneoFila} ${activo ? styles.torneoFilaActiva : ""}`}
+                  onClick={() => seleccionar(t)}
+                >
+                  <div className={styles.torneoFilaInfo}>
+                    <span className={styles.torneoFilaNombre}>{t.nombre}</span>
+                    <div className={styles.torneoFilaBadges}>
+                      <span className={styles.torneoFilaBadge}>
+                        {CATEGORIA_LABEL[t.categoria] ?? t.categoria}
+                      </span>
+                      <span className={styles.torneoFilaBadge}>
+                        {GENERO_ICON[t.genero]} {t.genero === "MASCULINO" ? "Masc." : t.genero === "FEMENINO" ? "Fem." : "Mixto"}
+                      </span>
+                      {t.division && <span className={styles.torneoFilaBadge}>{t.division}</span>}
+                    </div>
+                  </div>
+                  {activo && <span className={styles.torneoFilaCheck}>✓</span>}
+                </button>
+              )
+            })}
+            {torneos.length === 0 && (
+              <p className={styles.infoSmall}>Sin torneos activos</p>
+            )}
 
-          {loadingDatos ? (
+            {verHistoricos && torneosHistoricos.length > 0 && (
+              <>
+                <div className={styles.historicosHeader}>Históricos</div>
+                {torneosHistoricos.map(t => {
+                  const activo = torneoSeleccionado?.id_torneo === t.id_torneo
+                  return (
+                    <button
+                      key={t.id_torneo}
+                      className={`${styles.torneoFila} ${activo ? styles.torneoFilaActiva : ""}`}
+                      onClick={() => seleccionar(t)}
+                    >
+                      <div className={styles.torneoFilaInfo}>
+                        <span className={styles.torneoFilaNombre}>{t.nombre}</span>
+                        <div className={styles.torneoFilaBadges}>
+                          <span className={styles.torneoFilaBadge}>{CATEGORIA_LABEL[t.categoria] ?? t.categoria}</span>
+                          <span className={styles.torneoFilaBadge}>{GENERO_ICON[t.genero]} {t.genero === "MASCULINO" ? "Masc." : t.genero === "FEMENINO" ? "Fem." : "Mixto"}</span>
+                          {t.division && <span className={styles.torneoFilaBadge}>{t.division}</span>}
+                        </div>
+                      </div>
+                      {activo && <span className={styles.torneoFilaCheck}>✓</span>}
+                    </button>
+                  )
+                })}
+              </>
+            )}
+
+            {!verHistoricos && (
+              <button
+                className={styles.historicosBtn}
+                onClick={cargarHistoricos}
+                disabled={loadingHistoricos}
+              >
+                {loadingHistoricos ? "Cargando..." : "Ver torneos históricos"}
+              </button>
+            )}
+          </div>
+        </aside>
+
+        {/* ── Columna derecha: contenido ── */}
+        <div className={styles.colContenido}>
+          {!torneoSeleccionado ? (
+            <div className={styles.placeholder}>
+              <p>Seleccioná un torneo para ver sus estadísticas</p>
+            </div>
+          ) : loadingDatos ? (
             <p className={styles.infoMsg}>Cargando datos del torneo...</p>
           ) : torneoSeleccionado.categoria === "SUB_12" ? (
             <>
               <p className={styles.infoMsg}>Esta categoría no tiene tabla de posiciones ni estadísticas individuales.</p>
-              {/* SECCIÓN EQUIPOS */}
               <div className={styles.equiposDivider}>
                 <h3 className={styles.statsTitle}>Equipos Inscriptos</h3>
                 <div className={styles.equiposGrid}>
-                  {equipos.map((eq) => (
+                  {equipos.map(eq => (
                     <button
                       key={eq.id_equipo}
                       className={styles.equipoItem}
@@ -122,6 +230,17 @@ export default function PosicionesPage() {
             </>
           ) : (
             <>
+              {/* Título del torneo seleccionado */}
+              <div className={styles.sectionTitle}>
+                {torneoSeleccionado.nombre}
+                <span className={styles.sectionTitleMeta}>
+                  {CATEGORIA_LABEL[torneoSeleccionado.categoria]}
+                  {torneoSeleccionado.division ? ` ${torneoSeleccionado.division}` : ""}
+                  {" · "}
+                  {torneoSeleccionado.genero === "MASCULINO" ? "Masculino" : torneoSeleccionado.genero === "FEMENINO" ? "Femenino" : "Mixto"}
+                </span>
+              </div>
+
               {/* TABLA DE POSICIONES */}
               <div className={styles.tableCard}>
                 <h3 className={styles.statsTitle}>Tabla de Posiciones</h3>
@@ -137,7 +256,6 @@ export default function PosicionesPage() {
                           <th className={styles.hideMobile}>GF</th>
                           <th className={styles.hideMobile}>GC</th>
                           <th>DG</th>
-                          
                         </tr>
                       </thead>
                       <tbody>
@@ -153,7 +271,6 @@ export default function PosicionesPage() {
                             <td className={styles.hideMobile}>{fila.goles_a_favor}</td>
                             <td className={styles.hideMobile}>{fila.goles_en_contra}</td>
                             <td>{fila.diferencia_gol}</td>
-                            
                           </tr>
                         ))}
                       </tbody>
@@ -162,9 +279,9 @@ export default function PosicionesPage() {
                 ) : <p className={styles.infoSmall}>No hay posiciones registradas.</p>}
               </div>
 
-              {/* GRILLA DE GOLEADORES Y TARJETAS */}
+              {/* GRILLA GOLEADORES / VALLA / TARJETAS */}
               <div className={styles.statsGrid}>
-                {/* GOLEADORES */}
+
                 <div className={styles.statsCard}>
                   <h3 className={styles.statsTitle}>Goleadores</h3>
                   {goleadores.length > 0 ? (
@@ -177,7 +294,7 @@ export default function PosicionesPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {goleadores.slice(0, 5).map((g) => (
+                        {goleadores.slice(0, 5).map(g => (
                           <tr key={g.id_persona}>
                             <td>{g.ranking_en_torneo}</td>
                             <td className={styles.alignLeft}>
@@ -195,7 +312,6 @@ export default function PosicionesPage() {
                   </button>
                 </div>
 
-                {/* VALLA MENOS VENCIDA */}
                 <div className={styles.statsCard}>
                   <h3 className={styles.statsTitle}>Valla menos vencida</h3>
                   {valla.length > 0 ? (
@@ -209,7 +325,7 @@ export default function PosicionesPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {valla.slice(0, 5).map((v) => (
+                        {valla.slice(0, 5).map(v => (
                           <tr key={v.id_equipo}>
                             <td>{v.ranking_en_torneo}</td>
                             <td className={styles.alignLeft}>
@@ -228,7 +344,6 @@ export default function PosicionesPage() {
                   </button>
                 </div>
 
-                {/* TARJETAS */}
                 <div className={styles.statsCard}>
                   <h3 className={styles.statsTitle}>Tarjetas</h3>
                   {tarjetas.length > 0 ? (
@@ -240,7 +355,7 @@ export default function PosicionesPage() {
                           <th><span className={styles.boxVerde}>V</span></th>
                           <th><span className={styles.boxAmarilla}>A</span></th>
                           <th><span className={styles.boxRoja}>R</span></th>
-                          <th><span className={styles.boxTotal}>Total</span></th>
+                          <th><span className={styles.boxTotal}>T</span></th>
                         </tr>
                       </thead>
                       <tbody>
@@ -264,19 +379,19 @@ export default function PosicionesPage() {
                     Ver ranking completo →
                   </button>
                 </div>
+
               </div>
 
-              {/* SECCIÓN EQUIPOS */}
+              {/* EQUIPOS INSCRIPTOS */}
               <div className={styles.equiposDivider}>
                 <h3 className={styles.statsTitle}>Equipos Inscriptos</h3>
                 <div className={styles.equiposGrid}>
-                  {equipos.map((eq) => (
-                    <button 
-                      key={eq.id_equipo} 
+                  {equipos.map(eq => (
+                    <button
+                      key={eq.id_equipo}
                       className={styles.equipoItem}
                       onClick={() => navigate(`/public/clubes/${eq.id_club}/equipos/${eq.id_equipo}`)}
                     >
-            
                       <div className={styles.equipoInfo}>
                         <span className={styles.equipoName}>{eq.nombre_equipo}</span>
                         <span className={styles.equipoLabel}>Ver plantel →</span>
@@ -287,8 +402,9 @@ export default function PosicionesPage() {
               </div>
             </>
           )}
-        </section>
-      )}
+        </div>
+
+      </div>
     </div>
   )
 }
