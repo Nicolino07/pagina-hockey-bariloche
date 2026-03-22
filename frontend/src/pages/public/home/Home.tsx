@@ -229,8 +229,7 @@ export default function Home() {
                 <th>Fecha</th>
                 <th>Torneo</th>
                 <th>Encuentro</th>
-                <th>Resultado</th>
-                <th>Acciones</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -238,26 +237,23 @@ export default function Home() {
                 <tr key={partido.id_partido}>
                   <td data-label="Fecha">📅 {new Date(partido.fecha + "T00:00:00").toLocaleDateString()}</td>
                   <td data-label="Torneo">
-                    <div>{partido.nombre_torneo}</div>
-                    <div className={styles.torneoMeta}>
-                      {partido.categoria_torneo && <span className={styles.metaBadge}>{partido.categoria_torneo.replace(/_/g, ' ')}</span>}
-                      {partido.division_torneo && <span className={styles.metaBadge}>{partido.division_torneo}</span>}
-                      {partido.genero_torneo && <span className={styles.metaBadge}>{partido.genero_torneo === 'FEMENINO' ? '♀ Fem.' : partido.genero_torneo === 'MASCULINO' ? '♂ Masc.' : '⚥ Mixto'}</span>}
+                    <div className={styles.torneoCol}>
+                      <div>{partido.nombre_torneo}</div>
+                      <div className={styles.torneoMeta}>
+                        {partido.categoria_torneo && <span className={styles.metaBadge}>{partido.categoria_torneo.replace(/_/g, ' ')}</span>}
+                        {partido.division_torneo && <span className={styles.metaBadge}>{partido.division_torneo}</span>}
+                        {partido.genero_torneo && <span className={styles.metaBadge}>{partido.genero_torneo === 'FEMENINO' ? '♀ Fem.' : partido.genero_torneo === 'MASCULINO' ? '♂ Masc.' : '⚥ Mixto'}</span>}
+                      </div>
                     </div>
                   </td>
                   <td data-label="Encuentro">
                     <div className={styles.matchupRow}>
-                      <strong>{partido.equipo_local_nombre}</strong> 
-                      <small className={styles.vsLabel}>vs</small> 
+                      <strong>{partido.equipo_local_nombre}</strong>
+                      <span className={styles.resHighlight}>{partido.goles_local} - {partido.goles_visitante}</span>
                       <strong>{partido.equipo_visitante_nombre}</strong>
                     </div>
                   </td>
-                  <td data-label="Resultado">
-                    <span className={styles.resHighlight}>
-                      {partido.goles_local} - {partido.goles_visitante}
-                    </span>
-                  </td>
-                  <td data-label="Acciones">
+                  <td>
                     <Button variant="secondary" size="sm" onClick={() => handleVerDetalle(partido)} disabled={loadingDetalle}>
                       {loadingDetalle ? "Cargando..." : "📄 Detalle"}
                     </Button>

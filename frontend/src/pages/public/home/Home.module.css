@@ -212,20 +212,24 @@
 .matchupRow {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.vsLabel {
-  color: #9aa0a6;
-  font-style: italic;
+.torneoCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  text-align: left;
 }
 
 .torneoMeta {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 4px;
 }
+
 
 .metaBadge {
   font-size: 0.68rem;
@@ -240,10 +244,12 @@
 
 .resHighlight {
   background: #303134;
-  padding: 6px 12px;
-  border-radius: 8px;
+  padding: 3px 10px;
+  border-radius: 6px;
   font-weight: 800;
   color: #8ab4f8;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Modal Detalle (Dark Professional) */
@@ -517,7 +523,12 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 15px;
+    padding: 8px 4px;
+  }
+
+  .tableContainer {
+    padding: 16px 8px;
+    border-radius: 16px;
   }
 
   /* Stats: 1 sola columna */
@@ -551,13 +562,14 @@
   }
 
   .table td {
-    text-align: right;
-    padding: 12px 15px;
+    text-align: left;
+    padding: 10px 15px;
     border-bottom: 1px solid #303134;
     position: relative;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
 
   .table td:last-child {
@@ -578,6 +590,14 @@
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 4px;
+  }
+
+  .torneoCol {
+    align-items: flex-start;
+  }
+
+  .matchupRow {
+    justify-content: flex-start;
   }
 
   /* Modal adaptable a pantalla completa */
