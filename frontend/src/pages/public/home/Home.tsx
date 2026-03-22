@@ -237,7 +237,14 @@ export default function Home() {
               {partidos.map((partido) => (
                 <tr key={partido.id_partido}>
                   <td data-label="Fecha">📅 {new Date(partido.fecha + "T00:00:00").toLocaleDateString()}</td>
-                  <td data-label="Torneo">{partido.nombre_torneo}</td>
+                  <td data-label="Torneo">
+                    <div>{partido.nombre_torneo}</div>
+                    <div className={styles.torneoMeta}>
+                      {partido.categoria_torneo && <span className={styles.metaBadge}>{partido.categoria_torneo.replace(/_/g, ' ')}</span>}
+                      {partido.division_torneo && <span className={styles.metaBadge}>{partido.division_torneo}</span>}
+                      {partido.genero_torneo && <span className={styles.metaBadge}>{partido.genero_torneo === 'FEMENINO' ? '♀ Fem.' : partido.genero_torneo === 'MASCULINO' ? '♂ Masc.' : '⚥ Mixto'}</span>}
+                    </div>
+                  </td>
                   <td data-label="Encuentro">
                     <div className={styles.matchupRow}>
                       <strong>{partido.equipo_local_nombre}</strong> 
@@ -271,6 +278,11 @@ export default function Home() {
                 <p className={styles.subHeader}>
                   Fecha {selectedPartido.numero_fecha} | {new Date(selectedPartido.fecha + "T00:00:00").toLocaleDateString()}
                 </p>
+                <div className={styles.torneoMeta}>
+                  {selectedPartido.categoria_torneo && <span className={styles.metaBadge}>{selectedPartido.categoria_torneo.replace(/_/g, ' ')}</span>}
+                  {selectedPartido.division_torneo && <span className={styles.metaBadge}>{selectedPartido.division_torneo}</span>}
+                  {selectedPartido.genero_torneo && <span className={styles.metaBadge}>{selectedPartido.genero_torneo === 'FEMENINO' ? '♀ Fem.' : selectedPartido.genero_torneo === 'MASCULINO' ? '♂ Masc.' : '⚥ Mixto'}</span>}
+                </div>
               </div>
               <button className={styles.closeBtn} onClick={() => setShowModal(false)}>×</button>
             </div>

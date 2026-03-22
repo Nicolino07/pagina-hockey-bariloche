@@ -65,6 +65,8 @@ class PartidoDetalle(BaseModel):
     id_partido: int
     id_torneo: int
     categoria_torneo: Optional[str] = None
+    genero_torneo: Optional[str] = None
+    division_torneo: Optional[str] = None
     nombre_torneo: str
     fecha: date
     horario: Optional[time] = None

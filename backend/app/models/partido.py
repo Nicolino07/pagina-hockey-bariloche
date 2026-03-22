@@ -151,6 +151,8 @@ class PartidoDetallado(Base):
     id_equipo_visitante = Column(Integer)
     nombre_torneo = Column(String)
     categoria_torneo = Column(String)
+    genero_torneo = Column(String)
+    division_torneo = Column(String)
     fecha = Column(Date)
     horario = Column(Time)
     ubicacion = Column(String)
