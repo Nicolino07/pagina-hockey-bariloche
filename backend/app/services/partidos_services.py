@@ -111,8 +111,8 @@ def crear_planilla_partido(db: Session, data, current_user):
         # =========================
         if data.id_fixture_partido:
             fp = db.get(FixturePartido, data.id_fixture_partido)
-            if fp and not fp.jugado:
-                fp.jugado = True
+            if fp and fp.estado != "TERMINADO":
+                fp.estado = "TERMINADO"
                 fp.id_partido_real = partido.id_partido
                 db.flush()
 
