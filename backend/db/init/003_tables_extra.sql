@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS fixture_partido (
     horario             TIME,
     ubicacion           VARCHAR(200),
 
-    jugado              BOOLEAN NOT NULL DEFAULT FALSE,
+    estado              tipo_estado_partido NOT NULL DEFAULT 'BORRADOR',
     id_partido_real     INT REFERENCES partido(id_partido) ON DELETE SET NULL,
 
     creado_en           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

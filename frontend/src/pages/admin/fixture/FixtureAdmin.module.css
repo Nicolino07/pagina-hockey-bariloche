@@ -136,9 +136,7 @@
   opacity: 0.5;
 }
 
-.badgePendiente {
-  background: rgba(138, 180, 248, 0.15);
-  color: #8ab4f8;
+.badge {
   padding: 3px 10px;
   border-radius: 20px;
   font-size: 0.8rem;
@@ -146,14 +144,29 @@
   white-space: nowrap;
 }
 
-.badgeJugado {
+.badgeBorrador {
+  background: rgba(138, 180, 248, 0.15);
+  color: #8ab4f8;
+}
+
+.badgeTerminado {
   background: rgba(129, 201, 149, 0.15);
   color: #81c995;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  white-space: nowrap;
+}
+
+.badgeSuspendido {
+  background: rgba(242, 139, 130, 0.15);
+  color: #f28b82;
+}
+
+.badgeAnulado {
+  background: rgba(154, 160, 166, 0.15);
+  color: #9aa0a6;
+}
+
+.badgeReprogramado {
+  background: rgba(253, 214, 99, 0.15);
+  color: #fdd663;
 }
 
 .acciones {

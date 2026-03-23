@@ -1,6 +1,8 @@
 from datetime import date, datetime, time
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict
+
+EstadoPartido = Literal["BORRADOR", "TERMINADO", "SUSPENDIDO", "ANULADO", "REPROGRAMADO"]
 
 
 class FixturePartidoCreate(BaseModel):
@@ -20,6 +22,7 @@ class FixturePartidoUpdate(BaseModel):
     horario: Optional[time] = None
     ubicacion: Optional[str] = None
     numero_fecha: Optional[int] = None
+    estado: Optional[EstadoPartido] = None
 
 
 class FixturePartidoResponse(BaseModel):
@@ -37,8 +40,10 @@ class FixturePartidoResponse(BaseModel):
     horario: Optional[time]
     ubicacion: Optional[str]
     numero_fecha: Optional[int]
-    jugado: bool
+    estado: EstadoPartido
     id_partido_real: Optional[int]
+    goles_local: Optional[int] = None
+    goles_visitante: Optional[int] = None
     creado_en: datetime
     creado_por: Optional[str]
 

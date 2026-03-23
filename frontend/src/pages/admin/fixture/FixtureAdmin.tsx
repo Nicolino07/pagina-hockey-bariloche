@@ -9,7 +9,7 @@ import {
 } from "../../../api/fixture.api"
 import type { Torneo } from "../../../types/torneo"
 import type { InscripcionTorneoDetalle } from "../../../types/inscripcion"
-import type { FixturePartido, FixturePartidoCreate, FixturePartidoUpdate } from "../../../types/fixture"
+import type { EstadoPartido, FixturePartido, FixturePartidoCreate, FixturePartidoUpdate } from "../../../types/fixture"
 import Button from "../../../components/ui/button/Button"
 import styles from "./FixtureAdmin.module.css"
 
@@ -22,6 +22,22 @@ const FORM_VACIO: FixturePartidoCreate = {
   horario: "",
   ubicacion: "",
   numero_fecha: undefined,
+}
+
+const ESTADOS_LABELS: Record<EstadoPartido, string> = {
+  BORRADOR: "Pendiente",
+  TERMINADO: "Jugado",
+  SUSPENDIDO: "Suspendido",
+  ANULADO: "Anulado",
+  REPROGRAMADO: "Reprogramado",
+}
+
+const ESTADOS_BADGE: Record<EstadoPartido, string> = {
+  BORRADOR: styles.badgeBorrador,
+  TERMINADO: styles.badgeTerminado,
+  SUSPENDIDO: styles.badgeSuspendido,
+  ANULADO: styles.badgeAnulado,
+  REPROGRAMADO: styles.badgeReprogramado,
 }
 
 /**
@@ -41,6 +57,7 @@ export default function FixtureAdmin() {
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [editando, setEditando] = useState<FixturePartido | null>(null)
   const [form, setForm] = useState<FixturePartidoCreate>(FORM_VACIO)
+  const [estadoEdicion, setEstadoEdicion] = useState<EstadoPartido>("BORRADOR")
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -72,6 +89,7 @@ export default function FixtureAdmin() {
   function abrirFormularioNuevo() {
     setEditando(null)
     setForm({ ...FORM_VACIO, id_torneo: torneoId! })
+    setEstadoEdicion("BORRADOR")
     setError(null)
     setMostrarFormulario(true)
   }
@@ -91,6 +109,7 @@ export default function FixtureAdmin() {
       ubicacion: p.ubicacion ?? "",
       numero_fecha: p.numero_fecha ?? undefined,
     })
+    setEstadoEdicion(p.estado)
     setError(null)
     setMostrarFormulario(true)
   }
@@ -125,6 +144,7 @@ export default function FixtureAdmin() {
           horario: form.horario || null,
           ubicacion: form.ubicacion || null,
           numero_fecha: form.numero_fecha ?? null,
+          estado: estadoEdicion,
         }
         await editarPartidoFixture(editando.id_fixture_partido, update)
       } else {
@@ -280,6 +300,24 @@ export default function FixtureAdmin() {
                 onChange={e => setForm(f => ({ ...f, numero_fecha: e.target.value ? Number(e.target.value) : undefined }))}
               />
             </div>
+
+            {/* Estado — solo en edición */}
+            {editando && (
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Estado</label>
+                <select
+                  className={styles.select}
+                  value={estadoEdicion}
+                  onChange={e => setEstadoEdicion(e.target.value as EstadoPartido)}
+                >
+                  <option value="BORRADOR">Pendiente</option>
+                  <option value="SUSPENDIDO">Suspendido</option>
+                  <option value="REPROGRAMADO">Reprogramado</option>
+                  <option value="ANULADO">Anulado</option>
+                  <option value="TERMINADO">Jugado</option>
+                </select>
+              </div>
+            )}
           </div>
 
           {error && <p className={styles.errorMsg}>{error}</p>}
@@ -317,7 +355,7 @@ export default function FixtureAdmin() {
                 </thead>
                 <tbody>
                   {partidos.map(p => (
-                    <tr key={p.id_fixture_partido} className={p.jugado ? styles.jugado : ""}>
+                    <tr key={p.id_fixture_partido} className={p.estado === "TERMINADO" ? styles.jugado : ""}>
                       <td>{p.numero_fecha ? `Fecha ${p.numero_fecha}` : "—"}</td>
                       <td>{p.nombre_equipo_local ?? equiposPorId[p.id_equipo_local] ?? p.id_equipo_local}</td>
                       <td>{p.nombre_equipo_visitante ?? equiposPorId[p.id_equipo_visitante] ?? p.id_equipo_visitante}</td>
@@ -325,12 +363,12 @@ export default function FixtureAdmin() {
                       <td>{p.horario ? p.horario.slice(0, 5) : "—"}</td>
                       <td>{p.ubicacion ?? "—"}</td>
                       <td>
-                        <span className={p.jugado ? styles.badgeJugado : styles.badgePendiente}>
-                          {p.jugado ? "Jugado" : "Pendiente"}
+                        <span className={`${styles.badge} ${ESTADOS_BADGE[p.estado]}`}>
+                          {ESTADOS_LABELS[p.estado]}
                         </span>
                       </td>
                       <td className={styles.acciones}>
-                        {!p.jugado && (
+                        {p.estado !== "TERMINADO" && (
                           <>
                             <button
                               className={styles.btnCargar}

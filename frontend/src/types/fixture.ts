@@ -1,3 +1,5 @@
+export type EstadoPartido = "BORRADOR" | "TERMINADO" | "SUSPENDIDO" | "ANULADO" | "REPROGRAMADO"
+
 export interface FixturePartido {
   id_fixture_partido: number
   id_torneo: number
@@ -13,8 +15,10 @@ export interface FixturePartido {
   horario: string | null
   ubicacion: string | null
   numero_fecha: number | null
-  jugado: boolean
+  estado: EstadoPartido
   id_partido_real: number | null
+  goles_local: number | null
+  goles_visitante: number | null
   creado_en: string
   creado_por: string | null
 }
@@ -34,4 +38,5 @@ export interface FixturePartidoUpdate {
   horario?: string | null
   ubicacion?: string | null
   numero_fecha?: number | null
+  estado?: EstadoPartido | null
 }

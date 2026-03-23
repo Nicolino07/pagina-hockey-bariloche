@@ -4,15 +4,21 @@ from typing import Optional
 from sqlalchemy import (
     Integer,
     String,
-    Boolean,
     Date,
     Time,
     TIMESTAMP,
     ForeignKey,
     CheckConstraint,
+    Enum,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
+
+tipo_estado_partido = Enum(
+    "BORRADOR", "TERMINADO", "SUSPENDIDO", "ANULADO", "REPROGRAMADO",
+    name="tipo_estado_partido",
+    create_type=False,
+)
 
 
 class FixturePartido(Base):
@@ -51,9 +57,9 @@ class FixturePartido(Base):
     horario: Mapped[Optional[time]] = mapped_column(Time)
     ubicacion: Mapped[Optional[str]] = mapped_column(String(200))
 
-    jugado: Mapped[bool] = mapped_column(
-        Boolean,
-        default=False,
+    estado: Mapped[str] = mapped_column(
+        tipo_estado_partido,
+        default="BORRADOR",
         nullable=False
     )
 

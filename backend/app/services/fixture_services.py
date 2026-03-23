@@ -5,13 +5,14 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.fixture_partido import FixturePartido
+from app.models.partido import PartidoDetallado
 from app.models.equipo import Equipo
 from app.models.torneo import Torneo
 from app.schemas.fixture_partido import FixturePartidoCreate, FixturePartidoUpdate
 
 
-def _enriquecer(fp: FixturePartido) -> dict:
-    """Agrega nombres de equipos y torneo al response."""
+def _enriquecer(fp: FixturePartido, db: Session | None = None) -> dict:
+    """Agrega nombres de equipos, torneo y resultado al response."""
     data = {c.name: getattr(fp, c.name) for c in fp.__table__.columns}
     data["nombre_equipo_local"] = fp.equipo_local.nombre if fp.equipo_local else None
     data["nombre_equipo_visitante"] = fp.equipo_visitante.nombre if fp.equipo_visitante else None
@@ -19,6 +20,13 @@ def _enriquecer(fp: FixturePartido) -> dict:
     data["categoria"] = fp.torneo.categoria.value if fp.torneo else None
     data["division"] = fp.torneo.division if fp.torneo else None
     data["genero"] = fp.torneo.genero.value if fp.torneo else None
+    data["goles_local"] = None
+    data["goles_visitante"] = None
+    if db and fp.id_partido_real:
+        detalle = db.get(PartidoDetallado, fp.id_partido_real)
+        if detalle:
+            data["goles_local"] = detalle.goles_local
+            data["goles_visitante"] = detalle.goles_visitante
     return data
 
 
@@ -36,7 +44,7 @@ def obtener_fixture_por_id(db: Session, id_fixture_partido: int):
     )
     if not fp:
         raise HTTPException(404, "Partido del fixture no encontrado")
-    return _enriquecer(fp)
+    return _enriquecer(fp, db)
 
 
 def crear_fixture_partido(db: Session, data: FixturePartidoCreate, username: str):
@@ -59,7 +67,7 @@ def crear_fixture_partido(db: Session, data: FixturePartidoCreate, username: str
     db.refresh(fp)
 
     db.refresh(fp, ["equipo_local", "equipo_visitante", "torneo"])
-    return _enriquecer(fp)
+    return _enriquecer(fp, db)
 
 
 def listar_fixture_por_torneo(db: Session, id_torneo: int) -> list:
@@ -79,7 +87,7 @@ def listar_fixture_por_torneo(db: Session, id_torneo: int) -> list:
         )
         .all()
     )
-    return [_enriquecer(fp) for fp in partidos]
+    return [_enriquecer(fp, db) for fp in partidos]
 
 
 def listar_fixture_proximos(db: Session, id_torneo: int | None = None) -> list:
@@ -91,7 +99,7 @@ def listar_fixture_proximos(db: Session, id_torneo: int | None = None) -> list:
             joinedload(FixturePartido.equipo_visitante),
             joinedload(FixturePartido.torneo),
         )
-        .filter(FixturePartido.jugado == False)  # noqa: E712
+        .filter(FixturePartido.estado.in_(["BORRADOR", "SUSPENDIDO", "REPROGRAMADO"]))
     )
     if id_torneo:
         query = query.filter(FixturePartido.id_torneo == id_torneo)
@@ -100,17 +108,17 @@ def listar_fixture_proximos(db: Session, id_torneo: int | None = None) -> list:
         FixturePartido.fecha_programada.asc().nulls_last(),
         FixturePartido.horario.asc().nulls_last(),
     ).all()
-    return [_enriquecer(fp) for fp in partidos]
+    return [_enriquecer(fp, db) for fp in partidos]
 
 
 def actualizar_fixture_partido(
     db: Session, id_fixture_partido: int, data: FixturePartidoUpdate, username: str
 ):
-    """Edita fecha, horario, ubicación o número de fecha de un partido programado."""
+    """Edita fecha, horario, ubicación, número de fecha o estado de un partido programado."""
     fp = db.get(FixturePartido, id_fixture_partido)
     if not fp:
         raise HTTPException(404, "Partido del fixture no encontrado")
-    if fp.jugado:
+    if fp.estado == "TERMINADO":
         raise HTTPException(400, "No se puede editar un partido ya jugado")
 
     for campo, valor in data.model_dump(exclude_unset=True).items():
@@ -119,7 +127,7 @@ def actualizar_fixture_partido(
     db.commit()
     db.refresh(fp)
     db.refresh(fp, ["equipo_local", "equipo_visitante", "torneo"])
-    return _enriquecer(fp)
+    return _enriquecer(fp, db)
 
 
 def eliminar_fixture_partido(db: Session, id_fixture_partido: int):
@@ -127,7 +135,7 @@ def eliminar_fixture_partido(db: Session, id_fixture_partido: int):
     fp = db.get(FixturePartido, id_fixture_partido)
     if not fp:
         raise HTTPException(404, "Partido del fixture no encontrado")
-    if fp.jugado:
+    if fp.estado == "TERMINADO":
         raise HTTPException(400, "No se puede eliminar un partido ya jugado")
 
     db.delete(fp)

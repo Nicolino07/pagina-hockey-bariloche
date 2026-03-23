@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { listarTorneos } from "../../../api/torneos.api"
-import { listarProximosPartidos } from "../../../api/fixture.api"
+import { listarProximosPartidos, listarFixturePorTorneo } from "../../../api/fixture.api"
 import type { Torneo } from "../../../types/torneo"
 import type { FixturePartido } from "../../../types/fixture"
 import styles from "./FixturePage.module.css"
@@ -72,6 +72,14 @@ function agruparPorTorneo(partidos: FixturePartido[], torneos: Torneo[]): GrupoT
   })
 }
 
+const ESTADO_LABEL: Record<string, string> = {
+  BORRADOR: "Pendiente",
+  TERMINADO: "Jugado",
+  SUSPENDIDO: "Suspendido",
+  ANULADO: "Anulado",
+  REPROGRAMADO: "Reprogramado",
+}
+
 const CATEGORIA_LABEL: Record<string, string> = {
   MAYORES: "Mayores", SUB_19: "Sub 19", SUB_16: "Sub 16", SUB_14: "Sub 14", SUB_12: "Sub 12",
 }
@@ -94,6 +102,7 @@ export default function FixturePage() {
   const [torneosHistoricos, setTorneosHistoricos] = useState<Torneo[]>([])
   const [verHistoricos, setVerHistoricos] = useState(false)
   const [loadingHistoricos, setLoadingHistoricos] = useState(false)
+  const [verCompleto, setVerCompleto] = useState(false)
 
   useEffect(() => {
     listarTorneos()
@@ -118,7 +127,10 @@ export default function FixturePage() {
 
   useEffect(() => {
     setLoading(true)
-    listarProximosPartidos(torneoId ?? undefined)
+    const promesa = torneoId
+      ? listarFixturePorTorneo(torneoId)
+      : listarProximosPartidos()
+    promesa
       .then(setPartidos)
       .catch(console.error)
       .finally(() => setLoading(false))
@@ -135,7 +147,10 @@ export default function FixturePage() {
 
   if (loadingTorneos) return <div className={styles.loader}>Cargando...</div>
 
-  const grupos = agruparPorTorneo(partidos, torneos)
+  const partidosFiltrados = verCompleto
+    ? partidos
+    : partidos.filter(p => p.estado !== "TERMINADO" && p.estado !== "ANULADO")
+  const grupos = agruparPorTorneo(partidosFiltrados, torneos)
 
   return (
     <div className={styles.container}>
@@ -250,8 +265,15 @@ export default function FixturePage() {
         <div className={styles.colPartidos}>
           {loading ? (
             <p className={styles.infoMsg}>Cargando partidos...</p>
-          ) : partidos.length === 0 ? (
-            <p className={styles.infoMsg}>No hay partidos programados próximamente.</p>
+          ) : partidosFiltrados.length === 0 ? (
+            <>
+              <p className={styles.infoMsg}>No hay partidos próximos para este torneo.</p>
+              {torneoId && (
+                <button className={styles.verCompletoBtn} onClick={() => setVerCompleto(true)}>
+                  Ver fixture completo
+                </button>
+              )}
+            </>
           ) : (
             <div className={styles.grupos}>
               {grupos.map(grupo => {
@@ -286,17 +308,35 @@ export default function FixturePage() {
                           <div key={dia.fecha} className={styles.diaBloque}>
                             <div className={styles.diaLabel}>{dia.label}</div>
                             {dia.partidos.map(p => (
-                              <div key={p.id_fixture_partido} className={styles.row}>
+                              <div
+                                key={p.id_fixture_partido}
+                                className={`${styles.row} ${p.estado === "SUSPENDIDO" || p.estado === "ANULADO" ? styles.rowCancelado : ""}`}
+                              >
                                 <div className={styles.horarioCol}>
                                   <span className={styles.horario}>{formatHorario(p.horario)}</span>
                                   {p.ubicacion && (
                                     <span className={styles.ubicacion}>📍 {p.ubicacion}</span>
                                   )}
                                 </div>
-                                <div className={styles.equipos}>
-                                  <span className={styles.equipo}>{p.nombre_equipo_local ?? "Local"}</span>
-                                  <span className={styles.separador}>-</span>
-                                  <span className={styles.equipo}>{p.nombre_equipo_visitante ?? "Visitante"}</span>
+                                <div className={styles.equiposCol}>
+                                  <div className={styles.equipos}>
+                                    <span className={styles.equipo}>{p.nombre_equipo_local ?? "Local"}</span>
+                                    {p.estado === "TERMINADO" && p.goles_local !== null && p.goles_visitante !== null ? (
+                                      <span className={styles.resultado}>
+                                        {p.goles_local} - {p.goles_visitante}
+                                      </span>
+                                    ) : (
+                                      <span className={styles.separador}>vs</span>
+                                    )}
+                                    <span className={styles.equipo}>{p.nombre_equipo_visitante ?? "Visitante"}</span>
+                                  </div>
+                                  {p.estado !== "BORRADOR" && (
+                                    <div className={styles.estadoRow}>
+                                      <span className={`${styles.estadoBadge} ${styles[`estado${p.estado}`]}`}>
+                                        {ESTADO_LABEL[p.estado]}
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             ))}
@@ -309,6 +349,14 @@ export default function FixturePage() {
                 )
               })}
             </div>
+          )}
+          {torneoId && !loading && partidos.length > 0 && partidosFiltrados.length > 0 && (
+            <button
+              className={styles.verCompletoBtn}
+              onClick={() => setVerCompleto(v => !v)}
+            >
+              {verCompleto ? "Ocultar partidos jugados" : "Ver fixture completo"}
+            </button>
           )}
         </div>
 

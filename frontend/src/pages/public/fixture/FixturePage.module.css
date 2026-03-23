@@ -178,14 +178,26 @@
   max-width: 68px;
 }
 
+.equiposCol {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
 .equipos {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1;
   gap: 10px;
   padding: 10px 16px;
   min-width: 0;
+}
+
+.estadoRow {
+  display: flex;
+  justify-content: center;
+  padding: 0 16px 8px;
 }
 
 .equipo {
@@ -206,6 +218,40 @@
   font-weight: 900;
   color: var(--text-muted);
   flex-shrink: 0;
+}
+
+.rowCancelado {
+  opacity: 0.5;
+}
+
+.estadoBadge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.estadoTERMINADO {
+  background: rgba(129, 201, 149, 0.15);
+  color: #81c995;
+}
+
+.estadoSUSPENDIDO {
+  background: rgba(242, 139, 130, 0.15);
+  color: #f28b82;
+}
+
+.estadoANULADO {
+  background: rgba(154, 160, 166, 0.15);
+  color: #9aa0a6;
+}
+
+.estadoREPROGRAMADO {
+  background: rgba(253, 214, 99, 0.15);
+  color: #fdd663;
 }
 
 /* ── Columna lateral de torneos ─────────────── */
@@ -429,6 +475,36 @@
     padding: 8px 10px;
     gap: 6px;
   }
+}
+
+.resultado {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--text-main);
+  flex-shrink: 0;
+  background: rgba(129, 201, 149, 0.12);
+  padding: 2px 10px;
+  border-radius: 6px;
+  letter-spacing: 1px;
+}
+
+.verCompletoBtn {
+  display: block;
+  margin: 16px auto 0;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.verCompletoBtn:hover {
+  color: var(--text-main);
+  border-color: var(--text-muted);
 }
 
 .backBtn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.88rem; padding: 0; margin-bottom: 20px; display: inline-block; }
