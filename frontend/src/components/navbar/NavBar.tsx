@@ -54,6 +54,7 @@ export default function Navbar() {
 
               {isAdminOrSuper && (
                 <>
+                  <Link to="/admin/clubes">Clubes</Link>
                   <Link to="/admin/torneos">Torneos</Link>
                   <Link to="/admin/personas">Personas</Link>
                 </>
@@ -115,7 +116,7 @@ export default function Navbar() {
 
               {isAdminOrSuper && (
                 <>
-                  <Link to="/admin/clubes" onClick={close}>Clubes (Admin)</Link>
+                  <Link to="/admin/clubes" onClick={close}>Clubes</Link>
                   <Link to="/admin/torneos" onClick={close}>Torneos</Link>
                   <Link to="/admin/personas" onClick={close}>Personas</Link>
                 </>

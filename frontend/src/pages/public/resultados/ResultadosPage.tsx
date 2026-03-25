@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { obtenerPartidosRecientes, obtenerDetallePartido } from "../../../api/partidos.api"
 import { listarTorneos } from "../../../api/torneos.api"
-import { usePartidos } from "../../../hooks/usePartidos"
+import PartidoDetalleModal from "../../../components/partidos/PartidoDetalleModal"
 import type { Torneo } from "../../../types/torneo"
 import styles from "./ResultadosPage.module.css"
 
@@ -27,8 +27,6 @@ function labelDia(fechaStr: string): string {
 
 export default function ResultadosPage() {
   const navigate = useNavigate()
-  const { parseIncidencias } = usePartidos()
-
   const [torneos, setTorneos] = useState<Torneo[]>([])
   const [partidos, setPartidos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -66,56 +64,6 @@ export default function ResultadosPage() {
       console.error(e)
     } finally {
       setLoadingDetalle(false)
-    }
-  }
-
-  const parsePlantilla = (str: string) => {
-    if (!str) return []
-    return str.split("; ").map(item => {
-      const parts = item.split("|")
-      return {
-        nombreCompleto: `${parts[0]}, ${parts[1]}`,
-        camiseta: (parts[2] === "" || parts[2] === "null") ? null : parts[2],
-        rol: parts[3] || "JUGADOR",
-        capitan: parts[4] === "true",
-      }
-    })
-  }
-
-  const agruparGoles = (str: string) => {
-    const items = parseIncidencias(str)
-    const map = new Map<string, { jugador: string; esAutogol: boolean; tiempos: { min: number; label: string }[] }>()
-    items.forEach(g => {
-      const key = `${g.jugador}|${g.esAutogol}`
-      if (!map.has(key)) map.set(key, { jugador: g.jugador, esAutogol: g.esAutogol, tiempos: [] })
-      map.get(key)!.tiempos.push({ min: Number(g.minuto), label: `${g.minuto}'(${g.cuarto}C)` })
-    })
-    return Array.from(map.values()).map(g => ({
-      ...g,
-      tiempos: g.tiempos.sort((a, b) => a.min - b.min).map(t => t.label),
-    }))
-  }
-
-  const agruparTarjetas = (str: string) => {
-    const items = parseIncidencias(str)
-    const map = new Map<string, { jugador: string; tipoTarjeta?: string; tiempos: { min: number; label: string }[] }>()
-    items.forEach(t => {
-      const key = `${t.jugador}|${t.tipoTarjeta}`
-      if (!map.has(key)) map.set(key, { jugador: t.jugador, tipoTarjeta: t.tipoTarjeta, tiempos: [] })
-      map.get(key)!.tiempos.push({ min: Number(t.minuto), label: `${t.minuto}'(${t.cuarto}C)` })
-    })
-    return Array.from(map.values()).map(t => ({
-      ...t,
-      tiempos: t.tiempos.sort((a, b) => a.min - b.min).map(x => x.label),
-    }))
-  }
-
-  const renderIconoTarjeta = (tipo?: string) => {
-    switch (tipo) {
-      case "VERDE":    return <span className={`${styles.cardIcon} ${styles.verde}`} />
-      case "AMARILLA": return <span className={`${styles.cardIcon} ${styles.amarilla}`} />
-      case "ROJA":     return <span className={`${styles.cardIcon} ${styles.roja}`} />
-      default: return null
     }
   }
 
@@ -353,125 +301,7 @@ export default function ResultadosPage() {
 
       {/* ── Modal detalle ── */}
       {selectedPartido && (
-        <div className={styles.modalOverlay} onClick={() => setSelectedPartido(null)}>
-          <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <div>
-                <h2>{selectedPartido.nombre_torneo}</h2>
-                <p className={styles.subHeader}>
-                  Fecha {selectedPartido.numero_fecha} | {new Date(selectedPartido.fecha + "T00:00:00").toLocaleDateString()}
-                </p>
-              </div>
-              <button className={styles.closeBtn} onClick={() => setSelectedPartido(null)}>×</button>
-            </div>
-
-            <div className={styles.mainScoreBanner}>
-              <div className={styles.bigTeamName}>{selectedPartido.equipo_local_nombre}</div>
-              <div className={styles.bigScore}>{selectedPartido.goles_local} - {selectedPartido.goles_visitante}</div>
-              <div className={styles.bigTeamName}>{selectedPartido.equipo_visitante_nombre}</div>
-            </div>
-
-            <div className={styles.refereeRibbon}>
-              <div className={styles.refereeItem}>
-                <span>🏁</span>
-                <span>Árbitros: <strong>{selectedPartido.arbitros || "No designados"}</strong></span>
-              </div>
-            </div>
-
-            <div className={styles.detailsBody}>
-              {selectedPartido.categoria_torneo === "SUB_12" ? (
-                <div className={styles.sub12Grid}>
-                  {[
-                    { titulo: `🏠 ${selectedPartido.equipo_local_nombre}`, lista: selectedPartido.lista_jugadores_local },
-                    { titulo: `🚩 ${selectedPartido.equipo_visitante_nombre}`, lista: selectedPartido.lista_jugadores_visitante },
-                  ].map(({ titulo, lista }) => (
-                    <div key={titulo} className={styles.teamSection}>
-                      <h3>{titulo}</h3>
-                      <div className={styles.plantillaList}>
-                        {parsePlantilla(lista).map((j, i) => (
-                          <div key={i} className={styles.jugadorRow}>
-                            <span className={styles.tshirt}>{j.rol === "JUGADOR" ? (j.camiseta || "-") : "📋"}</span>
-                            <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
-                              {j.nombreCompleto}
-                              {j.capitan && <small className={styles.capitanTag}> (C)</small>}
-                              {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <>
-                  {[
-                    {
-                      titulo: `🏠 ${selectedPartido.equipo_local_nombre}`,
-                      jugadores: selectedPartido.lista_jugadores_local,
-                      goles: selectedPartido.lista_goles_local,
-                      tarjetas: selectedPartido.lista_tarjetas_local,
-                    },
-                    {
-                      titulo: `🚩 ${selectedPartido.equipo_visitante_nombre}`,
-                      jugadores: selectedPartido.lista_jugadores_visitante,
-                      goles: selectedPartido.lista_goles_visitante,
-                      tarjetas: selectedPartido.lista_tarjetas_visitante,
-                    },
-                  ].map(({ titulo, jugadores, goles, tarjetas }, idx) => (
-                    <div key={idx}>
-                      {idx > 0 && <hr className={styles.divider} />}
-                      <div className={styles.teamSection}>
-                        <h3>{titulo}</h3>
-                        <div className={styles.infoGrid}>
-                          <div className={styles.infoCol}>
-                            <label>📋 Plantilla</label>
-                            <div className={styles.plantillaList}>
-                              {parsePlantilla(jugadores).map((j, i) => (
-                                <div key={i} className={styles.jugadorRow}>
-                                  <span className={styles.tshirt}>{j.rol === "JUGADOR" ? (j.camiseta || "-") : "📋"}</span>
-                                  <span className={j.rol !== "JUGADOR" ? styles.staffName : ""}>
-                                    {j.nombreCompleto}
-                                    {j.capitan && <small className={styles.capitanTag}> (C)</small>}
-                                    {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className={styles.infoCol}>
-                            <label>🏑 Goles / 🎴 Sanciones</label>
-                            {agruparGoles(goles).map((g, i) => (
-                              <div key={i} className={styles.incidenciaItem}>
-                                <div className={styles.incRow}>
-                                  <span>🏑 {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}</span>
-                                  {g.tiempos.length > 1 && <span className={styles.incCount}>x{g.tiempos.length}</span>}
-                                </div>
-                                <small className={styles.incTiempos}>{g.tiempos.join("  ")}</small>
-                              </div>
-                            ))}
-                            {agruparTarjetas(tarjetas).map((t, i) => (
-                              <div key={i} className={styles.incidenciaItem}>
-                                <div className={styles.incRow}>
-                                  <span className={styles.cardWrapper}>{renderIconoTarjeta(t.tipoTarjeta)}{t.jugador}</span>
-                                  {t.tiempos.length > 1 && <span className={styles.incCount}>x{t.tiempos.length}</span>}
-                                </div>
-                                <small className={styles.incTiempos}>{t.tiempos.join("  ")}</small>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-
-            <div className={styles.modalFooter}>
-              <p>Ubicación: <strong>{selectedPartido.ubicacion || "—"}</strong></p>
-            </div>
-          </div>
-        </div>
+        <PartidoDetalleModal partido={selectedPartido} onClose={() => setSelectedPartido(null)} />
       )}
 
       {loadingDetalle && <div className={styles.loadingOverlay}>Cargando detalle...</div>}

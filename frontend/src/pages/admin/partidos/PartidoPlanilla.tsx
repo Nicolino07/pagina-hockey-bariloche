@@ -312,9 +312,9 @@ export default function PartidoPlanilla() {
         alert("Planilla guardada con éxito.");
       }
       navigate(-1);
-    } catch (error) {
-      console.error(error);
-      alert("Error al guardar.");
+    } catch (error: any) {
+      const msg = error?.response?.data?.detail ?? "Error al guardar la planilla."
+      alert(msg)
     } finally {
       setLoading(false);
       setShowModal(false);

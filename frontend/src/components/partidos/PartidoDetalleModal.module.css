@@ -1,0 +1,349 @@
+/* Modal Detalle de Partido — Tema oscuro (Dark Professional) */
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+}
+
+.modalContent {
+  background: #1e1e1e;
+  width: 95%;
+  max-width: 950px;
+  max-height: 85vh;
+  border-radius: 32px;
+  overflow-y: auto;
+  border: 1px solid #3c4043;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Header */
+.modalHeader {
+  padding: 24px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: #252629;
+  border-bottom: 1px solid #3c4043;
+}
+
+.modalHeader h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0;
+  color: #ffffff;
+}
+
+.subHeader {
+  color: #9aa0a6;
+  font-size: 0.85rem;
+  margin: 4px 0 0 0;
+}
+
+.torneoMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.metaBadge {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #9aa0a6;
+  background: #303134;
+  border: 1px solid #3c4043;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* Score banner */
+.mainScoreBanner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 60px;
+  padding: 60px 40px;
+  background: #252629;
+  border-bottom: 1px solid #3c4043;
+}
+
+.bigTeamName {
+  font-size: 1.8rem;
+  font-weight: 800;
+  flex: 1;
+  text-align: center;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.bigScore {
+  font-size: 4.5rem;
+  font-weight: 900;
+  color: #8ab4f8;
+  text-shadow: 0 0 20px rgba(138, 180, 248, 0.3);
+}
+
+/* Árbitros */
+.refereeRibbon {
+  background: #303134;
+  padding: 10px 20px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #9aa0a6;
+}
+
+.refereeItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Cuerpo */
+.detailsBody {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+/* Grilla SUB_12 (solo plantillas, lado a lado) */
+.sub12Grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.teamSection h3 {
+  font-size: 1.4rem;
+  border-bottom: 2px solid #3c4043;
+  padding-bottom: 15px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+}
+
+.localTitle   { color: #ffffff; }
+.visitanteTitle { color: #ffffff; }
+
+/* Grid plantilla + incidencias */
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 50px;
+}
+
+.infoCol label {
+  display: block;
+  color: #8ab4f8;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  margin-bottom: 20px;
+}
+
+/* Plantilla */
+.plantillaList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jugadorRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.jugadorRow:last-child {
+  border-bottom: none;
+}
+
+.tshirt {
+  color: #8ab4f8;
+  font-weight: 800;
+  width: 25px;
+  flex-shrink: 0;
+}
+
+.staffName {
+  color: #9aa0a6;
+  font-style: italic;
+}
+
+.capitanTag {
+  color: #f9a825;
+  font-weight: 700;
+  font-size: 0.75rem;
+  margin-left: 4px;
+}
+
+.rolTag {
+  background: #303134;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  margin-left: 8px;
+  color: #8ab4f8;
+}
+
+/* Incidencias */
+.incidenciaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 10px 16px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.incRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: #e8eaed;
+}
+
+.incCount {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #8ab4f8;
+  background: rgba(138, 180, 248, 0.1);
+  padding: 1px 7px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.incTiempos {
+  color: #9aa0a6;
+  font-size: 0.78rem;
+  letter-spacing: 0.3px;
+}
+
+.autogol {
+  color: #f44336;
+  font-size: 0.8rem;
+}
+
+/* Tarjetas */
+.cardWrapper {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.cardIcon {
+  display: inline-block;
+  width: 12px;
+  height: 18px;
+  border-radius: 2px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.verde    { background-color: #4caf50; }
+.amarilla { background-color: #ffeb3b; }
+.roja     { background-color: #f44336; }
+
+/* Separador */
+.divider {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #3c4043, transparent);
+  margin: 10px 0;
+}
+
+/* Footer */
+.modalFooter {
+  padding: 15px 30px;
+  background: #252629;
+  border-top: 1px solid #3c4043;
+  font-size: 0.85rem;
+  color: #9aa0a6;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .modalContent {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .mainScoreBanner {
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px 16px;
+  }
+
+  .bigTeamName {
+    font-size: 1.2rem;
+    text-align: center !important;
+  }
+
+  .bigScore {
+    font-size: 3rem;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .sub12Grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detailsBody {
+    padding: 20px 16px;
+    gap: 30px;
+  }
+
+  .modalHeader {
+    padding: 16px;
+  }
+
+  .closeBtn {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bigTeamName {
+    font-size: 1rem;
+  }
+
+  .bigScore {
+    font-size: 2.8rem;
+  }
+}

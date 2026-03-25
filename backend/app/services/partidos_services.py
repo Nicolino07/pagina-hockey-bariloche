@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from fastapi import HTTPException
 from sqlalchemy import or_, text
+from psycopg2.errors import UniqueViolation, ForeignKeyViolation
 
 
 from app.models.partido import Partido, PartidoDetallado
@@ -119,12 +120,26 @@ def crear_planilla_partido(db: Session, data, current_user):
         db.commit()
         return partido
 
+    except HTTPException:
+        db.rollback()
+        raise
+    except IntegrityError as e:
+        db.rollback()
+        orig = getattr(e, "orig", None)
+        if isinstance(orig, UniqueViolation):
+            raise HTTPException(
+                status_code=409,
+                detail="Ya existe un partido cargado para estos equipos en esa fecha y torneo."
+            )
+        if isinstance(orig, ForeignKeyViolation):
+            raise HTTPException(
+                status_code=400,
+                detail="Uno de los datos referenciados no existe (equipo, inscripción, árbitro, etc.)."
+            )
+        raise HTTPException(status_code=400, detail="Error de integridad en los datos.")
     except Exception as e:
         db.rollback()
-        # Es mejor relanzar el error para ver qué pasó
-        if isinstance(e, HTTPException):
-            raise e
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Error interno al guardar la planilla.")
     
 
 
