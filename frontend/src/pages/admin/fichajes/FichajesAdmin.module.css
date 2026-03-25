@@ -49,14 +49,38 @@
   overflow: hidden;
 }
 
+.tableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-color, #333);
+  flex-wrap: wrap;
+}
+
 .tableTitle {
   margin: 0;
-  padding: 18px 20px;
   font-size: 1rem;
-  border-bottom: 1px solid var(--border-color, #333);
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  background: #252525;
+  border: 1px solid #444;
+  color: var(--text-primary, #e0e0e0);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  width: 220px;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #8ab4f8;
 }
 
 .count {

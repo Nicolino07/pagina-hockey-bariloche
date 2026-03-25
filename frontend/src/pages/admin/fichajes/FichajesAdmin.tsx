@@ -57,6 +57,9 @@ export default function FichajesAdmin() {
   const [rolNuevo, setRolNuevo] = useState("JUGADOR")
   const [fechaInicio, setFechaInicio] = useState(hoy())
 
+  // --- Buscador en tabla ---
+  const [filtroPlantel, setFiltroPlantel] = useState("")
+
   // --- Estado modal Dar de Baja ---
   const [fechaBaja, setFechaBaja] = useState(hoy())
 
@@ -75,13 +78,22 @@ export default function FichajesAdmin() {
 
   // Recarga los fichajes activos del club cada vez que cambia el club seleccionado.
   useEffect(() => {
-    if (!clubId) { setFichajes([]); return }
+    if (!clubId) { setFichajes([]); setFiltroPlantel(""); return }
     setLoadingFichajes(true)
     getFichajesPorClub(clubId, true)
       .then(setFichajes)
       .catch(console.error)
       .finally(() => setLoadingFichajes(false))
   }, [clubId])
+
+  const fichajesFiltrados = useMemo(() => {
+    if (!filtroPlantel) return fichajes
+    const q = filtroPlantel.toLowerCase()
+    return fichajes.filter(f =>
+      `${f.persona_apellido} ${f.persona_nombre}`.toLowerCase().includes(q) ||
+      String(f.persona_documento).includes(q)
+    )
+  }, [fichajes, filtroPlantel])
 
   /**
    * Filtra personas por nombre/apellido o documento a partir de al menos 2 caracteres.
@@ -242,15 +254,25 @@ export default function FichajesAdmin() {
       {/* Tabla de fichados activos */}
       {clubId && (
         <div className={styles.tableWrapper}>
-          <h2 className={styles.tableTitle}>
-            Plantel actual — {clubNombre(clubId)}
-            <span className={styles.count}>{fichajes.length} fichados</span>
-          </h2>
+          <div className={styles.tableHeader}>
+            <h2 className={styles.tableTitle}>
+              Plantel actual — {clubNombre(clubId)}
+              <span className={styles.count}>{fichajesFiltrados.length} fichados</span>
+            </h2>
+            <input
+              className={styles.searchInput}
+              placeholder="Buscar por nombre o DNI..."
+              value={filtroPlantel}
+              onChange={e => setFiltroPlantel(e.target.value)}
+            />
+          </div>
 
           {loadingFichajes ? (
             <p className={styles.msg}>Cargando...</p>
-          ) : fichajes.length === 0 ? (
-            <p className={styles.msg}>No hay personas fichadas activamente en este club.</p>
+          ) : fichajesFiltrados.length === 0 ? (
+            <p className={styles.msg}>
+              {filtroPlantel ? "Sin resultados para la búsqueda." : "No hay personas fichadas activamente en este club."}
+            </p>
           ) : (
             <table className={styles.table}>
               <thead>
@@ -264,7 +286,7 @@ export default function FichajesAdmin() {
                 </tr>
               </thead>
               <tbody>
-                {fichajes.map(f => (
+                {fichajesFiltrados.map(f => (
                   <tr key={f.id_fichaje_rol}>
                     <td>{f.persona_apellido}</td>
                     <td>{f.persona_nombre}</td>
