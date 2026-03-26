@@ -328,6 +328,10 @@ CREATE TABLE IF NOT EXISTS partido (
 
     estado_partido tipo_estado_partido DEFAULT 'BORRADOR',
 
+    -- Resultado manual (solo para categorías sin desglose de goles, ej. SUB_12)
+    goles_local_manual      INT DEFAULT NULL CHECK (goles_local_manual >= 0),
+    goles_visitante_manual  INT DEFAULT NULL CHECK (goles_visitante_manual >= 0),
+
     -- Auditoría
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP DEFAULT NULL,

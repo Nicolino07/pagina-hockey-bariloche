@@ -1,0 +1,5 @@
+Solo para correr en local. Estos tert insertan clubes, equipos, personas 
+y demas datos de prueba que alteran los datos reales de la base de datos.
+
+docker compose exec api bash
+python -m pytest /tests/ -v --tb=short

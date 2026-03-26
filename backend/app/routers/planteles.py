@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from fastapi import Request, Response
 
 from app.database import get_db
+from app.core.exceptions import NotFoundError
 from app.schemas.plantel import PlantelCreate, PlantelRead
 from app.schemas.plantel_integrante import (
     PlantelIntegranteCreate,

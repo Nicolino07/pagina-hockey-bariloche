@@ -17,3 +17,7 @@ argon2-cffi
 email-validator
 resend
 
+# Testing
+pytest==7.4.3
+httpx==0.25.2
+
