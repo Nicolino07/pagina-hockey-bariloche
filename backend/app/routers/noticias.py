@@ -6,12 +6,15 @@ Rutas para la gestión de noticias del sitio.
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from datetime import datetime
+import httpx
+from bs4 import BeautifulSoup
+from pydantic import BaseModel
 
 from app.database import get_db
 from app.models.noticia import Noticia
-from app.schemas.noticia import NoticiaCreate, NoticiaOut, NoticiaUpdate
+from app.schemas.noticia import NoticiaCreate, NoticiaOut, NoticiaUpdate, PreviewUrlOut
 from app.dependencies.permissions import require_admin
 
 router = APIRouter(prefix="/noticias", tags=["Noticias"])
@@ -38,6 +41,57 @@ def obtener_detalle_noticia(id_noticia: int, db: Session = Depends(get_db)):
     if not noticia:
         raise HTTPException(status_code=404, detail="Noticia no encontrada")
     return noticia
+
+
+# --- PREVIEW DE URL EXTERNA ---
+
+class PreviewUrlRequest(BaseModel):
+    url: str
+
+@router.post("/preview-url", response_model=PreviewUrlOut)
+async def preview_url_externa(body: PreviewUrlRequest, current_user=Depends(require_admin)):
+    """
+    Extrae metadatos Open Graph (título, imagen, descripción) de una URL externa.
+    Útil para previsualizar noticias de diarios antes de publicarlas.
+    """
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0.0.0 Safari/537.36"
+        )
+    }
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
+            response = await client.get(body.url, headers=headers)
+            response.raise_for_status()
+    except Exception:
+        raise HTTPException(status_code=422, detail="No se pudo acceder a la URL proporcionada.")
+
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    def og(prop: str) -> Optional[str]:
+        tag = soup.find("meta", property=f"og:{prop}")
+        if tag and tag.get("content"):
+            return str(tag["content"]).strip()
+        tag = soup.find("meta", attrs={"name": f"og:{prop}"})
+        if tag and tag.get("content"):
+            return str(tag["content"]).strip()
+        return None
+
+    titulo = og("title") or (soup.title.string.strip() if soup.title else None)
+    imagen_url = og("image")
+    descripcion = og("description")
+
+    if not imagen_url:
+        # fallback: primera imagen grande de la página
+        for img in soup.find_all("img", src=True):
+            src = str(img["src"])
+            if src.startswith("http") and any(ext in src.lower() for ext in [".jpg", ".jpeg", ".png", ".webp"]):
+                imagen_url = src
+                break
+
+    return PreviewUrlOut(titulo=titulo, imagen_url=imagen_url, descripcion=descripcion)
 
 
 # --- RUTAS ADMINISTRATIVAS ---

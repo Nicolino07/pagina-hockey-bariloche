@@ -100,6 +100,22 @@
   font-style: italic;
 }
 
+.badgeExterno {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(10, 20, 40, 0.85);
+  color: #8ab4f8;
+  border: 1px solid #8ab4f8;
+  font-size: 0.65rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  backdrop-filter: blur(4px);
+}
+
 /* Contenido de texto */
 .content {
   padding: 30px;

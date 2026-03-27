@@ -107,7 +107,8 @@ CREATE TABLE noticias (
     imagen_url      TEXT,
     epigrafe        VARCHAR(255),
     texto           TEXT NOT NULL,
-    
+    url_externa     TEXT,
+
     -- Auditoría y Soft Delete
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP DEFAULT NULL,

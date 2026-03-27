@@ -35,3 +35,8 @@ export const actualizarNoticia = async (id_noticia: number, datos: any) => {
   const res = await api.put(`/noticias/${id_noticia}/`, datos); // ✅ Barra final
   return res.data;
 };
+
+export const previewUrlExterna = async (url: string) => {
+  const res = await api.post(`/noticias/preview-url`, { url });
+  return res.data as { titulo?: string; imagen_url?: string; descripcion?: string };
+};

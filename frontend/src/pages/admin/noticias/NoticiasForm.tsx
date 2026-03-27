@@ -1,13 +1,8 @@
 import { useState, useEffect } from "react";
-import { obtenerNoticiasRecientes, crearNoticia, eliminarNoticia } from "../../../api/noticias.api";
+import { obtenerNoticiasRecientes, crearNoticia, eliminarNoticia, previewUrlExterna } from "../../../api/noticias.api";
 import Button from "../../../components/ui/button/Button";
 import styles from "./NoticiasForm.module.css";
 
-/**
- * Página administrativa de gestión de noticias.
- * Incluye formulario para publicar nuevas noticias con vista previa en tiempo real,
- * y un listado de las últimas noticias con opción de eliminar.
- */
 export default function Noticias() {
   const [noticias, setNoticias] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -16,16 +11,20 @@ export default function Noticias() {
     imagen_url: "",
     epigrafe: "",
     texto: "",
-    creado_por: "Admin Local" // Esto idealmente vendría de tu contexto de Auth
+    url_externa: "",
+    creado_por: "Admin Local"
   });
+
+  // Estado para el modo "nota externa"
+  const [urlPreview, setUrlPreview] = useState("");
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const [errorPreview, setErrorPreview] = useState<string | null>(null);
+  const [modoExterno, setModoExterno] = useState(false);
 
   useEffect(() => {
     fetchNoticias();
   }, []);
 
-  /**
-   * Carga las últimas 10 noticias y actualiza el listado del panel.
-   */
   const fetchNoticias = async () => {
     const data = await obtenerNoticiasRecientes(10);
     setNoticias(data);
@@ -35,12 +34,37 @@ export default function Noticias() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleCargarPreview = async () => {
+    if (!urlPreview.trim()) return;
+    setLoadingPreview(true);
+    setErrorPreview(null);
+    try {
+      const data = await previewUrlExterna(urlPreview.trim());
+      setForm(f => ({
+        ...f,
+        titulo: data.titulo || f.titulo,
+        imagen_url: data.imagen_url || f.imagen_url,
+        texto: data.descripcion || f.texto,
+        url_externa: urlPreview.trim(),
+      }));
+    } catch {
+      setErrorPreview("No se pudo obtener la vista previa. Podés ingresar la imagen manualmente.");
+    } finally {
+      setLoadingPreview(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await crearNoticia(form);
-      setForm({ titulo: "", imagen_url: "", epigrafe: "", texto: "", creado_por: "Admin Local" });
+      await crearNoticia({
+        ...form,
+        url_externa: form.url_externa || null,
+      });
+      setForm({ titulo: "", imagen_url: "", epigrafe: "", texto: "", url_externa: "", creado_por: "Admin Local" });
+      setUrlPreview("");
+      setModoExterno(false);
       fetchNoticias();
       alert("Noticia publicada correctamente");
     } catch (error) {
@@ -50,10 +74,6 @@ export default function Noticias() {
     }
   };
 
-  /**
-   * Solicita confirmación y elimina una noticia por su ID.
-   * @param id - ID de la noticia a eliminar.
-   */
   const handleDelete = async (id: number) => {
     if (confirm("¿Estás seguro de eliminar esta noticia?")) {
       await eliminarNoticia(id);
@@ -65,6 +85,45 @@ export default function Noticias() {
     <div className={styles.adminWrapper}>
       <section className={styles.formSection}>
         <h2>🗞️ Nueva Noticia</h2>
+
+        {/* Toggle modo externo */}
+        <div className={styles.modoToggle}>
+          <button
+            type="button"
+            className={`${styles.modoBtn} ${!modoExterno ? styles.modoBtnActivo : ""}`}
+            onClick={() => setModoExterno(false)}
+          >
+            Noticia propia
+          </button>
+          <button
+            type="button"
+            className={`${styles.modoBtn} ${modoExterno ? styles.modoBtnActivo : ""}`}
+            onClick={() => setModoExterno(true)}
+          >
+            Compartir nota externa
+          </button>
+        </div>
+
+        {/* Sección de carga desde URL externa */}
+        {modoExterno && (
+          <div className={styles.urlExternaBox}>
+            <label className={styles.urlExternaLabel}>URL de la nota</label>
+            <div className={styles.urlExternaRow}>
+              <input
+                className={styles.urlExternaInput}
+                type="url"
+                value={urlPreview}
+                onChange={e => setUrlPreview(e.target.value)}
+                placeholder="https://www.diario.com/nota-hockey..."
+              />
+              <Button type="button" onClick={handleCargarPreview} disabled={loadingPreview || !urlPreview.trim()}>
+                {loadingPreview ? "Cargando..." : "Cargar vista previa"}
+              </Button>
+            </div>
+            {errorPreview && <p className={styles.urlExternaError}>{errorPreview}</p>}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className={styles.newsForm}>
           <div className={styles.inputGroup}>
             <label>Título</label>
@@ -82,7 +141,7 @@ export default function Noticias() {
           </div>
 
           <div className={styles.inputGroup}>
-            <label>Contenido de la Noticia</label>
+            <label>{modoExterno ? "Descripción / Copete" : "Contenido de la Noticia"}</label>
             <textarea name="texto" value={form.texto} onChange={handleInput} required rows={5} placeholder="Escribe aquí los detalles..." />
           </div>
 
@@ -97,9 +156,17 @@ export default function Noticias() {
         <div className={styles.previewCard}>
           {form.imagen_url && <img src={form.imagen_url} alt="Preview" />}
           <div className={styles.previewContent}>
+            {form.url_externa && (
+              <span className={styles.previewBadge}>Nota de prensa</span>
+            )}
             <h3>{form.titulo || "Título de la noticia"}</h3>
             <p>{form.texto || "Aquí se verá el contenido..."}</p>
             {form.epigrafe && <small className={styles.previewEpigrafe}>{form.epigrafe}</small>}
+            {form.url_externa && (
+              <a href={form.url_externa} target="_blank" rel="noopener noreferrer" className={styles.previewLinkExterno}>
+                Ver nota original →
+              </a>
+            )}
           </div>
         </div>
       </section>
@@ -117,7 +184,10 @@ export default function Noticias() {
           <tbody>
             {noticias.map((n) => (
               <tr key={n.id_noticia}>
-                <td>{n.titulo}</td>
+                <td>
+                  {n.url_externa && <span className={styles.badgeExterno}>Prensa</span>}
+                  {n.titulo}
+                </td>
                 <td>{new Date(n.creado_en).toLocaleDateString()}</td>
                 <td>
                   <button onClick={() => handleDelete(n.id_noticia)} className={styles.deleteBtn}>🗑️ Borrar</button>

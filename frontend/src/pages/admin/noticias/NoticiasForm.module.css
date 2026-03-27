@@ -105,6 +105,111 @@
   cursor: pointer;
 }
 
+/* Toggle modo noticia propia / externa */
+.modoToggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.modoBtn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: #252525;
+  color: #888;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.modoBtnActivo {
+  background: #1a3a5c;
+  border-color: #8ab4f8;
+  color: #8ab4f8;
+}
+
+/* Caja de URL externa */
+.urlExternaBox {
+  background: #1a2535;
+  border: 1px solid #2a4a6e;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.urlExternaLabel {
+  font-size: 0.9rem;
+  color: #8ab4f8;
+  font-weight: 600;
+}
+
+.urlExternaRow {
+  display: flex;
+  gap: 10px;
+}
+
+.urlExternaInput {
+  flex: 1;
+  background: #252525;
+  border: 1px solid #333;
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.urlExternaError {
+  color: #f4a261;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Badge en preview y tabla */
+.previewBadge {
+  display: inline-block;
+  background: #1a3a5c;
+  color: #8ab4f8;
+  border: 1px solid #8ab4f8;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.previewLinkExterno {
+  display: inline-block;
+  margin-top: 12px;
+  color: #8ab4f8;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.previewLinkExterno:hover {
+  text-decoration: underline;
+}
+
+.badgeExterno {
+  display: inline-block;
+  background: #1a3a5c;
+  color: #8ab4f8;
+  border: 1px solid #2a5a8c;
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-right: 8px;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
 /* --- RESPONSIVIDAD --- */
 
 @media (max-width: 900px) {

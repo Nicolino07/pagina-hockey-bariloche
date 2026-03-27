@@ -22,6 +22,10 @@ export default function NoticiaDetalle() {
     const cargarData = async () => {
       try {
         const data = await obtenerNoticiaPorId(id); // ✅ Llamada limpia
+        if (data.url_externa) {
+          window.location.replace(data.url_externa);
+          return;
+        }
         setNoticia(data);
       } catch (error) {
         console.error("Error cargando noticia:", error);

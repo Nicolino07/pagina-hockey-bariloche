@@ -39,14 +39,15 @@ export default function Noticias() {
 
       <div className={styles.mainGrid}>
         {noticias.map((n) => (
-          <article 
-            key={n.id_noticia} 
+          <article
+            key={n.id_noticia}
             className={styles.newsCard}
-            onClick={() => navigate(`/noticias/${n.id_noticia}`)}
+            onClick={() => n.url_externa ? window.open(n.url_externa, "_blank", "noopener,noreferrer") : navigate(`/noticias/${n.id_noticia}`)}
           >
             <div className={styles.imageWrapper}>
               <img src={n.imagen_url || "/placeholder.jpg"} alt={n.titulo} />
-              {n.epigrafe && <div className={styles.epigrafe}>{n.epigrafe}</div>}
+              {n.url_externa && <div className={styles.badgeExterno}>Nota de prensa</div>}
+              {n.epigrafe && !n.url_externa && <div className={styles.epigrafe}>{n.epigrafe}</div>}
             </div>
             <div className={styles.content}>
               <span className={styles.date}>
@@ -54,7 +55,7 @@ export default function Noticias() {
               </span>
               <h2>{n.titulo}</h2>
               <p>{n.texto.substring(0, 150)}...</p>
-              <span className={styles.readMore}>Leer más →</span>
+              <span className={styles.readMore}>{n.url_externa ? "Ver nota original →" : "Leer más →"}</span>
             </div>
           </article>
         ))}

@@ -17,6 +17,8 @@ argon2-cffi
 email-validator
 resend
 
+beautifulsoup4==4.12.3
+
 # Testing
 pytest==7.4.3
 httpx==0.25.2

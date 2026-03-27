@@ -8,6 +8,7 @@ class NoticiaBase(BaseModel):
     imagen_url: Optional[str] = None
     epigrafe: Optional[str] = None
     texto: str
+    url_externa: Optional[str] = None
 
 # Lo que recibimos del Administrador al crear
 class NoticiaCreate(NoticiaBase):
@@ -19,9 +20,15 @@ class NoticiaUpdate(BaseModel):
     imagen_url: Optional[str] = None
     epigrafe: Optional[str] = None
     texto: Optional[str] = None
+    url_externa: Optional[str] = None
     actualizado_por: Optional[str] = None
 
 # Lo que devolvemos a la web (Home / Detalle)
+class PreviewUrlOut(BaseModel):
+    titulo: Optional[str] = None
+    imagen_url: Optional[str] = None
+    descripcion: Optional[str] = None
+
 class NoticiaOut(NoticiaBase):
     id_noticia: int
     creado_en: datetime

@@ -9,6 +9,7 @@ class Noticia(Base):
     imagen_url = Column(Text, nullable=True)
     epigrafe = Column(String(255), nullable=True)
     texto = Column(Text, nullable=False)
+    url_externa = Column(Text, nullable=True)
     
     # Auditoría y Soft Delete
     creado_en = Column(TIMESTAMP, server_default=func.now())
