@@ -51,6 +51,24 @@ function agruparPorDia(partidos: FixturePartido[]): GrupoDia[] {
   }))
 }
 
+const ORDEN_CATEGORIA = ["MAYORES", "SUB_19", "SUB_16", "SUB_14", "SUB_12"]
+const ORDEN_GENERO = ["FEMENINO", "MASCULINO", "MIXTO"]
+const ORDEN_DIVISION = ["A", "B", null]
+
+function prioridadTorneo(grupo: { categoria: string; genero: string; division?: string | null }): number {
+  const cat = ORDEN_CATEGORIA.indexOf(grupo.categoria)
+  const gen = ORDEN_GENERO.indexOf(grupo.genero)
+  const div = ORDEN_DIVISION.indexOf(grupo.division ?? null)
+  const catVal = cat === -1 ? 99 : cat
+  const genVal = gen === -1 ? 99 : gen
+  const divVal = div === -1 ? 99 : div
+  return catVal * 10000 + genVal * 100 + divVal
+}
+
+function ordenarTorneos(lista: Torneo[]): Torneo[] {
+  return [...lista].sort((a, b) => prioridadTorneo(a) - prioridadTorneo(b))
+}
+
 function agruparPorTorneo(partidos: FixturePartido[], torneos: Torneo[]): GrupoTorneo[] {
   const mapa = new Map<number, FixturePartido[]>()
   const orden: number[] = []
@@ -58,7 +76,7 @@ function agruparPorTorneo(partidos: FixturePartido[], torneos: Torneo[]): GrupoT
     if (!mapa.has(p.id_torneo)) { mapa.set(p.id_torneo, []); orden.push(p.id_torneo) }
     mapa.get(p.id_torneo)!.push(p)
   }
-  return orden.map(id => {
+  const grupos = orden.map(id => {
     const torneo = torneos.find(t => t.id_torneo === id)
     const muestra = mapa.get(id)![0]
     return {
@@ -70,6 +88,7 @@ function agruparPorTorneo(partidos: FixturePartido[], torneos: Torneo[]): GrupoT
       dias: agruparPorDia(mapa.get(id)!),
     }
   })
+  return grupos.sort((a, b) => prioridadTorneo(a) - prioridadTorneo(b))
 }
 
 const ESTADO_LABEL: Record<string, string> = {
@@ -196,7 +215,7 @@ export default function FixturePage() {
               </button>
             </div>
 
-            {torneos.map(t => (
+            {ordenarTorneos(torneos).map(t => (
               <button
                 key={t.id_torneo}
                 className={`${styles.torneoFila} ${torneoId === t.id_torneo ? styles.torneoFilaActiva : ""}`}

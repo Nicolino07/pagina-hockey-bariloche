@@ -354,7 +354,11 @@ export default function FixtureAdmin() {
                   </tr>
                 </thead>
                 <tbody>
-                  {partidos.map(p => (
+                  {[...partidos].sort((a, b) => {
+                    const fa = a.fecha_programada ?? "9999-99-99"
+                    const fb = b.fecha_programada ?? "9999-99-99"
+                    return fb.localeCompare(fa)
+                  }).map(p => (
                     <tr key={p.id_fixture_partido} className={p.estado === "TERMINADO" ? styles.jugado : ""}>
                       <td>{p.numero_fecha ? `Fecha ${p.numero_fecha}` : "—"}</td>
                       <td>{p.nombre_equipo_local ?? equiposPorId[p.id_equipo_local] ?? p.id_equipo_local}</td>
