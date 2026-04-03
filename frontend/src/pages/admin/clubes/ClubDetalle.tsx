@@ -8,9 +8,8 @@ import Button from "../../../components/ui/button/Button";
 import PlantelEquipo from "../equipos/PlantelEquipo";
 
 import { crearEquipo, getEquiposByClub, updateEquipo, deleteEquipo } from "../../../api/equipos.api";
-import { getPersonas as searchPersonas } from "../../../api/personas.api"; // Asegúrate de que este sea el nombre correcto
 import { getClubById, updateClub } from "../../../api/clubes.api";
-import { crearFichaje, getFichajesPorClub, darBajaFichaje } from "../../../api/fichajes.api";
+import { crearFichaje, getFichajesPorClub, darBajaFichaje, getPersonasDisponiblesParaFichar } from "../../../api/fichajes.api";
 
 import type { Club } from "../../../types/club";
 import type { Equipo, EquipoCreate, EquipoUpdate } from "../../../types/equipo";
@@ -32,8 +31,6 @@ export default function ClubDetalle() {
   const [club, setClub] = useState<Club | null>(null);
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [fichajes, setFichajes] = useState<any[]>([]); 
-  const [resultadosBusqueda, setResultadosBusqueda] = useState<any[]>([]);
-  const [buscando, setBuscando] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showEditEquipoModal, setShowEditEquipoModal] = useState(false);
@@ -42,8 +39,12 @@ export default function ClubDetalle() {
   const [equipoAEliminar, setEquipoAEliminar] = useState<Equipo | null>(null);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
   const [showFichajeModal, setShowFichajeModal] = useState(false);
-  const [showFichados, setShowFichados] = useState(false); 
+  const [showFichados, setShowFichados] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [todasPersonas, setTodasPersonas] = useState<any[]>([]);
+  const [loadingPersonas, setLoadingPersonas] = useState(false);
+  const [seleccionadosFichaje, setSeleccionadosFichaje] = useState<Set<number>>(new Set());
+  const [resultadoFichaje, setResultadoFichaje] = useState<{ ok: string[]; errores: string[] } | null>(null);
   const [equipoAbierto, setEquipoAbierto] = useState<number | null>(null);
   const [showInfoClub, setShowInfoClub] = useState(false);
   const [editandoClub, setEditandoClub] = useState(false);
@@ -103,69 +104,72 @@ export default function ClubDetalle() {
 
   useEffect(() => { cargarDatosPrincipales(); }, [id_club]);
 
-  // Lógica de búsqueda corregida para permitir multifunción
-  const buscarPersonas = async (termino: string, rolActual: string) => {
-    if (termino.length < 3) {
-      setResultadosBusqueda([]);
-      return;
-    }
+  const normalizar = (texto: string) =>
+    texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-    setBuscando(true);
-    try {
-      const data = await searchPersonas(termino);
-      
-      const normalizar = (texto: string) =>
-        texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  // Carga personas disponibles para fichar según club y rol seleccionado
+  useEffect(() => {
+    if (!showFichajeModal || !id_club) return;
+    setSeleccionadosFichaje(new Set());
+    setResultadoFichaje(null);
+    setTodasPersonas([]);
+    setLoadingPersonas(true);
+    getPersonasDisponiblesParaFichar(Number(id_club), fichajeForm.rol)
+      .then(data => setTodasPersonas(data))
+      .catch(err => console.error(err))
+      .finally(() => setLoadingPersonas(false));
+  }, [showFichajeModal, fichajeForm.rol]);
 
-      const tLimpio = normalizar(termino);
+  // Filtra por texto de búsqueda
+  const personasDisponibles = todasPersonas.filter((p: any) => {
+    const termino = normalizar(fichajeForm.searchTerm);
+    if (!termino) return true;
+    const nombreCompleto = normalizar(`${p.nombre} ${p.apellido}`);
+    const docStr = (p.documento || "").toString();
+    return nombreCompleto.includes(termino) || docStr.includes(termino);
+  });
 
-      const filtrados = data.filter((p: any) => {
-        const nombreCompleto = normalizar(`${p.nombre} ${p.apellido}`);
-        const docStr = (p.documento || "").toString();
-        const coincide = nombreCompleto.includes(tLimpio) || docStr.includes(tLimpio);
-
-        // Se oculta solo si YA TIENE este rol específico en el club
-        const yaFichadoConEseRol = fichajes.some(f => 
-          Number(f.id_persona) === Number(p.id_persona) && 
-          f.rol === rolActual && 
-          f.activo === true
-        );
-
-        return coincide && !yaFichadoConEseRol;
-      });
-
-      setResultadosBusqueda(filtrados);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setBuscando(false);
-    }
+  const toggleSeleccionadoFichaje = (id: number) => {
+    setSeleccionadosFichaje(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
 
-  // Efecto para re-buscar si el usuario cambia el ROL en el modal
-  useEffect(() => {
-    if (fichajeForm.searchTerm.length >= 3) {
-        buscarPersonas(fichajeForm.searchTerm, fichajeForm.rol);
-    }
-  }, [fichajeForm.rol]);
-
-  const handleFichaje = async () => {
-    if (!fichajeForm.id_persona) return;
-    try {
-      setSaving(true);
-      await crearFichaje({
-        id_persona: Number(fichajeForm.id_persona),
-        id_club: Number(id_club),
-        rol: fichajeForm.rol, // Usa el rol seleccionado en el form
-        fecha_inicio: new Date().toISOString().split('T')[0],
-        creado_por: "admin"
+  const handleFicharSeleccionados = async () => {
+    if (seleccionadosFichaje.size === 0) return;
+    const aFichar = personasDisponibles.filter((p: any) => seleccionadosFichaje.has(p.id_persona));
+    setSaving(true);
+    const resultados = await Promise.allSettled(
+      aFichar.map((p: any) =>
+        crearFichaje({
+          id_persona: Number(p.id_persona),
+          id_club: Number(id_club),
+          rol: fichajeForm.rol,
+          fecha_inicio: new Date().toISOString().split('T')[0],
+          creado_por: "admin",
+        }).then(() => `${p.apellido}, ${p.nombre}`)
+      )
+    );
+    setSaving(false);
+    await cargarFichajes();
+    const ok = resultados
+      .filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled")
+      .map(r => r.value);
+    const errores = resultados
+      .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+      .map((r, i) => {
+        const nombre = `${aFichar[i].apellido}, ${aFichar[i].nombre}`;
+        const detalle = r.reason?.response?.data?.detail || "Error desconocido";
+        return `${nombre}: ${detalle}`;
       });
+    if (errores.length === 0) {
       setShowFichajeModal(false);
       setFichajeForm({ id_persona: "", searchTerm: "", rol: "JUGADOR" });
-      setResultadosBusqueda([]);
-      await cargarFichajes();
-    } catch (err) { alert("Error al fichar"); } 
-    finally { setSaving(false); }
+    } else {
+      setResultadoFichaje({ ok, errores });
+    }
   };
 
   const handleOpenEditEquipo = (equipo: Equipo, e: React.MouseEvent) => {
@@ -382,60 +386,82 @@ export default function ClubDetalle() {
         ))}
       </div>
 
-      {/* MODAL FICHAJE CON FILTRO DE ROL */}
-      <Modal open={showFichajeModal} title="Fichar Persona" onClose={() => setShowFichajeModal(false)}>
-        <div className={styles.modalForm}>
-          <div className={styles.formGroup}>
-            <label>1. Seleccionar Rol de Fichaje</label>
-            <select 
-              value={fichajeForm.rol} 
-              onChange={(e) => setFichajeForm({...fichajeForm, rol: e.target.value})}
-            >
-              {Object.entries(ROL_LABELS).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>2. Buscar Persona (Nombre o DNI)</label>
-            <input 
-              type="text" 
-              className={styles.stickySearch}
-              placeholder="Escriba para buscar..."
-              value={fichajeForm.searchTerm}
-              onChange={(e) => {
-                setFichajeForm({...fichajeForm, searchTerm: e.target.value});
-                buscarPersonas(e.target.value, fichajeForm.rol);
-              }}
-            />
-          </div>
-
-          <div className={styles.selectorScrollable}>
-            {buscando ? <p style={{padding: '10px'}}>Buscando...</p> : 
-              resultadosBusqueda.map(p => (
-                <div 
-                  key={p.id_persona} 
-                  className={`${styles.selectorItem} ${fichajeForm.id_persona === String(p.id_persona) ? styles.selectedItem : ''}`}
-                  onClick={() => setFichajeForm({...fichajeForm, id_persona: String(p.id_persona)})}
-                >
-                  <div>
-                    <span className={styles.itemName}>{p.apellido}, {p.nombre}</span>
-                    <span className={styles.itemDni}>DNI: {p.documento}</span>
-                  </div>
-                  {fichajeForm.id_persona === String(p.id_persona) && <span className={styles.checkIcon}>✓</span>}
+      {/* MODAL FICHAJE */}
+      <Modal open={showFichajeModal} title="Fichar Persona" onClose={() => { setShowFichajeModal(false); setFichajeForm({ id_persona: "", searchTerm: "", rol: "JUGADOR" }); }}>
+        {resultadoFichaje ? (
+          <>
+            <div className={styles.resultadoCarga}>
+              {resultadoFichaje.ok.length > 0 && (
+                <div className={styles.resultadoOk}>
+                  <strong>✓ Fichados ({resultadoFichaje.ok.length})</strong>
+                  <ul>{resultadoFichaje.ok.map(n => <li key={n}>{n}</li>)}</ul>
                 </div>
-              ))
-            }
-          </div>
+              )}
+              {resultadoFichaje.errores.length > 0 && (
+                <div className={styles.resultadoError}>
+                  <strong>✗ Fallaron ({resultadoFichaje.errores.length})</strong>
+                  <ul>{resultadoFichaje.errores.map(e => <li key={e}>{e}</li>)}</ul>
+                </div>
+              )}
+            </div>
+            <div className={styles.modalActions}>
+              <Button onClick={() => { setShowFichajeModal(false); setFichajeForm({ id_persona: "", searchTerm: "", rol: "JUGADOR" }); }}>Cerrar</Button>
+            </div>
+          </>
+        ) : (
+          <div className={styles.modalForm}>
+            <div className={styles.fichajeFilters}>
+              <select
+                value={fichajeForm.rol}
+                onChange={(e) => { setFichajeForm({ ...fichajeForm, rol: e.target.value }); setSeleccionadosFichaje(new Set()); }}
+              >
+                {Object.entries(ROL_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                placeholder="Filtrar por nombre o DNI..."
+                value={fichajeForm.searchTerm}
+                onChange={(e) => setFichajeForm({ ...fichajeForm, searchTerm: e.target.value })}
+              />
+            </div>
 
-          <div className={styles.modalActions}>
-            <Button variant="secondary" onClick={() => setShowFichajeModal(false)}>Cancelar</Button>
-            <Button onClick={handleFichaje} disabled={saving || !fichajeForm.id_persona}>
-              Fichar como {ROL_LABELS[fichajeForm.rol]}
-            </Button>
+            <div className={styles.selectorScrollable}>
+              {loadingPersonas ? (
+                <p style={{ padding: "10px" }}>Cargando...</p>
+              ) : personasDisponibles.length === 0 ? (
+                <p style={{ padding: "10px", color: "#888" }}>Sin personas disponibles para este rol</p>
+              ) : personasDisponibles.map((p: any) => {
+                const checked = seleccionadosFichaje.has(p.id_persona);
+                return (
+                  <label
+                    key={p.id_persona}
+                    className={`${styles.selectorItem} ${checked ? styles.selectedItem : ""}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleSeleccionadoFichaje(p.id_persona)}
+                      className={styles.checkbox}
+                    />
+                    <div>
+                      <span className={styles.itemName}>{p.apellido}, {p.nombre}</span>
+                      <span className={styles.itemDni}>DNI: {p.documento}</span>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+
+            <div className={styles.modalActions}>
+              <Button variant="secondary" onClick={() => { setShowFichajeModal(false); setFichajeForm({ id_persona: "", searchTerm: "", rol: "JUGADOR" }); }}>Cancelar</Button>
+              <Button onClick={handleFicharSeleccionados} disabled={saving || seleccionadosFichaje.size === 0}>
+                Fichar seleccionados ({seleccionadosFichaje.size})
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </Modal>
 
       {/* MODAL EDITAR EQUIPO */}

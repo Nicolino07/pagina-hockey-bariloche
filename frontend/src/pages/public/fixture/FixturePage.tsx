@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { listarTorneos } from "../../../api/torneos.api"
+import { listarTorneosPublico } from "../../../api/torneos.api"
 import { listarProximosPartidos, listarFixturePorTorneo } from "../../../api/fixture.api"
 import type { Torneo } from "../../../types/torneo"
 import type { FixturePartido } from "../../../types/fixture"
@@ -124,7 +124,7 @@ export default function FixturePage() {
   const [verCompleto, setVerCompleto] = useState(false)
 
   useEffect(() => {
-    listarTorneos()
+    listarTorneosPublico()
       .then(setTorneos)
       .catch(console.error)
       .finally(() => setLoadingTorneos(false))
@@ -133,8 +133,8 @@ export default function FixturePage() {
   function cargarHistoricos() {
     if (verHistoricos) return
     setLoadingHistoricos(true)
-    listarTorneos(false)
-      .then(todos => {
+    listarTorneosPublico(false)
+      .then((todos: Torneo[]) => {
         const activosIds = new Set(torneos.map(t => t.id_torneo))
         const historicos = todos.filter(t => !activosIds.has(t.id_torneo))
         setTorneosHistoricos(historicos)

@@ -68,6 +68,44 @@ def crear_fichaje(
 
 
 
+def obtener_personas_disponibles_para_fichar(
+    db: Session,
+    id_club: int,
+    rol: str,
+) -> list[Persona]:
+    """
+    Devuelve personas que pueden ser fichadas en el club con el rol dado.
+    Condiciones:
+      1. Tienen el rol habilitante activo (PersonaRol.rol == rol y fecha_hasta IS NULL).
+      2. No tienen fichaje activo con ese rol en ningún club.
+    """
+    # Subquery: id_persona con fichaje activo para ese rol en cualquier club
+    fichados = (
+        select(FichajeRol.id_persona)
+        .where(
+            FichajeRol.rol == rol,
+            FichajeRol.activo == True,
+            FichajeRol.fecha_fin.is_(None),
+            FichajeRol.borrado_en.is_(None),
+        )
+    )
+
+    stmt = (
+        select(Persona)
+        .join(PersonaRol, PersonaRol.id_persona == Persona.id_persona)
+        .where(
+            Persona.borrado_en.is_(None),
+            PersonaRol.rol == rol,
+            PersonaRol.fecha_hasta.is_(None),
+            Persona.id_persona.not_in(fichados),
+        )
+        .distinct()
+        .order_by(Persona.apellido, Persona.nombre)
+    )
+
+    return db.scalars(stmt).all()
+
+
 def obtener_fichajes_club(db: Session, id_club: int, solo_activos: bool = True):
     query = (
         db.query(

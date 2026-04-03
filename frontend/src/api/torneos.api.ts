@@ -1,9 +1,18 @@
 import api from "./axiosAdmin"
+import axiosPublic from "./axiosPublic"
 import type { Torneo, TorneoCreate, TorneoUpdate } from "../types/torneo"
 import type { InscripcionTorneoDetalle} from "../types/inscripcion"
 
 
-// LISTAR
+// LISTAR (público - no requiere autenticación)
+export async function listarTorneosPublico(soloActivos: boolean = true): Promise<Torneo[]> {
+  const res = await axiosPublic.get<Torneo[]>("/torneos/", {
+    params: { solo_activos: soloActivos }
+  })
+  return res.data
+}
+
+// LISTAR (admin - requiere autenticación)
 export async function listarTorneos(soloActivos: boolean = true): Promise<Torneo[]> {
   const res = await api.get<Torneo[]>("/torneos/", {
     params: { solo_activos: soloActivos }

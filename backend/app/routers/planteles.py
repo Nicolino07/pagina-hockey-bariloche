@@ -10,13 +10,13 @@ from fastapi import Request, Response
 
 from app.database import get_db
 from app.core.exceptions import NotFoundError
-from app.schemas.plantel import PlantelCreate, PlantelRead
+from app.schemas.plantel import PlantelCreate, PlantelRead, PlantelUpdate
 from app.schemas.plantel_integrante import (
     PlantelIntegranteCreate,
     PlantelIntegranteRead,
 )
 from app.services import planteles_services
-from app.dependencies.permissions import require_admin
+from app.dependencies.permissions import require_admin, require_editor
 
 router = APIRouter(
     prefix="/planteles",
@@ -91,12 +91,88 @@ def obtener_plantel_activo(
 )
 def listar_integrantes(
     id_plantel: int,
+    solo_activos: bool = True,
     db: Session = Depends(get_db),
 ):
-    """Devuelve la lista de integrantes de un plantel específico. Acceso público."""
+    """Devuelve los integrantes de un plantel. Con solo_activos=false incluye los dados de baja."""
     return planteles_services.listar_integrantes_por_plantel(
         db=db,
         id_plantel=id_plantel,
+        solo_activos=solo_activos,
+    )
+
+
+@router.get(
+    "/equipo/{id_equipo}",
+    response_model=list[PlantelRead],
+    status_code=status.HTTP_200_OK,
+)
+def listar_planteles_por_equipo(
+    id_equipo: int,
+    db: Session = Depends(get_db),
+):
+    """Devuelve todos los planteles de un equipo (activos e históricos). Acceso público."""
+    return planteles_services.listar_planteles_por_equipo(db, id_equipo)
+
+
+@router.put(
+    "/{id_plantel}",
+    response_model=PlantelRead,
+    status_code=status.HTTP_200_OK,
+)
+def actualizar_plantel(
+    id_plantel: int,
+    data: PlantelUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
+):
+    """Edita nombre, temporada y descripción de un plantel. Requiere rol EDITOR o superior."""
+    return planteles_services.actualizar_plantel(
+        db=db,
+        id_plantel=id_plantel,
+        data=data,
+        current_user=current_user,
+    )
+
+
+@router.patch(
+    "/{id_plantel}/cerrar",
+    response_model=PlantelRead,
+    status_code=status.HTTP_200_OK,
+)
+def cerrar_plantel(
+    id_plantel: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
+):
+    """Cierra el plantel activo: lo marca como inactivo y registra la fecha de cierre. Requiere rol EDITOR o superior."""
+    return planteles_services.cerrar_plantel(
+        db=db,
+        id_plantel=id_plantel,
+        current_user=current_user,
+    )
+
+
+@router.delete(
+    "/{id_plantel}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def eliminar_plantel(
+    id_plantel: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    """Elimina (soft delete) un plantel cerrado. Solo se puede eliminar si activo=False. Requiere rol ADMIN o superior."""
+    plantel = planteles_services.obtener_plantel(db, id_plantel)
+
+    if plantel.activo:
+        from app.core.exceptions import ValidationError
+        raise ValidationError("Solo se pueden eliminar planteles cerrados")
+
+    planteles_services.soft_delete_plantel(
+        db=db,
+        id_plantel=id_plantel,
+        current_user=current_user,
     )
 
 

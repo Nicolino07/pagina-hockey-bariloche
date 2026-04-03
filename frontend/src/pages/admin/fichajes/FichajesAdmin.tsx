@@ -1,9 +1,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { getClubes } from "../../../api/clubes.api"
-import { getFichajesPorClub, crearFichaje, darBajaFichaje } from "../../../api/fichajes.api"
-import { getPersonas } from "../../../api/personas.api"
+import { getFichajesPorClub, crearFichaje, darBajaFichaje, getPersonasDisponiblesParaFichar } from "../../../api/fichajes.api"
 import type { Club } from "../../../types/club"
-import type { Persona } from "../../../types/persona"
 import Button from "../../../components/ui/button/Button"
 import styles from "./FichajesAdmin.module.css"
 
@@ -34,15 +32,8 @@ type ModalTipo = 'nuevo' | 'baja' | 'transferir' | null
 /** Retorna la fecha actual en formato ISO (YYYY-MM-DD). */
 const hoy = () => new Date().toISOString().split("T")[0]
 
-/**
- * Página administrativa de gestión de fichajes.
- * Permite seleccionar un club y ver sus fichajes activos.
- * Desde aquí se puede crear un nuevo fichaje, dar de baja uno existente
- * o realizar un pase (transferencia) a otro club.
- */
 export default function FichajesAdmin() {
   const [clubes, setClubes] = useState<Club[]>([])
-  const [personas, setPersonas] = useState<Persona[]>([])
   const [fichajes, setFichajes] = useState<FichajeActivo[]>([])
   const [clubId, setClubId] = useState<number | null>(null)
   const [loadingFichajes, setLoadingFichajes] = useState(false)
@@ -51,11 +42,13 @@ export default function FichajesAdmin() {
   const [modal, setModal] = useState<ModalTipo>(null)
   const [fichajeSeleccionado, setFichajeSeleccionado] = useState<FichajeActivo | null>(null)
 
-  // --- Estado modal Nuevo Fichaje ---
-  const [busqueda, setBusqueda] = useState("")
-  const [personaSeleccionada, setPersonaSeleccionada] = useState<Persona | null>(null)
+  // --- Estado modal Nuevo Fichaje (multi-select) ---
   const [rolNuevo, setRolNuevo] = useState("JUGADOR")
-  const [fechaInicio, setFechaInicio] = useState(hoy())
+  const [busquedaNuevo, setBusquedaNuevo] = useState("")
+  const [personasDisponibles, setPersonasDisponibles] = useState<any[]>([])
+  const [loadingPersonas, setLoadingPersonas] = useState(false)
+  const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set())
+  const [resultadoFichaje, setResultadoFichaje] = useState<{ ok: string[]; errores: string[] } | null>(null)
 
   // --- Buscador en tabla ---
   const [filtroPlantel, setFiltroPlantel] = useState("")
@@ -68,15 +61,10 @@ export default function FichajesAdmin() {
   const [rolTransfer, setRolTransfer] = useState("JUGADOR")
   const [fechaTransfer, setFechaTransfer] = useState(hoy())
 
-  // Carga la lista de clubes y personas al montar el componente.
   useEffect(() => {
-    Promise.all([getClubes(), getPersonas()]).then(([c, p]) => {
-      setClubes(c)
-      setPersonas(p)
-    })
+    getClubes().then(setClubes)
   }, [])
 
-  // Recarga los fichajes activos del club cada vez que cambia el club seleccionado.
   useEffect(() => {
     if (!clubId) { setFichajes([]); setFiltroPlantel(""); return }
     setLoadingFichajes(true)
@@ -85,6 +73,20 @@ export default function FichajesAdmin() {
       .catch(console.error)
       .finally(() => setLoadingFichajes(false))
   }, [clubId])
+
+  // Carga personas disponibles cuando se abre el modal nuevo o cambia el rol
+  useEffect(() => {
+    if (modal !== 'nuevo' || !clubId) return
+    setSeleccionados(new Set())
+    setResultadoFichaje(null)
+    setBusquedaNuevo("")
+    setPersonasDisponibles([])
+    setLoadingPersonas(true)
+    getPersonasDisponiblesParaFichar(clubId, rolNuevo)
+      .then(setPersonasDisponibles)
+      .catch(console.error)
+      .finally(() => setLoadingPersonas(false))
+  }, [modal, rolNuevo, clubId])
 
   const fichajesFiltrados = useMemo(() => {
     if (!filtroPlantel) return fichajes
@@ -95,86 +97,86 @@ export default function FichajesAdmin() {
     )
   }, [fichajes, filtroPlantel])
 
-  /**
-   * Filtra personas por nombre/apellido o documento a partir de al menos 2 caracteres.
-   * Limita los resultados a 8 para no saturar el dropdown de sugerencias.
-   */
-  const personasFiltradas = useMemo(() =>
-    busqueda.length >= 2
-      ? personas.filter(p =>
-          `${p.apellido} ${p.nombre}`.toLowerCase().includes(busqueda.toLowerCase()) ||
-          String(p.documento).includes(busqueda)
-        ).slice(0, 8)
-      : [],
-    [busqueda, personas]
-  )
+  const personasFiltradas = useMemo(() => {
+    if (!busquedaNuevo) return personasDisponibles
+    const q = busquedaNuevo.toLowerCase()
+    return personasDisponibles.filter((p: any) =>
+      `${p.apellido} ${p.nombre}`.toLowerCase().includes(q) ||
+      String(p.documento).includes(q)
+    )
+  }, [busquedaNuevo, personasDisponibles])
 
-  /** Recarga la lista de fichajes activos del club seleccionado actualmente. */
   const recargarFichajes = () => {
     if (!clubId) return
     getFichajesPorClub(clubId, true).then(setFichajes).catch(console.error)
   }
 
-  /** Cierra el modal activo y resetea todos los estados del formulario a sus valores iniciales. */
   const cerrarModal = () => {
     setModal(null)
     setFichajeSeleccionado(null)
-    setBusqueda("")
-    setPersonaSeleccionada(null)
     setRolNuevo("JUGADOR")
-    setFechaInicio(hoy())
+    setBusquedaNuevo("")
+    setSeleccionados(new Set())
+    setResultadoFichaje(null)
     setFechaBaja(hoy())
     setClubDestino(null)
     setRolTransfer("JUGADOR")
     setFechaTransfer(hoy())
   }
 
-  /**
-   * Abre el modal de pase preseleccionando el fichaje y manteniendo el rol actual.
-   * @param f - Fichaje activo de la persona a transferir.
-   */
+  const toggleSeleccionado = (id: number) => {
+    setSeleccionados(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const handleFicharSeleccionados = async () => {
+    if (seleccionados.size === 0 || !clubId) return
+    const aFichar = personasDisponibles.filter((p: any) => seleccionados.has(p.id_persona))
+    setSaving(true)
+    const resultados = await Promise.allSettled(
+      aFichar.map((p: any) =>
+        crearFichaje({
+          id_persona: Number(p.id_persona),
+          id_club: clubId,
+          rol: rolNuevo,
+          fecha_inicio: hoy(),
+          creado_por: "admin",
+        }).then(() => `${p.apellido}, ${p.nombre}`)
+      )
+    )
+    setSaving(false)
+    recargarFichajes()
+    const ok = resultados
+      .filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled")
+      .map(r => r.value)
+    const errores = resultados
+      .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+      .map((r, i) => {
+        const nombre = `${aFichar[i].apellido}, ${aFichar[i].nombre}`
+        const detalle = r.reason?.response?.data?.detail || "Error desconocido"
+        return `${nombre}: ${detalle}`
+      })
+    if (errores.length === 0) {
+      cerrarModal()
+    } else {
+      setResultadoFichaje({ ok, errores })
+    }
+  }
+
   const abrirTransferir = (f: FichajeActivo) => {
     setFichajeSeleccionado(f)
     setRolTransfer(f.rol)
     setModal('transferir')
   }
 
-  /**
-   * Abre el modal de baja preseleccionando el fichaje.
-   * @param f - Fichaje activo a dar de baja.
-   */
   const abrirBaja = (f: FichajeActivo) => {
     setFichajeSeleccionado(f)
     setModal('baja')
   }
 
-  /**
-   * Crea un nuevo fichaje para la persona seleccionada en el club activo.
-   * Recarga la lista y cierra el modal al completarse.
-   */
-  const handleNuevoFichaje = async () => {
-    if (!personaSeleccionada || !clubId) return
-    setSaving(true)
-    try {
-      await crearFichaje({
-        id_persona: personaSeleccionada.id_persona,
-        id_club: clubId,
-        rol: rolNuevo,
-        fecha_inicio: fechaInicio,
-      })
-      recargarFichajes()
-      cerrarModal()
-    } catch (e: any) {
-      alert(e?.response?.data?.detail || "Error al crear el fichaje.")
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  /**
-   * Da de baja el fichaje seleccionado seteando su fecha de fin.
-   * Recarga la lista y cierra el modal al completarse.
-   */
   const handleDarDeBaja = async () => {
     if (!fichajeSeleccionado) return
     setSaving(true)
@@ -192,15 +194,10 @@ export default function FichajesAdmin() {
     }
   }
 
-  /**
-   * Realiza el pase del fichaje: da de baja en el club actual y crea uno nuevo en el destino.
-   * Ambas operaciones se ejecutan de forma secuencial en la misma fecha de pase.
-   */
   const handleTransferir = async () => {
     if (!fichajeSeleccionado || !clubDestino) return
     setSaving(true)
     try {
-      // Transacción: baja del club actual → alta en el club destino
       await darBajaFichaje(fichajeSeleccionado.id_fichaje_rol, {
         fecha_fin: fechaTransfer,
         actualizado_por: "admin",
@@ -220,10 +217,6 @@ export default function FichajesAdmin() {
     }
   }
 
-  /**
-   * Retorna el nombre del club por su ID, o "—" si no se encuentra.
-   * @param id - ID del club a buscar.
-   */
   const clubNombre = (id: number) => clubes.find(c => c.id_club === id)?.nombre ?? "—"
 
   return (
@@ -233,7 +226,6 @@ export default function FichajesAdmin() {
         <p className={styles.subtitle}>Alta, baja y pases entre clubes desde un solo lugar.</p>
       </header>
 
-      {/* Toolbar: selector de club + botón */}
       <div className={styles.toolbar}>
         <select
           className={styles.clubSelect}
@@ -251,7 +243,6 @@ export default function FichajesAdmin() {
         </Button>
       </div>
 
-      {/* Tabla de fichados activos */}
       {clubId && (
         <div className={styles.tableWrapper}>
           <div className={styles.tableHeader}>
@@ -309,66 +300,92 @@ export default function FichajesAdmin() {
         </div>
       )}
 
-      {/* ======================== MODAL: Nuevo Fichaje ======================== */}
+      {/* ======================== MODAL: Nuevo Fichaje (multi-select) ======================== */}
       {modal === 'nuevo' && (
         <div className={styles.overlay} onClick={cerrarModal}>
           <div className={styles.modalCard} onClick={e => e.stopPropagation()}>
             <h2 className={styles.modalTitle}>Nuevo Fichaje</h2>
             <p className={styles.modalSub}>
-              Club destino: <strong>{clubNombre(clubId!)}</strong>
+              Club: <strong>{clubNombre(clubId!)}</strong>
             </p>
 
-            <label className={styles.label}>Buscar persona (nombre o DNI)</label>
-            <input
-              className={styles.input}
-              placeholder="Ej: Garcia o 12345678"
-              value={busqueda}
-              onChange={e => {
-                setBusqueda(e.target.value)
-                setPersonaSeleccionada(null)
-              }}
-              autoFocus
-            />
-            {personasFiltradas.length > 0 && !personaSeleccionada && (
-              <ul className={styles.suggestions}>
-                {personasFiltradas.map(p => (
-                  <li
-                    key={p.id_persona}
-                    onClick={() => {
-                      setPersonaSeleccionada(p)
-                      setBusqueda(`${p.apellido}, ${p.nombre}`)
-                    }}
+            {resultadoFichaje ? (
+              <>
+                <div className={styles.resultadoCarga}>
+                  {resultadoFichaje.ok.length > 0 && (
+                    <div className={styles.resultadoOk}>
+                      <strong>✓ Fichados ({resultadoFichaje.ok.length})</strong>
+                      <ul>{resultadoFichaje.ok.map(n => <li key={n}>{n}</li>)}</ul>
+                    </div>
+                  )}
+                  {resultadoFichaje.errores.length > 0 && (
+                    <div className={styles.resultadoError}>
+                      <strong>✗ Fallaron ({resultadoFichaje.errores.length})</strong>
+                      <ul>{resultadoFichaje.errores.map(e => <li key={e}>{e}</li>)}</ul>
+                    </div>
+                  )}
+                </div>
+                <div className={styles.modalFooter}>
+                  <Button variant="outline" onClick={cerrarModal}>Cerrar</Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={styles.nuevoFilters}>
+                  <select
+                    className={styles.input}
+                    value={rolNuevo}
+                    onChange={e => { setRolNuevo(e.target.value); setSeleccionados(new Set()) }}
                   >
-                    <span className={styles.suggestNombre}>{p.apellido}, {p.nombre}</span>
-                    <span className={styles.suggestDoc}>DNI {p.documento}</span>
-                  </li>
-                ))}
-              </ul>
+                    {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                  <input
+                    className={styles.input}
+                    placeholder="Filtrar por nombre o DNI..."
+                    value={busquedaNuevo}
+                    onChange={e => setBusquedaNuevo(e.target.value)}
+                  />
+                </div>
+
+                <div className={styles.scrollList}>
+                  {loadingPersonas ? (
+                    <p className={styles.msg}>Cargando...</p>
+                  ) : personasFiltradas.length === 0 ? (
+                    <p className={styles.msg}>Sin personas disponibles para este rol.</p>
+                  ) : personasFiltradas.map((p: any) => {
+                    const checked = seleccionados.has(p.id_persona)
+                    return (
+                      <label
+                        key={p.id_persona}
+                        className={`${styles.personaItem} ${checked ? styles.personaItemSelected : ""}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleSeleccionado(p.id_persona)}
+                          className={styles.checkbox}
+                        />
+                        <div>
+                          <span className={styles.personaNombre}>{p.apellido}, {p.nombre}</span>
+                          <span className={styles.personaDni}>DNI: {p.documento}</span>
+                        </div>
+                      </label>
+                    )
+                  })}
+                </div>
+
+                <div className={styles.modalFooter}>
+                  <Button variant="outline" onClick={cerrarModal}>Cancelar</Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleFicharSeleccionados}
+                    disabled={seleccionados.size === 0 || saving}
+                  >
+                    {saving ? "Guardando..." : `Fichar seleccionados (${seleccionados.size})`}
+                  </Button>
+                </div>
+              </>
             )}
-
-            <label className={styles.label}>Rol en el club</label>
-            <select className={styles.input} value={rolNuevo} onChange={e => setRolNuevo(e.target.value)}>
-              {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
-
-            <label className={styles.label}>Fecha de inicio</label>
-            <input
-              className={styles.input}
-              type="date"
-              value={fechaInicio}
-              onChange={e => setFechaInicio(e.target.value)}
-            />
-
-            <div className={styles.modalFooter}>
-              <Button variant="outline" onClick={cerrarModal}>Cancelar</Button>
-              <Button
-                variant="primary"
-                onClick={handleNuevoFichaje}
-                disabled={!personaSeleccionada || saving}
-              >
-                {saving ? "Guardando..." : "Confirmar Fichaje"}
-              </Button>
-            </div>
           </div>
         </div>
       )}

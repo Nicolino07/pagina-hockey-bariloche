@@ -40,6 +40,21 @@ export const getFichajesActivosPorClubYRol = async (
 
 
 /**
+ * Devuelve personas disponibles para fichar en un club con un rol dado.
+ * Filtra: tienen el rol habilitante activo y no están fichadas con ese rol en ningún club.
+ */
+export const getPersonasDisponiblesParaFichar = async (
+  id_club: number,
+  rol: string
+): Promise<any[]> => {
+  const response = await api.get(`/fichajes/disponibles`, {
+    params: { id_club, rol },
+  })
+  return response.data
+}
+
+
+/**
  * Da de baja un fichaje existente (borrado lógico).
  */
 export const darBajaFichaje = async (

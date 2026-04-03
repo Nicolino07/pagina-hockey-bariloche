@@ -43,6 +43,10 @@
   gap: 12px;
 }
 
+.fichadosSection {
+  margin-bottom: 20px;
+}
+
 /* Grid de Fichados */
 .fichadosGrid {
   display: grid;
@@ -217,12 +221,17 @@
   border: 1px solid #333;
 }
 
+.selectorScrollable {
+  max-height: 300px;
+}
+
 .selectorItem {
-  padding: 10px;
+  padding: 8px 12px;
   border-bottom: 1px solid #222;
   cursor: pointer;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
 }
 
 .selectorItem:hover {
@@ -230,8 +239,93 @@
 }
 
 .selectedItem {
-  background: #1a3a5a;
-  border-left: 4px solid #8ab4f8;
+  background: #1a2a3a;
+  border-left: 3px solid #8ab4f8;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #8ab4f8;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.itemName {
+  display: block;
+  font-weight: 600;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+}
+
+.itemDni {
+  display: block;
+  color: #777;
+  font-size: 0.78rem;
+  font-family: monospace;
+}
+
+.fichajeFilters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.fichajeFilters select,
+.fichajeFilters input {
+  background: #2d2d2d;
+  border: 1px solid #444;
+  color: white;
+  padding: 8px 10px;
+  border-radius: 6px;
+  outline: none;
+}
+
+.fichajeFilters select { flex-shrink: 0; }
+.fichajeFilters input { flex: 1; }
+
+.fichajeFilters select:focus,
+.fichajeFilters input:focus { border-color: #8ab4f8; }
+
+/* Resultado de carga masiva */
+.resultadoCarga {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0 8px;
+}
+
+.resultadoOk {
+  background: rgba(74, 222, 128, 0.07);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #4ade80;
+}
+
+.resultadoError {
+  background: rgba(248, 113, 113, 0.07);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #f87171;
+}
+
+.resultadoOk strong,
+.resultadoError strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.resultadoOk ul,
+.resultadoError ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .modalActions {
@@ -301,4 +395,51 @@
   gap: 10px;
   border-top: 1px solid #333;
   padding-top: 15px;
+}
+
+/* ---- Botones del header ---- */
+.botones {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .botones {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .equipoHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .equipoActions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .manageBtn,
+  .editBtn,
+  .deleteBtn {
+    flex: 1;
+    text-align: center;
+    font-size: 0.8rem;
+    padding: 6px 8px;
+  }
+
+  .actionButtons {
+    flex-wrap: wrap;
+  }
 }

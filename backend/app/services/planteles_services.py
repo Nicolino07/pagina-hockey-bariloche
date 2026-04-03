@@ -1,6 +1,6 @@
 # backend/app/services/planteles_services.py
 from datetime import date, datetime
-from app.schemas.plantel import PlantelCreate
+from app.schemas.plantel import PlantelCreate, PlantelUpdate
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session, joinedload
 
@@ -271,16 +271,16 @@ def obtener_plantel_activo_por_equipo(
         .first()
     )
 
-def listar_integrantes_por_plantel(db: Session, id_plantel: int):
-    return (
+def listar_integrantes_por_plantel(db: Session, id_plantel: int, solo_activos: bool = True):
+    """Devuelve los integrantes de un plantel. Si solo_activos=False incluye los dados de baja."""
+    query = (
         db.query(PlantelIntegrante)
-        .options(joinedload(PlantelIntegrante.persona)) # <--- ESTA ES LA CLAVE
-        .filter(
-            PlantelIntegrante.id_plantel == id_plantel,
-            PlantelIntegrante.fecha_baja.is_(None),
-        )
-        .all()
+        .options(joinedload(PlantelIntegrante.persona))
+        .filter(PlantelIntegrante.id_plantel == id_plantel)
     )
+    if solo_activos:
+        query = query.filter(PlantelIntegrante.fecha_baja.is_(None))
+    return query.order_by(PlantelIntegrante.rol_en_plantel, PlantelIntegrante.fecha_alta).all()
 
 def listar_integrantes_activos(
     db: Session,
@@ -296,6 +296,58 @@ def listar_integrantes_activos(
     )
 
 
+def listar_planteles_por_equipo(db: Session, id_equipo: int) -> list[Plantel]:
+    """Devuelve todos los planteles de un equipo, excluyendo los borrados, del más reciente al más antiguo."""
+    return (
+        db.query(Plantel)
+        .filter(
+            Plantel.id_equipo == id_equipo,
+            Plantel.borrado_en.is_(None),
+        )
+        .order_by(Plantel.fecha_apertura.desc())
+        .all()
+    )
+
+
+def actualizar_plantel(db: Session, id_plantel: int, data, current_user) -> Plantel:
+    """Actualiza nombre, temporada y descripción de un plantel."""
+    from datetime import datetime
+    plantel = db.get(Plantel, id_plantel)
+    if not plantel:
+        raise NotFoundError("Plantel no encontrado")
+    if plantel.borrado_en is not None:
+        raise ValidationError("No se puede editar un plantel eliminado")
+
+    if data.nombre is not None:
+        plantel.nombre = data.nombre
+    if data.temporada is not None:
+        plantel.temporada = data.temporada
+    if data.descripcion is not None:
+        plantel.descripcion = data.descripcion
+
+    plantel.actualizado_en = datetime.utcnow()
+    plantel.actualizado_por = current_user.username
+    return plantel
+
+
+def cerrar_plantel(db: Session, id_plantel: int, current_user) -> Plantel:
+    """Cierra un plantel: lo marca inactivo y registra la fecha de cierre."""
+    from datetime import datetime
+    plantel = db.get(Plantel, id_plantel)
+    if not plantel:
+        raise NotFoundError("Plantel no encontrado")
+    if plantel.borrado_en is not None:
+        raise ValidationError("No se puede cerrar un plantel eliminado")
+    if not plantel.activo:
+        raise ValidationError("El plantel ya está cerrado")
+
+    plantel.activo = False
+    plantel.fecha_cierre = plantel.fecha_cierre or date.today()
+    plantel.actualizado_en = datetime.utcnow()
+    plantel.actualizado_por = current_user.username
+    return plantel
+
+
 def soft_delete_plantel(
     db: Session,
     id_plantel: int,
@@ -307,6 +359,78 @@ def soft_delete_plantel(
         raise NotFoundError("Plantel no encontrado")
 
     plantel.soft_delete(usuario=current_user.username)
+
+
+def listar_planteles_por_equipo(
+    db: Session,
+    id_equipo: int,
+) -> list[Plantel]:
+    """Devuelve todos los planteles de un equipo (activos e históricos), excluyendo los eliminados."""
+    return (
+        db.query(Plantel)
+        .filter(
+            Plantel.id_equipo == id_equipo,
+            Plantel.borrado_en.is_(None),
+        )
+        .order_by(Plantel.fecha_apertura.desc())
+        .all()
+    )
+
+
+def actualizar_plantel(
+    db: Session,
+    id_plantel: int,
+    data: PlantelUpdate,
+    current_user,
+) -> Plantel:
+    """Actualiza los campos editables de un plantel. No permite editar planteles eliminados."""
+    plantel = db.get(Plantel, id_plantel)
+
+    if not plantel:
+        raise NotFoundError("Plantel no encontrado")
+
+    if plantel.borrado_en is not None:
+        raise ValidationError("No se puede editar un plantel eliminado")
+
+    if data.nombre is not None:
+        plantel.nombre = data.nombre
+    if data.temporada is not None:
+        plantel.temporada = data.temporada
+    if data.descripcion is not None:
+        plantel.descripcion = data.descripcion
+
+    plantel.actualizado_en = datetime.utcnow()
+    plantel.actualizado_por = current_user.username
+
+    db.flush()
+    return plantel
+
+
+def cerrar_plantel(
+    db: Session,
+    id_plantel: int,
+    current_user,
+) -> Plantel:
+    """Cierra el plantel: lo marca como inactivo y registra la fecha de cierre si no tenía."""
+    plantel = db.get(Plantel, id_plantel)
+
+    if not plantel:
+        raise NotFoundError("Plantel no encontrado")
+
+    if plantel.borrado_en is not None:
+        raise ValidationError("No se puede cerrar un plantel eliminado")
+
+    if not plantel.activo:
+        raise ValidationError("El plantel ya está cerrado")
+
+    plantel.activo = False
+    if plantel.fecha_cierre is None:
+        plantel.fecha_cierre = date.today()
+    plantel.actualizado_en = datetime.utcnow()
+    plantel.actualizado_por = current_user.username
+
+    db.flush()
+    return plantel
 
 
 def restore_plantel(

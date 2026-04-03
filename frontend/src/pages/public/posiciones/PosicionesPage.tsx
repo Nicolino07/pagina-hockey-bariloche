@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { listarTorneos } from "../../../api/torneos.api"
+import { listarTorneosPublico } from "../../../api/torneos.api"
 import { obtenerPosiciones } from "../../../api/vistas/posiciones.api"
 import { obtenerTarjetasAcumuladas } from "../../../api/vistas/tarjetas.api"
 import { obtenerGoleadoresTorneo } from "../../../api/vistas/goleadores.api"
@@ -42,8 +42,8 @@ export default function PosicionesPage() {
   const [loadingHistoricos, setLoadingHistoricos] = useState(false)
 
   useEffect(() => {
-    listarTorneos()
-      .then(data => {
+    listarTorneosPublico()
+      .then((data: Torneo[]) => {
         const ordenados = [...data].sort((a, b) => {
           const catDiff = (ORDEN_CATEGORIA[a.categoria] ?? 99) - (ORDEN_CATEGORIA[b.categoria] ?? 99)
           if (catDiff !== 0) return catDiff
@@ -58,12 +58,12 @@ export default function PosicionesPage() {
   function cargarHistoricos() {
     if (verHistoricos) return
     setLoadingHistoricos(true)
-    listarTorneos(false)
-      .then(todos => {
+    listarTorneosPublico(false)
+      .then((todos: Torneo[]) => {
         const activosIds = new Set(torneos.map(t => t.id_torneo))
         const historicos = todos
           .filter(t => !activosIds.has(t.id_torneo))
-          .sort((a, b) => {
+          .sort((a: Torneo, b: Torneo) => {
             const catDiff = (ORDEN_CATEGORIA[a.categoria] ?? 99) - (ORDEN_CATEGORIA[b.categoria] ?? 99)
             if (catDiff !== 0) return catDiff
             return (a.division ?? "").localeCompare(b.division ?? "")

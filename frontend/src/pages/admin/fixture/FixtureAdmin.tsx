@@ -138,10 +138,13 @@ export default function FixtureAdmin() {
     setGuardando(true)
     setError(null)
     try {
+      const horarioConSegundos = (h: string | null | undefined) =>
+        h ? (h.length === 5 ? `${h}:00` : h) : null
+
       if (editando) {
         const update: FixturePartidoUpdate = {
           fecha_programada: form.fecha_programada || null,
-          horario: form.horario || null,
+          horario: horarioConSegundos(form.horario),
           ubicacion: form.ubicacion || null,
           numero_fecha: form.numero_fecha ?? null,
           estado: estadoEdicion,
@@ -151,7 +154,7 @@ export default function FixtureAdmin() {
         await programarPartido({
           ...form,
           fecha_programada: form.fecha_programada || null,
-          horario: form.horario || null,
+          horario: horarioConSegundos(form.horario),
           ubicacion: form.ubicacion || null,
         })
       }
@@ -363,7 +366,7 @@ export default function FixtureAdmin() {
                       <td>{p.numero_fecha ? `Fecha ${p.numero_fecha}` : "—"}</td>
                       <td>{p.nombre_equipo_local ?? equiposPorId[p.id_equipo_local] ?? p.id_equipo_local}</td>
                       <td>{p.nombre_equipo_visitante ?? equiposPorId[p.id_equipo_visitante] ?? p.id_equipo_visitante}</td>
-                      <td>{p.fecha_programada ?? "—"}</td>
+                      <td>{p.fecha_programada ? new Date(p.fecha_programada + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" }) : "—"}</td>
                       <td>{p.horario ? p.horario.slice(0, 5) : "—"}</td>
                       <td>{p.ubicacion ?? "—"}</td>
                       <td>

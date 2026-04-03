@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { obtenerPartidosRecientes, obtenerDetallePartido } from "../../../api/partidos.api"
-import { listarTorneos } from "../../../api/torneos.api"
+import { listarTorneosPublico } from "../../../api/torneos.api"
 import PartidoDetalleModal from "../../../components/partidos/PartidoDetalleModal"
 import type { Torneo } from "../../../types/torneo"
 import styles from "./ResultadosPage.module.css"
@@ -41,7 +41,7 @@ export default function ResultadosPage() {
   const [loadingHistoricos, setLoadingHistoricos] = useState(false)
 
   useEffect(() => {
-    Promise.all([listarTorneos(), obtenerPartidosRecientes()])
+    Promise.all([listarTorneosPublico(), obtenerPartidosRecientes()])
       .then(([t, p]) => {
         const ordenados = [...t].sort((a, b) => {
           const catDiff = (ORDEN_CATEGORIA[a.categoria] ?? 99) - (ORDEN_CATEGORIA[b.categoria] ?? 99)
@@ -70,12 +70,12 @@ export default function ResultadosPage() {
   function cargarHistoricos() {
     if (verHistoricos) return
     setLoadingHistoricos(true)
-    listarTorneos(false)
-      .then(todos => {
+    listarTorneosPublico(false)
+      .then((todos: Torneo[]) => {
         const activosIds = new Set(torneos.map(t => t.id_torneo))
         const historicos = todos
           .filter(t => !activosIds.has(t.id_torneo))
-          .sort((a, b) => {
+          .sort((a: Torneo, b: Torneo) => {
             const catDiff = (ORDEN_CATEGORIA[a.categoria] ?? 99) - (ORDEN_CATEGORIA[b.categoria] ?? 99)
             if (catDiff !== 0) return catDiff
             return (a.division ?? "").localeCompare(b.division ?? "")

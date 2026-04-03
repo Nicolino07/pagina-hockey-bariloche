@@ -18,8 +18,9 @@ from app.schemas.fichaje_rol import (
     FichajeRolRead,
     FichajeRolBaja,
 )
+from app.schemas.persona import PersonaRead
 from app.services import fichajes_services
-from app.dependencies.permissions import require_admin
+from app.dependencies.permissions import require_admin, require_editor
 
 router = APIRouter(
     prefix="/fichajes",
@@ -75,6 +76,28 @@ def dar_baja_fichaje(
         id_fichaje_rol=id_fichaje_rol,
         fecha_fin=data.fecha_fin,
         actualizado_por=data.actualizado_por,
+    )
+
+
+@router.get(
+    "/disponibles",
+    response_model=list[PersonaRead],
+    summary="Personas disponibles para fichar",
+)
+def obtener_personas_disponibles(
+    id_club: int,
+    rol: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
+):
+    """
+    Devuelve personas que tienen el rol habilitante activo
+    y no tienen fichaje activo con ese rol en ningún club.
+    """
+    return fichajes_services.obtener_personas_disponibles_para_fichar(
+        db=db,
+        id_club=id_club,
+        rol=rol,
     )
 
 
