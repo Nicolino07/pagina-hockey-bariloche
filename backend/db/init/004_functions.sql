@@ -116,8 +116,21 @@ $$;
 
 CREATE OR REPLACE FUNCTION fn_set_actualizado_en()
 RETURNS TRIGGER AS $$
+DECLARE
+    v_username TEXT;
 BEGIN
     NEW.actualizado_en := CURRENT_TIMESTAMP;
+
+    BEGIN
+        v_username := current_setting('app.current_username', true);
+    EXCEPTION WHEN OTHERS THEN
+        v_username := NULL;
+    END;
+
+    IF v_username IS NOT NULL AND v_username <> '' THEN
+        NEW.actualizado_por := v_username;
+    END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -518,7 +531,7 @@ BEGIN
             ELSE NULL
         END,
         v_user_id,
-        v_ip_address::inet,   -- CAST explícito a INET
+        CASE WHEN v_ip_address IS NOT NULL AND v_ip_address <> '' THEN v_ip_address::inet ELSE NULL END,
         v_user_agent
     );
 

@@ -210,10 +210,19 @@
 }
 
 .matchupRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  width: 100%;
+}
+
+.matchupRow strong:first-child {
+  text-align: right;
+}
+
+.matchupRow strong:last-child {
+  text-align: left;
 }
 
 .torneoCol {
@@ -585,19 +594,13 @@
     font-size: 0.75rem;
   }
 
-  /* En mobile, la celda "Encuentro" apila los nombres */
   .matchupRow {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 4px;
+    grid-template-columns: 1fr auto 1fr;
+    font-size: 0.85rem;
   }
 
   .torneoCol {
     align-items: flex-start;
-  }
-
-  .matchupRow {
-    justify-content: flex-start;
   }
 
   /* Modal adaptable a pantalla completa */
