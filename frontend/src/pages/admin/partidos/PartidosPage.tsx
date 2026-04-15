@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./PartidosPage.module.css";
 import Button from "../../../components/ui/button/Button";
-import { obtenerPartidosRecientes, obtenerDetallePartido } from "../../../api/partidos.api";
+import { obtenerPartidosRecientes, obtenerDetallePartido, eliminarPartido } from "../../../api/partidos.api";
 import { listarProximosPartidos } from "../../../api/fixture.api";
 import { usePartidos } from "../../../hooks/usePartidos";
 import type { FixturePartido } from "../../../types/fixture";
@@ -11,6 +11,7 @@ import { useTorneosActivos } from "../../../hooks/useTorneosActivos";
 import { useInscripcionesTorneo } from "../../../hooks/useInscripcionesTorneo";
 import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api";
 import { generarPlanillaPDF } from "../../../services/PlanillaVacia.service";
+import { useAuth } from "../../../auth/AuthContext";
 
 /**
  * Página administrativa de gestión de partidos.
@@ -23,9 +24,11 @@ export default function PartidosPage() {
   const [loading, setLoading] = useState(true);
   const [selectedPartido, setSelectedPartido] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
-  
+
   const navigate = useNavigate();
   const { parseIncidencias } = usePartidos();
+  const { user } = useAuth();
+  const esSuperusuario = user?.rol === "SUPERUSUARIO";
 
   const agruparGoles = (str: string) => {
     const items = parseIncidencias(str);
@@ -93,6 +96,20 @@ export default function PartidosPage() {
   useEffect(() => {
     cargarPartidos();
   }, []);
+
+  const handleEliminarPartido = async (partido: any) => {
+    const confirmado = window.confirm(
+      `¿Eliminar el partido ${partido.equipo_local_nombre} vs ${partido.equipo_visitante_nombre}?\n\nEsto eliminará también todos los goles, tarjetas y participantes asociados. Esta acción no se puede deshacer.`
+    );
+    if (!confirmado) return;
+
+    try {
+      await eliminarPartido(partido.id_partido);
+      setPartidos(prev => prev.filter(p => p.id_partido !== partido.id_partido));
+    } catch (error: any) {
+      alert(error.message || "No se pudo eliminar el partido");
+    }
+  };
 
   /** Obtiene el historial de partidos recientes y actualiza el estado. */
   const cargarPartidos = async () => {
@@ -318,6 +335,11 @@ export default function PartidosPage() {
                       <Button variant="outline" size="sm" onClick={() => navigate(`/admin/partidos/nueva-planilla?partido=${partido.id_partido}`)}>
                         ✏️ Editar
                       </Button>
+                      {esSuperusuario && (
+                        <Button variant="danger" size="sm" onClick={() => handleEliminarPartido(partido)}>
+                          🗑️ Eliminar
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>

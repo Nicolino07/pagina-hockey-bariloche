@@ -1,6 +1,7 @@
 from datetime import date, datetime, time
 from typing import Literal, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
+from app.schemas.validators import corregir_anio_fecha
 
 EstadoPartido = Literal["BORRADOR", "TERMINADO", "SUSPENDIDO", "ANULADO", "REPROGRAMADO"]
 
@@ -15,6 +16,11 @@ class FixturePartidoCreate(BaseModel):
     ubicacion: Optional[str] = None
     numero_fecha: Optional[int] = None
 
+    @field_validator("fecha_programada", mode="after")
+    @classmethod
+    def validar_fecha(cls, v: Optional[date]) -> Optional[date]:
+        return corregir_anio_fecha(v) if v is not None else v
+
 
 class FixturePartidoUpdate(BaseModel):
     """Campos editables de un partido programado."""
@@ -23,6 +29,11 @@ class FixturePartidoUpdate(BaseModel):
     ubicacion: Optional[str] = None
     numero_fecha: Optional[int] = None
     estado: Optional[EstadoPartido] = None
+
+    @field_validator("fecha_programada", mode="after")
+    @classmethod
+    def validar_fecha(cls, v: Optional[date]) -> Optional[date]:
+        return corregir_anio_fecha(v) if v is not None else v
 
 
 class FixturePartidoResponse(BaseModel):

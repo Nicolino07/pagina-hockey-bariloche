@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from datetime import date, time
 from app.models.enums import ReferenciaGol
 from app.models.enums import TipoTarjeta
+from app.schemas.validators import corregir_anio_fecha
 
 # ---------------------------
 # Datos básicos del partido
@@ -12,6 +13,11 @@ class PartidoPlanillaCreate(BaseModel):
     id_fase: Optional[int] = None
 
     fecha: date
+
+    @field_validator("fecha", mode="after")
+    @classmethod
+    def validar_fecha(cls, v: date) -> date:
+        return corregir_anio_fecha(v)
     horario: time | None = None
 
     id_inscripcion_local: int

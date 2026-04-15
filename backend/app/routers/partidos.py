@@ -8,8 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
-from app.dependencies.permissions import require_admin, require_editor
-from app.models.partido import Partido
+from app.dependencies.permissions import require_editor, require_superuser
 from app.schemas.partido import PartidoBase, PartidoDetalle
 from app.schemas.planilla_partido import PlanillaPartidoCreate, PartidoEdicionResponse
 
@@ -20,6 +19,7 @@ from app.services.partidos_services import (
     get_historial_por_equipo,
     get_partido_edicion,
     actualizar_planilla_partido,
+    eliminar_partido_service,
 )
 
 router = APIRouter(
@@ -66,28 +66,18 @@ def crear_planilla(
     return crear_planilla_partido(db, data, current_user)
 
 
-# 🔐 ADMIN / SUPERUSUARIO
+# 🔐 SUPERUSUARIO
 @router.delete("/{id_partido}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_partido(
     id_partido: int,
     db: Session = Depends(get_db),
-    current_user=Depends(require_admin),
+    current_user=Depends(require_superuser),
 ):
     """
-    Elimina un partido siempre que esté en estado BORRADOR.
-    No se permite eliminar partidos ya terminados. Requiere rol ADMIN o superior.
+    Elimina un partido y todos sus datos asociados (goles, tarjetas, participantes).
+    Si estaba TERMINADO, recalcula la tabla de posiciones del torneo. Requiere rol SUPERUSUARIO.
     """
-    partido = db.get(Partido, id_partido)
-    if not partido:
-        raise HTTPException(404, "Partido no encontrado")
-
-    if partido.estado_partido != "BORRADOR":
-        raise HTTPException(
-            400, "No se puede eliminar un partido terminado"
-        )
-
-    db.delete(partido)
-    db.commit()
+    eliminar_partido_service(db, id_partido)
 
 
 @router.get("/equipos/{id_equipo}", response_model=List[PartidoDetalle])

@@ -278,6 +278,27 @@ def get_partido_edicion(db: Session, id_partido: int):
     }
 
 
+def eliminar_partido_service(db: Session, id_partido: int):
+    """
+    Elimina un partido y todos sus datos asociados (goles, tarjetas, participantes).
+    Si el partido estaba TERMINADO, recalcula la tabla de posiciones del torneo.
+    """
+    partido = db.get(Partido, id_partido)
+    if not partido:
+        raise HTTPException(404, "Partido no encontrado")
+
+    era_terminado = partido.estado_partido == "TERMINADO"
+    id_torneo = partido.id_torneo
+
+    db.delete(partido)
+    db.flush()
+
+    if era_terminado:
+        db.execute(text("SELECT recalcular_tabla_posiciones(:id_torneo)"), {"id_torneo": id_torneo})
+
+    db.commit()
+
+
 def actualizar_planilla_partido(db: Session, id_partido: int, data, current_user):
     """
     Actualiza un partido existente borrando y recreando sus participantes, goles y tarjetas.
