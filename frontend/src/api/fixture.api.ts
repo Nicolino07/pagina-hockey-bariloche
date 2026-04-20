@@ -6,6 +6,11 @@ import type {
   FixturePartidoUpdate,
   FixturePreviewResponse,
   TipoFixture,
+  PlayoffPreviewResponse,
+  PlayoffRonda,
+  TipoFormatoPlayoff,
+  TipoAsignacion,
+  DueloManual,
 } from "../types/fixture"
 
 // ── Público ────────────────────────────────────────────────────────────────────
@@ -59,4 +64,34 @@ export async function generarFixture(idTorneo: number, tipo: TipoFixture): Promi
 
 export async function eliminarFixtureTorneo(idTorneo: number): Promise<void> {
   await axiosAdmin.delete(`/fixture/torneo/${idTorneo}`)
+}
+
+export async function previsualizarPlayoff(
+  idTorneo: number,
+  formato: TipoFormatoPlayoff,
+  asignacion: TipoAsignacion,
+  duelos?: DueloManual[],
+): Promise<PlayoffPreviewResponse> {
+  const res = await axiosAdmin.post<PlayoffPreviewResponse>(`/fixture/playoff/preview/${idTorneo}`, { formato, asignacion, duelos })
+  return res.data
+}
+
+export async function generarPlayoff(
+  idTorneo: number,
+  formato: TipoFormatoPlayoff,
+  asignacion: TipoAsignacion,
+  duelos?: DueloManual[],
+): Promise<FixturePartido[]> {
+  const res = await axiosAdmin.post<FixturePartido[]>(`/fixture/playoff/generar/${idTorneo}`, { formato, asignacion, duelos })
+  return res.data
+}
+
+export async function listarRondasPlayoff(idTorneo: number): Promise<PlayoffRonda[]> {
+  const res = await axiosAdmin.get<PlayoffRonda[]>(`/fixture/playoff/rondas/${idTorneo}`)
+  return res.data
+}
+
+export async function crearRondaPlayoff(idTorneo: number, nombre: string, idaYVuelta: boolean): Promise<PlayoffRonda> {
+  const res = await axiosAdmin.post<PlayoffRonda>(`/fixture/playoff/rondas/${idTorneo}`, { nombre, ida_y_vuelta: idaYVuelta })
+  return res.data
 }

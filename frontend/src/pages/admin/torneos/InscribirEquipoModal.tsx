@@ -33,10 +33,12 @@ export default function InscribirEquipoModal({
 }: Props) {
   const { equipos, loading } = useEquipos()
 
+  const esPostemporada = torneo.tipo === "PLAYOFF" || torneo.tipo === "COPA" || !torneo.tipo
+
   const equiposFiltrados = equipos.filter(
     (e: Equipo) =>
       e.categoria === torneo.categoria &&
-      (e.division ?? null) === (torneo.division ?? null) &&
+      (esPostemporada || (e.division ?? null) === (torneo.division ?? null)) &&
       e.genero === torneo.genero
   )
 

@@ -1,8 +1,8 @@
 import { useState } from "react"
 import Button from "../../../components/ui/button/Button"
 import { crearTorneo, actualizarTorneo } from "../../../api/torneos.api"
-import type { TipoGenero, TipoCategoria } from  "../../../constants/enums"
-import { GENEROS, CATEGORIAS } from "../../../constants/enums"
+import type { TipoGenero, TipoCategoria, TipoTorneo } from "../../../constants/enums"
+import { GENEROS, CATEGORIAS, TIPOS_TORNEO } from "../../../constants/enums"
 import type { Torneo } from "../../../types/torneo"
 
 import styles from "./CrearTorneoForm.module.css"
@@ -26,12 +26,14 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
     categoria: TipoCategoria
     division: string | null
     genero: TipoGenero
+    tipo: TipoTorneo
     fecha_inicio: string
   }>({
     nombre: torneoEditar?.nombre ?? "",
     categoria: torneoEditar?.categoria ?? "MAYORES",
     division: torneoEditar?.division ?? null,
     genero: torneoEditar?.genero ?? "FEMENINO",
+    tipo: torneoEditar?.tipo ?? "LIGA",
     fecha_inicio: torneoEditar?.fecha_inicio ?? "",
   })
 
@@ -119,6 +121,22 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
           {GENEROS.map(gen => (
             <option key={gen} value={gen}>
               {gen === "MASCULINO" ? "Masculino" : gen === "FEMENINO" ? "Femenino" : "Mixto"}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>Tipo de torneo</label>
+        <select
+          className={styles.select}
+          name="tipo"
+          value={form.tipo}
+          onChange={handleChange}
+        >
+          {TIPOS_TORNEO.map(t => (
+            <option key={t} value={t}>
+              {t === "LIGA" ? "Liga" : t === "PLAYOFF" ? "Playoff" : "Copa"}
             </option>
           ))}
         </select>

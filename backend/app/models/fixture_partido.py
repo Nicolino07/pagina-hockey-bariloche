@@ -4,6 +4,7 @@ from typing import Optional
 from sqlalchemy import (
     Integer,
     String,
+    Boolean,
     Date,
     Time,
     TIMESTAMP,
@@ -26,15 +27,21 @@ class FixturePartido(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "id_equipo_local <> id_equipo_visitante",
-            name="chk_fixture_partido_equipos_distintos"
+            "id_equipo_local IS NULL OR id_equipo_visitante IS NULL OR id_equipo_local <> id_equipo_visitante",
+            name="chk_fixture_equipos_distintos"
         ),
     )
 
     id_fixture_partido: Mapped[int] = mapped_column(primary_key=True)
 
     id_fixture_fecha: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("fixture_fecha.id_fixture_fecha", ondelete="CASCADE")
+        ForeignKey("fixture_fecha.id_fixture_fecha", ondelete="CASCADE"),
+        nullable=True,
+    )
+
+    id_fixture_playoff_ronda: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("fixture_playoff_ronda.id_fixture_playoff_ronda", ondelete="CASCADE"),
+        nullable=True,
     )
 
     id_torneo: Mapped[int] = mapped_column(
@@ -42,15 +49,18 @@ class FixturePartido(Base):
         nullable=False
     )
 
-    id_equipo_local: Mapped[int] = mapped_column(
+    id_equipo_local: Mapped[Optional[int]] = mapped_column(
         ForeignKey("equipo.id_equipo"),
-        nullable=False
+        nullable=True
     )
 
-    id_equipo_visitante: Mapped[int] = mapped_column(
+    id_equipo_visitante: Mapped[Optional[int]] = mapped_column(
         ForeignKey("equipo.id_equipo"),
-        nullable=False
+        nullable=True
     )
+
+    placeholder_local: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    placeholder_visitante: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     numero_fecha: Mapped[Optional[int]] = mapped_column(Integer)
     fecha_programada: Mapped[Optional[date]] = mapped_column(Date)
@@ -81,6 +91,7 @@ class FixturePartido(Base):
 
     # Relaciones
     fixture_fecha = relationship("FixtureFecha", backref="partidos_fixture")
+    playoff_ronda = relationship("FixturePlayoffRonda", back_populates="partidos")
     torneo = relationship("Torneo", backref="fixture_partidos")
     equipo_local = relationship("Equipo", foreign_keys=[id_equipo_local])
     equipo_visitante = relationship("Equipo", foreign_keys=[id_equipo_visitante])

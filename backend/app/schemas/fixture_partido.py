@@ -3,7 +3,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, field_validator
 from app.schemas.validators import corregir_anio_fecha
 
-TipoFixture = Literal["simple", "ida_y_vuelta"]
+TipoFixture = Literal["simple", "ida_y_vuelta", "ida_y_vuelta_aleatorio"]
 
 
 class FixtureGenerarRequest(BaseModel):
@@ -47,6 +47,8 @@ class FixturePartidoCreate(BaseModel):
     horario: Optional[time] = None
     ubicacion: Optional[str] = None
     numero_fecha: Optional[int] = None
+    id_fixture_playoff_ronda: Optional[int] = None
+    estado: Optional[EstadoPartido] = None
 
     @field_validator("fecha_programada", mode="after")
     @classmethod
@@ -71,8 +73,8 @@ class FixturePartidoUpdate(BaseModel):
 class FixturePartidoResponse(BaseModel):
     id_fixture_partido: int
     id_torneo: int
-    id_equipo_local: int
-    id_equipo_visitante: int
+    id_equipo_local: Optional[int] = None
+    id_equipo_visitante: Optional[int] = None
     nombre_equipo_local: Optional[str] = None
     nombre_equipo_visitante: Optional[str] = None
     nombre_torneo: Optional[str] = None
@@ -88,6 +90,11 @@ class FixturePartidoResponse(BaseModel):
     goles_local: Optional[int] = None
     goles_visitante: Optional[int] = None
     nombre_equipo_descansa: Optional[str] = None
+    rueda: Optional[str] = None
+    placeholder_local: Optional[str] = None
+    placeholder_visitante: Optional[str] = None
+    id_fixture_playoff_ronda: Optional[int] = None
+    nombre_ronda_playoff: Optional[str] = None
     creado_en: datetime
     creado_por: Optional[str]
 

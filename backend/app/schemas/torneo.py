@@ -2,13 +2,14 @@
 from pydantic import BaseModel, Field, validator
 from datetime import date, datetime
 from typing import Optional
-from app.models.enums import CategoriaTipo, GeneroTipo
+from app.models.enums import CategoriaTipo, GeneroTipo, TipoTorneo
 
 class TorneoBase(BaseModel):
     nombre: str = Field(..., min_length=1, max_length=100)
     categoria: CategoriaTipo
     division: Optional[str] = Field(None, max_length=30)
     genero: GeneroTipo
+    tipo: TipoTorneo = TipoTorneo.LIGA
     fecha_inicio: date = Field(default_factory=date.today)
     fecha_fin: Optional[date] = None
     activo: bool = True

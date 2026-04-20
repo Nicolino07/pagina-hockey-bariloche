@@ -76,33 +76,56 @@ CREATE TABLE IF NOT EXISTS fixture_fecha (
     CONSTRAINT unq_fixture_fecha UNIQUE (id_torneo, rueda, numero_fecha)
 );
 
+
+-- ================================================
+-- FIXTURE_PLAYOFF_RONDA
+-- Copas o formato eliminicion
+-- ================================================
+
+CREATE TABLE IF NOT EXISTS fixture_playoff_ronda (
+    id_fixture_playoff_ronda INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_torneo                INT NOT NULL REFERENCES torneo(id_torneo) ON DELETE CASCADE,
+    nombre                   VARCHAR(100) NOT NULL,
+    orden                    INT NOT NULL,
+    ida_y_vuelta             BOOLEAN NOT NULL DEFAULT FALSE,
+
+    creado_en                TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creado_por               VARCHAR(100),
+
+    CONSTRAINT unq_playoff_ronda UNIQUE (id_torneo, orden)
+);
+
 -- ================================================
 -- FIXTURE_PARTIDO
 -- ================================================
 
 CREATE TABLE IF NOT EXISTS fixture_partido (
-    id_fixture_partido  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_fixture_fecha    INT
+    id_fixture_partido       INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_fixture_fecha         INT
         REFERENCES fixture_fecha(id_fixture_fecha) ON DELETE CASCADE,
-    id_torneo           INT NOT NULL REFERENCES torneo(id_torneo) ON DELETE CASCADE,
-    id_equipo_local     INT NOT NULL REFERENCES equipo(id_equipo),
-    id_equipo_visitante INT NOT NULL REFERENCES equipo(id_equipo),
+    id_torneo                INT NOT NULL REFERENCES torneo(id_torneo) ON DELETE CASCADE,
+    id_equipo_local          INT REFERENCES equipo(id_equipo),          -- NULL en partidos playoff sin equipos definidos
+    id_equipo_visitante      INT REFERENCES equipo(id_equipo),          -- NULL en partidos playoff sin equipos definidos
+    id_fixture_playoff_ronda INT REFERENCES fixture_playoff_ronda(id_fixture_playoff_ronda) ON DELETE CASCADE,
 
-    numero_fecha        INT,
-    fecha_programada    DATE,
-    horario             TIME,
-    ubicacion           VARCHAR(200),
+    placeholder_local        VARCHAR(100),   -- Ej: "Ganador SF1" mientras no hay equipo definido
+    placeholder_visitante    VARCHAR(100),
 
-    estado              tipo_estado_partido NOT NULL DEFAULT 'BORRADOR',
-    id_partido_real     INT REFERENCES partido(id_partido) ON DELETE SET NULL,
+    numero_fecha             INT,
+    fecha_programada         DATE,
+    horario                  TIME,
+    ubicacion                VARCHAR(200),
 
-    creado_en           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    creado_por          VARCHAR(100),
-    actualizado_en      TIMESTAMP DEFAULT NULL,
-    actualizado_por     VARCHAR(100),
+    estado                   tipo_estado_partido NOT NULL DEFAULT 'BORRADOR',
+    id_partido_real          INT REFERENCES partido(id_partido) ON DELETE SET NULL,
+
+    creado_en                TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creado_por               VARCHAR(100),
+    actualizado_en           TIMESTAMP DEFAULT NULL,
+    actualizado_por          VARCHAR(100),
 
     CONSTRAINT chk_fixture_equipos_distintos
-        CHECK (id_equipo_local <> id_equipo_visitante)
+        CHECK (id_equipo_local IS NULL OR id_equipo_visitante IS NULL OR id_equipo_local <> id_equipo_visitante)
 );
 
 

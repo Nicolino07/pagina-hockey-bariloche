@@ -113,6 +113,17 @@ export const ESTADOS_GOL = [
 export type TipoEstadoGol = typeof ESTADOS_GOL[number]
 
 // =====================
+// Tipo de torneo
+// =====================
+export const TIPOS_TORNEO = [
+  "LIGA",
+  "PLAYOFF",
+  "COPA",
+] as const
+
+export type TipoTorneo = typeof TIPOS_TORNEO[number]
+
+// =====================
 // Fase
 // =====================
 export const FASES = [

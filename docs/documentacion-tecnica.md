@@ -255,7 +255,7 @@ Los scripts en `backend/db/init/` se ejecutan en orden al crear el contenedor po
 | `tipo_genero` | `MASCULINO`, `FEMENINO`, `MIXTO` |
 | `tipo_categoria` | `MAYORES`, `SUB_19`, `SUB_16`, `SUB_14`, `SUB_12` |
 | `tipo_rol_persona` | `JUGADOR`, `DT`, `ARBITRO`, `ASISTENTE`, `MEDICO`, `PREPARADOR_FISICO`, `DELEGADO` |
-| `tipo_estado_partido` | `BORRADOR`, `TERMINADO`, `SUSPENDIDO`, `ANULADO`, `REPROGRAMADO` |
+| `tipo_estado_partido` | `BORRADOR`, `PENDIENTE`, `TERMINADO`, `SUSPENDIDO`, `ANULADO`, `REPROGRAMADO` |
 | `tipo_tarjeta` | `VERDE`, `AMARILLA`, `ROJA` |
 | `tipo_estado_tarjeta` | `VALIDA`, `ANULADA`, `CORREGIDA` |
 | `tipo_gol` | `GJ` (jugada), `GC` (córner), `GP` (penal), `DP` (desvío penal) |
@@ -263,6 +263,7 @@ Los scripts en `backend/db/init/` se ejecutan en orden al crear el contenedor po
 | `tipo_suspension` | `POR_PARTIDOS`, `POR_FECHA` |
 | `tipo_estado_suspension` | `ACTIVA`, `CUMPLIDA`, `ANULADA` |
 | `tipo_fase` | `LIGA`, `ELIMINACION`, `GRUPOS` |
+| `tipo_torneo` | `LIGA`, `PLAYOFF`, `COPA` |
 | `tipo_usuario` | `SUPERUSUARIO`, `ADMIN`, `EDITOR`, `LECTOR` |
 
 ---
@@ -294,8 +295,15 @@ torneo ──< inscripcion_torneo >── equipo
             └──< suspension (via persona_rol)
 
 
+fixture_fecha ──> torneo
+              ──> equipo (descansa, opcional — cuando el número de equipos es impar)
+
+fixture_playoff_ronda ──> torneo
+
 fixture_partido ──> torneo
-                ──> equipo (local y visitante)
+                ──> equipo (local y visitante, nullable en playoff)
+                ──> fixture_fecha (agrupación por jornada, NULL en playoff)
+                ──> fixture_playoff_ronda (NULL en fixture de liga)
                 ──> partido (cuando se carga la planilla real)
 
 usuario (independiente)
@@ -433,6 +441,7 @@ Competencia oficial en la que participan equipos.
 | `categoria` | tipo_categoria | Categoría |
 | `division` | VARCHAR(30) | División (opcional) |
 | `genero` | tipo_genero | Género |
+| `tipo` | tipo_torneo | Tipo de competencia: `LIGA`, `PLAYOFF`, `COPA` (default: `LIGA`) |
 | `fecha_inicio` | DATE | Inicio del torneo |
 | `fecha_fin` | DATE | Fin del torneo (opcional) |
 | `activo` | BOOLEAN | Si el torneo está en curso |
@@ -580,21 +589,75 @@ Estadísticas de un equipo en un torneo (tabla de posiciones). Se actualiza al c
 
 ---
 
+**`fixture_fecha`**
+Agrupación lógica de jornadas dentro de un torneo. Almacena el número de fecha y, si hay número impar de equipos, qué equipo descansa en esa jornada.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_fixture_fecha` | INT PK | Identificador |
+| `id_torneo` | INT FK → torneo | Torneo |
+| `numero_fecha` | INT | Número de la jornada |
+| `rueda` | VARCHAR(20) | Rueda: `ida` o `vuelta` |
+| `id_equipo_descansa` | INT FK → equipo | Equipo que descansa (NULL si número par de equipos) |
+| `creado_en` | TIMESTAMP | Fecha de creación |
+| `creado_por` | VARCHAR(100) | Usuario que creó |
+| `actualizado_en` | TIMESTAMP | Última actualización |
+| `actualizado_por` | VARCHAR(100) | Usuario que actualizó |
+
+---
+
+**`fixture_playoff_ronda`**
+Ronda de un bracket de playoff (Final, Semifinal, Cuartos, etc.). Agrupa los partidos de cada eliminatoria.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_fixture_playoff_ronda` | INT PK | Identificador |
+| `id_torneo` | INT FK → torneo | Torneo |
+| `nombre` | VARCHAR(100) | Nombre de la ronda (ej: "Semifinal", "Final") |
+| `orden` | INT | Orden dentro del bracket (1 = primera ronda) |
+| `ida_y_vuelta` | BOOLEAN | Si la ronda se juega a ida y vuelta |
+| `creado_en` | TIMESTAMP | Fecha de creación |
+| `creado_por` | VARCHAR(100) | Usuario que creó |
+
+Restricción: `(id_torneo, orden)` únicos.
+
+---
+
 **`fixture_partido`**
-Partido programado (fixture) antes de jugarse. Al cargarse la planilla real queda vinculado a `partido`.
+Partido programado (fixture) antes de jugarse. Al cargarse la planilla real queda vinculado a `partido`. Para partidos de playoff con equipos aún no definidos, `id_equipo_local`/`id_equipo_visitante` son NULL y se usan los campos `placeholder_*`.
 
 | Columna | Tipo | Descripción |
 |---------|------|-------------|
 | `id_fixture_partido` | INT PK | Identificador |
 | `id_torneo` | INT FK → torneo | Torneo |
-| `id_equipo_local` | INT FK → equipo | Equipo local |
-| `id_equipo_visitante` | INT FK → equipo | Equipo visitante |
-| `fecha_programada` | DATE | Fecha programada |
+| `id_equipo_local` | INT FK → equipo (nullable) | Equipo local (NULL en playoff hasta definirse) |
+| `id_equipo_visitante` | INT FK → equipo (nullable) | Equipo visitante (NULL en playoff hasta definirse) |
+| `id_fixture_fecha` | INT FK → fixture_fecha | Jornada a la que pertenece (NULL en playoff) |
+| `id_fixture_playoff_ronda` | INT FK → fixture_playoff_ronda | Ronda de playoff (NULL en fixture de liga) |
+| `placeholder_local` | VARCHAR(100) | Ej: "Ganador SF1" mientras no hay equipo definido |
+| `placeholder_visitante` | VARCHAR(100) | Ej: "Ganador SF2" |
+| `fecha_programada` | DATE | Fecha programada (opcional, asignada manualmente) |
 | `horario` | TIME | Horario (opcional) |
 | `ubicacion` | VARCHAR(200) | Lugar (opcional) |
-| `numero_fecha` | INT | Jornada |
-| `estado` | tipo_estado_partido | Estado del fixture |
+| `numero_fecha` | INT | Jornada (copia desnormalizada) |
+| `estado` | tipo_estado_partido | Estado del partido de fixture |
 | `id_partido_real` | INT FK → partido | Partido real (NULL hasta que se cargue la planilla) |
+| `creado_en` | TIMESTAMP | Fecha de creación |
+| `creado_por` | VARCHAR(100) | Usuario que creó |
+| `actualizado_por` | VARCHAR(100) | Usuario que actualizó |
+
+**Estados de `fixture_partido`:**
+
+| Estado | Visible al público | Descripción |
+|--------|-------------------|-------------|
+| `BORRADOR` | No | Creado automáticamente por el generador. Sin fecha asignada. |
+| `PENDIENTE` | Sí | Tiene fecha asignada. Se muestra en el fixture público. |
+| `TERMINADO` | Sí | Partido jugado y planilla cargada. |
+| `SUSPENDIDO` | Sí | Partido suspendido. |
+| `REPROGRAMADO` | Sí | Partido reprogramado. |
+| `ANULADO` | No (en fixture) | Partido anulado. |
+
+> **Transición automática**: cuando se asigna una `fecha_programada` a un partido en estado `BORRADOR`, el backend lo pasa automáticamente a `PENDIENTE`. Si se quita la fecha de un `PENDIENTE`, vuelve a `BORRADOR`.
 
 ---
 
@@ -745,14 +808,63 @@ Todos los endpoints tienen el prefijo `/api`. Ejemplo: `GET /api/clubes`.
 | DELETE | `/{id}` | Superusuario |
 
 #### Fixture (`/api/fixture`)
-| Método | Ruta | Rol mínimo |
-|--------|------|-----------|
-| GET | `/proximos` | Público |
-| GET | `/{id}` | Público |
-| GET | `/torneo/{id}` | Público |
-| POST | `/` | Editor |
-| PUT | `/{id}` | Editor |
-| DELETE | `/{id}` | Editor |
+| Método | Ruta | Descripción | Rol mínimo |
+|--------|------|-------------|-----------|
+| GET | `/proximos` | Próximos partidos públicos (PENDIENTE, SUSPENDIDO, REPROGRAMADO) | Público |
+| GET | `/torneo/{id}` | Fixture de un torneo (solo estados visibles) | Público |
+| GET | `/admin/torneo/{id}` | Fixture de un torneo (todos los estados, incluye BORRADOR) | Editor |
+| GET | `/{id}` | Detalle de un partido de fixture | Público |
+| POST | `/` | Programar partido manual | Editor |
+| POST | `/preview/{id_torneo}` | Previsualizar fixture automático (sin guardar) | Editor |
+| POST | `/generar/{id_torneo}` | Generar y guardar fixture automático (round-robin) | Editor |
+| PUT | `/{id}` | Editar partido de fixture | Editor |
+| DELETE | `/{id}` | Eliminar un partido de fixture | Editor |
+| DELETE | `/torneo/{id_torneo}` | Eliminar todo el fixture de un torneo | Editor |
+| GET | `/playoff/rondas/{id_torneo}` | Listar rondas de un playoff | Editor |
+| POST | `/playoff/rondas/{id_torneo}` | Crear ronda de playoff manualmente | Editor |
+| POST | `/playoff/preview/{id_torneo}` | Previsualizar bracket de playoff (sin guardar) | Editor |
+| POST | `/playoff/generar/{id_torneo}` | Generar y guardar bracket de playoff | Editor |
+
+> **Importante:** el orden de las rutas en FastAPI es relevante. Las rutas literales (`/proximos`, `/admin/torneo/{id}`, `/torneo/{id}`, `/preview/{id}`, `/generar/{id}`) deben registrarse **antes** de la ruta paramétrica `/{id}` para evitar que FastAPI trate cadenas como "torneo" como un ID entero.
+
+**Tipos de fixture (`tipo`):**
+
+| Valor | Descripción |
+|-------|-------------|
+| `simple` | Todos contra todos una sola vez (round-robin ida) |
+| `ida_y_vuelta` | Vuelta espejo exacto de la ida, mismos enfrentamientos con local/visitante invertidos |
+| `ida_y_vuelta_aleatorio` | Vuelta con orden de fechas aleatorio; se garantiza que la primera fecha de vuelta no repita los enfrentamientos de la última de ida |
+
+El campo `rueda` (`"ida"` o `"vuelta"`) se almacena en `fixture_fecha` y se expone en el response de cada `fixture_partido`. Para torneos sin generación automática (programados manualmente) el campo es `null`.
+
+**Generación automática de fixture (round-robin):**
+
+1. El frontend llama a `POST /preview/{id_torneo}` con `{ tipo: "simple" | "ida_y_vuelta" | "ida_y_vuelta_aleatorio" }`.
+2. El backend devuelve `FixturePreviewResponse` con todos los partidos y descansos por fecha, sin guardar nada.
+3. El usuario revisa el preview y confirma.
+4. El frontend llama a `POST /generar/{id_torneo}` con el mismo tipo.
+5. El backend guarda `fixture_fecha` y `fixture_partido` en estado `BORRADOR`.
+6. Si ya existía fixture para ese torneo, se elimina primero (incluyendo partidos jugados si los hay — el sistema avisa al frontend).
+
+**Generación de bracket de playoff:**
+
+Disponible para torneos de tipo `PLAYOFF` o `COPA`. Genera un cuadro de eliminación directa a partir de los equipos inscriptos.
+
+Parámetros (`GenerarPlayoffRequest`):
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `formato` | `"ida"` \| `"ida_y_vuelta"` | Si cada serie se juega a ida o ida y vuelta |
+| `asignacion` | `"automatico"` \| `"manual"` | Cómo se asignan los cruces |
+| `duelos` | lista (opcional) | Pares `{id_equipo_local, id_equipo_visitante}` para la primera ronda (solo para `asignacion: "manual"`) |
+
+Algoritmo:
+- Se calculan las rondas necesarias según la cantidad de equipos (potencia de 2 superior).
+- Si el número de equipos no es potencia de 2, se agrega una ronda de Repechaje donde los equipos "extra" juegan entre sí; los restantes tienen BYE (avanzan directamente).
+- Las rondas posteriores se crean con `placeholder_local` / `placeholder_visitante` (ej: `"Ganador SF1"`) sin equipos asignados.
+- Cuando se carga la planilla de un partido y queda en estado `TERMINADO`, el backend identifica automáticamente al ganador y reemplaza el placeholder correspondiente en la siguiente ronda (`avanzar_ganador`).
+
+Nombres de ronda según cantidad de partidos: `Repechaje`, `Octavos de Final`, `Cuartos de Final`, `Semifinal`, `Final`.
 
 #### Planteles (`/api/planteles`)
 | Método | Ruta | Rol mínimo |
@@ -896,6 +1008,29 @@ Las dependencias FastAPI `require_superusuario`, `require_admin`, `require_edito
 El proyecto usa **Alembic** para migraciones de esquema. La inicialización base se hace por SQL (scripts en `db/init/`). Alembic se usa para cambios incrementales después del deploy inicial.
 
 Consultar `ALEMBIC_MANUAL.txt` en la raíz para el flujo de trabajo detallado.
+
+### Historial de migraciones
+
+| Versión | Descripción |
+|---------|-------------|
+| `0001` – `0012` | Migraciones iniciales: tablas base, auditoría, fixture básico |
+| `0013` | Mejoras de fixture: agrega `PENDIENTE` al enum `tipo_estado_partido`; columna `actualizado_por` en `fixture_partido`; columnas `actualizado_en`, `actualizado_por` e `id_equipo_descansa` en `fixture_fecha`; FK `fixture_fecha → equipo` para el equipo que descansa |
+| `0014` | Tipo de torneo: crea enum `tipo_torneo` (`LIGA`, `PLAYOFF`, `COPA`) y agrega columna `tipo` en tabla `torneo` (default `LIGA`) |
+| `0015` | Sistema de playoff: crea tabla `fixture_playoff_ronda`; agrega en `fixture_partido` las columnas `id_fixture_playoff_ronda` (FK), `placeholder_local`, `placeholder_visitante`; hace nullable `id_equipo_local` e `id_equipo_visitante`; actualiza constraint de equipos distintos para permitir NULLs |
+
+### Aplicar migraciones en producción (VPS)
+
+```bash
+# 1. Subir los cambios al servidor (git pull o scp)
+# 2. Reconstruir e iniciar los contenedores
+docker compose up --build -d
+
+# 3. Aplicar migraciones pendientes
+docker compose exec api alembic upgrade head
+
+# 4. Verificar
+docker compose exec api alembic current
+```
 
 Comandos básicos:
 

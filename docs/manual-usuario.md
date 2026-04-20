@@ -76,6 +76,13 @@ La página principal muestra:
 - Columnas: Pos., Equipo, PJ, G, E, P, GF, GC, Dif, Pts.
 - Se actualiza automáticamente al cargar los resultados de los partidos.
 
+Para torneos de tipo **Playoff** o **Copa**, en lugar de la tabla de posiciones se muestra el **cuadro de llaves**:
+
+- Cada ronda aparece como una columna (Cuartos, Semifinal, Final, etc.).
+- Los cruces muestran los equipos enfrentados; si aún no están definidos, aparece el marcador de posición (ej: "Ganador SF1").
+- El ganador de cada cruce se resalta en verde; el perdedor aparece opaco.
+- Las flechas conectan los cruces entre rondas para mostrar el avance.
+
 ### Ranking
 
 - **Goleadores**: top 10 de jugadores con más goles en el torneo.
@@ -84,9 +91,10 @@ La página principal muestra:
 
 ### Fixture
 
-- Próximos partidos programados.
+- Próximos partidos con fecha asignada (estado Pendiente, Suspendido o Reprogramado).
 - Información de fecha, horario, equipos y ubicación.
 - Filtrable por torneo.
+- Los partidos en estado Borrador (sin fecha asignada) no aparecen en esta sección.
 
 ### Resultados
 
@@ -123,7 +131,9 @@ El sistema tiene cuatro roles de usuario:
 |---------------|--------|-------|--------------|
 | Cargar planilla de partido | Sí | Sí | Sí |
 | Eliminar partido | No | No | Sí |
-| Programar / editar fixture | Sí | No | No |
+| Programar / editar fixture | Sí | No | Sí |
+| Generar fixture automático | Sí | No | Sí |
+| Eliminar fixture completo | Sí | No | Sí |
 | Crear y editar noticias | No | Sí | Sí |
 | Gestionar personas | No | Sí | Sí |
 | Gestionar equipos | No | Sí | Sí |
@@ -163,19 +173,95 @@ El rol **Editor** es para quienes cargan resultados de partidos y programan el f
 2. Buscar el partido y hacer clic en **Editar**.
 3. Realizar los cambios y guardar.
 
-#### Programar fixture
+#### Programar partido de fixture manualmente
 
 1. Ir a **Fixture** en el panel admin.
-2. Hacer clic en **Nuevo partido**.
-3. Ingresar: equipos (local y visitante), fecha, horario, ubicación y número de fecha del torneo.
-4. Guardar.
+2. Seleccionar el torneo en el selector superior.
+3. Hacer clic en **+ Programar partido**.
+4. Ingresar: equipos (local y visitante), número de fecha, fecha, horario y ubicación.
+5. Guardar. El partido queda en estado **Pendiente** (visible al público).
 
-#### Editar o eliminar fixture
+#### Generar fixture automático (round-robin)
+
+El sistema puede generar el calendario completo de un torneo de forma automática a partir de los equipos inscriptos. Esta opción está disponible para torneos de tipo **Liga**.
+
+1. Ir a **Fixture** en el panel admin.
+2. Seleccionar el torneo.
+3. Hacer clic en **⚡ Generar fixture**. Se despliega el panel de generación.
+4. Elegir el tipo:
+   - **Solo ida**: cada par de equipos se enfrenta una sola vez.
+   - **Ida y vuelta (espejo)**: cada par se enfrenta dos veces; la vuelta reproduce los mismos enfrentamientos de la ida pero con local y visitante invertidos.
+   - **Ida y vuelta (vuelta aleatoria)**: cada par se enfrenta dos veces; el orden de la vuelta es aleatorio para evitar que los mismos equipos se enfrenten en fechas consecutivas.
+5. Hacer clic en **Previsualizar**. El sistema muestra todos los partidos ordenados por jornada antes de guardar nada.
+6. Revisar el preview. Si hay número impar de equipos, en cada jornada aparecerá un equipo marcado como **Descansa**.
+7. Hacer clic en **Confirmar y guardar** para crear el fixture.
+
+> Los partidos generados se crean en estado **Borrador** (no visibles al público). Para que aparezcan en el sitio público, hay que asignarles una fecha manualmente (ver abajo).
+
+> Si el torneo ya tenía partidos programados, el sistema los elimina al generar un fixture nuevo. El sistema avisa si hay partidos en estado avanzado (jugados, etc.) para que el Editor confirme antes de proceder.
+
+#### Generar bracket de playoff
+
+Para torneos de tipo **Playoff** o **Copa**, el sistema genera un cuadro de eliminación directa en lugar del round-robin.
+
+1. Ir a **Fixture** en el panel admin.
+2. Seleccionar un torneo de tipo Playoff o Copa.
+3. Hacer clic en **⚡ Generar fixture**. Se despliega el panel de generación de playoff.
+4. Elegir las opciones:
+   - **Formato**: **Solo ida** (cada serie se define en un partido) o **Ida y vuelta** (dos partidos por serie, el ganador se determina por el global de goles).
+   - **Asignación de cruces**: **Automático** o **Manual** (ver más abajo).
+5. Hacer clic en **Previsualizar**. El sistema muestra el bracket completo con todos los cruces antes de guardar.
+6. Revisar el preview y hacer clic en **Confirmar y guardar** para crear el bracket.
+
+**Asignación automática:**
+El sistema toma los equipos inscriptos y arma los cruces de la primera ronda al azar. Las rondas siguientes se generan automáticamente con marcadores de posición ("Ganador SF1", "Ganador C1", etc.).
+
+**Asignación manual:**
+Permite elegir exactamente quién juega contra quién en la primera ronda.
+1. Seleccionar **Manual** en la opción de asignación.
+2. Aparece la lista de **Duelos** con selectores de equipo local y visitante.
+3. Completar cada enfrentamiento: elegir el equipo local y el visitante para cada cruce.
+4. Usar **+ Agregar duelo** para sumar más cruces, o **✕** para quitar uno.
+5. Hacer clic en **Previsualizar** para ver el bracket antes de guardar.
+
+> En el modo manual solo se definen los cruces de la primera ronda. Las rondas siguientes (Semifinal, Final, etc.) se generan automáticamente con placeholders que se reemplazan cuando se cargan los resultados.
+
+**Cómo funciona el bracket:**
+- Se calculan las rondas necesarias según la cantidad de equipos: Final, Semifinal, Cuartos de Final, Octavos, etc.
+- Si el número de equipos no es una potencia de 2 (4, 8, 16…), se agrega una ronda de **Repechaje** donde los equipos "extra" se enfrentan. Los que no entran en el Repechaje avanzan directamente (BYE).
+- **Avance automático de ganadores**: cuando se carga la planilla de un partido y queda en estado **Terminado**, el sistema asigna automáticamente al equipo ganador en el cruce de la siguiente ronda. En formato ida y vuelta, espera que terminen ambos partidos de la serie antes de determinar el ganador por diferencia de goles.
+- En caso de empate (simple o ida y vuelta), el avance no es automático: hay que editar el partido siguiente manualmente.
+
+> Los partidos de playoff también se crean en estado **Borrador**. Para publicarlos hay que asignarles una fecha (igual que en el fixture de liga).
+
+> Para torneos de Playoff o Copa, la inscripción de equipos **no tiene restricción de división**: se pueden inscribir equipos de División A y División B en el mismo torneo.
+
+#### Asignar fecha a un partido (BORRADOR → Pendiente)
+
+Los partidos generados automáticamente comienzan en estado **Borrador** y no son visibles al público. Para publicarlos:
+
+1. En la lista de fixture, hacer clic en **Editar** junto al partido.
+2. Ingresar la **Fecha programada** (y opcionalmente horario y ubicación).
+3. Guardar. El partido cambia automáticamente a **Pendiente** y aparece en el sitio público.
+
+> Si se quita la fecha de un partido Pendiente, vuelve a Borrador y deja de verse en el público.
+
+#### Estados de los partidos de fixture
+
+| Estado | Visible al público | Descripción |
+|--------|-------------------|-------------|
+| Borrador | No | Creado pero sin fecha asignada |
+| Pendiente | Sí | Tiene fecha asignada, aún no se jugó |
+| Terminado | Sí | Planilla cargada con resultado |
+| Suspendido | Sí | Partido suspendido |
+| Reprogramado | Sí | Partido reprogramado |
+
+#### Editar o eliminar un partido de fixture
 
 1. Ir a **Fixture**.
 2. Buscar el partido y hacer clic en **Editar** o **Eliminar**.
 
-> Solo se pueden eliminar partidos que aún no se jugaron.
+> Solo se pueden eliminar partidos desde el panel admin. Para eliminar todo el fixture de un torneo, usar el botón **Eliminar fixture** en el panel de generación.
 
 ---
 
@@ -308,7 +394,11 @@ El rol **Superusuario** tiene acceso total al sistema. Incluye todo lo que puede
 1. Ir a **Torneos** en el panel admin.
 2. Hacer clic en **Nuevo torneo**.
 3. Ingresar nombre, fecha de inicio y fecha de fin.
-4. Guardar.
+4. Elegir el **tipo** de torneo:
+   - **Liga**: torneo regular con fixture round-robin. Todos los equipos son de la misma división.
+   - **Playoff**: cuadro de eliminación directa. Permite inscribir equipos de distintas divisiones.
+   - **Copa**: igual que Playoff; se usa para competencias especiales o de copa.
+5. Guardar.
 
 **Inscribir equipos en un torneo:**
 1. Ingresar al detalle del torneo.
@@ -355,8 +445,16 @@ El rol **Superusuario** tiene acceso total al sistema. Incluye todo lo que puede
 | **Plantel** | Conjunto de integrantes activos de un equipo en una temporada. |
 | **Fichaje** | Vinculación oficial de una persona a un club en un rol y período determinado. |
 | **Planilla** | Registro completo de un partido: resultado, goles, tarjetas y participantes. |
-| **Fixture** | Programación de partidos futuros (fecha, horario, equipos). |
-| **Torneo** | Competencia oficial en la que participan equipos inscriptos. |
+| **Fixture** | Programación de partidos futuros (fecha, horario, equipos). Puede generarse automáticamente con el algoritmo round-robin. |
+| **Borrador** | Estado de un partido de fixture sin fecha asignada. No es visible al público. |
+| **Pendiente** | Estado de un partido de fixture con fecha asignada. Visible al público en la sección Fixture. |
+| **Descansa** | En torneos con número impar de equipos, cada jornada un equipo queda libre. El sistema lo asigna aleatoriamente al generar el fixture. |
+| **Round-robin** | Formato de fixture en el que todos los equipos se enfrentan entre sí. Puede ser solo ida, ida y vuelta espejo, o ida y vuelta con vuelta aleatoria. |
+| **Torneo** | Competencia oficial en la que participan equipos inscriptos. Puede ser de tipo Liga, Playoff o Copa. |
+| **Playoff** | Formato de eliminación directa. Los equipos perdedores quedan eliminados; los ganadores avanzan a la siguiente ronda. |
+| **Bracket** | Cuadro visual del playoff que muestra todos los cruces y rondas. |
+| **BYE** | Cuando el número de equipos no es par exacto, algunos equipos pasan directamente a la siguiente ronda sin jugar. |
+| **Placeholder** | Marcador de posición en el bracket (ej: "Ganador SF1") que se reemplaza automáticamente cuando se carga el resultado del partido anterior. |
 | **Tarjeta amarilla** | Amonestación. Se acumula; cierta cantidad puede generar suspensión. |
 | **Tarjeta roja** | Expulsión directa. Genera suspensión automática. |
 | **Soft delete** | El sistema no elimina datos permanentemente; los marca como inactivos para preservar el historial. |

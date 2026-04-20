@@ -9,6 +9,10 @@ import {
   previsualizarFixture,
   generarFixture,
   eliminarFixtureTorneo,
+  previsualizarPlayoff,
+  generarPlayoff,
+  listarRondasPlayoff,
+  crearRondaPlayoff,
 } from "../../../api/fixture.api"
 import type { Torneo } from "../../../types/torneo"
 import type { InscripcionTorneoDetalle } from "../../../types/inscripcion"
@@ -20,6 +24,11 @@ import type {
   FixturePreviewResponse,
   TipoFixture,
   FixtureDescansoPreview,
+  PlayoffPreviewResponse,
+  TipoFormatoPlayoff,
+  TipoAsignacion,
+  DueloManual,
+  PlayoffRonda,
 } from "../../../types/fixture"
 import Button from "../../../components/ui/button/Button"
 import styles from "./FixtureAdmin.module.css"
@@ -32,6 +41,7 @@ const FORM_VACIO: FixturePartidoCreate = {
   horario: "",
   ubicacion: "",
   numero_fecha: undefined,
+  id_fixture_playoff_ronda: null,
 }
 
 const ESTADOS_LABELS: Record<EstadoPartido, string> = {
@@ -68,12 +78,24 @@ export default function FixtureAdmin() {
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Generación automática
+  // Generación automática (liga)
   const [tipoFixture, setTipoFixture] = useState<TipoFixture>("simple")
   const [preview, setPreview] = useState<FixturePreviewResponse | null>(null)
   const [loadingPreview, setLoadingPreview] = useState(false)
   const [generando, setGenerando] = useState(false)
   const [errorGenerar, setErrorGenerar] = useState<string | null>(null)
+
+  // Generación playoff
+  const [formatoPlayoff, setFormatoPlayoff] = useState<TipoFormatoPlayoff>("ida")
+  const [asignacionPlayoff, setAsignacionPlayoff] = useState<TipoAsignacion>("automatico")
+  const [duelos, setDuelos] = useState<DueloManual[]>([{ id_equipo_local: 0, id_equipo_visitante: 0 }])
+  const [previewPlayoff, setPreviewPlayoff] = useState<PlayoffPreviewResponse | null>(null)
+  const [loadingPreviewPlayoff, setLoadingPreviewPlayoff] = useState(false)
+  const [generandoPlayoff, setGenerandoPlayoff] = useState(false)
+  const [rondasPlayoff, setRondasPlayoff] = useState<PlayoffRonda[]>([])
+  const [nuevaRondaNombre, setNuevaRondaNombre] = useState("")
+  const [nuevaRondaIdaVuelta, setNuevaRondaIdaVuelta] = useState(false)
+  const [creandoRonda, setCreandoRonda] = useState(false)
 
   useEffect(() => {
     listarTorneos().then(setTorneos).catch(console.error)
@@ -84,15 +106,24 @@ export default function FixtureAdmin() {
     setInscripciones([])
     setPartidos([])
     setPreview(null)
+    setRondasPlayoff([])
     setLoadingPartidos(true)
 
-    Promise.all([
+    const torneoActual = torneos.find(t => t.id_torneo === torneoId)
+    const esPlayoffTorneo = torneoActual?.tipo === "PLAYOFF" || torneoActual?.tipo === "COPA"
+
+    const promesas: Promise<any>[] = [
       listarInscripcionesTorneo(torneoId),
       listarFixturePorTorneoAdmin(torneoId),
-    ])
-      .then(([insc, fix]) => {
+      ...(esPlayoffTorneo ? [listarRondasPlayoff(torneoId)] : []),
+    ]
+
+    Promise.all(promesas)
+      .then(([insc, fix, rondas]) => {
         setInscripciones(insc)
         setPartidos(fix)
+        if (rondas) setRondasPlayoff(rondas)
+        else setRondasPlayoff([])
       })
       .catch(console.error)
       .finally(() => setLoadingPartidos(false))
@@ -118,6 +149,7 @@ export default function FixtureAdmin() {
   function cerrarGenerador() {
     setMostrarGenerador(false)
     setPreview(null)
+    setPreviewPlayoff(null)
     setErrorGenerar(null)
   }
 
@@ -177,6 +209,7 @@ export default function FixtureAdmin() {
           fecha_programada: form.fecha_programada || null,
           horario: horarioConSegundos(form.horario),
           ubicacion: form.ubicacion || null,
+          estado: estadoEdicion,
         })
       }
       const nuevos = await listarFixturePorTorneoAdmin(torneoId!)
@@ -186,6 +219,22 @@ export default function FixtureAdmin() {
       setError(e?.response?.data?.detail ?? "Error al guardar el partido.")
     } finally {
       setGuardando(false)
+    }
+  }
+
+  async function handleCrearRonda() {
+    if (!torneoId || !nuevaRondaNombre.trim()) return
+    setCreandoRonda(true)
+    try {
+      const nueva = await crearRondaPlayoff(torneoId, nuevaRondaNombre.trim(), nuevaRondaIdaVuelta)
+      setRondasPlayoff(prev => [...prev, nueva])
+      setForm(f => ({ ...f, id_fixture_playoff_ronda: nueva.id_fixture_playoff_ronda }))
+      setNuevaRondaNombre("")
+      setNuevaRondaIdaVuelta(false)
+    } catch (e: any) {
+      setError(e?.response?.data?.detail ?? "Error al crear la ronda.")
+    } finally {
+      setCreandoRonda(false)
     }
   }
 
@@ -230,6 +279,62 @@ export default function FixtureAdmin() {
     }
   }
 
+  async function handlePrevisualizarPlayoff() {
+    if (!torneoId) return
+    if (asignacionPlayoff === "manual") {
+      const invalidos = duelos.some(d => !d.id_equipo_local || !d.id_equipo_visitante || d.id_equipo_local === d.id_equipo_visitante)
+      if (invalidos || duelos.length === 0) {
+        setErrorGenerar("Completá todos los duelos. Los equipos deben ser distintos.")
+        return
+      }
+    }
+    setLoadingPreviewPlayoff(true)
+    setErrorGenerar(null)
+    setPreviewPlayoff(null)
+    try {
+      const resultado = await previsualizarPlayoff(
+        torneoId, formatoPlayoff, asignacionPlayoff,
+        asignacionPlayoff === "manual" ? duelos : undefined
+      )
+      setPreviewPlayoff(resultado)
+    } catch (e: any) {
+      setErrorGenerar(e?.response?.data?.detail ?? "Error al previsualizar el playoff.")
+    } finally {
+      setLoadingPreviewPlayoff(false)
+    }
+  }
+
+  async function handleGenerarPlayoff() {
+    if (!torneoId || !previewPlayoff) return
+    setGenerandoPlayoff(true)
+    setErrorGenerar(null)
+    try {
+      const nuevos = await generarPlayoff(
+        torneoId, formatoPlayoff, asignacionPlayoff,
+        asignacionPlayoff === "manual" ? duelos : undefined
+      )
+      setPartidos(nuevos)
+      setPreviewPlayoff(null)
+      setMostrarGenerador(false)
+    } catch (e: any) {
+      setErrorGenerar(e?.response?.data?.detail ?? "Error al generar el playoff.")
+    } finally {
+      setGenerandoPlayoff(false)
+    }
+  }
+
+  function agregarDuelo() {
+    setDuelos(prev => [...prev, { id_equipo_local: 0, id_equipo_visitante: 0 }])
+  }
+
+  function quitarDuelo(idx: number) {
+    setDuelos(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  function actualizarDuelo(idx: number, campo: keyof DueloManual, valor: number) {
+    setDuelos(prev => prev.map((d, i) => i === idx ? { ...d, [campo]: valor } : d))
+  }
+
   async function handleEliminarFixtureCompleto() {
     if (!torneoId) return
     if (!confirm("¿Eliminar TODO el fixture de este torneo? Esta acción no se puede deshacer.")) return
@@ -245,6 +350,9 @@ export default function FixtureAdmin() {
   const equiposPorId = Object.fromEntries(
     inscripciones.map(i => [i.id_equipo, i.nombre_equipo])
   )
+
+  const torneoSeleccionado = torneos.find(t => t.id_torneo === torneoId) ?? null
+  const esPlayoff = torneoSeleccionado?.tipo === "PLAYOFF" || torneoSeleccionado?.tipo === "COPA"
 
   // Agrupa partidos del preview por fecha para mostrarlos ordenados
   const fechasPreview = preview
@@ -291,7 +399,7 @@ export default function FixtureAdmin() {
 
         {torneoId && !mostrarFormulario && !mostrarGenerador && !preview && (
           <>
-            <Button onClick={abrirFormularioNuevo}>+ Programar partido</Button>
+            {!esPlayoff && <Button onClick={abrirFormularioNuevo}>+ Programar partido</Button>}
             <Button onClick={abrirGenerador}>⚡ Generar fixture</Button>
             {partidos.length > 0 && (
               <button className={styles.btnEliminarFixture} onClick={handleEliminarFixtureCompleto}>
@@ -303,15 +411,19 @@ export default function FixtureAdmin() {
       </div>
 
       {/* Panel de generación automática — solo visible al abrir */}
-      {torneoId && mostrarGenerador && !preview && (
+      {torneoId && mostrarGenerador && !preview && !previewPlayoff && (
         <div className={styles.generarPanel}>
           <div className={styles.generarPanelHeader}>
-            <h3 className={styles.generarTitle}>Generar fixture automático</h3>
+            <h3 className={styles.generarTitle}>
+              {esPlayoff ? "Generar bracket de playoff" : "Generar fixture automático"}
+            </h3>
             <button className={styles.btnCancelarPreview} onClick={cerrarGenerador}>Cancelar</button>
           </div>
           <p className={styles.generarSubtitle}>
-            Round-robin con todos los equipos inscriptos.
-            {inscripciones.length % 2 === 1 && " Con número impar de equipos, uno descansa por fecha (al azar)."}
+            {esPlayoff
+              ? "Eliminación directa con todos los equipos inscriptos. El número de equipos debe ser par."
+              : `Round-robin con todos los equipos inscriptos.${inscripciones.length % 2 === 1 ? " Con número impar de equipos, uno descansa por fecha (al azar)." : ""}`
+            }
           </p>
           {partidos.length > 0 && (
             <p className={styles.warningMsg}>
@@ -322,35 +434,132 @@ export default function FixtureAdmin() {
 
           <div className={styles.generarControles}>
             <div className={styles.tipoSelector}>
-              <label className={styles.label}>Tipo de fixture</label>
+              <label className={styles.label}>{esPlayoff ? "Formato de partidos" : "Tipo de fixture"}</label>
               <div className={styles.radioGroup}>
-                <label className={styles.radioLabel}>
-                  <input
-                    type="radio"
-                    name="tipoFixture"
-                    value="simple"
-                    checked={tipoFixture === "simple"}
-                    onChange={() => { setTipoFixture("simple"); setPreview(null) }}
-                  />
-                  Solo ida
-                </label>
-                <label className={styles.radioLabel}>
-                  <input
-                    type="radio"
-                    name="tipoFixture"
-                    value="ida_y_vuelta"
-                    checked={tipoFixture === "ida_y_vuelta"}
-                    onChange={() => { setTipoFixture("ida_y_vuelta"); setPreview(null) }}
-                  />
-                  Ida y vuelta
-                </label>
+                {esPlayoff ? (
+                  <>
+                    <label className={styles.radioLabel}>
+                      <input type="radio" name="formatoPlayoff" value="ida"
+                        checked={formatoPlayoff === "ida"}
+                        onChange={() => setFormatoPlayoff("ida")} />
+                      Solo ida
+                    </label>
+                    <label className={styles.radioLabel}>
+                      <input type="radio" name="formatoPlayoff" value="ida_y_vuelta"
+                        checked={formatoPlayoff === "ida_y_vuelta"}
+                        onChange={() => setFormatoPlayoff("ida_y_vuelta")} />
+                      Ida y vuelta
+                    </label>
+                  </>
+                ) : (
+                  <>
+                    <label className={styles.radioLabel}>
+                      <input type="radio" name="tipoFixture" value="simple"
+                        checked={tipoFixture === "simple"}
+                        onChange={() => { setTipoFixture("simple"); setPreview(null) }} />
+                      Solo ida
+                    </label>
+                    <label className={styles.radioLabel}>
+                      <input type="radio" name="tipoFixture" value="ida_y_vuelta"
+                        checked={tipoFixture === "ida_y_vuelta"}
+                        onChange={() => { setTipoFixture("ida_y_vuelta"); setPreview(null) }} />
+                      Ida y vuelta (espejo)
+                    </label>
+                    <label className={styles.radioLabel}>
+                      <input type="radio" name="tipoFixture" value="ida_y_vuelta_aleatorio"
+                        checked={tipoFixture === "ida_y_vuelta_aleatorio"}
+                        onChange={() => { setTipoFixture("ida_y_vuelta_aleatorio"); setPreview(null) }} />
+                      Ida y vuelta (vuelta aleatoria)
+                    </label>
+                  </>
+                )}
               </div>
             </div>
 
+            {esPlayoff && (
+              <div className={styles.tipoSelector}>
+                <label className={styles.label}>Asignación de duelos</label>
+                <div className={styles.radioGroup}>
+                  <label className={styles.radioLabel}>
+                    <input type="radio" name="asignacionPlayoff" value="automatico"
+                      checked={asignacionPlayoff === "automatico"}
+                      onChange={() => { setAsignacionPlayoff("automatico"); setPreviewPlayoff(null) }} />
+                    Automático (por ranking/orden)
+                  </label>
+                  <label className={styles.radioLabel}>
+                    <input type="radio" name="asignacionPlayoff" value="manual"
+                      checked={asignacionPlayoff === "manual"}
+                      onChange={() => { setAsignacionPlayoff("manual"); setPreviewPlayoff(null) }} />
+                    Manual (elegir enfrentamientos)
+                  </label>
+                </div>
+
+                {asignacionPlayoff === "manual" && (
+                  <div style={{ marginTop: 12 }}>
+                    <label className={styles.label} style={{ marginBottom: 6 }}>
+                      Primer ronda — enfrentamientos
+                    </label>
+                    {duelos.map((d, idx) => (
+                      <div key={idx} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
+                        <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", minWidth: 20 }}>{idx + 1}.</span>
+                        <select
+                          className={styles.select}
+                          value={d.id_equipo_local || ""}
+                          onChange={e => actualizarDuelo(idx, "id_equipo_local", Number(e.target.value))}
+                          style={{ flex: 1 }}
+                        >
+                          <option value="">— Local —</option>
+                          {inscripciones.map(i => (
+                            <option key={i.id_equipo} value={i.id_equipo}>{i.nombre_equipo}</option>
+                          ))}
+                        </select>
+                        <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>vs</span>
+                        <select
+                          className={styles.select}
+                          value={d.id_equipo_visitante || ""}
+                          onChange={e => actualizarDuelo(idx, "id_equipo_visitante", Number(e.target.value))}
+                          style={{ flex: 1 }}
+                        >
+                          <option value="">— Visitante —</option>
+                          {inscripciones
+                            .filter(i => i.id_equipo !== d.id_equipo_local)
+                            .map(i => (
+                              <option key={i.id_equipo} value={i.id_equipo}>{i.nombre_equipo}</option>
+                            ))}
+                        </select>
+                        {duelos.length > 1 && (
+                          <button
+                            type="button"
+                            className={styles.btnEliminar}
+                            onClick={() => quitarDuelo(idx)}
+                            style={{ padding: "2px 8px" }}
+                          >✕</button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      className={styles.btnEditar}
+                      onClick={agregarDuelo}
+                      style={{ marginTop: 4 }}
+                    >
+                      + Agregar duelo
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className={styles.generarAcciones}>
-              <Button onClick={handlePrevisualizar} disabled={loadingPreview || inscripciones.length < 2}>
-                {loadingPreview ? "Calculando..." : "Previsualizar fixture"}
-              </Button>
+              {esPlayoff ? (
+                <Button onClick={handlePrevisualizarPlayoff} disabled={loadingPreviewPlayoff || inscripciones.length < 2}>
+                  {loadingPreviewPlayoff ? "Calculando..." : "Previsualizar bracket"}
+                </Button>
+              ) : (
+                <Button onClick={handlePrevisualizar} disabled={loadingPreview || inscripciones.length < 2}>
+                  {loadingPreview ? "Calculando..." : "Previsualizar fixture"}
+                </Button>
+              )}
             </div>
           </div>
 
@@ -367,7 +576,11 @@ export default function FixtureAdmin() {
           <div className={styles.previewHeader}>
             <div>
               <h3 className={styles.previewTitle}>
-                Vista previa del fixture — {preview.tipo === "simple" ? "Solo ida" : "Ida y vuelta"}
+                Vista previa del fixture — {
+                  preview.tipo === "simple" ? "Solo ida" :
+                  preview.tipo === "ida_y_vuelta" ? "Ida y vuelta (espejo)" :
+                  "Ida y vuelta (vuelta aleatoria)"
+                }
               </h3>
               <p className={styles.previewStats}>
                 {preview.total_partidos} partido{preview.total_partidos !== 1 ? "s" : ""} en {fechasPreview.length} fecha{fechasPreview.length !== 1 ? "s" : ""}
@@ -392,7 +605,7 @@ export default function FixtureAdmin() {
                 <div key={nf} className={styles.previewFechaBloque}>
                   <div className={styles.previewFechaHeader}>
                     <span className={styles.previewFechaNro}>Fecha {nf}</span>
-                    {preview.tipo === "ida_y_vuelta" && (
+                    {(preview.tipo === "ida_y_vuelta" || preview.tipo === "ida_y_vuelta_aleatorio") && (
                       <span className={`${styles.ruedaBadge} ${rueda === "vuelta" ? styles.ruedaVuelta : styles.ruedaIda}`}>
                         {rueda}
                       </span>
@@ -421,18 +634,93 @@ export default function FixtureAdmin() {
         </div>
       )}
 
+      {/* Preview del bracket de playoff */}
+      {previewPlayoff && (
+        <div className={styles.previewPanel}>
+          <div className={styles.previewHeader}>
+            <div>
+              <h3 className={styles.previewTitle}>
+                Vista previa del bracket — {previewPlayoff.formato === "ida" ? "Solo ida" : "Ida y vuelta"}
+              </h3>
+              <p className={styles.previewStats}>
+                {previewPlayoff.total_partidos} partido{previewPlayoff.total_partidos !== 1 ? "s" : ""} en {previewPlayoff.total_rondas} ronda{previewPlayoff.total_rondas !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <div className={styles.previewAcciones}>
+              <Button onClick={handleGenerarPlayoff} disabled={generandoPlayoff}>
+                {generandoPlayoff ? "Guardando..." : "Confirmar y guardar"}
+              </Button>
+              <button className={styles.btnCancelarPreview} onClick={() => setPreviewPlayoff(null)}>
+                Volver a modificar
+              </button>
+            </div>
+          </div>
+
+          <div className={styles.previewFechas}>
+            {previewPlayoff.rondas.map(ronda => (
+              <div key={ronda.orden} className={styles.previewFechaBloque}>
+                <div className={styles.previewFechaHeader}>
+                  <span className={styles.previewFechaNro}>{ronda.nombre}</span>
+                  {ronda.ida_y_vuelta && (
+                    <span className={`${styles.ruedaBadge} ${styles.ruedaIda}`}>ida y vuelta</span>
+                  )}
+                </div>
+                <div className={styles.previewPartidos}>
+                  {ronda.partidos.map((p, idx) => (
+                    "bye" in p ? (
+                      <div key={idx} className={styles.previewDescansoRow}>
+                        <span className={styles.previewDescansoIcono}>⭐</span>
+                        <span className={styles.previewDescansoNombre}>{p.bye}</span>
+                        <span className={styles.previewDescansoLabel}>pasa directo</span>
+                      </div>
+                    ) : (
+                      <div key={idx} className={styles.previewPartidoRow}>
+                        <span className={styles.previewEquipo}>{p.local ?? p.placeholder_local}</span>
+                        <span className={styles.previewVs}>vs</span>
+                        <span className={styles.previewEquipo}>{p.visitante ?? p.placeholder_visitante}</span>
+                      </div>
+                    )
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Formulario partido individual */}
       {mostrarFormulario && (
         <div className={styles.formCard}>
           <h3 className={styles.formTitle}>
             {editando
-              ? `Editar — ${editando.nombre_equipo_local ?? equiposPorId[editando.id_equipo_local]} vs ${editando.nombre_equipo_visitante ?? equiposPorId[editando.id_equipo_visitante]}`
+              ? <>
+                  Editar — {editando.nombre_equipo_local ?? equiposPorId[editando.id_equipo_local]} vs {editando.nombre_equipo_visitante ?? equiposPorId[editando.id_equipo_visitante]}
+                  {editando.nombre_ronda_playoff && (
+                    <span style={{ fontSize: "0.78rem", fontWeight: 500, color: "var(--text-muted)", marginLeft: 10 }}>
+                      · {editando.nombre_ronda_playoff}
+                    </span>
+                  )}
+                </>
               : "Programar partido"}
           </h3>
 
           <div className={styles.formGrid}>
             {!editando && (
               <>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Estado</label>
+                  <select
+                    className={styles.select}
+                    value={estadoEdicion}
+                    onChange={e => setEstadoEdicion(e.target.value as EstadoPartido)}
+                  >
+                    <option value="BORRADOR">Borrador (sin fecha)</option>
+                    <option value="PENDIENTE">Pendiente (con fecha)</option>
+                    <option value="SUSPENDIDO">Suspendido</option>
+                    <option value="REPROGRAMADO">Reprogramado</option>
+                  </select>
+                </div>
+
                 <div className={styles.formGroup}>
                   <label className={styles.label}>Equipo local</label>
                   <select
@@ -475,17 +763,64 @@ export default function FixtureAdmin() {
               />
             </div>
 
-            <div className={styles.formGroup}>
-              <label className={styles.label}>N° de fecha</label>
-              <input
-                type="number"
-                className={styles.input}
-                placeholder="Ej: 1"
-                min={1}
-                value={form.numero_fecha ?? ""}
-                onChange={e => setForm(f => ({ ...f, numero_fecha: e.target.value ? Number(e.target.value) : undefined }))}
-              />
-            </div>
+            {esPlayoff ? (
+              <div className={styles.formGroup} style={{ gridColumn: "1 / -1" }}>
+                <label className={styles.label}>Ronda</label>
+                {rondasPlayoff.length > 0 && (
+                  <select
+                    className={styles.select}
+                    value={form.id_fixture_playoff_ronda ?? ""}
+                    onChange={e => setForm(f => ({ ...f, id_fixture_playoff_ronda: e.target.value ? Number(e.target.value) : null }))}
+                    style={{ marginBottom: 8 }}
+                  >
+                    <option value="">— Seleccioná ronda —</option>
+                    {rondasPlayoff.map(r => (
+                      <option key={r.id_fixture_playoff_ronda} value={r.id_fixture_playoff_ronda}>
+                        {r.nombre}{r.ida_y_vuelta ? " (ida y vuelta)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    placeholder="Nueva ronda (ej: Semifinal)"
+                    value={nuevaRondaNombre}
+                    onChange={e => setNuevaRondaNombre(e.target.value)}
+                    style={{ flex: 1, minWidth: 160 }}
+                  />
+                  <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+                    <input
+                      type="checkbox"
+                      checked={nuevaRondaIdaVuelta}
+                      onChange={e => setNuevaRondaIdaVuelta(e.target.checked)}
+                    />
+                    Ida y vuelta
+                  </label>
+                  <button
+                    type="button"
+                    className={styles.btnEditar}
+                    onClick={handleCrearRonda}
+                    disabled={creandoRonda || !nuevaRondaNombre.trim()}
+                  >
+                    {creandoRonda ? "Creando..." : "+ Crear ronda"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.formGroup}>
+                <label className={styles.label}>N° de fecha</label>
+                <input
+                  type="number"
+                  className={styles.input}
+                  placeholder="Ej: 1"
+                  min={1}
+                  value={form.numero_fecha ?? ""}
+                  onChange={e => setForm(f => ({ ...f, numero_fecha: e.target.value ? Number(e.target.value) : undefined }))}
+                />
+              </div>
+            )}
 
             <div className={styles.formGroup}>
               <label className={styles.label}>Horario (opcional)</label>
@@ -539,16 +874,74 @@ export default function FixtureAdmin() {
       )}
 
       {/* Lista de partidos existentes */}
-      {torneoId && !preview && (
+      {torneoId && !preview && !previewPlayoff && (
         <section className={styles.lista}>
           {loadingPartidos ? (
             <p className={styles.infoMsg}>Cargando fixture...</p>
           ) : partidos.length === 0 ? (
             <p className={styles.infoMsg}>No hay partidos programados para este torneo.</p>
+          ) : esPlayoff ? (
+            // Agrupado por ronda de playoff
+            [...new Set(partidosOrdenados.map(p => p.nombre_ronda_playoff ?? "Sin ronda"))].map(ronda => {
+              const ps = partidosOrdenados.filter(p => (p.nombre_ronda_playoff ?? "Sin ronda") === ronda)
+              return (
+                <div key={ronda} className={styles.fechaBloque}>
+                  <div className={styles.fechaBloqueHeader}>
+                    <span className={styles.fechaNro}>{ronda}</span>
+                    {ps[0]?.rueda && (
+                      <span className={`${styles.ruedaBadge} ${styles.ruedaIda}`}>ida y vuelta</span>
+                    )}
+                  </div>
+                  <div className={styles.tablaWrap}>
+                    <table className={styles.tabla}>
+                      <thead>
+                        <tr>
+                          <th>Local</th>
+                          <th>Visitante</th>
+                          <th>Horario</th>
+                          <th>Ubicación</th>
+                          <th>Estado</th>
+                          <th>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ps.map(p => (
+                          <tr key={p.id_fixture_partido} className={p.estado === "TERMINADO" ? styles.jugado : ""}>
+                            <td>{p.nombre_equipo_local ?? p.placeholder_local ?? "—"}</td>
+                            <td>{p.nombre_equipo_visitante ?? p.placeholder_visitante ?? "—"}</td>
+                            <td>{p.horario ? p.horario.slice(0, 5) : "—"}</td>
+                            <td>{p.ubicacion ?? "—"}</td>
+                            <td>
+                              <span className={`${styles.badge} ${ESTADOS_BADGE[p.estado]}`}>
+                                {ESTADOS_LABELS[p.estado]}
+                              </span>
+                            </td>
+                            <td className={styles.acciones}>
+                              {p.estado !== "TERMINADO" && (
+                                <>
+                                  {!p.placeholder_local && !p.placeholder_visitante && (
+                                    <button className={styles.btnCargar}
+                                      onClick={() => navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`)}>
+                                      Cargar resultado
+                                    </button>
+                                  )}
+                                  <button className={styles.btnEditar} onClick={() => abrirFormularioEdicion(p)}>Editar</button>
+                                  <button className={styles.btnEliminar} onClick={() => handleEliminar(p.id_fixture_partido)}>Eliminar</button>
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )
+            })
           ) : (
             fechasExistentes.map(nf => {
               const ps = partidosOrdenados.filter(p => (p.numero_fecha ?? 0) === nf)
-              const rueda = ps[0] ? (ps[0] as any).rueda : null
+              const rueda = ps[0]?.rueda ?? null
               const descansa = ps[0]?.nombre_equipo_descansa ?? null
               return (
                 <div key={nf} className={styles.fechaBloque}>

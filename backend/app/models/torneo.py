@@ -13,7 +13,7 @@ from sqlalchemy import (
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
-from app.models.enums import CategoriaTipo, GeneroTipo
+from app.models.enums import CategoriaTipo, GeneroTipo, TipoTorneo
 
 
 class Torneo(Base, AuditFieldsMixin, SoftDeleteMixin):
@@ -60,6 +60,13 @@ class Torneo(Base, AuditFieldsMixin, SoftDeleteMixin):
     )
 
     fecha_fin: Mapped[Optional[date]]
+
+    tipo: Mapped[TipoTorneo] = mapped_column(
+        Enum(TipoTorneo, name="tipo_torneo"),
+        nullable=False,
+        default=TipoTorneo.LIGA,
+        server_default="LIGA",
+    )
 
     activo: Mapped[bool] = mapped_column(
         Boolean,

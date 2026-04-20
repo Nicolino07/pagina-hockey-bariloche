@@ -111,6 +111,15 @@ CREATE TYPE tipo_estado_gol AS ENUM (
 );
 
 -- =====================================================
+-- Tipo de torneo
+-- =====================================================
+CREATE TYPE tipo_torneo AS ENUM (
+  'LIGA',
+  'PLAYOFF',
+  'COPA'
+);
+
+-- =====================================================
 -- Tipo de fase de competencia
 -- =====================================================
 CREATE TYPE tipo_fase AS ENUM (

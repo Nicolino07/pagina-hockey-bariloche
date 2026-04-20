@@ -116,6 +116,9 @@ def crear_planilla_partido(db: Session, data, current_user):
                 fp.estado = "TERMINADO"
                 fp.id_partido_real = partido.id_partido
                 db.flush()
+                if fp.id_fixture_playoff_ronda:
+                    from app.services.playoff_services import avanzar_ganador
+                    avanzar_ganador(db, fp.id_fixture_partido, current_user.username)
 
         db.commit()
         return partido

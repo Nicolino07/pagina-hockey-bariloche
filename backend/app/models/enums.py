@@ -70,6 +70,12 @@ class EstadoGol(str, enum.Enum):
     ANULADO = 'ANULADO'
     CORREGIDO = 'CORREGIDO'
 
+class TipoTorneo(str, enum.Enum):
+    """Tipo de competencia"""
+    LIGA = 'LIGA'
+    PLAYOFF = 'PLAYOFF'
+    COPA = 'COPA'
+
 class TipoFase(str, enum.Enum):
     """Tipos de fase de torneo"""
     LIGA = 'LIGA'

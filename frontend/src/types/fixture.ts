@@ -1,5 +1,42 @@
 export type EstadoPartido = "BORRADOR" | "PENDIENTE" | "TERMINADO" | "SUSPENDIDO" | "ANULADO" | "REPROGRAMADO"
-export type TipoFixture = "simple" | "ida_y_vuelta"
+export type TipoFixture = "simple" | "ida_y_vuelta" | "ida_y_vuelta_aleatorio"
+export type TipoFormatoPlayoff = "ida" | "ida_y_vuelta"
+export type TipoAsignacion = "automatico" | "manual"
+
+export interface DueloManual {
+  id_equipo_local: number
+  id_equipo_visitante: number
+}
+
+export interface PlayoffRonda {
+  id_fixture_playoff_ronda: number
+  id_torneo: number
+  nombre: string
+  orden: number
+  ida_y_vuelta: boolean
+}
+
+export interface PlayoffPartidoPreview {
+  local?: string | null
+  visitante?: string | null
+  placeholder_local?: string | null
+  placeholder_visitante?: string | null
+  bye?: string
+}
+
+export interface PlayoffRondaPreview {
+  nombre: string
+  orden: number
+  ida_y_vuelta: boolean
+  partidos: PlayoffPartidoPreview[]
+}
+
+export interface PlayoffPreviewResponse {
+  total_rondas: number
+  total_partidos: number
+  formato: TipoFormatoPlayoff
+  rondas: PlayoffRondaPreview[]
+}
 
 export interface FixturePartidoPreview {
   numero_fecha: number
@@ -45,6 +82,11 @@ export interface FixturePartido {
   goles_local: number | null
   goles_visitante: number | null
   nombre_equipo_descansa: string | null
+  rueda: string | null
+  placeholder_local: string | null
+  placeholder_visitante: string | null
+  id_fixture_playoff_ronda: number | null
+  nombre_ronda_playoff: string | null
   creado_en: string
   creado_por: string | null
 }
@@ -57,6 +99,8 @@ export interface FixturePartidoCreate {
   horario?: string | null
   ubicacion?: string | null
   numero_fecha?: number | null
+  id_fixture_playoff_ronda?: number | null
+  estado?: EstadoPartido | null
 }
 
 export interface FixturePartidoUpdate {

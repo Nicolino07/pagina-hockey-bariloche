@@ -6,10 +6,13 @@ import { obtenerTarjetasAcumuladas } from "../../../api/vistas/tarjetas.api"
 import { obtenerGoleadoresTorneo } from "../../../api/vistas/goleadores.api"
 import { obtenerVallaMenosVencida } from "../../../api/vistas/valla.api"
 import { listarInscripcionesTorneo } from "../../../api/torneos.api"
+import { listarFixturePorTorneo } from "../../../api/fixture.api"
+import BracketPlayoff from "./BracketPlayoff"
 
 import type { Torneo } from "../../../types/torneo"
 import type { FilaPosiciones, TarjetaAcumulada, GoleadorTorneo, VallaMenosVencida } from "../../../types/vistas"
 import type { InscripcionTorneoDetalle } from "../../../types/inscripcion"
+import type { FixturePartido } from "../../../types/fixture"
 
 import styles from "./PosicionesPage.module.css"
 
@@ -40,6 +43,7 @@ export default function PosicionesPage() {
   const [torneosHistoricos, setTorneosHistoricos] = useState<Torneo[]>([])
   const [verHistoricos, setVerHistoricos] = useState(false)
   const [loadingHistoricos, setLoadingHistoricos] = useState(false)
+  const [bracket, setBracket] = useState<FixturePartido[]>([])
 
   useEffect(() => {
     listarTorneosPublico()
@@ -75,25 +79,46 @@ export default function PosicionesPage() {
       .finally(() => setLoadingHistoricos(false))
   }
 
+  const esPlayoff = torneoSeleccionado?.tipo === "PLAYOFF" || torneoSeleccionado?.tipo === "COPA"
+
   useEffect(() => {
     if (!torneoSeleccionado) return
     setLoadingDatos(true)
-    Promise.all([
-      obtenerPosiciones(torneoSeleccionado.id_torneo),
-      obtenerTarjetasAcumuladas(torneoSeleccionado.id_torneo),
-      obtenerGoleadoresTorneo(torneoSeleccionado.id_torneo),
-      listarInscripcionesTorneo(torneoSeleccionado.id_torneo),
-      obtenerVallaMenosVencida(torneoSeleccionado.id_torneo),
-    ])
-      .then(([dataPos, dataTar, dataGol, dataEq, dataValla]) => {
-        setTabla(dataPos)
-        setTarjetas(dataTar)
-        setGoleadores(dataGol)
-        setEquipos(dataEq)
-        setValla(dataValla)
-      })
-      .catch(console.error)
-      .finally(() => setLoadingDatos(false))
+    setBracket([])
+
+    if (esPlayoff) {
+      Promise.all([
+        listarFixturePorTorneo(torneoSeleccionado.id_torneo),
+        listarInscripcionesTorneo(torneoSeleccionado.id_torneo),
+        obtenerGoleadoresTorneo(torneoSeleccionado.id_torneo),
+        obtenerTarjetasAcumuladas(torneoSeleccionado.id_torneo),
+      ])
+        .then(([dataFixture, dataEq, dataGol, dataTar]) => {
+          setBracket(dataFixture.filter(p => p.id_fixture_playoff_ronda !== null))
+          setEquipos(dataEq)
+          setGoleadores(dataGol)
+          setTarjetas(dataTar)
+        })
+        .catch(console.error)
+        .finally(() => setLoadingDatos(false))
+    } else {
+      Promise.all([
+        obtenerPosiciones(torneoSeleccionado.id_torneo),
+        obtenerTarjetasAcumuladas(torneoSeleccionado.id_torneo),
+        obtenerGoleadoresTorneo(torneoSeleccionado.id_torneo),
+        listarInscripcionesTorneo(torneoSeleccionado.id_torneo),
+        obtenerVallaMenosVencida(torneoSeleccionado.id_torneo),
+      ])
+        .then(([dataPos, dataTar, dataGol, dataEq, dataValla]) => {
+          setTabla(dataPos)
+          setTarjetas(dataTar)
+          setGoleadores(dataGol)
+          setEquipos(dataEq)
+          setValla(dataValla)
+        })
+        .catch(console.error)
+        .finally(() => setLoadingDatos(false))
+    }
   }, [torneoSeleccionado])
 
   function seleccionar(torneo: Torneo) {
@@ -220,6 +245,103 @@ export default function PosicionesPage() {
                       className={styles.equipoItem}
                       to={`/public/equipos/${eq.id_equipo}`}
                     >
+                      <div className={styles.equipoInfo}>
+                        <span className={styles.equipoName}>{eq.nombre_equipo}</span>
+                        <span className={styles.equipoLabel}>Ver plantel →</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : esPlayoff ? (
+            <>
+              <div className={styles.sectionTitle}>
+                {torneoSeleccionado.nombre}
+                <span className={styles.sectionTitleMeta}>
+                  {CATEGORIA_LABEL[torneoSeleccionado.categoria]}
+                  {torneoSeleccionado.division ? ` ${torneoSeleccionado.division}` : ""}
+                  {" · "}
+                  {torneoSeleccionado.genero === "MASCULINO" ? "Masculino" : torneoSeleccionado.genero === "FEMENINO" ? "Femenino" : "Mixto"}
+                  {" · "}
+                  <span>{torneoSeleccionado.tipo === "COPA" ? "Copa" : "Playoff"}</span>
+                </span>
+              </div>
+
+              <div className={styles.tableCard}>
+                <h3 className={styles.statsTitle}>Llaves</h3>
+                <BracketPlayoff partidos={bracket} />
+              </div>
+
+              <div className={styles.statsGrid}>
+                <div className={styles.statsCard}>
+                  <h3 className={styles.statsTitle}>Goleadores</h3>
+                  {goleadores.length > 0 ? (
+                    <table className={styles.statsTable}>
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th className={styles.alignLeft}>Jugador</th>
+                          <th>Goles</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {goleadores.slice(0, 5).map(g => (
+                          <tr key={g.id_persona}>
+                            <td>{g.ranking_en_torneo}</td>
+                            <td className={styles.alignLeft}>
+                              <div className={styles.playerName}>{g.nombre} {g.apellido}</div>
+                              <div className={styles.playerTeam}>{g.nombre_equipo}</div>
+                            </td>
+                            <td className={styles.bold}>{g.goles_netos_en_torneo}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : <p className={styles.infoSmall}>Sin goles.</p>}
+                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=goleadores`}>
+                    Ver ranking completo →
+                  </Link>
+                </div>
+
+                <div className={styles.statsCard}>
+                  <h3 className={styles.statsTitle}>Tarjetas</h3>
+                  {tarjetas.length > 0 ? (
+                    <table className={styles.statsTable}>
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th className={styles.alignLeft}>Jugador</th>
+                          <th><span className={styles.boxAmarilla}>A</span></th>
+                          <th><span className={styles.boxRoja}>R</span></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {tarjetas.slice(0, 5).map((t, index) => (
+                          <tr key={t.id_persona}>
+                            <td>{index + 1}</td>
+                            <td className={styles.alignLeft}>
+                              <div className={styles.playerName}>{t.nombre_persona} {t.apellido_persona}</div>
+                              <div className={styles.playerTeam}>{t.equipo}</div>
+                            </td>
+                            <td>{t.total_amarillas}</td>
+                            <td>{t.total_rojas}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : <p className={styles.infoSmall}>Sin tarjetas.</p>}
+                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=tarjetas`}>
+                    Ver ranking completo →
+                  </Link>
+                </div>
+              </div>
+
+              <div className={styles.equiposDivider}>
+                <h3 className={styles.statsTitle}>Equipos Inscriptos</h3>
+                <div className={styles.equiposGrid}>
+                  {equipos.map(eq => (
+                    <Link key={eq.id_equipo} className={styles.equipoItem} to={`/public/equipos/${eq.id_equipo}`}>
                       <div className={styles.equipoInfo}>
                         <span className={styles.equipoName}>{eq.nombre_equipo}</span>
                         <span className={styles.equipoLabel}>Ver plantel →</span>

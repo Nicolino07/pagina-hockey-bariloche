@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.models.fixture_partido import FixturePartido
 from app.models.fixture_fecha import FixtureFecha
+from app.models.fixture_playoff_ronda import FixturePlayoffRonda
 from app.models.inscripcion_torneo import InscripcionTorneo
 from app.models.partido import PartidoDetallado
 from app.models.equipo import Equipo
@@ -35,10 +36,21 @@ def _enriquecer(fp: FixturePartido, db: Session | None = None) -> dict:
         if detalle:
             data["goles_local"] = detalle.goles_local
             data["goles_visitante"] = detalle.goles_visitante
-    # descanso de la fecha (solo si hay número impar de equipos)
+    # descanso y rueda de la fecha
     data["nombre_equipo_descansa"] = None
-    if fp.fixture_fecha and fp.fixture_fecha.equipo_descansa:
-        data["nombre_equipo_descansa"] = fp.fixture_fecha.equipo_descansa.nombre
+    data["rueda"] = None
+    if fp.fixture_fecha:
+        data["rueda"] = fp.fixture_fecha.rueda
+        if fp.fixture_fecha.equipo_descansa:
+            data["nombre_equipo_descansa"] = fp.fixture_fecha.equipo_descansa.nombre
+
+    # campos de playoff
+    data["placeholder_local"] = getattr(fp, "placeholder_local", None)
+    data["placeholder_visitante"] = getattr(fp, "placeholder_visitante", None)
+    data["id_fixture_playoff_ronda"] = getattr(fp, "id_fixture_playoff_ronda", None)
+    data["nombre_ronda_playoff"] = None
+    if fp.id_fixture_playoff_ronda and fp.playoff_ronda:
+        data["nombre_ronda_playoff"] = fp.playoff_ronda.nombre
     return data
 
 
@@ -51,6 +63,7 @@ def obtener_fixture_por_id(db: Session, id_fixture_partido: int):
             joinedload(FixturePartido.equipo_visitante),
             joinedload(FixturePartido.torneo),
             joinedload(FixturePartido.fixture_fecha).joinedload(FixtureFecha.equipo_descansa),
+            joinedload(FixturePartido.playoff_ronda),
         )
         .filter(FixturePartido.id_fixture_partido == id_fixture_partido)
         .first()
@@ -73,6 +86,8 @@ def crear_fixture_partido(db: Session, data: FixturePartidoCreate, username: str
         horario=data.horario,
         ubicacion=data.ubicacion,
         numero_fecha=data.numero_fecha,
+        id_fixture_playoff_ronda=data.id_fixture_playoff_ronda,
+        estado=data.estado if data.estado else ("PENDIENTE" if data.fecha_programada else "BORRADOR"),
         creado_por=username,
     )
     db.add(fp)
@@ -95,6 +110,7 @@ def listar_fixture_por_torneo(db: Session, id_torneo: int, solo_publicos: bool =
             joinedload(FixturePartido.equipo_visitante),
             joinedload(FixturePartido.torneo),
             joinedload(FixturePartido.fixture_fecha).joinedload(FixtureFecha.equipo_descansa),
+            joinedload(FixturePartido.playoff_ronda),
         )
         .filter(FixturePartido.id_torneo == id_torneo)
     )
@@ -117,6 +133,7 @@ def listar_fixture_proximos(db: Session, id_torneo: int | None = None) -> list:
             joinedload(FixturePartido.equipo_visitante),
             joinedload(FixturePartido.torneo),
             joinedload(FixturePartido.fixture_fecha).joinedload(FixtureFecha.equipo_descansa),
+            joinedload(FixturePartido.playoff_ronda),
         )
         .filter(FixturePartido.estado.in_(["PENDIENTE", "SUSPENDIDO", "REPROGRAMADO"]))
     )
@@ -153,6 +170,11 @@ def actualizar_fixture_partido(
             fp.estado = "PENDIENTE"
         elif not fp.fecha_programada and fp.estado == "PENDIENTE":
             fp.estado = "BORRADOR"
+
+    # avanzar ganador automáticamente en playoffs
+    if fp.estado == "TERMINADO" and fp.id_fixture_playoff_ronda:
+        from app.services.playoff_services import avanzar_ganador
+        avanzar_ganador(db, fp.id_fixture_partido, username)
 
     db.commit()
     db.refresh(fp)
@@ -245,6 +267,26 @@ def previsualizar_fixture(db: Session, id_torneo: int, tipo: str) -> FixturePrev
     if tipo == "ida_y_vuelta":
         rondas_vuelta = [[(v, l) for l, v in ronda] for ronda in rondas_ida]
         ruedas.append(("vuelta", rondas_vuelta, descansos_ida))
+    elif tipo == "ida_y_vuelta_aleatorio":
+        equipos_vuelta = list(equipos)
+        random.shuffle(equipos_vuelta)
+        rondas_vuelta_raw, descansos_vuelta = _round_robin(equipos_vuelta)
+        # Reordena la vuelta para evitar que la primera fecha de vuelta repita
+        # los mismos enfrentamientos que la última de ida
+        enfrentamientos_ultima_ida = {
+            frozenset([l["id"], v["id"]]) for l, v in rondas_ida[-1]
+        }
+        mejor_inicio = 0
+        for idx, ronda in enumerate(rondas_vuelta_raw):
+            enfrentamientos = {frozenset([l["id"], v["id"]]) for l, v in ronda}
+            if not enfrentamientos & enfrentamientos_ultima_ida:
+                mejor_inicio = idx
+                break
+        rondas_vuelta = rondas_vuelta_raw[mejor_inicio:] + rondas_vuelta_raw[:mejor_inicio]
+        descansos_vuelta = descansos_vuelta[mejor_inicio:] + descansos_vuelta[:mejor_inicio]
+        # Invierte local/visitante para la vuelta
+        rondas_vuelta = [[(v, l) for l, v in ronda] for ronda in rondas_vuelta]
+        ruedas.append(("vuelta", rondas_vuelta, descansos_vuelta))
 
     partidos_preview: list[FixturePartidoPreview] = []
     descansos_preview: list[FixtureDescansoPreview] = []
@@ -313,6 +355,23 @@ def generar_fixture(db: Session, id_torneo: int, tipo: str, username: str) -> li
     if tipo == "ida_y_vuelta":
         rondas_vuelta = [[(v, l) for l, v in ronda] for ronda in rondas_ida]
         ruedas.append(("vuelta", rondas_vuelta, descansos_ida))
+    elif tipo == "ida_y_vuelta_aleatorio":
+        equipos_vuelta = list(equipos)
+        random.shuffle(equipos_vuelta)
+        rondas_vuelta_raw, descansos_vuelta = _round_robin(equipos_vuelta)
+        enfrentamientos_ultima_ida = {
+            frozenset([l["id"], v["id"]]) for l, v in rondas_ida[-1]
+        }
+        mejor_inicio = 0
+        for idx, ronda in enumerate(rondas_vuelta_raw):
+            enfrentamientos = {frozenset([l["id"], v["id"]]) for l, v in ronda}
+            if not enfrentamientos & enfrentamientos_ultima_ida:
+                mejor_inicio = idx
+                break
+        rondas_vuelta = rondas_vuelta_raw[mejor_inicio:] + rondas_vuelta_raw[:mejor_inicio]
+        descansos_vuelta = descansos_vuelta[mejor_inicio:] + descansos_vuelta[:mejor_inicio]
+        rondas_vuelta = [[(v, l) for l, v in ronda] for ronda in rondas_vuelta]
+        ruedas.append(("vuelta", rondas_vuelta, descansos_vuelta))
 
     nuevos: list[FixturePartido] = []
 

@@ -27,6 +27,18 @@ from app.services.fixture_services import (
     generar_fixture,
     eliminar_fixture_torneo,
 )
+from app.services.playoff_services import (
+    previsualizar_playoff,
+    generar_playoff,
+    listar_rondas_playoff,
+    crear_ronda_playoff,
+)
+from app.schemas.fixture_playoff import (
+    GenerarPlayoffRequest,
+    PlayoffPreviewResponse,
+    PlayoffRondaResponse,
+    PlayoffRondaCreate,
+)
 
 router = APIRouter(prefix="/fixture", tags=["Fixture"])
 
@@ -137,6 +149,55 @@ def generar_fixture_torneo(
 ):
     """Genera y guarda el fixture completo para un torneo. Requiere rol EDITOR o superior."""
     return generar_fixture(db, id_torneo, data.tipo, current_user.username)
+
+
+# ── Playoff ───────────────────────────────────────────────────────────────────
+
+@router.post("/playoff/rondas/{id_torneo}", response_model=PlayoffRondaResponse, status_code=status.HTTP_201_CREATED)
+def crear_ronda(
+    id_torneo: int,
+    data: PlayoffRondaCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
+):
+    """Crea una ronda de playoff manualmente. Requiere EDITOR."""
+    return crear_ronda_playoff(db, id_torneo, data.nombre, data.ida_y_vuelta, current_user.username)
+
+
+@router.get("/playoff/rondas/{id_torneo}", response_model=list[PlayoffRondaResponse])
+def rondas_playoff(
+    id_torneo: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
+):
+    """Lista las rondas de un playoff. Requiere EDITOR."""
+    return listar_rondas_playoff(db, id_torneo)
+
+
+@router.post("/playoff/preview/{id_torneo}", response_model=PlayoffPreviewResponse)
+def preview_playoff(
+    id_torneo: int,
+    data: GenerarPlayoffRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
+):
+    """Previsualiza el bracket del playoff sin guardar. Requiere EDITOR."""
+    return previsualizar_playoff(db, id_torneo, data)
+
+
+@router.post(
+    "/playoff/generar/{id_torneo}",
+    response_model=list[FixturePartidoResponse],
+    status_code=status.HTTP_201_CREATED,
+)
+def generar_playoff_torneo(
+    id_torneo: int,
+    data: GenerarPlayoffRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
+):
+    """Genera y guarda el bracket completo del playoff. Requiere EDITOR."""
+    return generar_playoff(db, id_torneo, data, current_user.username)
 
 
 # ── Por ID (al final para no capturar rutas literales) ─────────────────────────

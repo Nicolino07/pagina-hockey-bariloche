@@ -30,10 +30,12 @@ def crear_torneo(
         )
     
     # Crear el torneo
+    from app.models.enums import TipoTorneo
     torneo = Torneo(
         nombre=data.nombre,
         categoria=CategoriaTipo(data.categoria) if isinstance(data.categoria, str) else data.categoria,
         genero=GeneroTipo(data.genero) if isinstance(data.genero, str) else data.genero,
+        tipo=TipoTorneo(data.tipo) if isinstance(data.tipo, str) else data.tipo,
         fecha_inicio=data.fecha_inicio,
         fecha_fin=data.fecha_fin,
         activo=data.activo if hasattr(data, 'activo') else True,
@@ -164,10 +166,12 @@ def actualizar_torneo(
             )
     
     # Actualizar campos
+    from app.models.enums import TipoTorneo
     torneo.nombre = data.nombre
     torneo.categoria = CategoriaTipo(data.categoria) if isinstance(data.categoria, str) else data.categoria
     torneo.division = data.division
     torneo.genero = GeneroTipo(data.genero) if isinstance(data.genero, str) else data.genero
+    torneo.tipo = TipoTorneo(data.tipo) if isinstance(data.tipo, str) else data.tipo
     torneo.fecha_inicio = data.fecha_inicio
     torneo.fecha_fin = data.fecha_fin
     torneo.actualizado_por = current_user.username

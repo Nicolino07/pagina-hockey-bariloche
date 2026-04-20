@@ -1,4 +1,4 @@
-import type { TipoGenero, TipoCategoria } from "../constants/enums"
+import type { TipoGenero, TipoCategoria, TipoTorneo } from "../constants/enums"
 
 
 export interface Torneo {
@@ -7,6 +7,7 @@ export interface Torneo {
   categoria: TipoCategoria
   division?: string | null
   genero: TipoGenero
+  tipo: TipoTorneo
   fecha_inicio: string
   fecha_fin: string | null
   activo: boolean
@@ -21,6 +22,7 @@ export interface TorneoCreate {
   categoria: TipoCategoria
   division?: string | null
   genero: TipoGenero
+  tipo: TipoTorneo
   fecha_inicio?: string | null
   fecha_fin?: string | null
 }
@@ -30,6 +32,7 @@ export interface TorneoUpdate {
   categoria: TipoCategoria
   division?: string | null
   genero: TipoGenero
+  tipo: TipoTorneo
   fecha_inicio: string
   fecha_fin?: string | null
   activo: boolean
