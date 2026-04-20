@@ -1,4 +1,20 @@
 ├── backend/
+│   ├── alembic/
+│   │   ├── versions/
+│   │   │   ├── 0001_add_mixto_to_tipo_genero.py
+│   │   │   ├── 0002_refactor_categoria_add_division.py
+│   │   │   ├── 0003_cleanup_tipo_categoria_enum.py
+│   │   │   ├── 0004_add_resultado_manual_partido.py
+│   │   │   ├── 0005_fix_equipo_unique_include_division.py
+│   │   │   ├── 0006_update_vw_partidos_detallados_add_capitan.py
+│   │   │   ├── 0007_update_v_goleadores_add_partidos_promedio.py
+│   │   │   ├── 0008_update_vw_partidos_add_genero_division.py
+│   │   │   ├── 0009_fixture_partido_jugado_to_estado.py
+│   │   │   ├── 0010_fix_vw_partidos_coalesce_cuarto_capitan.py
+│   │   │   ├── 0011_add_url_externa_noticia.py
+│   │   │   └── 0012_fix_audit_functions.py
+│   │   ├── env.py
+│   │   └── script.py.mako
 │   ├── app/
 │   │   ├── auth/
 │   │   │   ├── __init__.py
@@ -91,6 +107,7 @@
 │   │   │   ├── torneo.py
 │   │   │   ├── user.py
 │   │   │   ├── usuario.py
+│   │   │   ├── validators.py
 │   │   │   └── vistas.py
 │   │   ├── services/
 │   │   │   ├── __init__.py
@@ -134,13 +151,18 @@
 │   │   │   └── 080_seed_inscripcion.sql
 │   │   └── 000_init_database.sql
 │   ├── .dockerignore
+│   ├── alembic.ini
 │   ├── Dockerfile
-│   └── requirements.txt
+│   ├── entrypoint.sh
+│   ├── requirements.txt
+│   └── test.db
 ├── backups/
 │   ├── backup_hockey.sh
 │   └── restore_hockey.sh
 ├── frontend/
 │   ├── public/
+│   │   ├── logo_icon.png
+│   │   ├── logoAHBLS.png
 │   │   └── vite.svg
 │   ├── src/
 │   │   ├── api/
@@ -152,7 +174,8 @@
 │   │   │   │   ├── plantel.api.ts
 │   │   │   │   ├── posiciones.api.ts
 │   │   │   │   ├── tarjetas.api.ts
-│   │   │   │   └── torneos.api.ts
+│   │   │   │   ├── torneos.api.ts
+│   │   │   │   └── valla.api.ts
 │   │   │   ├── auth.api.ts
 │   │   │   ├── axiosAdmin.ts
 │   │   │   ├── axiosPublic.ts
@@ -185,6 +208,9 @@
 │   │   │   ├── navbar/
 │   │   │   │   ├── NavBar.module.css
 │   │   │   │   └── NavBar.tsx
+│   │   │   ├── partidos/
+│   │   │   │   ├── PartidoDetalleModal.module.css
+│   │   │   │   └── PartidoDetalleModal.tsx
 │   │   │   ├── planteles/
 │   │   │   │   └── PlantelActivo.tsx
 │   │   │   └── ui/
@@ -288,9 +314,15 @@
 │   │   │       │   ├── NoticiaDetalle.tsx
 │   │   │       │   ├── Noticias.module.css
 │   │   │       │   └── Noticias.tsx
-│   │   │       └── posiciones/
-│   │   │           ├── PosicionesPage.module.css
-│   │   │           └── PosicionesPage.tsx
+│   │   │       ├── posiciones/
+│   │   │       │   ├── PosicionesPage.module.css
+│   │   │       │   └── PosicionesPage.tsx
+│   │   │       ├── ranking/
+│   │   │       │   ├── RankingPage.module.css
+│   │   │       │   └── RankingPage.tsx
+│   │   │       └── resultados/
+│   │   │           ├── ResultadosPage.module.css
+│   │   │           └── ResultadosPage.tsx
 │   │   ├── services/
 │   │   │   └── PlanillaVacia.service.ts
 │   │   ├── styles/
@@ -331,13 +363,24 @@
 │   ├── tsconfig.node.json
 │   ├── vite
 │   └── vite.config.ts
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── pytest.ini
+│   ├── requirements-test.txt
+│   ├── test_clubes.py
+│   ├── test_equipos.py
+│   ├── test_partidos.py
+│   ├── test_personas.py
+│   ├── test_planteles.py
+│   └── test_torneos.py
 ├── .gitignore
-├── # Consultas DB
+├── ALEMBIC_MANUAL.txt
 ├── Arbol_repositorio.txt
 ├── CLAUDE.md
 ├── docker-compose.yml
-├── intrucciones.txt
 ├── LICENSE
 ├── nginx.conf
 ├── nginx.local.conf
-└── README.md
+├── README.md
+└── test_uso.txt
