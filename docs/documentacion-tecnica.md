@@ -903,17 +903,84 @@ docker compose exec api alembic history
 
 ## Backups
 
-Los scripts en `backups/` permiten hacer backup y restaurar la base de datos:
+Los scripts en `backups/` gestionan el backup y restauración de la base de datos. Generan archivos `.dump` (formato binario de PostgreSQL, más eficiente que SQL plano).
 
-```bash
-# Crear backup
-./backups/backup_hockey.sh
+### Scripts disponibles
 
-# Restaurar backup
-./backups/restore_hockey.sh <archivo-backup>
+| Script | Uso |
+|--------|-----|
+| `backup_hockey.sh` | Genera un backup y opcionalmente lo sube a Google Drive |
+| `restore_hockey.sh` | Restaura la base desde un archivo `.dump` |
+
+Ambos scripts reciben un argumento de entorno (`local` o `vps`) y leen su configuración desde un archivo `backups/.env.<entorno>`.
+
+### Archivo de configuración por entorno
+
+Crear `backups/.env.local` y/o `backups/.env.vps` con:
+
+```env
+DB_NAME=hockey
+DB_USER=hockey_user
+CONTAINER_NAME=hockey_db
+BACKUP_PATH=/ruta/donde/guardar/los/dumps
 ```
 
-Los backups generan un dump `.sql` de PostgreSQL con fecha en el nombre.
+### Hacer un backup manualmente
+
+```bash
+# En entorno local
+./backups/backup_hockey.sh local
+
+# En el VPS
+./backups/backup_hockey.sh vps
+```
+
+El archivo generado tiene el formato: `backup_hockey_YYYY-MM-DD_HH-MM-SS.dump`
+
+En el entorno `vps`, además de guardar el archivo localmente:
+- Lo sube a **Google Drive** usando `rclone` (carpeta `backups/hockey`)
+- Elimina de Drive los backups con más de 30 días
+- Elimina del disco local los backups con más de 30 días
+
+### Restaurar desde un backup
+
+```bash
+# En entorno local
+./backups/restore_hockey.sh local /ruta/al/archivo.dump
+
+# En el VPS
+./backups/restore_hockey.sh vps /ruta/al/archivo.dump
+```
+
+> **Atención:** la restauración usa `--clean --if-exists`, lo que elimina y recrea las tablas antes de restaurar. No ejecutar en producción sin confirmar primero.
+
+### Backup automático en el VPS
+
+El backup automático está configurado como un cron job en el VPS que ejecuta el script a la **1:00 AM**. Para verificarlo o editarlo:
+
+```bash
+crontab -l          # Ver cron jobs activos
+crontab -e          # Editar
+```
+
+La línea configurada en el VPS es:
+
+```
+0 1 * * * /root/proyectos/pagina-hockey-bariloche/backups/backup_hockey.sh vps >> /root/proyectos/backups/backup.log 2>&1
+```
+
+El log se guarda en `/root/proyectos/backups/backup.log`.
+
+### Dependencia: rclone
+
+El script de VPS requiere `rclone` instalado y configurado con acceso a Google Drive. Para verificar:
+
+```bash
+rclone listremotes        # Debe aparecer "drive:"
+rclone ls drive:backups/hockey   # Lista los backups en Drive
+```
+
+Si `rclone` no está configurado, seguir la [guía oficial de rclone con Google Drive](https://rclone.org/drive/).
 
 ---
 

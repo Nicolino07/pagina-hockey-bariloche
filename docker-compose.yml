@@ -2,12 +2,13 @@ services:
   db:
     image: postgres:15
     container_name: hockey_db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "127.0.0.1:5434:5432" 
+      - "127.0.0.1:5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/db:/docker-entrypoint-initdb.d
@@ -17,6 +18,7 @@ services:
   api:
     build: ./backend
     container_name: hockey_api
+    restart: unless-stopped
     env_file:
       - .env
     expose:
@@ -36,6 +38,7 @@ services:
       args:
         - VITE_API_URL=${VITE_API_URL}  # 🔥 Pasar la variable
     container_name: hockey_frontend
+    restart: unless-stopped
     env_file:
       - .env
     expose:
@@ -54,6 +57,7 @@ services:
   nginx:
     image: nginx:alpine
     container_name: hockey_proxy
+    restart: unless-stopped
     ports:
       - "${HOST_PORT:-80}:80"
     volumes:
