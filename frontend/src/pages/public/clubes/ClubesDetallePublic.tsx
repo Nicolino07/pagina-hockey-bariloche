@@ -171,7 +171,7 @@ export default function ClubesDetallePublic() {
             <div className={styles.sectionHeader}>
               <h3>Partidos recientes</h3>
             </div>
-            {partidos.map((p) => {
+            {partidos.slice(0, 3).map((p) => {
               const golesL = parsearGoleadores(p.lista_goles_local);
               const golesV = parsearGoleadores(p.lista_goles_visitante);
               return (

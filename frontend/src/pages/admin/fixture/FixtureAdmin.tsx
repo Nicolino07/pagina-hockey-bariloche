@@ -33,6 +33,7 @@ import type {
 import Button from "../../../components/ui/button/Button"
 import styles from "./FixtureAdmin.module.css"
 
+/** Valores iniciales del formulario de partido. */
 const FORM_VACIO: FixturePartidoCreate = {
   id_torneo: 0,
   id_equipo_local: 0,
@@ -44,6 +45,7 @@ const FORM_VACIO: FixturePartidoCreate = {
   id_fixture_playoff_ronda: null,
 }
 
+/** Etiquetas legibles para cada estado de partido. */
 const ESTADOS_LABELS: Record<EstadoPartido, string> = {
   BORRADOR: "Borrador",
   PENDIENTE: "Pendiente",
@@ -53,6 +55,7 @@ const ESTADOS_LABELS: Record<EstadoPartido, string> = {
   REPROGRAMADO: "Reprogramado",
 }
 
+/** Clases CSS de badge para cada estado de partido. */
 const ESTADOS_BADGE: Record<EstadoPartido, string> = {
   BORRADOR: styles.badgeBorrador,
   PENDIENTE: styles.badgePendiente,
@@ -62,6 +65,12 @@ const ESTADOS_BADGE: Record<EstadoPartido, string> = {
   REPROGRAMADO: styles.badgeReprogramado,
 }
 
+/**
+ * Panel de administración del fixture.
+ * Permite programar partidos individuales y generar automáticamente
+ * fixtures de liga (round-robin) o brackets de playoff/copa.
+ * La vista se adapta según el tipo de torneo seleccionado.
+ */
 export default function FixtureAdmin() {
   const navigate = useNavigate()
   const [torneos, setTorneos] = useState<Torneo[]>([])
@@ -129,6 +138,8 @@ export default function FixtureAdmin() {
       .finally(() => setLoadingPartidos(false))
   }, [torneoId])
 
+  // ── Handlers de UI ──────────────────────────────────────────────────────
+
   function abrirFormularioNuevo() {
     setEditando(null)
     setForm({ ...FORM_VACIO, id_torneo: torneoId! })
@@ -176,6 +187,11 @@ export default function FixtureAdmin() {
     setError(null)
   }
 
+  // ── Acciones de API ──────────────────────────────────────────────────────
+
+  /** Crea o edita un partido individual.
+   * Solo envía el campo `estado` si el usuario lo modificó manualmente,
+   * para respetar la transición automática BORRADOR ↔ PENDIENTE del backend. */
   async function handleGuardar() {
     if (!form.id_equipo_local || !form.id_equipo_visitante) {
       setError("Seleccioná ambos equipos.")
@@ -222,6 +238,7 @@ export default function FixtureAdmin() {
     }
   }
 
+  /** Crea una nueva ronda de playoff y la selecciona automáticamente en el form. */
   async function handleCrearRonda() {
     if (!torneoId || !nuevaRondaNombre.trim()) return
     setCreandoRonda(true)
@@ -335,6 +352,7 @@ export default function FixtureAdmin() {
     setDuelos(prev => prev.map((d, i) => i === idx ? { ...d, [campo]: valor } : d))
   }
 
+  /** Elimina todo el fixture del torneo. Solo borra partidos en estado no-TERMINADO. */
   async function handleEliminarFixtureCompleto() {
     if (!torneoId) return
     if (!confirm("¿Eliminar TODO el fixture de este torneo? Esta acción no se puede deshacer.")) return
@@ -346,6 +364,8 @@ export default function FixtureAdmin() {
       alert(e?.response?.data?.detail ?? "Error al eliminar el fixture.")
     }
   }
+
+  // ── Datos derivados ──────────────────────────────────────────────────────
 
   const equiposPorId = Object.fromEntries(
     inscripciones.map(i => [i.id_equipo, i.nombre_equipo])
