@@ -218,54 +218,424 @@ Los scripts en `backend/db/init/` se ejecutan en orden al crear el contenedor po
 | Archivo | Contenido |
 |---------|-----------|
 | `001_enums.sql` | Tipos enumerados (roles, categorías, géneros, estados) |
-| `002_tables.sql` | Tablas base: club, equipo, persona, fichaje, etc. |
-| `003_tables_extra.sql` | Tablas adicionales: partidos, goles, tarjetas, suspensiones |
+| `002_tables.sql` | Tablas base: club, equipo, persona, fichaje, planteles, torneos, posiciones |
+| `003_tables_extra.sql` | Tablas adicionales: usuario, refresh_token, fixture, noticias |
 | `004_functions.sql` | Funciones PL/pgSQL auxiliares |
 | `005_triggers.sql` | Triggers (ej: actualización automática de timestamps) |
-| `006_views.sql` | Vistas materializadas: posiciones, estadísticas |
+| `006_views.sql` | Vistas: posiciones, estadísticas |
 | `007_grants.sql` | Permisos por usuario de base de datos |
 | `008_auditoria.sql` | Tabla y triggers de auditoría |
 | `009_index.sql` | Índices para performance |
 
-### Modelo de datos principal
-
-```
-club ──< equipo ──< plantel ──< plantel_integrante
-                                       │
-persona ──< persona_rol ───────────────┘
-    │
-    └──< fichaje_rol >── club
-
-torneo ──< inscripcion_torneo >── equipo
-       └──< partido ──< gol
-                   └──< tarjeta
-                   └──< participan_partido
-                   └──< suspension
-
-usuario (tabla independiente, ligada a persona opcionalmente)
-```
+---
 
 ### Convenciones de tablas
 
-- **Soft delete**: todas las entidades principales tienen `borrado_en TIMESTAMP` y `borrado_por VARCHAR`. Un registro con `borrado_en IS NOT NULL` se considera eliminado, pero permanece en la base.
-- **Auditoría**: campos `creado_en`, `actualizado_en`, `creado_por`, `actualizado_por` en todas las tablas.
+- **Soft delete**: las entidades principales tienen `borrado_en TIMESTAMP`. Un registro con `borrado_en IS NOT NULL` está eliminado lógicamente pero se conserva en la base.
+- **Auditoría**: todos los modelos tienen `creado_en`, `actualizado_en`, `creado_por`, `actualizado_por`.
 - **IDs**: `INT GENERATED ALWAYS AS IDENTITY` (autoincremental nativo de PostgreSQL).
 
-### Enums principales
+---
+
+### Tipos enumerados (ENUMs)
 
 | Enum | Valores |
 |------|---------|
-| `tipo_rol_persona` | JUGADOR, ARBITRO, ENTRENADOR, DELEGADO, etc. |
-| `tipo_categoria` | MAYORES, SUB_19, SUB_16, SUB_14, etc. |
-| `tipo_genero` | MASCULINO, FEMENINO, MIXTO |
-| `tipo_estado_partido` | BORRADOR, TERMINADO, SUSPENDIDO, ANULADO, REPROGRAMADO |
-| `tipo_tarjeta` | AMARILLA, ROJA |
-| `tipo_gol` | JUGADA, CORNER, PENAL, DEFINICION |
-| `tipo_rol_usuario` | SUPERUSUARIO, ADMIN, EDITOR, LECTOR |
+| `tipo_genero` | `MASCULINO`, `FEMENINO`, `MIXTO` |
+| `tipo_categoria` | `MAYORES`, `SUB_19`, `SUB_16`, `SUB_14`, `SUB_12` |
+| `tipo_rol_persona` | `JUGADOR`, `DT`, `ARBITRO`, `ASISTENTE`, `MEDICO`, `PREPARADOR_FISICO`, `DELEGADO` |
+| `tipo_estado_partido` | `BORRADOR`, `TERMINADO`, `SUSPENDIDO`, `ANULADO`, `REPROGRAMADO` |
+| `tipo_tarjeta` | `VERDE`, `AMARILLA`, `ROJA` |
+| `tipo_estado_tarjeta` | `VALIDA`, `ANULADA`, `CORREGIDA` |
+| `tipo_gol` | `GJ` (jugada), `GC` (córner), `GP` (penal), `DP` (desvío penal) |
+| `tipo_estado_gol` | `VALIDO`, `ANULADO`, `CORREGIDO` |
+| `tipo_suspension` | `POR_PARTIDOS`, `POR_FECHA` |
+| `tipo_estado_suspension` | `ACTIVA`, `CUMPLIDA`, `ANULADA` |
+| `tipo_fase` | `LIGA`, `ELIMINACION`, `GRUPOS` |
+| `tipo_usuario` | `SUPERUSUARIO`, `ADMIN`, `EDITOR`, `LECTOR` |
 
-### Vistas materializadas
+---
 
-La tabla de posiciones se calcula desde una vista SQL (`006_views.sql`) que agrega resultados de partidos en estado TERMINADO. No se recalcula manualmente; se actualiza automáticamente.
+### Entidades y relaciones
+
+#### Diagrama general
+
+```
+club ──────────────────< equipo
+ │                          │
+ └──< fichaje_rol           └──< plantel ──< plantel_integrante
+        │                                         │
+persona ┤                                    persona │
+ │      └── persona_rol                             │
+ └──< persona_rol                        fichaje_rol (opcional)
+
+
+torneo ──< inscripcion_torneo >── equipo
+   │
+   ├──< fase
+   │
+   └──< partido
+            ├── inscripcion_torneo (local)
+            ├── inscripcion_torneo (visitante)
+            ├──< participan_partido ──< plantel_integrante
+            │         ├──< gol
+            │         └──< tarjeta
+            └──< suspension (via persona_rol)
+
+
+fixture_partido ──> torneo
+                ──> equipo (local y visitante)
+                ──> partido (cuando se carga la planilla real)
+
+usuario (independiente)
+refresh_token ──> usuario
+noticias (independiente)
+posicion ──> torneo, equipo
+```
+
+---
+
+#### Descripción de cada tabla
+
+**`club`**
+Organización deportiva. Raíz de la jerarquía.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_club` | INT PK | Identificador |
+| `nombre` | VARCHAR(100) | Nombre del club |
+| `provincia` | VARCHAR(100) | Provincia |
+| `ciudad` | VARCHAR(100) | Ciudad |
+| `direccion` | VARCHAR(200) | Dirección (opcional) |
+| `telefono` | VARCHAR(20) | Teléfono (opcional) |
+| `email` | VARCHAR(100) | Email (opcional) |
+
+Restricción: `(nombre, ciudad)` únicos.
+
+---
+
+**`equipo`**
+Equipo competitivo de un club en una categoría y género específicos.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_equipo` | INT PK | Identificador |
+| `nombre` | VARCHAR(100) | Nombre del equipo |
+| `id_club` | INT FK → club | Club al que pertenece |
+| `categoria` | tipo_categoria | Categoría (MAYORES, SUB_19, etc.) |
+| `division` | VARCHAR(30) | División (opcional) |
+| `genero` | tipo_genero | Género del equipo |
+
+Restricción: `(id_club, nombre, categoria, division, genero)` únicos.
+
+---
+
+**`persona`**
+Individuo del sistema (jugador, árbitro, DT, delegado, etc.).
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_persona` | INT PK | Identificador |
+| `documento` | INT UNIQUE | DNI (opcional, único si presente) |
+| `nombre` | VARCHAR(100) | Nombre |
+| `apellido` | VARCHAR(100) | Apellido |
+| `fecha_nacimiento` | DATE | Fecha de nacimiento (opcional) |
+| `genero` | tipo_genero | Género |
+| `telefono` | VARCHAR(20) | Teléfono (opcional) |
+| `email` | VARCHAR(100) | Email (opcional) |
+
+---
+
+**`persona_rol`**
+Roles que tiene una persona (puede tener múltiples a lo largo del tiempo).
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_persona_rol` | INT PK | Identificador |
+| `id_persona` | INT FK → persona | Persona |
+| `rol` | tipo_rol_persona | Rol (JUGADOR, ARBITRO, etc.) |
+| `fecha_desde` | DATE | Inicio del rol |
+| `fecha_hasta` | DATE | Fin del rol (NULL = activo) |
+
+---
+
+**`fichaje_rol`**
+Vinculación de una persona (en un rol específico) con un club por un período.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_fichaje_rol` | INT PK | Identificador |
+| `id_persona` | INT FK → persona | Persona fichada |
+| `id_club` | INT FK → club | Club al que se ficha |
+| `id_persona_rol` | INT FK → persona_rol | Rol habilitante |
+| `rol` | tipo_rol_persona | Rol en este fichaje |
+| `fecha_inicio` | DATE | Inicio del fichaje |
+| `fecha_fin` | DATE | Fin del fichaje (NULL = activo) |
+| `activo` | BOOLEAN | Estado del fichaje |
+
+Restricciones: una persona no puede tener el mismo rol activo en dos clubes distintos, ni duplicar el mismo rol activo en el mismo club.
+
+---
+
+**`plantel`**
+Grupo de integrantes de un equipo en una temporada. Solo puede haber un plantel activo por equipo a la vez.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_plantel` | INT PK | Identificador |
+| `id_equipo` | INT FK → equipo | Equipo |
+| `nombre` | VARCHAR(100) | Nombre del plantel |
+| `temporada` | VARCHAR(10) | Ej: `2024` o `2024-2025` |
+| `fecha_apertura` | DATE | Fecha de apertura |
+| `fecha_cierre` | DATE | Fecha de cierre (NULL = abierto) |
+| `activo` | BOOLEAN | Estado del plantel |
+
+Restricción: solo un plantel activo por equipo (índice parcial).
+
+---
+
+**`plantel_integrante`**
+Vincula a una persona con un plantel en un rol y número de camiseta.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_plantel_integrante` | INT PK | Identificador |
+| `id_plantel` | INT FK → plantel | Plantel |
+| `id_persona` | INT FK → persona | Persona |
+| `id_fichaje_rol` | INT FK → fichaje_rol | Fichaje que habilita (opcional) |
+| `rol_en_plantel` | tipo_rol_persona | Rol dentro del plantel |
+| `numero_camiseta` | INT | Número de camiseta (opcional) |
+| `fecha_alta` | DATE | Ingreso al plantel |
+| `fecha_baja` | DATE | Baja del plantel (NULL = activo) |
+
+Restricción: `(id_plantel, id_persona)` únicos.
+
+---
+
+**`torneo`**
+Competencia oficial en la que participan equipos.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_torneo` | INT PK | Identificador |
+| `nombre` | VARCHAR(100) | Nombre del torneo |
+| `categoria` | tipo_categoria | Categoría |
+| `division` | VARCHAR(30) | División (opcional) |
+| `genero` | tipo_genero | Género |
+| `fecha_inicio` | DATE | Inicio del torneo |
+| `fecha_fin` | DATE | Fin del torneo (opcional) |
+| `activo` | BOOLEAN | Si el torneo está en curso |
+
+---
+
+**`inscripcion_torneo`**
+Inscripción de un equipo en un torneo. Es la tabla de unión entre ambos y se usa como referencia en los partidos (en lugar de referenciar directamente al equipo).
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_inscripcion` | INT PK | Identificador |
+| `id_equipo` | INT FK → equipo | Equipo inscripto |
+| `id_torneo` | INT FK → torneo | Torneo |
+| `fecha_inscripcion` | DATE | Fecha de inscripción |
+| `fecha_baja` | TIMESTAMP | Baja de la inscripción (NULL = activa) |
+
+Restricción: `(id_equipo, id_torneo)` únicos.
+
+---
+
+**`fase`**
+Etapa dentro de un torneo (liga, grupos, eliminación).
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_fase` | INT PK | Identificador |
+| `id_torneo` | INT FK → torneo | Torneo |
+| `nombre` | VARCHAR(50) | Nombre de la fase |
+| `tipo` | tipo_fase | Tipo (LIGA, GRUPOS, ELIMINACION) |
+| `orden` | INT | Orden de la fase en el torneo |
+| `fecha_inicio` | DATE | Inicio (opcional) |
+| `fecha_fin` | DATE | Fin (opcional) |
+
+---
+
+**`partido`**
+Registro de un partido jugado entre dos equipos inscriptos en un torneo.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_partido` | INT PK | Identificador |
+| `id_torneo` | INT FK → torneo | Torneo |
+| `id_fase` | INT FK → fase | Fase (opcional) |
+| `fecha` | DATE | Fecha del partido |
+| `horario` | TIME | Horario (opcional) |
+| `id_inscripcion_local` | INT FK → inscripcion_torneo | Equipo local |
+| `id_inscripcion_visitante` | INT FK → inscripcion_torneo | Equipo visitante |
+| `id_arbitro1` | INT FK → persona | Árbitro principal (opcional) |
+| `id_arbitro2` | INT FK → persona | Árbitro secundario (opcional) |
+| `id_capitan_local` | INT FK → plantel_integrante | Capitán local (opcional) |
+| `id_capitan_visitante` | INT FK → plantel_integrante | Capitán visitante (opcional) |
+| `ubicacion` | VARCHAR(200) | Cancha (opcional) |
+| `numero_fecha` | INT | Número de jornada (opcional) |
+| `estado_partido` | tipo_estado_partido | Estado del partido |
+| `goles_local_manual` | INT | Resultado manual (para categorías sin desglose) |
+| `goles_visitante_manual` | INT | Resultado manual |
+
+Restricción: no puede haber dos partidos entre los mismos equipos en la misma fecha y torneo (índice único sobre `LEAST`/`GREATEST` de inscripciones).
+
+---
+
+**`participan_partido`**
+Jugadores y participantes que estuvieron en un partido.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_participante_partido` | INT PK | Identificador |
+| `id_partido` | INT FK → partido | Partido |
+| `id_plantel_integrante` | INT FK → plantel_integrante | Integrante del plantel |
+| `numero_camiseta` | INT | Número de camiseta usado en este partido |
+
+Restricción: `(id_partido, id_plantel_integrante)` únicos.
+
+---
+
+**`gol`**
+Gol registrado en un partido, ligado al participante que lo convirtió.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_gol` | INT PK | Identificador |
+| `id_partido` | INT FK → partido | Partido |
+| `id_participante_partido` | INT FK → participan_partido | Jugador que convirtió |
+| `minuto` | INT | Minuto (opcional) |
+| `cuarto` | INT (1-4) | Cuarto de juego (opcional) |
+| `referencia_gol` | tipo_gol | Tipo: GJ, GC, GP, DP |
+| `es_autogol` | BOOLEAN | Si fue autogol |
+| `estado_gol` | tipo_estado_gol | VALIDO, ANULADO, CORREGIDO |
+| `motivo_anulacion` | VARCHAR(500) | Motivo si fue anulado |
+
+---
+
+**`tarjeta`**
+Tarjeta disciplinaria recibida por un participante en un partido.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_tarjeta` | INT PK | Identificador |
+| `id_partido` | INT FK → partido | Partido |
+| `id_participante_partido` | INT FK → participan_partido | Jugador sancionado |
+| `tipo` | tipo_tarjeta | VERDE, AMARILLA, ROJA |
+| `minuto` | INT | Minuto (opcional) |
+| `cuarto` | INT (1-4) | Cuarto (opcional) |
+| `estado_tarjeta` | tipo_estado_tarjeta | VALIDA, ANULADA, CORREGIDA |
+| `revisada` | BOOLEAN | Si fue revisada/apelada |
+
+---
+
+**`suspension`**
+Sanción que impide a una persona participar en partidos futuros.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_suspension` | INT PK | Identificador |
+| `id_persona_rol` | INT FK → persona_rol | Persona y rol sancionado |
+| `id_torneo` | INT FK → torneo | Torneo donde aplica |
+| `id_partido_origen` | INT FK → partido | Partido que originó la sanción |
+| `tipo_suspension` | tipo_suspension | POR_PARTIDOS o POR_FECHA |
+| `motivo` | VARCHAR(500) | Motivo de la sanción |
+| `fechas_suspension` | INT | Cantidad de partidos (si es POR_PARTIDOS) |
+| `fecha_fin_suspension` | DATE | Fecha límite (si es POR_FECHA) |
+| `cumplidas` | INT | Partidos cumplidos |
+| `partidos_cumplidos` | INT[] | Array con IDs de partidos cumplidos |
+| `estado_suspension` | tipo_estado_suspension | ACTIVA, CUMPLIDA, ANULADA |
+
+---
+
+**`posicion`**
+Estadísticas de un equipo en un torneo (tabla de posiciones). Se actualiza al cargar planillas.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_posicion` | INT PK | Identificador |
+| `id_torneo` | INT FK → torneo | Torneo |
+| `id_equipo` | INT FK → equipo | Equipo |
+| `puntos` | INT | Puntos acumulados |
+| `partidos_jugados` | INT | PJ |
+| `ganados` | INT | Ganados |
+| `empatados` | INT | Empatados |
+| `perdidos` | INT | Perdidos |
+| `goles_a_favor` | INT | GF |
+| `goles_en_contra` | INT | GC |
+| `diferencia_gol` | INT (generado) | GF - GC (columna calculada en la BD) |
+
+---
+
+**`fixture_partido`**
+Partido programado (fixture) antes de jugarse. Al cargarse la planilla real queda vinculado a `partido`.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_fixture_partido` | INT PK | Identificador |
+| `id_torneo` | INT FK → torneo | Torneo |
+| `id_equipo_local` | INT FK → equipo | Equipo local |
+| `id_equipo_visitante` | INT FK → equipo | Equipo visitante |
+| `fecha_programada` | DATE | Fecha programada |
+| `horario` | TIME | Horario (opcional) |
+| `ubicacion` | VARCHAR(200) | Lugar (opcional) |
+| `numero_fecha` | INT | Jornada |
+| `estado` | tipo_estado_partido | Estado del fixture |
+| `id_partido_real` | INT FK → partido | Partido real (NULL hasta que se cargue la planilla) |
+
+---
+
+**`usuario`**
+Usuario del sistema con acceso al panel administrativo.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_usuario` | INT PK | Identificador |
+| `username` | VARCHAR(50) UNIQUE | Nombre de usuario |
+| `email` | VARCHAR(100) UNIQUE | Email |
+| `password_hash` | TEXT | Contraseña hasheada (argon2) |
+| `tipo` | tipo_usuario | Rol: SUPERUSUARIO, ADMIN, EDITOR, LECTOR |
+| `activo` | BOOLEAN | Si puede iniciar sesión |
+| `intentos_fallidos` | INT | Intentos de login fallidos |
+| `bloqueado_hasta` | TIMESTAMP | Bloqueo temporal por intentos |
+| `ultimo_login` | TIMESTAMP | Último acceso |
+
+---
+
+**`refresh_token`**
+Tokens de sesión de larga duración para renovar el access token sin re-login.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_refresh_token` | INT PK | Identificador |
+| `id_usuario` | INT FK → usuario | Usuario |
+| `token_hash` | TEXT | Hash del token (no se guarda el token en texto plano) |
+| `expires_at` | TIMESTAMP | Expiración |
+| `revoked` | BOOLEAN | Si fue revocado |
+| `created_by_ip` | INET | IP de creación |
+| `user_agent` | TEXT | User-agent del cliente |
+
+---
+
+**`noticias`**
+Entradas de contenido publicables en el sitio.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id_noticia` | INT PK | Identificador |
+| `titulo` | VARCHAR(255) | Título |
+| `imagen_url` | TEXT | URL de imagen (opcional) |
+| `epigrafe` | VARCHAR(255) | Epígrafe/bajada (opcional) |
+| `texto` | TEXT | Cuerpo de la noticia |
+| `url_externa` | TEXT | URL de referencia externa (opcional) |
+
+---
+
+### Vistas SQL
+
+La tabla de posiciones se consulta desde una vista SQL (`006_views.sql`) que agrega los resultados de partidos en estado `TERMINADO`. No requiere actualización manual; se recalcula en cada consulta.
 
 ---
 
