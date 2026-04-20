@@ -47,6 +47,7 @@ CREATE TYPE tipo_rol_persona AS ENUM (
 
 CREATE TYPE tipo_estado_partido AS ENUM (
   'BORRADOR',
+  'PENDIENTE',
   'TERMINADO',
   'SUSPENDIDO',
   'ANULADO',

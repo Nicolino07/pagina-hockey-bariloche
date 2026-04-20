@@ -3,7 +3,39 @@ from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, field_validator
 from app.schemas.validators import corregir_anio_fecha
 
-EstadoPartido = Literal["BORRADOR", "TERMINADO", "SUSPENDIDO", "ANULADO", "REPROGRAMADO"]
+TipoFixture = Literal["simple", "ida_y_vuelta"]
+
+
+class FixtureGenerarRequest(BaseModel):
+    tipo: TipoFixture = "simple"
+
+
+class FixturePartidoPreview(BaseModel):
+    """Partido generado para previsualización, sin ID (aún no guardado)."""
+    numero_fecha: int
+    rueda: str
+    id_equipo_local: int
+    id_equipo_visitante: int
+    nombre_equipo_local: str
+    nombre_equipo_visitante: str
+
+
+class FixtureDescansoPreview(BaseModel):
+    """Equipo que descansa en una fecha (número impar de equipos)."""
+    numero_fecha: int
+    rueda: str
+    id_equipo: int
+    nombre_equipo: str
+
+
+class FixturePreviewResponse(BaseModel):
+    total_fechas: int
+    total_partidos: int
+    tipo: TipoFixture
+    partidos: list[FixturePartidoPreview]
+    descansos: list[FixtureDescansoPreview]
+
+EstadoPartido = Literal["BORRADOR", "PENDIENTE", "TERMINADO", "SUSPENDIDO", "ANULADO", "REPROGRAMADO"]
 
 
 class FixturePartidoCreate(BaseModel):
@@ -55,6 +87,7 @@ class FixturePartidoResponse(BaseModel):
     id_partido_real: Optional[int]
     goles_local: Optional[int] = None
     goles_visitante: Optional[int] = None
+    nombre_equipo_descansa: Optional[str] = None
     creado_en: datetime
     creado_por: Optional[str]
 

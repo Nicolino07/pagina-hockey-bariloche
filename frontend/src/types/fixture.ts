@@ -1,4 +1,29 @@
-export type EstadoPartido = "BORRADOR" | "TERMINADO" | "SUSPENDIDO" | "ANULADO" | "REPROGRAMADO"
+export type EstadoPartido = "BORRADOR" | "PENDIENTE" | "TERMINADO" | "SUSPENDIDO" | "ANULADO" | "REPROGRAMADO"
+export type TipoFixture = "simple" | "ida_y_vuelta"
+
+export interface FixturePartidoPreview {
+  numero_fecha: number
+  rueda: string
+  id_equipo_local: number
+  id_equipo_visitante: number
+  nombre_equipo_local: string
+  nombre_equipo_visitante: string
+}
+
+export interface FixtureDescansoPreview {
+  numero_fecha: number
+  rueda: string
+  id_equipo: number
+  nombre_equipo: string
+}
+
+export interface FixturePreviewResponse {
+  total_fechas: number
+  total_partidos: number
+  tipo: TipoFixture
+  partidos: FixturePartidoPreview[]
+  descansos: FixtureDescansoPreview[]
+}
 
 export interface FixturePartido {
   id_fixture_partido: number
@@ -19,6 +44,7 @@ export interface FixturePartido {
   id_partido_real: number | null
   goles_local: number | null
   goles_visitante: number | null
+  nombre_equipo_descansa: string | null
   creado_en: string
   creado_por: string | null
 }

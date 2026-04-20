@@ -53,6 +53,11 @@ class FixtureFecha(Base):
         Date
     )
 
+    id_equipo_descansa: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("equipo.id_equipo", ondelete="SET NULL"),
+        nullable=True
+    )
+
     creado_en: Mapped[datetime] = mapped_column(
         TIMESTAMP,
         default=datetime.utcnow
@@ -60,5 +65,9 @@ class FixtureFecha(Base):
 
     creado_por: Mapped[Optional[str]]
 
-    # relación útil
+    actualizado_en: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP)
+    actualizado_por: Mapped[Optional[str]]
+
+    # relaciones
     torneo = relationship("Torneo", backref="fechas_fixture")
+    equipo_descansa = relationship("Equipo", foreign_keys=[id_equipo_descansa])

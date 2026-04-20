@@ -179,6 +179,15 @@ CORS_ALLOW_ORIGINS=https://hockeybariloche.com.ar
 
 ### Desarrollo local
 
+En desarrollo, Docker Compose carga automáticamente `docker-compose.yml` **y** `docker-compose.override.yml`. El override aplica las siguientes diferencias respecto a producción:
+
+| Servicio | Cambio en desarrollo |
+|----------|----------------------|
+| `nginx` | Usa `nginx.local.conf` en lugar de `nginx.conf` |
+| `frontend` | Expone el puerto `5173` al host |
+| `api` | Expone el puerto `8000` al host y monta la carpeta `tests/` |
+| `api` | Ejecuta `entrypoint.sh` en lugar de uvicorn directo |
+
 ```bash
 # Primera vez (construye imágenes y levanta)
 docker compose up --build
@@ -194,6 +203,8 @@ docker compose down -v
 ```
 
 El frontend queda disponible en `http://localhost:5173` y la API en `http://localhost:8000/api/`.
+
+> En producción el override **no existe**, así que Docker solo usa `docker-compose.yml`. Los puertos de la API y el frontend no se exponen al exterior; todo el tráfico pasa por Nginx.
 
 ### Con Swagger habilitado (desarrollo)
 

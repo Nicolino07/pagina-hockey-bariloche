@@ -145,6 +145,11 @@
 }
 
 .badgeBorrador {
+  background: rgba(154, 160, 166, 0.15);
+  color: #9aa0a6;
+}
+
+.badgePendiente {
   background: rgba(138, 180, 248, 0.15);
   color: #8ab4f8;
 }
@@ -217,4 +222,274 @@
 
 .btnEliminar:hover {
   background: rgba(242, 139, 130, 0.3);
+}
+
+/* Panel generación automática */
+.generarPanel {
+  background: var(--bg-card, #202124);
+  border: 1px solid var(--border-color, #3c4043);
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 28px;
+}
+
+.generarPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.generarTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+.generarSubtitle {
+  color: var(--text-muted, #9aa0a6);
+  font-size: 0.88rem;
+  margin-bottom: 18px;
+}
+
+.generarControles {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.tipoSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radioGroup {
+  display: flex;
+  gap: 20px;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.radioLabel input {
+  accent-color: #8ab4f8;
+}
+
+.generarAcciones {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btnEliminarFixture {
+  background: rgba(242, 139, 130, 0.12);
+  color: #f28b82;
+  border: 1px solid rgba(242, 139, 130, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.btnEliminarFixture:hover {
+  background: rgba(242, 139, 130, 0.25);
+}
+
+.warningMsg {
+  color: #fdd663;
+  font-size: 0.88rem;
+  margin-top: 12px;
+}
+
+/* Preview */
+.previewPanel {
+  background: var(--bg-card, #202124);
+  border: 1px solid #8ab4f8;
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 28px;
+}
+
+.previewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.previewTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.previewStats {
+  color: var(--text-muted, #9aa0a6);
+  font-size: 0.88rem;
+}
+
+.previewAcciones {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btnCancelarPreview {
+  background: transparent;
+  color: var(--text-muted, #9aa0a6);
+  border: 1px solid var(--border-color, #3c4043);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.btnCancelarPreview:hover {
+  color: var(--text-primary, #e8eaed);
+  border-color: var(--text-muted, #9aa0a6);
+}
+
+.previewFechas {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.previewFechaBloque {
+  border: 1px solid var(--border-color, #3c4043);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.previewFechaHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(138, 180, 248, 0.07);
+  border-bottom: 1px solid var(--border-color, #3c4043);
+}
+
+.previewFechaNro {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.previewPartidos {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.previewPartidoRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-color, #3c4043);
+  font-size: 0.9rem;
+}
+
+.previewPartidoRow:last-child {
+  border-bottom: none;
+}
+
+.previewEquipo {
+  flex: 1;
+  font-weight: 500;
+}
+
+.previewEquipo:last-child {
+  text-align: right;
+}
+
+.previewVs {
+  color: var(--text-muted, #9aa0a6);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.previewDescansoRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(253, 214, 99, 0.06);
+  font-size: 0.88rem;
+  color: var(--text-muted, #9aa0a6);
+  font-style: italic;
+}
+
+.previewDescansoIcono {
+  font-size: 0.85rem;
+}
+
+.previewDescansoNombre {
+  font-weight: 600;
+  color: #fdd663;
+  font-style: normal;
+}
+
+.previewDescansoLabel {
+  font-size: 0.82rem;
+}
+
+/* Rueda badge */
+.ruedaBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ruedaIda {
+  background: rgba(138, 180, 248, 0.15);
+  color: #8ab4f8;
+}
+
+.ruedaVuelta {
+  background: rgba(253, 214, 99, 0.15);
+  color: #fdd663;
+}
+
+/* Agrupación por fecha en lista existente */
+.fechaBloque {
+  margin-bottom: 28px;
+}
+
+.fechaBloqueHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.fechaNro {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.descansoChip {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fdd663;
+  background: rgba(253, 214, 99, 0.12);
+  border: 1px solid rgba(253, 214, 99, 0.25);
+  padding: 2px 10px;
+  border-radius: 20px;
 }

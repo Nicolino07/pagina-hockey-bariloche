@@ -42,7 +42,7 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target
-    setForm(prev => ({ ...prev, [name]: value }))
+    setForm(prev => ({ ...prev, [name]: name === "division" ? (value || null) : value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -2,18 +2,28 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { listarTorneos, listarInscripcionesTorneo } from "../../../api/torneos.api"
 import {
-  listarFixturePorTorneo,
+  listarFixturePorTorneoAdmin,
   programarPartido,
   editarPartidoFixture,
   eliminarPartidoFixture,
+  previsualizarFixture,
+  generarFixture,
+  eliminarFixtureTorneo,
 } from "../../../api/fixture.api"
 import type { Torneo } from "../../../types/torneo"
 import type { InscripcionTorneoDetalle } from "../../../types/inscripcion"
-import type { EstadoPartido, FixturePartido, FixturePartidoCreate, FixturePartidoUpdate } from "../../../types/fixture"
+import type {
+  EstadoPartido,
+  FixturePartido,
+  FixturePartidoCreate,
+  FixturePartidoUpdate,
+  FixturePreviewResponse,
+  TipoFixture,
+  FixtureDescansoPreview,
+} from "../../../types/fixture"
 import Button from "../../../components/ui/button/Button"
 import styles from "./FixtureAdmin.module.css"
 
-/** Valores iniciales vacíos para el formulario de programación de partido. */
 const FORM_VACIO: FixturePartidoCreate = {
   id_torneo: 0,
   id_equipo_local: 0,
@@ -25,7 +35,8 @@ const FORM_VACIO: FixturePartidoCreate = {
 }
 
 const ESTADOS_LABELS: Record<EstadoPartido, string> = {
-  BORRADOR: "Pendiente",
+  BORRADOR: "Borrador",
+  PENDIENTE: "Pendiente",
   TERMINADO: "Jugado",
   SUSPENDIDO: "Suspendido",
   ANULADO: "Anulado",
@@ -34,18 +45,13 @@ const ESTADOS_LABELS: Record<EstadoPartido, string> = {
 
 const ESTADOS_BADGE: Record<EstadoPartido, string> = {
   BORRADOR: styles.badgeBorrador,
+  PENDIENTE: styles.badgePendiente,
   TERMINADO: styles.badgeTerminado,
   SUSPENDIDO: styles.badgeSuspendido,
   ANULADO: styles.badgeAnulado,
   REPROGRAMADO: styles.badgeReprogramado,
 }
 
-/**
- * Página administrativa de gestión del fixture.
- * Permite seleccionar un torneo, ver sus partidos programados y
- * crear, editar o eliminar partidos del fixture.
- * Los partidos ya jugados se muestran en modo solo lectura.
- */
 export default function FixtureAdmin() {
   const navigate = useNavigate()
   const [torneos, setTorneos] = useState<Torneo[]>([])
@@ -55,27 +61,34 @@ export default function FixtureAdmin() {
   const [loadingPartidos, setLoadingPartidos] = useState(false)
 
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [mostrarGenerador, setMostrarGenerador] = useState(false)
   const [editando, setEditando] = useState<FixturePartido | null>(null)
   const [form, setForm] = useState<FixturePartidoCreate>(FORM_VACIO)
   const [estadoEdicion, setEstadoEdicion] = useState<EstadoPartido>("BORRADOR")
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Carga la lista de torneos disponibles al montar el componente.
+  // Generación automática
+  const [tipoFixture, setTipoFixture] = useState<TipoFixture>("simple")
+  const [preview, setPreview] = useState<FixturePreviewResponse | null>(null)
+  const [loadingPreview, setLoadingPreview] = useState(false)
+  const [generando, setGenerando] = useState(false)
+  const [errorGenerar, setErrorGenerar] = useState<string | null>(null)
+
   useEffect(() => {
     listarTorneos().then(setTorneos).catch(console.error)
   }, [])
 
-  // Recarga inscripciones y partidos del fixture al seleccionar un torneo distinto.
   useEffect(() => {
     if (!torneoId) return
     setInscripciones([])
     setPartidos([])
+    setPreview(null)
     setLoadingPartidos(true)
 
     Promise.all([
       listarInscripcionesTorneo(torneoId),
-      listarFixturePorTorneo(torneoId),
+      listarFixturePorTorneoAdmin(torneoId),
     ])
       .then(([insc, fix]) => {
         setInscripciones(insc)
@@ -85,19 +98,29 @@ export default function FixtureAdmin() {
       .finally(() => setLoadingPartidos(false))
   }, [torneoId])
 
-  /** Abre el formulario en modo creación con el torneo actual preseleccionado. */
   function abrirFormularioNuevo() {
     setEditando(null)
     setForm({ ...FORM_VACIO, id_torneo: torneoId! })
     setEstadoEdicion("BORRADOR")
     setError(null)
     setMostrarFormulario(true)
+    setMostrarGenerador(false)
+    setPreview(null)
   }
 
-  /**
-   * Abre el formulario en modo edición precargando los datos del partido seleccionado.
-   * @param p - Partido del fixture a editar.
-   */
+  function abrirGenerador() {
+    setMostrarGenerador(true)
+    setMostrarFormulario(false)
+    setPreview(null)
+    setError(null)
+  }
+
+  function cerrarGenerador() {
+    setMostrarGenerador(false)
+    setPreview(null)
+    setErrorGenerar(null)
+  }
+
   function abrirFormularioEdicion(p: FixturePartido) {
     setEditando(p)
     setForm({
@@ -112,19 +135,15 @@ export default function FixtureAdmin() {
     setEstadoEdicion(p.estado)
     setError(null)
     setMostrarFormulario(true)
+    setPreview(null)
   }
 
-  /** Cierra el formulario y limpia el estado de edición y error. */
   function cerrarFormulario() {
     setMostrarFormulario(false)
     setEditando(null)
     setError(null)
   }
 
-  /**
-   * Guarda el partido del fixture: crea uno nuevo o actualiza el existente según el modo.
-   * Valida que ambos equipos estén seleccionados y sean distintos antes de enviar.
-   */
   async function handleGuardar() {
     if (!form.id_equipo_local || !form.id_equipo_visitante) {
       setError("Seleccioná ambos equipos.")
@@ -147,7 +166,9 @@ export default function FixtureAdmin() {
           horario: horarioConSegundos(form.horario),
           ubicacion: form.ubicacion || null,
           numero_fecha: form.numero_fecha ?? null,
-          estado: estadoEdicion,
+          // solo envía estado si el usuario lo cambió manualmente,
+          // para que el backend pueda hacer la transición automática BORRADOR↔PENDIENTE
+          ...(estadoEdicion !== editando.estado ? { estado: estadoEdicion } : {}),
         }
         await editarPartidoFixture(editando.id_fixture_partido, update)
       } else {
@@ -158,7 +179,7 @@ export default function FixtureAdmin() {
           ubicacion: form.ubicacion || null,
         })
       }
-      const nuevos = await listarFixturePorTorneo(torneoId!)
+      const nuevos = await listarFixturePorTorneoAdmin(torneoId!)
       setPartidos(nuevos)
       cerrarFormulario()
     } catch (e: any) {
@@ -168,10 +189,6 @@ export default function FixtureAdmin() {
     }
   }
 
-  /**
-   * Elimina un partido del fixture tras confirmación del usuario.
-   * @param id - ID del partido del fixture a eliminar.
-   */
   async function handleEliminar(id: number) {
     if (!confirm("¿Eliminar este partido del fixture?")) return
     try {
@@ -182,10 +199,68 @@ export default function FixtureAdmin() {
     }
   }
 
-  /** Mapa de id_equipo → nombre_equipo construido desde las inscripciones del torneo. */
+  async function handlePrevisualizar() {
+    if (!torneoId) return
+    setLoadingPreview(true)
+    setErrorGenerar(null)
+    setPreview(null)
+    try {
+      const resultado = await previsualizarFixture(torneoId, tipoFixture)
+      setPreview(resultado)
+    } catch (e: any) {
+      setErrorGenerar(e?.response?.data?.detail ?? "Error al previsualizar el fixture.")
+    } finally {
+      setLoadingPreview(false)
+    }
+  }
+
+  async function handleGenerarFixture() {
+    if (!torneoId || !preview) return
+    setGenerando(true)
+    setErrorGenerar(null)
+    try {
+      const nuevos = await generarFixture(torneoId, tipoFixture)
+      setPartidos(nuevos)
+      setPreview(null)
+      setMostrarGenerador(false)
+    } catch (e: any) {
+      setErrorGenerar(e?.response?.data?.detail ?? "Error al generar el fixture.")
+    } finally {
+      setGenerando(false)
+    }
+  }
+
+  async function handleEliminarFixtureCompleto() {
+    if (!torneoId) return
+    if (!confirm("¿Eliminar TODO el fixture de este torneo? Esta acción no se puede deshacer.")) return
+    try {
+      await eliminarFixtureTorneo(torneoId)
+      setPartidos([])
+      setPreview(null)
+    } catch (e: any) {
+      alert(e?.response?.data?.detail ?? "Error al eliminar el fixture.")
+    }
+  }
+
   const equiposPorId = Object.fromEntries(
     inscripciones.map(i => [i.id_equipo, i.nombre_equipo])
   )
+
+  // Agrupa partidos del preview por fecha para mostrarlos ordenados
+  const fechasPreview = preview
+    ? [...new Set(preview.partidos.map(p => p.numero_fecha))].sort((a, b) => a - b)
+    : []
+
+  const partidosPorFecha = (fecha: number) =>
+    preview?.partidos.filter(p => p.numero_fecha === fecha) ?? []
+
+  const partidosOrdenados = [...partidos].sort((a, b) => {
+    const fa = a.numero_fecha ?? 99999
+    const fb = b.numero_fecha ?? 99999
+    return fa - fb
+  })
+
+  const fechasExistentes = [...new Set(partidosOrdenados.map(p => p.numero_fecha ?? 0))].sort((a, b) => a - b)
 
   return (
     <div className={styles.container}>
@@ -203,6 +278,7 @@ export default function FixtureAdmin() {
           onChange={e => {
             setTorneoId(Number(e.target.value) || null)
             setMostrarFormulario(false)
+            setPreview(null)
           }}
         >
           <option value="">— Seleccioná un torneo —</option>
@@ -213,20 +289,148 @@ export default function FixtureAdmin() {
           ))}
         </select>
 
-        {torneoId && !mostrarFormulario && (
-          <Button onClick={abrirFormularioNuevo}>+ Programar partido</Button>
+        {torneoId && !mostrarFormulario && !mostrarGenerador && !preview && (
+          <>
+            <Button onClick={abrirFormularioNuevo}>+ Programar partido</Button>
+            <Button onClick={abrirGenerador}>⚡ Generar fixture</Button>
+            {partidos.length > 0 && (
+              <button className={styles.btnEliminarFixture} onClick={handleEliminarFixtureCompleto}>
+                Eliminar fixture
+              </button>
+            )}
+          </>
         )}
       </div>
 
-      {/* Formulario */}
+      {/* Panel de generación automática — solo visible al abrir */}
+      {torneoId && mostrarGenerador && !preview && (
+        <div className={styles.generarPanel}>
+          <div className={styles.generarPanelHeader}>
+            <h3 className={styles.generarTitle}>Generar fixture automático</h3>
+            <button className={styles.btnCancelarPreview} onClick={cerrarGenerador}>Cancelar</button>
+          </div>
+          <p className={styles.generarSubtitle}>
+            Round-robin con todos los equipos inscriptos.
+            {inscripciones.length % 2 === 1 && " Con número impar de equipos, uno descansa por fecha (al azar)."}
+          </p>
+          {partidos.length > 0 && (
+            <p className={styles.warningMsg}>
+              ⚠️ Ya existe un fixture para este torneo. Si confirmás, los partidos pendientes serán eliminados.
+              Los partidos ya jugados (TERMINADO) bloquean la generación.
+            </p>
+          )}
+
+          <div className={styles.generarControles}>
+            <div className={styles.tipoSelector}>
+              <label className={styles.label}>Tipo de fixture</label>
+              <div className={styles.radioGroup}>
+                <label className={styles.radioLabel}>
+                  <input
+                    type="radio"
+                    name="tipoFixture"
+                    value="simple"
+                    checked={tipoFixture === "simple"}
+                    onChange={() => { setTipoFixture("simple"); setPreview(null) }}
+                  />
+                  Solo ida
+                </label>
+                <label className={styles.radioLabel}>
+                  <input
+                    type="radio"
+                    name="tipoFixture"
+                    value="ida_y_vuelta"
+                    checked={tipoFixture === "ida_y_vuelta"}
+                    onChange={() => { setTipoFixture("ida_y_vuelta"); setPreview(null) }}
+                  />
+                  Ida y vuelta
+                </label>
+              </div>
+            </div>
+
+            <div className={styles.generarAcciones}>
+              <Button onClick={handlePrevisualizar} disabled={loadingPreview || inscripciones.length < 2}>
+                {loadingPreview ? "Calculando..." : "Previsualizar fixture"}
+              </Button>
+            </div>
+          </div>
+
+          {errorGenerar && <p className={styles.errorMsg}>{errorGenerar}</p>}
+          {inscripciones.length < 2 && (
+            <p className={styles.warningMsg}>Se necesitan al menos 2 equipos inscriptos.</p>
+          )}
+        </div>
+      )}
+
+      {/* Preview del fixture a generar */}
+      {preview && (
+        <div className={styles.previewPanel}>
+          <div className={styles.previewHeader}>
+            <div>
+              <h3 className={styles.previewTitle}>
+                Vista previa del fixture — {preview.tipo === "simple" ? "Solo ida" : "Ida y vuelta"}
+              </h3>
+              <p className={styles.previewStats}>
+                {preview.total_partidos} partido{preview.total_partidos !== 1 ? "s" : ""} en {fechasPreview.length} fecha{fechasPreview.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <div className={styles.previewAcciones}>
+              <Button onClick={handleGenerarFixture} disabled={generando}>
+                {generando ? "Guardando..." : "Confirmar y guardar"}
+              </Button>
+              <button className={styles.btnCancelarPreview} onClick={() => setPreview(null)}>
+                Volver a modificar
+              </button>
+            </div>
+          </div>
+
+          <div className={styles.previewFechas}>
+            {fechasPreview.map(nf => {
+              const ps = partidosPorFecha(nf)
+              const rueda = ps[0]?.rueda ?? "ida"
+              const descansa: FixtureDescansoPreview | undefined = preview.descansos.find(d => d.numero_fecha === nf)
+              return (
+                <div key={nf} className={styles.previewFechaBloque}>
+                  <div className={styles.previewFechaHeader}>
+                    <span className={styles.previewFechaNro}>Fecha {nf}</span>
+                    {preview.tipo === "ida_y_vuelta" && (
+                      <span className={`${styles.ruedaBadge} ${rueda === "vuelta" ? styles.ruedaVuelta : styles.ruedaIda}`}>
+                        {rueda}
+                      </span>
+                    )}
+                  </div>
+                  <div className={styles.previewPartidos}>
+                    {ps.map((p, idx) => (
+                      <div key={idx} className={styles.previewPartidoRow}>
+                        <span className={styles.previewEquipo}>{p.nombre_equipo_local}</span>
+                        <span className={styles.previewVs}>vs</span>
+                        <span className={styles.previewEquipo}>{p.nombre_equipo_visitante}</span>
+                      </div>
+                    ))}
+                    {descansa && (
+                      <div className={styles.previewDescansoRow}>
+                        <span className={styles.previewDescansoIcono}>💤</span>
+                        <span className={styles.previewDescansoNombre}>{descansa.nombre_equipo}</span>
+                        <span className={styles.previewDescansoLabel}>descansa</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Formulario partido individual */}
       {mostrarFormulario && (
         <div className={styles.formCard}>
           <h3 className={styles.formTitle}>
-            {editando ? "Editar partido" : "Programar partido"}
+            {editando
+              ? `Editar — ${editando.nombre_equipo_local ?? equiposPorId[editando.id_equipo_local]} vs ${editando.nombre_equipo_visitante ?? equiposPorId[editando.id_equipo_visitante]}`
+              : "Programar partido"}
           </h3>
 
           <div className={styles.formGrid}>
-            {/* Equipos — solo en creación */}
             {!editando && (
               <>
                 <div className={styles.formGroup}>
@@ -272,27 +476,6 @@ export default function FixtureAdmin() {
             </div>
 
             <div className={styles.formGroup}>
-              <label className={styles.label}>Horario</label>
-              <input
-                type="time"
-                className={styles.input}
-                value={form.horario ?? ""}
-                onChange={e => setForm(f => ({ ...f, horario: e.target.value }))}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Ubicación</label>
-              <input
-                type="text"
-                className={styles.input}
-                placeholder="Ej: Cancha Municipal"
-                value={form.ubicacion ?? ""}
-                onChange={e => setForm(f => ({ ...f, ubicacion: e.target.value }))}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
               <label className={styles.label}>N° de fecha</label>
               <input
                 type="number"
@@ -304,7 +487,27 @@ export default function FixtureAdmin() {
               />
             </div>
 
-            {/* Estado — solo en edición */}
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Horario (opcional)</label>
+              <input
+                type="time"
+                className={styles.input}
+                value={form.horario ?? ""}
+                onChange={e => setForm(f => ({ ...f, horario: e.target.value }))}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Ubicación (opcional)</label>
+              <input
+                type="text"
+                className={styles.input}
+                placeholder="Ej: Cancha Municipal"
+                value={form.ubicacion ?? ""}
+                onChange={e => setForm(f => ({ ...f, ubicacion: e.target.value }))}
+              />
+            </div>
+
             {editando && (
               <div className={styles.formGroup}>
                 <label className={styles.label}>Estado</label>
@@ -313,7 +516,8 @@ export default function FixtureAdmin() {
                   value={estadoEdicion}
                   onChange={e => setEstadoEdicion(e.target.value as EstadoPartido)}
                 >
-                  <option value="BORRADOR">Pendiente</option>
+                  <option value="BORRADOR">Borrador (sin fecha)</option>
+                  <option value="PENDIENTE">Pendiente (con fecha)</option>
                   <option value="SUSPENDIDO">Suspendido</option>
                   <option value="REPROGRAMADO">Reprogramado</option>
                   <option value="ANULADO">Anulado</option>
@@ -334,75 +538,87 @@ export default function FixtureAdmin() {
         </div>
       )}
 
-      {/* Lista de partidos */}
-      {torneoId && (
+      {/* Lista de partidos existentes */}
+      {torneoId && !preview && (
         <section className={styles.lista}>
           {loadingPartidos ? (
             <p className={styles.infoMsg}>Cargando fixture...</p>
           ) : partidos.length === 0 ? (
             <p className={styles.infoMsg}>No hay partidos programados para este torneo.</p>
           ) : (
-            <div className={styles.tablaWrap}>
-              <table className={styles.tabla}>
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Local</th>
-                    <th>Visitante</th>
-                    <th>Día</th>
-                    <th>Horario</th>
-                    <th>Ubicación</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...partidos].sort((a, b) => {
-                    const fa = a.fecha_programada ?? "9999-99-99"
-                    const fb = b.fecha_programada ?? "9999-99-99"
-                    return fb.localeCompare(fa)
-                  }).map(p => (
-                    <tr key={p.id_fixture_partido} className={p.estado === "TERMINADO" ? styles.jugado : ""}>
-                      <td>{p.numero_fecha ? `Fecha ${p.numero_fecha}` : "—"}</td>
-                      <td>{p.nombre_equipo_local ?? equiposPorId[p.id_equipo_local] ?? p.id_equipo_local}</td>
-                      <td>{p.nombre_equipo_visitante ?? equiposPorId[p.id_equipo_visitante] ?? p.id_equipo_visitante}</td>
-                      <td>{p.fecha_programada ? new Date(p.fecha_programada + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" }) : "—"}</td>
-                      <td>{p.horario ? p.horario.slice(0, 5) : "—"}</td>
-                      <td>{p.ubicacion ?? "—"}</td>
-                      <td>
-                        <span className={`${styles.badge} ${ESTADOS_BADGE[p.estado]}`}>
-                          {ESTADOS_LABELS[p.estado]}
-                        </span>
-                      </td>
-                      <td className={styles.acciones}>
-                        {p.estado !== "TERMINADO" && (
-                          <>
-                            <button
-                              className={styles.btnCargar}
-                              onClick={() => navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`)}
-                            >
-                              Cargar resultado
-                            </button>
-                            <button
-                              className={styles.btnEditar}
-                              onClick={() => abrirFormularioEdicion(p)}
-                            >
-                              Editar
-                            </button>
-                            <button
-                              className={styles.btnEliminar}
-                              onClick={() => handleEliminar(p.id_fixture_partido)}
-                            >
-                              Eliminar
-                            </button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            fechasExistentes.map(nf => {
+              const ps = partidosOrdenados.filter(p => (p.numero_fecha ?? 0) === nf)
+              const rueda = ps[0] ? (ps[0] as any).rueda : null
+              const descansa = ps[0]?.nombre_equipo_descansa ?? null
+              return (
+                <div key={nf} className={styles.fechaBloque}>
+                  <div className={styles.fechaBloqueHeader}>
+                    <span className={styles.fechaNro}>Fecha {nf || "—"}</span>
+                    {rueda && (
+                      <span className={`${styles.ruedaBadge} ${rueda === "vuelta" ? styles.ruedaVuelta : styles.ruedaIda}`}>
+                        {rueda}
+                      </span>
+                    )}
+                    {descansa && (
+                      <span className={styles.descansoChip}>💤 {descansa} descansa</span>
+                    )}
+                  </div>
+                  <div className={styles.tablaWrap}>
+                    <table className={styles.tabla}>
+                      <thead>
+                        <tr>
+                          <th>Local</th>
+                          <th>Visitante</th>
+                          <th>Horario</th>
+                          <th>Ubicación</th>
+                          <th>Estado</th>
+                          <th>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ps.map(p => (
+                          <tr key={p.id_fixture_partido} className={p.estado === "TERMINADO" ? styles.jugado : ""}>
+                            <td>{p.nombre_equipo_local ?? equiposPorId[p.id_equipo_local] ?? p.id_equipo_local}</td>
+                            <td>{p.nombre_equipo_visitante ?? equiposPorId[p.id_equipo_visitante] ?? p.id_equipo_visitante}</td>
+                            <td>{p.horario ? p.horario.slice(0, 5) : "—"}</td>
+                            <td>{p.ubicacion ?? "—"}</td>
+                            <td>
+                              <span className={`${styles.badge} ${ESTADOS_BADGE[p.estado]}`}>
+                                {ESTADOS_LABELS[p.estado]}
+                              </span>
+                            </td>
+                            <td className={styles.acciones}>
+                              {p.estado !== "TERMINADO" && (
+                                <>
+                                  <button
+                                    className={styles.btnCargar}
+                                    onClick={() => navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`)}
+                                  >
+                                    Cargar resultado
+                                  </button>
+                                  <button
+                                    className={styles.btnEditar}
+                                    onClick={() => abrirFormularioEdicion(p)}
+                                  >
+                                    Editar
+                                  </button>
+                                  <button
+                                    className={styles.btnEliminar}
+                                    onClick={() => handleEliminar(p.id_fixture_partido)}
+                                  >
+                                    Eliminar
+                                  </button>
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )
+            })
           )}
         </section>
       )}

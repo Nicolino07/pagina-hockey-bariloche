@@ -92,7 +92,7 @@ function agruparPorTorneo(partidos: FixturePartido[], torneos: Torneo[]): GrupoT
 }
 
 const ESTADO_LABEL: Record<string, string> = {
-  BORRADOR: "Pendiente",
+  PENDIENTE: "Pendiente",
   TERMINADO: "Jugado",
   SUSPENDIDO: "Suspendido",
   ANULADO: "Anulado",

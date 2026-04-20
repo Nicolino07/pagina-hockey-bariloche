@@ -66,8 +66,12 @@ CREATE TABLE IF NOT EXISTS fixture_fecha (
     rueda            VARCHAR(10) NOT NULL DEFAULT 'ida' CHECK (rueda IN ('ida', 'vuelta')),
     fecha_programada DATE,
 
+    id_equipo_descansa INT REFERENCES equipo(id_equipo) ON DELETE SET NULL,
+
     creado_en        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     creado_por       VARCHAR(100),
+    actualizado_en   TIMESTAMP DEFAULT NULL,
+    actualizado_por  VARCHAR(100),
 
     CONSTRAINT unq_fixture_fecha UNIQUE (id_torneo, rueda, numero_fecha)
 );
@@ -94,7 +98,8 @@ CREATE TABLE IF NOT EXISTS fixture_partido (
 
     creado_en           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     creado_por          VARCHAR(100),
-    actualizado_en      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en      TIMESTAMP DEFAULT NULL,
+    actualizado_por     VARCHAR(100),
 
     CONSTRAINT chk_fixture_equipos_distintos
         CHECK (id_equipo_local <> id_equipo_visitante)

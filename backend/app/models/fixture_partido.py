@@ -15,7 +15,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 
 tipo_estado_partido = Enum(
-    "BORRADOR", "TERMINADO", "SUSPENDIDO", "ANULADO", "REPROGRAMADO",
+    "BORRADOR", "PENDIENTE", "TERMINADO", "SUSPENDIDO", "ANULADO", "REPROGRAMADO",
     name="tipo_estado_partido",
     create_type=False,
 )
