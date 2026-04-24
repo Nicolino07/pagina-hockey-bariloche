@@ -15,7 +15,7 @@ export default function EquipoDetallePublic() {
   
   const [equipo, setEquipo] = useState<Equipo | null>(null)
   
-  // Usamos tu hook
+  // Usamos hook
   const { integrantes, loading, error, hasPlantel } = usePlantelActivo(Number(id_equipo))
 
   useEffect(() => {

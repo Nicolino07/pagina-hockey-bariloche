@@ -56,6 +56,19 @@ export default function EquipoDetalle() {
       generoEquipo?: string;
     };
 
+  // -------funcion de error -------------------------------------------------
+
+  const getErrorMessage = (err: any, fallback: string) => {
+    return (
+      err.response?.data?.error?.message ||
+      err.response?.data?.detail ||
+      err.response?.data?.message ||
+      err.message ||
+      fallback
+    );
+  };
+
+
   // ── Planteles ────────────────────────────────────────��─────
   const [planteles, setPlanteles] = useState<Plantel[]>([]);
   const [plantelSeleccionado, setPlantelSeleccionado] = useState<Plantel | null>(null);
@@ -184,7 +197,7 @@ export default function EquipoDetalle() {
       await cargarPlanteles();
       setModalType(null);
     } catch (err: any) {
-      alert(err.response?.data?.detail || "Error al crear plantel");
+      alert(getErrorMessage(err, "Error al crear plantel"));
     } finally { setSaving(false); }
   };
 
@@ -196,7 +209,7 @@ export default function EquipoDetalle() {
       await cargarPlanteles();
       setModalType(null);
     } catch (err: any) {
-      alert(err.response?.data?.detail || "Error al editar plantel");
+      alert(getErrorMessage(err, "Error al editar plantel"));
     } finally { setSaving(false); }
   };
 
@@ -208,9 +221,9 @@ export default function EquipoDetalle() {
       await cargarPlanteles();
       setModalType(null);
     } catch (err: any) {
-      alert(err.response?.data?.detail || "Error al cerrar plantel");
-    } finally { setSaving(false); }
-  };
+      alert(getErrorMessage(err, "Error al cerrar plantel"));
+    }finally { setSaving(false); }
+      };
 
   const handleEliminarPlantel = async () => {
     if (!plantelSeleccionado) return;
@@ -220,7 +233,7 @@ export default function EquipoDetalle() {
       await cargarPlanteles();
       setModalType(null);
     } catch (err: any) {
-      alert(err.response?.data?.detail || "Error al eliminar plantel");
+      alert(getErrorMessage(err, "Error al eliminar plantel"));
     } finally { setSaving(false); }
   };
 
@@ -259,7 +272,7 @@ export default function EquipoDetalle() {
     const ok = resultados.filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled").map(r => r.value);
     const errores = resultados.filter((r): r is PromiseRejectedResult => r.status === "rejected").map((r, i) => {
       const nombre = `${aAgregar[i].persona_apellido}, ${aAgregar[i].persona_nombre}`;
-      const detalle = r.reason?.response?.data?.detail || "Error desconocido";
+      const detalle = getErrorMessage(r.reason, "Error desconocido");
       return `${nombre}: ${detalle}`;
     });
     if (errores.length === 0) setModalType(null);
@@ -281,7 +294,7 @@ export default function EquipoDetalle() {
       setModalType(null);
       setIntegranteAEliminar(null);
     } catch (err: any) {
-      alert(`No se pudo dar de baja: ${err.response?.data?.detail || "Error del servidor"}`);
+      alert(`No se pudo dar de baja: ${getErrorMessage(err, "Error del servidor")}`);
     }
   };
 

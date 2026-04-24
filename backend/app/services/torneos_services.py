@@ -36,6 +36,7 @@ def crear_torneo(
         categoria=CategoriaTipo(data.categoria) if isinstance(data.categoria, str) else data.categoria,
         genero=GeneroTipo(data.genero) if isinstance(data.genero, str) else data.genero,
         tipo=TipoTorneo(data.tipo) if isinstance(data.tipo, str) else data.tipo,
+        division=data.division,
         fecha_inicio=data.fecha_inicio,
         fecha_fin=data.fecha_fin,
         activo=data.activo if hasattr(data, 'activo') else True,

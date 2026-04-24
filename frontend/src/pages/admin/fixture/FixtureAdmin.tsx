@@ -31,6 +31,7 @@ import type {
   PlayoffRonda,
 } from "../../../types/fixture"
 import Button from "../../../components/ui/button/Button"
+import { exportarFixturePDF } from "./exportarFixturePDF"
 import styles from "./FixtureAdmin.module.css"
 
 /** Valores iniciales del formulario de partido. */
@@ -105,6 +106,7 @@ export default function FixtureAdmin() {
   const [nuevaRondaNombre, setNuevaRondaNombre] = useState("")
   const [nuevaRondaIdaVuelta, setNuevaRondaIdaVuelta] = useState(false)
   const [creandoRonda, setCreandoRonda] = useState(false)
+  const [modalPDF, setModalPDF] = useState(false)
 
   useEffect(() => {
     listarTorneos().then(setTorneos).catch(console.error)
@@ -422,9 +424,12 @@ export default function FixtureAdmin() {
             {!esPlayoff && <Button onClick={abrirFormularioNuevo}>+ Programar partido</Button>}
             <Button onClick={abrirGenerador}>⚡ Generar fixture</Button>
             {partidos.length > 0 && (
-              <button className={styles.btnEliminarFixture} onClick={handleEliminarFixtureCompleto}>
-                Eliminar fixture
-              </button>
+              <>
+                <Button onClick={() => setModalPDF(true)}>Exportar PDF</Button>
+                <button className={styles.btnEliminarFixture} onClick={handleEliminarFixtureCompleto}>
+                  Eliminar fixture
+                </button>
+              </>
             )}
           </>
         )}
@@ -1034,6 +1039,29 @@ export default function FixtureAdmin() {
             })
           )}
         </section>
+      )}
+
+      {/* Modal exportar PDF */}
+      {modalPDF && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "var(--bg-card, #1e1e2e)", borderRadius: 12, padding: "28px 32px", minWidth: 320, boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}>
+            <h3 style={{ margin: "0 0 20px", fontSize: "1.1rem", fontWeight: 700 }}>Exportar fixture a PDF</h3>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button
+                className={styles.btnEliminarFixture}
+                onClick={() => setModalPDF(false)}
+              >
+                Cancelar
+              </button>
+              <Button onClick={() => {
+                exportarFixturePDF(partidos, torneoSeleccionado!, esPlayoff)
+                setModalPDF(false)
+              }}>
+                Descargar
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
