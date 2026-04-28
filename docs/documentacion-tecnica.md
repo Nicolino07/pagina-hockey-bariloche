@@ -814,16 +814,16 @@ Todos los endpoints tienen el prefijo `/api`. Ejemplo: `GET /api/clubes`.
 | GET | `/torneo/{id}` | Fixture de un torneo (solo estados visibles) | Público |
 | GET | `/admin/torneo/{id}` | Fixture de un torneo (todos los estados, incluye BORRADOR) | Editor |
 | GET | `/{id}` | Detalle de un partido de fixture | Público |
-| POST | `/` | Programar partido manual | Editor |
-| POST | `/preview/{id_torneo}` | Previsualizar fixture automático (sin guardar) | Editor |
-| POST | `/generar/{id_torneo}` | Generar y guardar fixture automático (round-robin) | Editor |
-| PUT | `/{id}` | Editar partido de fixture | Editor |
-| DELETE | `/{id}` | Eliminar un partido de fixture | Editor |
-| DELETE | `/torneo/{id_torneo}` | Eliminar todo el fixture de un torneo | Editor |
+| POST | `/` | Programar partido manual | Admin |
+| POST | `/preview/{id_torneo}` | Previsualizar fixture automático (sin guardar) | Admin |
+| POST | `/generar/{id_torneo}` | Generar y guardar fixture automático (round-robin) | Admin |
+| PUT | `/{id}` | Editar partido de fixture | Admin |
+| DELETE | `/{id}` | Eliminar un partido de fixture | Admin |
+| DELETE | `/torneo/{id_torneo}` | Eliminar todo el fixture de un torneo | Admin |
 | GET | `/playoff/rondas/{id_torneo}` | Listar rondas de un playoff | Editor |
-| POST | `/playoff/rondas/{id_torneo}` | Crear ronda de playoff manualmente | Editor |
-| POST | `/playoff/preview/{id_torneo}` | Previsualizar bracket de playoff (sin guardar) | Editor |
-| POST | `/playoff/generar/{id_torneo}` | Generar y guardar bracket de playoff | Editor |
+| POST | `/playoff/rondas/{id_torneo}` | Crear ronda de playoff manualmente | Admin |
+| POST | `/playoff/preview/{id_torneo}` | Previsualizar bracket de playoff (sin guardar) | Admin |
+| POST | `/playoff/generar/{id_torneo}` | Generar y guardar bracket de playoff | Admin |
 
 > **Importante:** el orden de las rutas en FastAPI es relevante. Las rutas literales (`/proximos`, `/admin/torneo/{id}`, `/torneo/{id}`, `/preview/{id}`, `/generar/{id}`) deben registrarse **antes** de la ruta paramétrica `/{id}` para evitar que FastAPI trate cadenas como "torneo" como un ID entero.
 
@@ -962,6 +962,39 @@ src/
 | `/admin/clubes` | Superusuario | Gestión de clubes |
 | `/admin/torneos` | Superusuario | Gestión de torneos |
 | `/login/usuarios` | Superusuario | Gestión de usuarios |
+
+### Exportación de fixture a PDF
+
+Módulo: [frontend/src/pages/admin/fixture/exportarFixturePDF.ts](../frontend/src/pages/admin/fixture/exportarFixturePDF.ts)
+
+Dependencias: `jsPDF` + `jspdf-autotable` (ya listadas en el stack).
+
+**API pública:**
+
+```ts
+exportarFixturePDF(partidos: FixturePartido[], torneo: Torneo, esPlayoff: boolean): void
+```
+
+Genera y descarga el PDF directamente desde el navegador. No requiere llamada al backend.
+
+**Estructura del documento (A4 portrait):**
+
+- Encabezado con título, nombre del torneo (`nombre · categoría · división · género`) y fecha de exportación.
+- Línea separadora en azul institucional.
+- Cuerpo en dos columnas, cada una con tablas de `jspdf-autotable` (grid theme, filas alternadas).
+
+**Layout según tipo de torneo:**
+
+| Tipo | Función interna | Agrupación |
+|------|----------------|------------|
+| Liga | `exportarLiga` | Por `numero_fecha`; muestra rueda (ida/vuelta) y equipo que descansa si aplica |
+| Playoff / Copa | `exportarPlayoff` | Por `nombre_ronda_playoff` |
+
+**Salto de página:** se estima la altura de cada bloque antes de renderizarlo. Si no entra en la página actual, se agrega una nueva página y se reinician ambas columnas.
+
+**Nombre del archivo:** `fixture_<nombre_torneo_en_snake_case>.pdf`
+
+---
 
 ### Build para producción
 

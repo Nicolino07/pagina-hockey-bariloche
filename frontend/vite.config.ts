@@ -1,9 +1,21 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+const appUrl = (process.env.VITE_API_URL ?? '').replace(/\/api$/, '') || 'http://localhost:8080'
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'print-app-url',
+      configureServer(server) {
+        server.httpServer?.once('listening', () => {
+          console.log(`\n  ➜  App (nginx): \x1b[36m${appUrl}\x1b[0m\n`)
+        })
+      },
+    },
+  ],
   server: {
     host: true, // 0.0.0.0 - necesario para Docker
     port: 5173,

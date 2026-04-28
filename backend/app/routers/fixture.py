@@ -1,14 +1,15 @@
 """
 Rutas para la gestión del fixture (partidos programados).
 - Lectura pública: próximos partidos.
-- Programar / editar / eliminar: rol EDITOR o superior.
+- Lectura admin (incluye BORRADOR): rol EDITOR o superior.
+- Programar / editar / eliminar / generar: rol ADMIN o superior.
 """
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 from typing import Optional
 
 from app.database import get_db
-from app.dependencies.permissions import require_editor
+from app.dependencies.permissions import require_editor, require_admin
 from app.schemas.fixture_partido import (
     FixturePartidoCreate,
     FixturePartidoUpdate,
@@ -83,9 +84,9 @@ def fixture_por_torneo_admin(
 def programar_partido(
     data: FixturePartidoCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(require_editor),
+    current_user=Depends(require_admin),
 ):
-    """Programa un partido futuro en el fixture. Requiere rol EDITOR o superior."""
+    """Programa un partido futuro en el fixture. Requiere rol ADMIN o superior."""
     return crear_fixture_partido(db, data, current_user.username)
 
 
@@ -94,9 +95,9 @@ def editar_partido(
     id_fixture_partido: int,
     data: FixturePartidoUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(require_editor),
+    current_user=Depends(require_admin),
 ):
-    """Edita fecha, horario, ubicación o número de fecha. Requiere rol EDITOR o superior."""
+    """Edita fecha, horario, ubicación o número de fecha. Requiere rol ADMIN o superior."""
     return actualizar_fixture_partido(db, id_fixture_partido, data, current_user.username)
 
 
@@ -104,9 +105,9 @@ def editar_partido(
 def eliminar_fixture_completo(
     id_torneo: int,
     db: Session = Depends(get_db),
-    current_user=Depends(require_editor),
+    current_user=Depends(require_admin),
 ):
-    """Elimina todo el fixture de un torneo si no hay partidos jugados. Requiere rol EDITOR o superior."""
+    """Elimina todo el fixture de un torneo si no hay partidos jugados. Requiere rol ADMIN o superior."""
     eliminar_fixture_torneo(db, id_torneo)
 
 
@@ -114,9 +115,9 @@ def eliminar_fixture_completo(
 def eliminar_partido(
     id_fixture_partido: int,
     db: Session = Depends(get_db),
-    current_user=Depends(require_editor),
+    current_user=Depends(require_admin),
 ):
-    """Elimina un partido programado no jugado. Requiere rol EDITOR o superior."""
+    """Elimina un partido programado no jugado. Requiere rol ADMIN o superior."""
     eliminar_fixture_partido(db, id_fixture_partido)
 
 
@@ -130,9 +131,9 @@ def preview_fixture(
     id_torneo: int,
     data: FixtureGenerarRequest,
     db: Session = Depends(get_db),
-    current_user=Depends(require_editor),
+    current_user=Depends(require_admin),
 ):
-    """Previsualiza el fixture generado sin guardarlo. Requiere rol EDITOR o superior."""
+    """Previsualiza el fixture generado sin guardarlo. Requiere rol ADMIN o superior."""
     return previsualizar_fixture(db, id_torneo, data.tipo)
 
 
@@ -145,9 +146,9 @@ def generar_fixture_torneo(
     id_torneo: int,
     data: FixtureGenerarRequest,
     db: Session = Depends(get_db),
-    current_user=Depends(require_editor),
+    current_user=Depends(require_admin),
 ):
-    """Genera y guarda el fixture completo para un torneo. Requiere rol EDITOR o superior."""
+    """Genera y guarda el fixture completo para un torneo. Requiere rol ADMIN o superior."""
     return generar_fixture(db, id_torneo, data.tipo, current_user.username)
 
 
@@ -158,9 +159,9 @@ def crear_ronda(
     id_torneo: int,
     data: PlayoffRondaCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(require_editor),
+    current_user=Depends(require_admin),
 ):
-    """Crea una ronda de playoff manualmente. Requiere EDITOR."""
+    """Crea una ronda de playoff manualmente. Requiere ADMIN o superior."""
     return crear_ronda_playoff(db, id_torneo, data.nombre, data.ida_y_vuelta, current_user.username)
 
 
@@ -170,7 +171,7 @@ def rondas_playoff(
     db: Session = Depends(get_db),
     current_user=Depends(require_editor),
 ):
-    """Lista las rondas de un playoff. Requiere EDITOR."""
+    """Lista las rondas de un playoff. Requiere EDITOR o superior."""
     return listar_rondas_playoff(db, id_torneo)
 
 
@@ -179,9 +180,9 @@ def preview_playoff(
     id_torneo: int,
     data: GenerarPlayoffRequest,
     db: Session = Depends(get_db),
-    current_user=Depends(require_editor),
+    current_user=Depends(require_admin),
 ):
-    """Previsualiza el bracket del playoff sin guardar. Requiere EDITOR."""
+    """Previsualiza el bracket del playoff sin guardar. Requiere ADMIN o superior."""
     return previsualizar_playoff(db, id_torneo, data)
 
 
@@ -194,9 +195,9 @@ def generar_playoff_torneo(
     id_torneo: int,
     data: GenerarPlayoffRequest,
     db: Session = Depends(get_db),
-    current_user=Depends(require_editor),
+    current_user=Depends(require_admin),
 ):
-    """Genera y guarda el bracket completo del playoff. Requiere EDITOR."""
+    """Genera y guarda el bracket completo del playoff. Requiere ADMIN o superior."""
     return generar_playoff(db, id_torneo, data, current_user.username)
 
 

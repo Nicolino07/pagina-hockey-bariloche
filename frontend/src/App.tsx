@@ -118,14 +118,13 @@ export default function App() {
         <Route path="/fixture" element={<FixturePage />} />
         <Route path="/resultados" element={<ResultadosPage />} />
 
-        {/* ADMIN GENERAL */}
+        {/* EDITOR+ */}
         <Route
           element={
             <ProtectedRoute allowedRoles={['EDITOR','ADMIN','SUPERUSUARIO']} />
           }
         >
           <Route path="/admin" element={<PanelAdmin />} />
-          <Route path="/admin/fixture" element={<FixtureAdmin />} />
           <Route path="/admin/partidos" element={<PartidosPage />} />
           <Route path="/admin/partidos/nueva-planilla" element={<PartidoPlanilla />} />
           <Route path="/admin/partidos/:id_partido" element={<PartidoPlanilla />} />
@@ -133,12 +132,13 @@ export default function App() {
           <Route path="/admin/fichajes" element={<FichajesAdmin />} />
         </Route>
 
-        {/* ADMIN ESTRUCTURAL */}
+        {/* ADMIN+ */}
         <Route
           element={
             <ProtectedRoute allowedRoles={['ADMIN','SUPERUSUARIO']} />
           }
         >
+          <Route path="/admin/fixture" element={<FixtureAdmin />} />
           <Route path="/admin/clubes" element={<Clubes />} />
           <Route path="/admin/clubes/:id_club" element={<ClubDetalle />} />
           <Route path="/admin/equipos/:id_equipo" element={<EquipoDetalle />} />

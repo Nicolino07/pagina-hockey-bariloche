@@ -121,8 +121,8 @@ El sistema tiene cuatro roles de usuario:
 | Rol | Descripción |
 |-----|-------------|
 | **Lector** | Solo puede ver información interna. Sin acceso a edición. |
-| **Editor** | Puede cargar planillas de partidos y programar fixture. |
-| **Administrador** | Gestiona personas, equipos, planteles, fichajes y noticias. |
+| **Editor** | Puede cargar planillas de partidos y exportar el fixture a PDF. |
+| **Administrador** | Gestiona el fixture completo, personas, equipos, planteles, fichajes y noticias. |
 | **Superusuario** | Control total del sistema: clubes, torneos, usuarios. |
 
 ### Tabla de permisos por entidad
@@ -131,9 +131,10 @@ El sistema tiene cuatro roles de usuario:
 |---------------|--------|-------|--------------|
 | Cargar planilla de partido | Sí | Sí | Sí |
 | Eliminar partido | No | No | Sí |
-| Programar / editar fixture | Sí | No | Sí |
-| Generar fixture automático | Sí | No | Sí |
-| Eliminar fixture completo | Sí | No | Sí |
+| Programar / editar fixture | No | Sí | Sí |
+| Generar fixture automático | No | Sí | Sí |
+| Eliminar fixture completo | No | Sí | Sí |
+| Exportar fixture a PDF | Sí | Sí | Sí |
 | Crear y editar noticias | No | Sí | Sí |
 | Gestionar personas | No | Sí | Sí |
 | Gestionar equipos | No | Sí | Sí |
@@ -173,13 +174,28 @@ El rol **Editor** es para quienes cargan resultados de partidos y programan el f
 2. Buscar el partido y hacer clic en **Editar**.
 3. Realizar los cambios y guardar.
 
-#### Programar partido de fixture manualmente
+#### Exportar fixture a PDF
+
+Una vez que el torneo tiene partidos cargados, el fixture completo puede exportarse como archivo PDF.
 
 1. Ir a **Fixture** en el panel admin.
-2. Seleccionar el torneo en el selector superior.
-3. Hacer clic en **+ Programar partido**.
-4. Ingresar: equipos (local y visitante), número de fecha, fecha, horario y ubicación.
-5. Guardar. El partido queda en estado **Pendiente** (visible al público).
+2. Seleccionar el torneo.
+3. Hacer clic en **Exportar PDF**.
+4. Confirmar en el modal que aparece.
+5. El archivo se descarga automáticamente con el nombre `fixture_<nombre_torneo>.pdf`.
+
+El PDF incluye:
+- Encabezado con el nombre del torneo, categoría, género y fecha de exportación.
+- Para torneos de **Liga**: las fechas se muestran en dos columnas, ordenadas por número de jornada. Cada bloque indica si hay equipo que descansa.
+- Para torneos de **Playoff/Copa**: las rondas se muestran en dos columnas (Semifinal, Final, etc.).
+
+> El botón **Exportar PDF** solo aparece si el torneo tiene al menos un partido cargado.
+
+---
+
+### Administrador
+
+El rol **Administrador** incluye todo lo que puede hacer el Editor, más la gestión completa del fixture (programar, generar, editar, eliminar) y la gestión de personas, equipos, planteles, fichajes y noticias.
 
 #### Generar fixture automático (round-robin)
 
@@ -196,9 +212,9 @@ El sistema puede generar el calendario completo de un torneo de forma automátic
 6. Revisar el preview. Si hay número impar de equipos, en cada jornada aparecerá un equipo marcado como **Descansa**.
 7. Hacer clic en **Confirmar y guardar** para crear el fixture.
 
-> Los partidos generados se crean en estado **Borrador** (no visibles al público). Para que aparezcan en el sitio público, hay que asignarles una fecha manualmente (ver abajo).
+> Los partidos generados se crean en estado **Borrador** (no visibles al público). Para que aparezcan en el sitio público, hay que asignarles una fecha manualmente.
 
-> Si el torneo ya tenía partidos programados, el sistema los elimina al generar un fixture nuevo. El sistema avisa si hay partidos en estado avanzado (jugados, etc.) para que el Editor confirme antes de proceder.
+> Si el torneo ya tenía partidos programados, el sistema los elimina al generar un fixture nuevo. El sistema avisa si hay partidos en estado avanzado (jugados, etc.) para que el Administrador confirme antes de proceder.
 
 #### Generar bracket de playoff
 
@@ -236,6 +252,14 @@ Permite elegir exactamente quién juega contra quién en la primera ronda.
 
 > Para torneos de Playoff o Copa, la inscripción de equipos **no tiene restricción de división**: se pueden inscribir equipos de División A y División B en el mismo torneo.
 
+#### Programar partido de fixture manualmente
+
+1. Ir a **Fixture** en el panel admin.
+2. Seleccionar el torneo en el selector superior.
+3. Hacer clic en **+ Programar partido**.
+4. Ingresar: equipos (local y visitante), número de fecha, fecha, horario y ubicación.
+5. Guardar. El partido queda en estado **Pendiente** (visible al público).
+
 #### Asignar fecha a un partido (BORRADOR → Pendiente)
 
 Los partidos generados automáticamente comienzan en estado **Borrador** y no son visibles al público. Para publicarlos:
@@ -245,6 +269,13 @@ Los partidos generados automáticamente comienzan en estado **Borrador** y no so
 3. Guardar. El partido cambia automáticamente a **Pendiente** y aparece en el sitio público.
 
 > Si se quita la fecha de un partido Pendiente, vuelve a Borrador y deja de verse en el público.
+
+#### Editar o eliminar un partido de fixture
+
+1. Ir a **Fixture**.
+2. Buscar el partido y hacer clic en **Editar** o **Eliminar**.
+
+> Solo se pueden eliminar partidos desde el panel admin. Para eliminar todo el fixture de un torneo, usar el botón **Eliminar fixture**.
 
 #### Estados de los partidos de fixture
 
@@ -256,18 +287,7 @@ Los partidos generados automáticamente comienzan en estado **Borrador** y no so
 | Suspendido | Sí | Partido suspendido |
 | Reprogramado | Sí | Partido reprogramado |
 
-#### Editar o eliminar un partido de fixture
-
-1. Ir a **Fixture**.
-2. Buscar el partido y hacer clic en **Editar** o **Eliminar**.
-
-> Solo se pueden eliminar partidos desde el panel admin. Para eliminar todo el fixture de un torneo, usar el botón **Eliminar fixture** en el panel de generación.
-
 ---
-
-### Administrador
-
-El rol **Administrador** incluye todo lo que puede hacer el Editor, más la gestión de personas, equipos, planteles, fichajes y noticias.
 
 #### Gestionar personas
 

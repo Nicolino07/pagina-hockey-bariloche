@@ -27,11 +27,18 @@ echo "  Contenedor : $CONTAINER_NAME"
 echo "  Usuario    : $DB_USER"
 echo "  Base       : $DB_NAME"
 
+echo "Recreando base de datos..."
+docker exec "$CONTAINER_NAME" psql -U "$DB_USER" -d postgres -c "DROP DATABASE IF EXISTS $DB_NAME;"
+docker exec "$CONTAINER_NAME" psql -U "$DB_USER" -d postgres -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
+
+if [ $? -ne 0 ]; then
+    echo "ERROR: falló al recrear la base de datos"
+    exit 1
+fi
+
 cat "$BACKUP_FILE" | docker exec -i "$CONTAINER_NAME" pg_restore \
     -U "$DB_USER" \
     -d "$DB_NAME" \
-    --clean \
-    --if-exists \
     --no-owner
 
 if [ $? -ne 0 ]; then
