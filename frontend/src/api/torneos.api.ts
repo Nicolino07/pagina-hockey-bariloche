@@ -31,7 +31,7 @@ export async function getTorneo(id: number): Promise<Torneo> {
 export async function crearTorneo(
   data: TorneoCreate
 ): Promise<Torneo> {
-  const response = await api.post("/torneos", data)
+  const response = await api.post("/torneos/", data)
   return response.data
 }
 

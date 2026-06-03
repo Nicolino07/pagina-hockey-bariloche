@@ -2,7 +2,7 @@ import { useState } from "react"
 import Button from "../../../components/ui/button/Button"
 import { crearTorneo, actualizarTorneo } from "../../../api/torneos.api"
 import type { TipoGenero, TipoCategoria, TipoTorneo } from "../../../constants/enums"
-import { GENEROS, CATEGORIAS, TIPOS_TORNEO } from "../../../constants/enums"
+import { GENEROS, CATEGORIAS, TIPOS_TORNEO, DIVISIONES } from "../../../constants/enums"
 import type { Torneo } from "../../../types/torneo"
 
 import styles from "./CrearTorneoForm.module.css"
@@ -100,14 +100,17 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
 
       <div className={styles.field}>
         <label className={styles.label}>División <span className={styles.optional}>(opcional)</span></label>
-        <input
-          className={styles.input}
+        <select
+          className={styles.select}
           name="division"
           value={form.division ?? ""}
           onChange={handleChange}
-          placeholder="Ej: A, B, Desarrollo..."
-          maxLength={30}
-        />
+        >
+          <option value="">— Sin división —</option>
+          {DIVISIONES.map(div => (
+            <option key={div} value={div}>{div}</option>
+          ))}
+        </select>
       </div>
 
       <div className={styles.field}>

@@ -2,55 +2,52 @@
 
 ## Índice
 
+**Parte 1 — Sitio público**
+
 1. [Introducción](#introducción)
-2. [Acceso al sistema](#acceso-al-sistema)
-3. [Sitio público](#sitio-público)
-4. [Panel administrativo](#panel-administrativo)
-5. [Roles y permisos](#roles-y-permisos)
-6. [Guías por rol](#guías-por-rol)
+2. [Qué ve el público](#qué-ve-el-público)
+   - [Inicio](#inicio)
+   - [Clubes y equipos](#clubes-y-equipos)
+   - [Posiciones](#posiciones)
+   - [Ranking](#ranking)
+   - [Fixture](#fixture)
+   - [Resultados](#resultados)
+   - [Noticias](#noticias)
+
+---
+
+**Parte 2 — Panel administrativo**
+
+3. [Acceso al sistema](#acceso-al-sistema)
+4. [Roles y permisos](#roles-y-permisos)
+5. [Guías por rol](#guías-por-rol)
    - [Editor](#editor)
    - [Administrador](#administrador)
    - [Superusuario](#superusuario)
+6. [Glosario](#glosario)
+
+---
+
+---
+
+# Parte 1 — Sitio público
 
 ---
 
 ## Introducción
 
-El Sistema de Gestión Hockey Pista Bariloche es una plataforma web que permite administrar torneos de hockey sobre pista. Incluye gestión de clubes, equipos, jugadores, partidos, fixture, tabla de posiciones, estadísticas y noticias.
+El Sistema de Gestión Hockey Pista Bariloche es una plataforma web para administrar torneos de hockey sobre pista. Incluye gestión de clubes, equipos, jugadores, partidos, fixture, tabla de posiciones, estadísticas y noticias.
 
 El sistema tiene dos grandes áreas:
 
-- **Sitio público**: accesible para cualquier persona sin necesidad de registrarse.
-- **Panel administrativo**: restringido a usuarios autorizados con distintos niveles de acceso.
+- **Sitio público**: accesible para cualquier persona sin necesidad de registrarse. Muestra la información del torneo en curso en tiempo real.
+- **Panel administrativo**: restringido a usuarios autorizados con distintos niveles de acceso, desde donde se carga toda la información.
 
 ---
 
-## Acceso al sistema
+## Qué ve el público
 
-### Iniciar sesión
-
-1. Ir a la sección **Login** del sitio.
-2. Ingresar usuario y contraseña.
-3. Hacer clic en **Iniciar sesión**.
-
-> El sistema limita a 5 intentos de login por minuto como medida de seguridad.
-
-### Recuperar contraseña
-
-1. En la pantalla de login, hacer clic en **¿Olvidaste tu contraseña?**
-2. Ingresar el correo electrónico asociado a la cuenta.
-3. Revisar el correo y seguir el enlace recibido.
-4. Ingresar la nueva contraseña y confirmarla.
-
-### Usuarios nuevos (invitados)
-
-Los usuarios nuevos reciben un correo de invitación enviado por un Superusuario. Al hacer clic en el enlace del correo, se accede a un formulario para completar el registro (elegir nombre de usuario y contraseña).
-
----
-
-## Sitio público
-
-El sitio público es accesible sin necesidad de iniciar sesión. Muestra la información actualizada del torneo en curso.
+El sitio público no requiere registrarse ni iniciar sesión. Toda la información que se carga desde el panel administrativo se refleja aquí de forma automática.
 
 ### Inicio
 
@@ -59,13 +56,13 @@ La página principal muestra:
 - Últimas noticias publicadas.
 - Últimos resultados con opción de ver el detalle de cada partido.
 
-### Clubes
+### Clubes y equipos
 
+**Clubes:**
 - Listado de todos los clubes activos.
 - Al ingresar a un club se ven sus equipos y planteles activos.
 
-### Equipos
-
+**Equipos:**
 - Detalle del equipo: nombre, categoría, género.
 - Plantel activo: jugadores, entrenadores y demás integrantes.
 - Historial de partidos del equipo.
@@ -94,7 +91,8 @@ Para torneos de tipo **Playoff** o **Copa**, en lugar de la tabla de posiciones 
 - Próximos partidos con fecha asignada (estado Pendiente, Suspendido o Reprogramado).
 - Información de fecha, horario, equipos y ubicación.
 - Filtrable por torneo.
-- Los partidos en estado Borrador (sin fecha asignada) no aparecen en esta sección.
+
+> Los partidos en estado **Borrador** (sin fecha asignada) no aparecen en esta sección.
 
 ### Resultados
 
@@ -108,9 +106,34 @@ Para torneos de tipo **Playoff** o **Copa**, en lugar de la tabla de posiciones 
 
 ---
 
-## Panel administrativo
+---
 
-El panel administrativo está disponible en `/admin` para usuarios autenticados. Las opciones visibles dependen del rol asignado.
+# Parte 2 — Panel administrativo
+
+---
+
+## Acceso al sistema
+
+El panel administrativo está disponible en `/admin`. Las opciones visibles dependen del rol asignado a cada usuario.
+
+### Iniciar sesión
+
+1. Ir a la sección **Login** del sitio.
+2. Ingresar usuario y contraseña.
+3. Hacer clic en **Iniciar sesión**.
+
+> El sistema limita a 5 intentos de login por minuto como medida de seguridad.
+
+### Recuperar contraseña
+
+1. En la pantalla de login, hacer clic en **¿Olvidaste tu contraseña?**
+2. Ingresar el correo electrónico asociado a la cuenta.
+3. Revisar el correo y seguir el enlace recibido.
+4. Ingresar la nueva contraseña y confirmarla.
+
+### Usuarios nuevos (invitados)
+
+Los usuarios nuevos reciben un correo de invitación enviado por un Superusuario. Al hacer clic en el enlace del correo, se accede a un formulario para completar el registro (elegir nombre de usuario y contraseña). No existe registro público.
 
 ---
 
@@ -152,21 +175,31 @@ El sistema tiene cuatro roles de usuario:
 
 ### Editor
 
-El rol **Editor** es para quienes cargan resultados de partidos y programan el fixture.
+El rol **Editor** es para quienes cargan resultados de partidos.
 
 #### Cargar planilla de partido
+
+El sistema permite cargar la planilla de un partido **con o sin fixture previo**. No es necesario haber generado un calendario: se puede crear el torneo, inscribir equipos y empezar a cargar partidos directamente a medida que se juegan.
+
+**Sin fixture (carga directa):**
 
 1. Ir a **Partidos** en el panel admin.
 2. Hacer clic en **Nueva planilla**.
 3. Seleccionar el torneo y los equipos (local y visitante).
-4. Completar:
-   - **Resultado final**: goles del equipo local y visitante.
-   - **Participantes**: jugadores, árbitros y delegados que estuvieron en el partido.
-   - **Goles**: para cada gol indicar el anotador, asistidor (opcional) y tipo (jugada, corner, penal, definición).
-   - **Tarjetas**: tipo (amarilla o roja), jugador y minuto.
-5. Guardar como **Borrador** para continuar después, o marcar como **Terminado** para publicar el resultado.
+4. Completar la planilla (ver detalle abajo).
+5. Guardar.
 
-> Una planilla en estado **Borrador** puede editarse. Una vez **Terminada**, la tabla de posiciones se actualiza automáticamente.
+**Con fixture generado:**
+
+El flujo es idéntico. La única diferencia es que al cargar la planilla se puede vincular al partido de fixture correspondiente, lo que actualiza su estado a **Terminado** en el calendario público.
+
+**Detalle de la planilla:**
+- **Resultado final**: goles del equipo local y visitante.
+- **Participantes**: jugadores, árbitros y delegados presentes en el partido.
+- **Goles**: para cada gol indicar el anotador, tipo (jugada, córner, penal, definición) y si fue autogol.
+- **Tarjetas**: tipo (amarilla o roja), jugador y minuto.
+
+> Una planilla en estado **Borrador** puede editarse. Una vez marcada como **Terminada**, la tabla de posiciones se actualiza automáticamente.
 
 #### Editar una planilla existente
 
@@ -186,8 +219,8 @@ Una vez que el torneo tiene partidos cargados, el fixture completo puede exporta
 
 El PDF incluye:
 - Encabezado con el nombre del torneo, categoría, género y fecha de exportación.
-- Para torneos de **Liga**: las fechas se muestran en dos columnas, ordenadas por número de jornada. Cada bloque indica si hay equipo que descansa.
-- Para torneos de **Playoff/Copa**: las rondas se muestran en dos columnas (Semifinal, Final, etc.).
+- Para torneos de **Liga**: las fechas en dos columnas, ordenadas por jornada. Cada bloque indica si hay equipo que descansa.
+- Para torneos de **Playoff/Copa**: las rondas en dos columnas (Semifinal, Final, etc.).
 
 > El botón **Exportar PDF** solo aparece si el torneo tiene al menos un partido cargado.
 
@@ -195,7 +228,19 @@ El PDF incluye:
 
 ### Administrador
 
-El rol **Administrador** incluye todo lo que puede hacer el Editor, más la gestión completa del fixture (programar, generar, editar, eliminar) y la gestión de personas, equipos, planteles, fichajes y noticias.
+El rol **Administrador** incluye todo lo que puede hacer el Editor, más la gestión completa del fixture y la gestión de personas, equipos, planteles, fichajes y noticias.
+
+#### Dos formas de organizar los partidos de un torneo
+
+El sistema es flexible: se puede usar **con fixture** (calendario generado de antemano) o **sin fixture** (cargando partidos directamente a medida que se juegan). Ambas formas son válidas y pueden combinarse.
+
+| Modalidad | Cuándo usarla |
+|-----------|---------------|
+| **Sin fixture** | Torneos informales, resultados que se cargan partido a partido sin programación previa. |
+| **Con fixture generado** | Torneos con calendario definido; permite mostrar los próximos partidos en el sitio público. |
+| **Fixture manual** | Torneos con calendario conocido pero que se programa partido a partido. |
+
+---
 
 #### Generar fixture automático (round-robin)
 
@@ -206,15 +251,15 @@ El sistema puede generar el calendario completo de un torneo de forma automátic
 3. Hacer clic en **⚡ Generar fixture**. Se despliega el panel de generación.
 4. Elegir el tipo:
    - **Solo ida**: cada par de equipos se enfrenta una sola vez.
-   - **Ida y vuelta (espejo)**: cada par se enfrenta dos veces; la vuelta reproduce los mismos enfrentamientos de la ida pero con local y visitante invertidos.
+   - **Ida y vuelta (espejo)**: cada par se enfrenta dos veces; la vuelta reproduce los mismos enfrentamientos de la ida con local y visitante invertidos.
    - **Ida y vuelta (vuelta aleatoria)**: cada par se enfrenta dos veces; el orden de la vuelta es aleatorio para evitar que los mismos equipos se enfrenten en fechas consecutivas.
 5. Hacer clic en **Previsualizar**. El sistema muestra todos los partidos ordenados por jornada antes de guardar nada.
 6. Revisar el preview. Si hay número impar de equipos, en cada jornada aparecerá un equipo marcado como **Descansa**.
 7. Hacer clic en **Confirmar y guardar** para crear el fixture.
 
-> Los partidos generados se crean en estado **Borrador** (no visibles al público). Para que aparezcan en el sitio público, hay que asignarles una fecha manualmente.
+> Los partidos generados se crean en estado **Borrador** (no visibles al público). Para que aparezcan en el sitio público hay que asignarles una fecha manualmente.
 
-> Si el torneo ya tenía partidos programados, el sistema los elimina al generar un fixture nuevo. El sistema avisa si hay partidos en estado avanzado (jugados, etc.) para que el Administrador confirme antes de proceder.
+> Si el torneo ya tenía partidos programados, el sistema los elimina al generar un fixture nuevo. El sistema avisa si hay partidos en estado avanzado para que el Administrador confirme antes de proceder.
 
 #### Generar bracket de playoff
 
@@ -224,31 +269,29 @@ Para torneos de tipo **Playoff** o **Copa**, el sistema genera un cuadro de elim
 2. Seleccionar un torneo de tipo Playoff o Copa.
 3. Hacer clic en **⚡ Generar fixture**. Se despliega el panel de generación de playoff.
 4. Elegir las opciones:
-   - **Formato**: **Solo ida** (cada serie se define en un partido) o **Ida y vuelta** (dos partidos por serie, el ganador se determina por el global de goles).
+   - **Formato**: **Solo ida** (cada serie se define en un partido) o **Ida y vuelta** (dos partidos por serie).
    - **Asignación de cruces**: **Automático** o **Manual** (ver más abajo).
-5. Hacer clic en **Previsualizar**. El sistema muestra el bracket completo con todos los cruces antes de guardar.
+5. Hacer clic en **Previsualizar**. El sistema muestra el bracket completo antes de guardar.
 6. Revisar el preview y hacer clic en **Confirmar y guardar** para crear el bracket.
 
 **Asignación automática:**
-El sistema toma los equipos inscriptos y arma los cruces de la primera ronda al azar. Las rondas siguientes se generan automáticamente con marcadores de posición ("Ganador SF1", "Ganador C1", etc.).
+El sistema toma los equipos inscriptos y arma los cruces de la primera ronda al azar. Las rondas siguientes se generan con marcadores de posición ("Ganador SF1", etc.).
 
 **Asignación manual:**
 Permite elegir exactamente quién juega contra quién en la primera ronda.
 1. Seleccionar **Manual** en la opción de asignación.
 2. Aparece la lista de **Duelos** con selectores de equipo local y visitante.
-3. Completar cada enfrentamiento: elegir el equipo local y el visitante para cada cruce.
+3. Completar cada enfrentamiento.
 4. Usar **+ Agregar duelo** para sumar más cruces, o **✕** para quitar uno.
 5. Hacer clic en **Previsualizar** para ver el bracket antes de guardar.
 
-> En el modo manual solo se definen los cruces de la primera ronda. Las rondas siguientes (Semifinal, Final, etc.) se generan automáticamente con placeholders que se reemplazan cuando se cargan los resultados.
+> En el modo manual solo se definen los cruces de la primera ronda. Las rondas siguientes se generan automáticamente con placeholders.
 
 **Cómo funciona el bracket:**
 - Se calculan las rondas necesarias según la cantidad de equipos: Final, Semifinal, Cuartos de Final, Octavos, etc.
-- Si el número de equipos no es una potencia de 2 (4, 8, 16…), se agrega una ronda de **Repechaje** donde los equipos "extra" se enfrentan. Los que no entran en el Repechaje avanzan directamente (BYE).
-- **Avance automático de ganadores**: cuando se carga la planilla de un partido y queda en estado **Terminado**, el sistema asigna automáticamente al equipo ganador en el cruce de la siguiente ronda. En formato ida y vuelta, espera que terminen ambos partidos de la serie antes de determinar el ganador por diferencia de goles.
-- En caso de empate (simple o ida y vuelta), el avance no es automático: hay que editar el partido siguiente manualmente.
-
-> Los partidos de playoff también se crean en estado **Borrador**. Para publicarlos hay que asignarles una fecha (igual que en el fixture de liga).
+- Si el número de equipos no es potencia de 2 (4, 8, 16…), se agrega una ronda de **Repechaje**. Los que no entran avanzan directamente (BYE).
+- **Avance automático de ganadores**: cuando se carga la planilla de un partido y queda en **Terminado**, el sistema asigna automáticamente al ganador en el cruce de la siguiente ronda. En formato ida y vuelta, espera que terminen ambos partidos de la serie antes de determinar el ganador por diferencia de goles.
+- En caso de empate, el avance no es automático: hay que editar el partido siguiente manualmente.
 
 > Para torneos de Playoff o Copa, la inscripción de equipos **no tiene restricción de división**: se pueden inscribir equipos de División A y División B en el mismo torneo.
 
@@ -260,7 +303,7 @@ Permite elegir exactamente quién juega contra quién en la primera ronda.
 4. Ingresar: equipos (local y visitante), número de fecha, fecha, horario y ubicación.
 5. Guardar. El partido queda en estado **Pendiente** (visible al público).
 
-#### Asignar fecha a un partido (BORRADOR → Pendiente)
+#### Asignar fecha a un partido (Borrador → Pendiente)
 
 Los partidos generados automáticamente comienzan en estado **Borrador** y no son visibles al público. Para publicarlos:
 
@@ -275,7 +318,7 @@ Los partidos generados automáticamente comienzan en estado **Borrador** y no so
 1. Ir a **Fixture**.
 2. Buscar el partido y hacer clic en **Editar** o **Eliminar**.
 
-> Solo se pueden eliminar partidos desde el panel admin. Para eliminar todo el fixture de un torneo, usar el botón **Eliminar fixture**.
+> Para eliminar todo el fixture de un torneo usar el botón **Eliminar fixture**.
 
 #### Estados de los partidos de fixture
 
@@ -309,7 +352,7 @@ Una **persona** es cualquier individuo en el sistema: jugador, árbitro, entrena
 2. Hacer clic en **Dar de baja** e ingresar la fecha de cierre.
 
 **Eliminar persona:**
-- Usar con precaución. El sistema conserva los datos (no se eliminan físicamente).
+El sistema conserva los datos (no se eliminan físicamente). Usar con precaución.
 
 ---
 
@@ -346,7 +389,7 @@ Un **plantel** es el grupo de integrantes activos de un equipo en una temporada.
 1. En el detalle del plantel, hacer clic en **Cerrar plantel**.
 2. Ingresar la fecha de cierre y confirmar.
 
-> Un plantel cerrado ya no acepta nuevos integrantes. Para agregar más, se debe crear un nuevo plantel.
+> Un plantel cerrado ya no acepta nuevos integrantes. Para agregar más, crear un nuevo plantel.
 
 ---
 
@@ -381,10 +424,7 @@ Un **fichaje** vincula a una persona con un club en un rol específico (jugador,
 2. Realizar los cambios y guardar.
 
 **Eliminar noticia:**
-1. En el listado de noticias, hacer clic en **Eliminar**.
-2. Confirmar la acción.
-
-> Las noticias eliminadas no se borran permanentemente y pueden recuperarse si es necesario.
+Las noticias eliminadas no se borran permanentemente y pueden recuperarse si es necesario.
 
 ---
 
@@ -419,6 +459,8 @@ El rol **Superusuario** tiene acceso total al sistema. Incluye todo lo que puede
    - **Playoff**: cuadro de eliminación directa. Permite inscribir equipos de distintas divisiones.
    - **Copa**: igual que Playoff; se usa para competencias especiales o de copa.
 5. Guardar.
+
+> Después de crear el torneo, se pueden inscribir equipos y empezar a cargar partidos directamente, sin necesidad de generar un fixture.
 
 **Inscribir equipos en un torneo:**
 1. Ingresar al detalle del torneo.
@@ -465,7 +507,7 @@ El rol **Superusuario** tiene acceso total al sistema. Incluye todo lo que puede
 | **Plantel** | Conjunto de integrantes activos de un equipo en una temporada. |
 | **Fichaje** | Vinculación oficial de una persona a un club en un rol y período determinado. |
 | **Planilla** | Registro completo de un partido: resultado, goles, tarjetas y participantes. |
-| **Fixture** | Programación de partidos futuros (fecha, horario, equipos). Puede generarse automáticamente con el algoritmo round-robin. |
+| **Fixture** | Programación de partidos futuros (fecha, horario, equipos). Puede generarse automáticamente con el algoritmo round-robin o programarse partido a partido de forma manual. |
 | **Borrador** | Estado de un partido de fixture sin fecha asignada. No es visible al público. |
 | **Pendiente** | Estado de un partido de fixture con fecha asignada. Visible al público en la sección Fixture. |
 | **Descansa** | En torneos con número impar de equipos, cada jornada un equipo queda libre. El sistema lo asigna aleatoriamente al generar el fixture. |

@@ -25,7 +25,8 @@ export const CATEGORIAS = [
 export type TipoCategoria = typeof CATEGORIAS[number]
 
 export const DIVISIONES_MAYORES = ["A", "B"] as const
-export type TipoDivision = typeof DIVISIONES_MAYORES[number] | string | null
+export const DIVISIONES = ["A", "B", "DESARROLLO"] as const
+export type TipoDivision = typeof DIVISIONES[number] | string | null
 
 // =====================
 // Rol de persona

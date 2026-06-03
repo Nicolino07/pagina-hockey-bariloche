@@ -27,6 +27,10 @@ echo "  Contenedor : $CONTAINER_NAME"
 echo "  Usuario    : $DB_USER"
 echo "  Base       : $DB_NAME"
 
+echo "Terminando conexiones activas..."
+docker exec "$CONTAINER_NAME" psql -U "$DB_USER" -d postgres -c \
+    "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_NAME' AND pid <> pg_backend_pid();"
+
 echo "Recreando base de datos..."
 docker exec "$CONTAINER_NAME" psql -U "$DB_USER" -d postgres -c "DROP DATABASE IF EXISTS $DB_NAME;"
 docker exec "$CONTAINER_NAME" psql -U "$DB_USER" -d postgres -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"

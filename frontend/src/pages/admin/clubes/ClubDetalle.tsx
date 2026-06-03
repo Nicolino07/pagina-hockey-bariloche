@@ -13,7 +13,7 @@ import { crearFichaje, getFichajesPorClub, darBajaFichaje, getPersonasDisponible
 
 import type { Club } from "../../../types/club";
 import type { Equipo, EquipoCreate, EquipoUpdate } from "../../../types/equipo";
-import { GENEROS, CATEGORIAS } from "../../../constants/enums";
+import { GENEROS, CATEGORIAS, DIVISIONES } from "../../../constants/enums";
 
 // Definición local de etiquetas para el select
 const ROL_LABELS: Record<string, string> = {
@@ -481,7 +481,10 @@ export default function ClubDetalle() {
             </div>
             <div className={styles.formGroup}>
               <label>División <small>(opcional)</small></label>
-              <input value={editEquipoForm.division ?? ""} onChange={(e) => setEditEquipoForm({...editEquipoForm, division: e.target.value || null})} placeholder="Ej: A, B, Desarrollo..." maxLength={30} />
+              <select value={editEquipoForm.division ?? ""} onChange={(e) => setEditEquipoForm({...editEquipoForm, division: e.target.value || null})}>
+                <option value="">— Sin división —</option>
+                {DIVISIONES.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
             </div>
             <div className={styles.formGroup}>
               <label>Género</label>
@@ -525,7 +528,10 @@ export default function ClubDetalle() {
             </div>
             <div className={styles.formGroup}>
               <label>División <small>(opcional)</small></label>
-              <input value={form.division ?? ""} onChange={(e) => setForm({...form, division: e.target.value || null})} placeholder="Ej: A, B, Desarrollo..." maxLength={30} />
+              <select value={form.division ?? ""} onChange={(e) => setForm({...form, division: e.target.value || null})}>
+                <option value="">— Sin división —</option>
+                {DIVISIONES.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
             </div>
             <div className={styles.formGroup}>
               <label>Género</label>

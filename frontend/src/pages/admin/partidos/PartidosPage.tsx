@@ -176,6 +176,33 @@ export default function PartidosPage() {
     }
   };
 
+  const generarPlanillaDesdeFixture = async (p: FixturePartido) => {
+    try {
+      setLoading(true);
+      const [datosLocal, datosVisit] = await Promise.all([
+        obtenerDatosPlantel(p.id_equipo_local),
+        obtenerDatosPlantel(p.id_equipo_visitante),
+      ]);
+      const torneo = torneos.find(t => t.id_torneo === p.id_torneo) ?? { nombre: p.nombre_torneo ?? "" };
+      generarPlanillaPDF({
+        torneo,
+        local: { nombre_equipo: p.nombre_equipo_local },
+        visitante: { nombre_equipo: p.nombre_equipo_visitante },
+        plantelLocal: datosLocal.jugadores,
+        plantelVisitante: datosVisit.jugadores,
+        cuerpoTecnicoLocal: datosLocal.cuerpoTecnico,
+        cuerpoTecnicoVisitante: datosVisit.cuerpoTecnico,
+        fecha: p.fecha_programada ?? undefined,
+        numero_fecha: p.numero_fecha ?? undefined,
+      });
+    } catch (error) {
+      console.error("Error generando planilla desde fixture:", error);
+      alert("Error al obtener los planteles para el PDF");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   /**
    * Carga el detalle completo de un partido y abre el modal de visualización.
    * @param partido - Objeto partido con al menos `id_partido`.
@@ -554,7 +581,7 @@ export default function PartidosPage() {
                     );
                   })
                   .map(p => (
-                  <button
+                  <div
                     key={p.id_fixture_partido}
                     className={styles.fixtureItem}
                     onClick={() => {
@@ -563,18 +590,31 @@ export default function PartidosPage() {
                       navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`);
                     }}
                   >
-                    <span className={styles.fixtureEquipos}>
-                      {p.nombre_equipo_local} vs {p.nombre_equipo_visitante}
-                    </span>
-                    <span className={styles.fixtureMeta}>
-                      {p.nombre_torneo}
-                      {p.categoria && ` · ${p.categoria.replace(/_/g, " ")}`}
-                      {p.division && ` ${p.division}`}
-                      {p.genero && ` · ${p.genero}`}
-                      {p.fecha_programada ? ` · ${p.fecha_programada}` : ""}
-                      {p.numero_fecha ? ` · Fecha ${p.numero_fecha}` : ""}
-                    </span>
-                  </button>
+                    <div className={styles.fixtureItemInfo}>
+                      <span className={styles.fixtureEquipos}>
+                        {p.nombre_equipo_local} vs {p.nombre_equipo_visitante}
+                      </span>
+                      <span className={styles.fixtureMeta}>
+                        {p.nombre_torneo}
+                        {p.categoria && ` · ${p.categoria.replace(/_/g, " ")}`}
+                        {p.division && ` ${p.division}`}
+                        {p.genero && ` · ${p.genero}`}
+                        {p.fecha_programada ? ` · ${new Date(p.fecha_programada + "T00:00:00").toLocaleDateString("es-AR")}` : ""}
+                        {p.numero_fecha ? ` · Fecha ${p.numero_fecha}` : ""}
+                      </span>
+                    </div>
+                    <button
+                      className={styles.pdfBtn}
+                      title="Generar planilla PDF"
+                      disabled={loading}
+                      onClick={e => {
+                        e.stopPropagation();
+                        generarPlanillaDesdeFixture(p);
+                      }}
+                    >
+                      📄
+                    </button>
+                  </div>
                 ))}
               </div>
             )}

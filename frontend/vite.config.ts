@@ -24,7 +24,7 @@ export default defineConfig({
       host: 'localhost',
       protocol: 'ws',
       port: 5173,
-      clientPort: 5173
+      clientPort: 8080
     },
     watch: {
       usePolling: true, // Necesario para Docker

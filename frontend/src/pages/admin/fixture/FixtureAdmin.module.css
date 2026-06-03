@@ -179,6 +179,27 @@
   gap: 8px;
 }
 
+.btnPDF {
+  background: none;
+  border: 1px solid #3c4043;
+  border-radius: 6px;
+  padding: 4px 7px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  color: #8ab4f8;
+  transition: background 0.15s;
+}
+
+.btnPDF:hover {
+  background: rgba(138, 180, 248, 0.1);
+  border-color: #8ab4f8;
+}
+
+.btnPDF:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .btnCargar {
   background: rgba(129, 201, 149, 0.15);
   color: #81c995;

@@ -32,6 +32,9 @@ import type {
 } from "../../../types/fixture"
 import Button from "../../../components/ui/button/Button"
 import { exportarFixturePDF } from "./exportarFixturePDF"
+import { generarPlanillaPDF, generarPlanillaCompletaPDF } from "../../../services/PlanillaVacia.service"
+import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api"
+import { obtenerDetallePartido } from "../../../api/partidos.api"
 import styles from "./FixtureAdmin.module.css"
 
 /** Valores iniciales del formulario de partido. */
@@ -107,6 +110,7 @@ export default function FixtureAdmin() {
   const [nuevaRondaIdaVuelta, setNuevaRondaIdaVuelta] = useState(false)
   const [creandoRonda, setCreandoRonda] = useState(false)
   const [modalPDF, setModalPDF] = useState(false)
+  const [generandoPDF, setGenerandoPDF] = useState(false)
 
   useEffect(() => {
     listarTorneos().then(setTorneos).catch(console.error)
@@ -364,6 +368,48 @@ export default function FixtureAdmin() {
       setPreview(null)
     } catch (e: any) {
       alert(e?.response?.data?.detail ?? "Error al eliminar el fixture.")
+    }
+  }
+
+  // ── Planilla PDF por partido ─────────────────────────────────────────────
+
+  async function handlePlanillaPartido(p: FixturePartido) {
+    setGenerandoPDF(true)
+    try {
+      if (p.estado === 'TERMINADO' && p.id_partido_real) {
+        const detalle = await obtenerDetallePartido(p.id_partido_real)
+        generarPlanillaCompletaPDF(detalle)
+      } else {
+        const obtenerDatosPlantel = async (idEquipo: number) => {
+          const data = await getPlantelActivoPorEquipo(idEquipo)
+          if (!data || data.length === 0) return { jugadores: [], cuerpoTecnico: [] }
+          const conPersona = data.filter((i: any) => i.id_persona != null)
+          return {
+            jugadores: conPersona.filter((i: any) => i.rol_en_plantel === 'JUGADOR'),
+            cuerpoTecnico: conPersona.filter((i: any) => i.rol_en_plantel !== 'JUGADOR'),
+          }
+        }
+        const [datosL, datosV] = await Promise.all([
+          obtenerDatosPlantel(p.id_equipo_local),
+          obtenerDatosPlantel(p.id_equipo_visitante),
+        ])
+        generarPlanillaPDF({
+          torneo: torneoSeleccionado,
+          local:     { nombre_equipo: p.nombre_equipo_local },
+          visitante: { nombre_equipo: p.nombre_equipo_visitante },
+          plantelLocal:           datosL.jugadores,
+          plantelVisitante:       datosV.jugadores,
+          cuerpoTecnicoLocal:     datosL.cuerpoTecnico,
+          cuerpoTecnicoVisitante: datosV.cuerpoTecnico,
+          fecha:        p.fecha_programada ?? undefined,
+          numero_fecha: p.numero_fecha    ?? undefined,
+          ubicacion:    p.ubicacion       ?? undefined,
+        })
+      }
+    } catch {
+      alert('Error al generar la planilla')
+    } finally {
+      setGenerandoPDF(false)
     }
   }
 
@@ -942,6 +988,7 @@ export default function FixtureAdmin() {
                               </span>
                             </td>
                             <td className={styles.acciones}>
+                              <button className={styles.btnPDF} title={p.estado === 'TERMINADO' ? 'Planilla completa' : 'Planilla vacía'} disabled={generandoPDF} onClick={() => handlePlanillaPartido(p)}>📄</button>
                               {p.estado !== "TERMINADO" && (
                                 <>
                                   {!p.placeholder_local && !p.placeholder_visitante && (
@@ -1006,6 +1053,7 @@ export default function FixtureAdmin() {
                               </span>
                             </td>
                             <td className={styles.acciones}>
+                              <button className={styles.btnPDF} title={p.estado === 'TERMINADO' ? 'Planilla completa' : 'Planilla vacía'} disabled={generandoPDF} onClick={() => handlePlanillaPartido(p)}>📄</button>
                               {p.estado !== "TERMINADO" && (
                                 <>
                                   <button

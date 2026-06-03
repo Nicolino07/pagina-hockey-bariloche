@@ -1,0 +1,5 @@
+{
+  "exclude": ["alembic/versions/**"],
+  "reportMissingImports": "none",
+  "reportMissingModuleSource": "none"
+}
