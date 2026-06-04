@@ -136,6 +136,9 @@ export default function Home() {
                   {p.categoria && (
                     <span className={styles.proximoBadge}>{p.categoria.replace(/_/g, " ")}</span>
                   )}
+                  {p.ubicacion && (
+                    <span className={styles.proximoUbicacion}>📍 {p.ubicacion}</span>
+                  )}
                 </li>
               ))}
             </ul>

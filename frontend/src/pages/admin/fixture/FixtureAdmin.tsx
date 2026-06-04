@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { listarTorneos, listarInscripcionesTorneo } from "../../../api/torneos.api"
 import {
@@ -90,6 +90,7 @@ export default function FixtureAdmin() {
   const [estadoEdicion, setEstadoEdicion] = useState<EstadoPartido>("BORRADOR")
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const formRef = useRef<HTMLDivElement>(null)
 
   // Generación automática (liga)
   const [tipoFixture, setTipoFixture] = useState<TipoFixture>("simple")
@@ -190,6 +191,7 @@ export default function FixtureAdmin() {
     setError(null)
     setMostrarFormulario(true)
     setPreview(null)
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50)
   }
 
   function cerrarFormulario() {
@@ -854,7 +856,7 @@ export default function FixtureAdmin() {
 
       {/* Formulario partido individual */}
       {mostrarFormulario && (
-        <div className={styles.formCard}>
+        <div className={styles.formCard} ref={formRef}>
           <h3 className={styles.formTitle}>
             {editando
               ? <>
@@ -1104,13 +1106,14 @@ export default function FixtureAdmin() {
                                   {p.id_partido_real && (
                                     <button className={styles.btnEditar} onClick={() => navigate(`/admin/partidos/nueva-planilla?partido=${p.id_partido_real}`)}>Editar planilla</button>
                                   )}
+                                  <button className={styles.btnEditar} onClick={() => abrirFormularioEdicion(p)}>Editar fixture</button>
                                 </>
                               ) : (
                                 <>
                                   {!p.placeholder_local && !p.placeholder_visitante && (
                                     <button className={styles.btnCargar} onClick={() => navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`)}>Cargar resultado</button>
                                   )}
-                                  <button className={styles.btnEditar} onClick={() => abrirFormularioEdicion(p)}>Editar</button>
+                                  <button className={styles.btnEditar} onClick={() => abrirFormularioEdicion(p)}>Editar fixture</button>
                                 </>
                               )}
                               <button className={styles.btnEliminar} onClick={() => handleEliminar(p)}>Eliminar</button>
@@ -1189,11 +1192,12 @@ export default function FixtureAdmin() {
                                   {p.id_partido_real && (
                                     <button className={styles.btnEditar} onClick={() => navigate(`/admin/partidos/nueva-planilla?partido=${p.id_partido_real}`)}>Editar planilla</button>
                                   )}
+                                  <button className={styles.btnEditar} onClick={() => abrirFormularioEdicion(p)}>Editar fixture</button>
                                 </>
                               ) : (
                                 <>
                                   <button className={styles.btnCargar} onClick={() => navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`)}>Cargar resultado</button>
-                                  <button className={styles.btnEditar} onClick={() => abrirFormularioEdicion(p)}>Editar</button>
+                                  <button className={styles.btnEditar} onClick={() => abrirFormularioEdicion(p)}>Editar fixture</button>
                                 </>
                               )}
                               <button className={styles.btnEliminar} onClick={() => handleEliminar(p)}>Eliminar</button>

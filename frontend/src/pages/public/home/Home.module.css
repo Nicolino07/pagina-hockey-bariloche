@@ -190,6 +190,16 @@
   flex-shrink: 0;
 }
 
+.proximoUbicacion {
+  width: 100%;
+  font-size: 0.72rem;
+  color: #9aa0a6;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Noticias / News Section */
 .newsSection {
   margin-bottom: 60px;
