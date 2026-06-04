@@ -37,52 +37,157 @@
   color: #ffffff;
 }
 
-/* Stats Cards */
-.stats {
+/* Stats + Fixture row */
+.statsAndFixtureRow {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: 260px 1fr;
   gap: 20px;
   margin-bottom: 50px;
+  align-items: stretch;
 }
 
-.statCard {
+/* Compact stats card */
+.compactStatsCard {
   background: #202124;
   border: 1px solid #3c4043;
-  padding: 24px;
   border-radius: 20px;
+  padding: 20px 22px;
   display: flex;
-  align-items: center;
-  gap: 20px;
-  transition: transform 0.3s ease;
-}
-
-.statCard:hover {
-  transform: translateY(-5px);
-  border-color: #8ab4f8;
-}
-
-.statIcon {
-  font-size: 2.5rem;
-  background: #303134;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  border-radius: 16px;
+  gap: 0;
 }
 
-.statContent span {
-  display: block;
+.compactStatRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.compactStatIcon {
+  font-size: 1.3rem;
+  width: 32px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.compactStatLabel {
+  flex: 1;
   color: #9aa0a6;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.compactStatValue {
+  font-size: 1.4rem;
+  color: #8ab4f8;
+  font-weight: 800;
+}
+
+.compactStatDivider {
+  height: 1px;
+  background: #3c4043;
+  margin: 0 4px;
+}
+
+/* Próximos partidos card */
+.proximosCard {
+  background: #202124;
+  border: 1px solid #3c4043;
+  border-radius: 20px;
+  padding: 20px 24px;
+}
+
+.proximosTitle {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
+  color: #9aa0a6;
+  border-left: 3px solid #8ab4f8;
+  padding-left: 10px;
 }
 
-.statContent strong {
-  font-size: 1.8rem;
+.proximosEmpty {
+  color: #9aa0a6;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.proximosList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.proximoItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid #2a2d31;
+  flex-wrap: wrap;
+}
+
+.proximoItem:last-child {
+  border-bottom: none;
+}
+
+.proximoFecha {
+  font-size: 0.78rem;
   color: #8ab4f8;
+  font-weight: 600;
+  min-width: 58px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.proximoHorario {
+  color: #9aa0a6;
+  font-weight: 400;
+}
+
+.proximoVs {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  min-width: 0;
+}
+
+.proximoEquipo {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proximoEquipo:first-child {
+  text-align: right;
+}
+
+.proximoSeparator {
+  color: #9aa0a6;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.proximoBadge {
+  font-size: 0.65rem;
+  color: #9aa0a6;
+  background: #303134;
+  border: 1px solid #3c4043;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Noticias / News Section */
@@ -540,10 +645,9 @@
     border-radius: 16px;
   }
 
-  /* Stats: 1 sola columna */
-  .stats {
+  /* Stats + fixture: 1 sola columna */
+  .statsAndFixtureRow {
     grid-template-columns: 1fr;
-    gap: 15px;
   }
 
   .sectionHeader {

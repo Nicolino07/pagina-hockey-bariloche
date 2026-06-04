@@ -523,37 +523,71 @@ export default function PartidoPlanilla() {
               <h3>Goles</h3>
               <Button onClick={() => setGoles([...goles, { id_plantel_integrante: "", minuto: "", cuarto: "", referencia_gol: "GJ", es_autogol: false }])} size="sm" variant="secondary">+ Gol</Button>
             </div>
-            {goles.map((gol, index) => (
-              <div key={index} className={styles.eventRow}>
-                <select value={String(gol.id_plantel_integrante)} onChange={e => { const n = [...goles]; n[index].id_plantel_integrante = e.target.value; setGoles(n); }}>
-                  <option value="">Autor</option>
-                  <optgroup label={inscripcionLocal?.nombre_equipo || "Local"}>
-                    {plantelLocal
-                    .filter(p =>
-                      seleccionados.local.includes(p.id_plantel_integrante as number) &&
-                      p.rol_en_plantel === "JUGADOR").map(p => (
-                      <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
-                        {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label={inscripcionVisitante?.nombre_equipo || "Visitante"}>
-                    {plantelVisitante.filter(p =>
-                      seleccionados.visitante.includes(p.id_plantel_integrante as number) &&
-                      p.rol_en_plantel === "JUGADOR").map(p => (
-                      <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
-                        {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-                <select value={gol.referencia_gol} onChange={e => { const n = [...goles]; n[index].referencia_gol = e.target.value; setGoles(n); }}>{TIPOS_GOL.map(t => <option key={t} value={t}>{t}</option>)}</select>
-                <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Min" value={gol.minuto} onChange={e => { const n = [...goles]; n[index].minuto = e.target.value.replace(/\D/g, ""); setGoles(n); }} />
-                <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="4°" value={gol.cuarto} onChange={e => { const n = [...goles]; n[index].cuarto = e.target.value.replace(/\D/g, ""); setGoles(n); }} />
-                <label className={styles.checkboxLabel}><input type="checkbox" checked={gol.es_autogol} onChange={e => { const n = [...goles]; n[index].es_autogol = e.target.checked; setGoles(n); }} /> Autogol</label>
-                <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'gol')}>✕</button>
-              </div>
-            ))}
+            {goles.length > 0 && (
+              <table className={`${styles.eventTable} ${styles.golesTable}`}>
+                <thead>
+                  <tr>
+                    <th>Jugador</th>
+                    <th>Ref</th>
+                    <th>Min</th>
+                    <th>Cuarto</th>
+                    <th>Autogol</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {goles.map((gol, index) => (
+                    <tr key={index}>
+                      <td>
+                        <select value={String(gol.id_plantel_integrante)} onChange={e => { const n = [...goles]; n[index].id_plantel_integrante = e.target.value; setGoles(n); }}>
+                          <option value="">— Autor —</option>
+                          <optgroup label={inscripcionLocal?.nombre_equipo || "Local"}>
+                            {plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante as number) && p.rol_en_plantel === "JUGADOR").map(p => (
+                              <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                                {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                              </option>
+                            ))}
+                          </optgroup>
+                          <optgroup label={inscripcionVisitante?.nombre_equipo || "Visitante"}>
+                            {plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante as number) && p.rol_en_plantel === "JUGADOR").map(p => (
+                              <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                                {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                              </option>
+                            ))}
+                          </optgroup>
+                        </select>
+                      </td>
+                      <td>
+                        <select value={gol.referencia_gol} onChange={e => { const n = [...goles]; n[index].referencia_gol = e.target.value; setGoles(n); }}>
+                          {TIPOS_GOL.map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                      </td>
+                      <td>
+                        <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="1-40" value={gol.minuto} onChange={e => {
+                          const raw = e.target.value.replace(/\D/g, "");
+                          const min = raw === "" ? "" : String(Math.min(Number(raw), 40));
+                          const n = [...goles];
+                          n[index].minuto = min;
+                          n[index].cuarto = min !== "" ? String(Math.min(Math.floor(Number(min) / 10) + 1, 4)) : "";
+                          setGoles(n);
+                        }} />
+                      </td>
+                      <td>
+                        <input type="text" readOnly value={gol.cuarto} className={styles.cuartoReadonly} />
+                      </td>
+                      <td>
+                        <label className={styles.checkboxLabel}>
+                          <input type="checkbox" checked={gol.es_autogol} onChange={e => { const n = [...goles]; n[index].es_autogol = e.target.checked; setGoles(n); }} />
+                        </label>
+                      </td>
+                      <td>
+                        <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'gol')}>Borrar</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </section>
 
           <section className={styles.eventSection}>
@@ -561,31 +595,65 @@ export default function PartidoPlanilla() {
               <h3>Tarjetas</h3>
               <Button onClick={() => setTarjetas([...tarjetas, { id_plantel_integrante: "", tipo: "VERDE", minuto: "", cuarto: "" }])} size="sm" variant="secondary">+ Tarjeta</Button>
             </div>
-            {tarjetas.map((t, index) => (
-              <div key={index} className={styles.eventRow}>
-                <select value={String(t.id_plantel_integrante)} onChange={e => { const n = [...tarjetas]; n[index].id_plantel_integrante = e.target.value; setTarjetas(n); }}>
-                  <option value="">Sancionado</option>
-                  <optgroup label={inscripcionLocal?.nombre_equipo || "Local"}>
-                    {plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante as number)).map(p => (
-                      <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
-                        {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label={inscripcionVisitante?.nombre_equipo || "Visitante"}>
-                    {plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante as number)).map(p => (
-                      <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
-                        {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-                <select value={t.tipo} onChange={e => { const n = [...tarjetas]; n[index].tipo = e.target.value; setTarjetas(n); }}>{TIPOS_TARJETA.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}</select>
-                <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Min" value={t.minuto} onChange={e => { const n = [...tarjetas]; n[index].minuto = e.target.value.replace(/\D/g, ""); setTarjetas(n); }} />
-                <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="4°" value={t.cuarto} onChange={e => { const n = [...tarjetas]; n[index].cuarto = e.target.value.replace(/\D/g, ""); setTarjetas(n); }} />
-                <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'tarjeta')}>✕</button>
-              </div>
-            ))}
+            {tarjetas.length > 0 && (
+              <table className={`${styles.eventTable} ${styles.tarjetasTable}`}>
+                <thead>
+                  <tr>
+                    <th>Jugador</th>
+                    <th>Tipo</th>
+                    <th>Min</th>
+                    <th>Cuarto</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tarjetas.map((t, index) => (
+                    <tr key={index}>
+                      <td>
+                        <select value={String(t.id_plantel_integrante)} onChange={e => { const n = [...tarjetas]; n[index].id_plantel_integrante = e.target.value; setTarjetas(n); }}>
+                          <option value="">— Sancionado —</option>
+                          <optgroup label={inscripcionLocal?.nombre_equipo || "Local"}>
+                            {plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante as number)).map(p => (
+                              <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                                {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                              </option>
+                            ))}
+                          </optgroup>
+                          <optgroup label={inscripcionVisitante?.nombre_equipo || "Visitante"}>
+                            {plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante as number)).map(p => (
+                              <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                                {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                              </option>
+                            ))}
+                          </optgroup>
+                        </select>
+                      </td>
+                      <td>
+                        <select value={t.tipo} onChange={e => { const n = [...tarjetas]; n[index].tipo = e.target.value; setTarjetas(n); }}>
+                          {TIPOS_TARJETA.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}
+                        </select>
+                      </td>
+                      <td>
+                        <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="1-40" value={t.minuto} onChange={e => {
+                          const raw = e.target.value.replace(/\D/g, "");
+                          const min = raw === "" ? "" : String(Math.min(Number(raw), 40));
+                          const n = [...tarjetas];
+                          n[index].minuto = min;
+                          n[index].cuarto = min !== "" ? String(Math.min(Math.floor(Number(min) / 10) + 1, 4)) : "";
+                          setTarjetas(n);
+                        }} />
+                      </td>
+                      <td>
+                        <input type="text" readOnly value={t.cuarto} className={styles.cuartoReadonly} />
+                      </td>
+                      <td>
+                        <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'tarjeta')}>Borrar</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </section>
         </div>
       )}

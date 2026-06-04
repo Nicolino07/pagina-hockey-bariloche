@@ -48,7 +48,6 @@ export default function Navbar() {
               <span className={styles.separator} />
               <Link to="/admin">Panel</Link>
               <Link to="/admin/fixture">Fixture</Link>
-              <Link to="/admin/partidos">Partidos</Link>
               <Link to="/admin/noticias">Noticias</Link>
               <Link to="/admin/fichajes">Fichajes</Link>
 
@@ -110,7 +109,6 @@ export default function Navbar() {
               <hr />
               <Link to="/admin" onClick={close}>Panel</Link>
               <Link to="/admin/fixture" onClick={close}>Fixture</Link>
-              <Link to="/admin/partidos" onClick={close}>Partidos</Link>
               <Link to="/admin/noticias" onClick={close}>Noticias</Link>
               <Link to="/admin/fichajes" onClick={close}>Fichajes</Link>
 

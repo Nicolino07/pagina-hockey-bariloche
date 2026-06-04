@@ -30,10 +30,6 @@ export default function PanelAdmin() {
           Fixture
         </Link>
 
-        <Link to="/admin/partidos" className={styles.card}>
-          Partidos
-        </Link>
-
         <Link to="/admin/personas" className={styles.card}>
           Personas
         </Link>

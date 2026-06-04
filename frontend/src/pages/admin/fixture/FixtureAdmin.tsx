@@ -34,7 +34,7 @@ import Button from "../../../components/ui/button/Button"
 import { exportarFixturePDF } from "./exportarFixturePDF"
 import { generarPlanillaPDF, generarPlanillaCompletaPDF } from "../../../services/PlanillaVacia.service"
 import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api"
-import { obtenerDetallePartido } from "../../../api/partidos.api"
+import { obtenerDetallePartido, eliminarPartido } from "../../../api/partidos.api"
 import styles from "./FixtureAdmin.module.css"
 
 /** Valores iniciales del formulario de partido. */
@@ -111,6 +111,11 @@ export default function FixtureAdmin() {
   const [creandoRonda, setCreandoRonda] = useState(false)
   const [modalPDF, setModalPDF] = useState(false)
   const [generandoPDF, setGenerandoPDF] = useState(false)
+
+  // Modal de detalle de partido jugado
+  const [detalleModal, setDetalleModal] = useState(false)
+  const [detallePartido, setDetallePartido] = useState<any | null>(null)
+  const [cargandoDetalle, setCargandoDetalle] = useState(false)
 
   useEffect(() => {
     listarTorneos().then(setTorneos).catch(console.error)
@@ -261,14 +266,22 @@ export default function FixtureAdmin() {
     }
   }
 
-  async function handleEliminar(id: number) {
-    if (!confirm("¿Eliminar este partido del fixture?")) return
+  async function handleEliminar(p: FixturePartido) {
+    const tieneDatos = !!p.id_partido_real
+    const msg = tieneDatos
+      ? `¿Eliminar este partido?\n\nYa tiene resultado cargado. Se eliminarán también los goles, tarjetas y jugadores asociados.\n\nEsta acción no se puede deshacer.`
+      : `¿Eliminar este partido del fixture?`
+    if (!confirm(msg)) return
     try {
-      await eliminarPartidoFixture(id)
-      setPartidos(prev => prev.filter(p => p.id_fixture_partido !== id))
+      if (tieneDatos && p.id_partido_real) {
+        await eliminarPartido(p.id_partido_real)
+      }
+      await eliminarPartidoFixture(p.id_fixture_partido).catch(() => {})
     } catch (e: any) {
       alert(e?.response?.data?.detail ?? "Error al eliminar.")
+      return
     }
+    setPartidos(prev => prev.filter(x => x.id_fixture_partido !== p.id_fixture_partido))
   }
 
   async function handlePrevisualizar() {
@@ -368,6 +381,86 @@ export default function FixtureAdmin() {
       setPreview(null)
     } catch (e: any) {
       alert(e?.response?.data?.detail ?? "Error al eliminar el fixture.")
+    }
+  }
+
+  // ── Helpers para modal de detalle ───────────────────────────────────────
+
+  function parseIncidencias(str: string) {
+    if (!str) return []
+    return str.split("; ").map(item => {
+      const parts = item.split("|")
+      return {
+        jugador: parts[0] ?? "",
+        minuto: parts[1] ?? "",
+        cuarto: parts[2] ?? "",
+        esAutogol: parts[3] === "true",
+        tipoTarjeta: parts[4] ?? undefined,
+      }
+    })
+  }
+
+  function parsePlantilla(str: string) {
+    if (!str) return []
+    return str.split("; ").map(item => {
+      const parts = item.split("|")
+      return {
+        nombreCompleto: `${parts[0]}, ${parts[1]}`,
+        camiseta: (parts[2] === "" || parts[2] === "null") ? null : parts[2],
+        rol: parts[3] || "JUGADOR",
+        capitan: parts[4] === "true",
+      }
+    })
+  }
+
+  function agruparGoles(str: string) {
+    const items = parseIncidencias(str)
+    const map = new Map<string, { jugador: string; esAutogol: boolean; tiempos: { min: number; label: string }[] }>()
+    items.forEach(g => {
+      const key = `${g.jugador}|${g.esAutogol}`
+      if (!map.has(key)) map.set(key, { jugador: g.jugador, esAutogol: g.esAutogol, tiempos: [] })
+      map.get(key)!.tiempos.push({ min: Number(g.minuto), label: `${g.minuto}'(${g.cuarto}C)` })
+    })
+    return Array.from(map.values()).map(g => ({
+      ...g,
+      tiempos: g.tiempos.sort((a, b) => a.min - b.min).map(t => t.label),
+    }))
+  }
+
+  function agruparTarjetas(str: string) {
+    const items = parseIncidencias(str)
+    const map = new Map<string, { jugador: string; tipoTarjeta?: string; tiempos: { min: number; label: string }[] }>()
+    items.forEach(t => {
+      const key = `${t.jugador}|${t.tipoTarjeta}`
+      if (!map.has(key)) map.set(key, { jugador: t.jugador, tipoTarjeta: t.tipoTarjeta, tiempos: [] })
+      map.get(key)!.tiempos.push({ min: Number(t.minuto), label: `${t.minuto}'(${t.cuarto}C)` })
+    })
+    return Array.from(map.values()).map(t => ({
+      ...t,
+      tiempos: t.tiempos.sort((a, b) => a.min - b.min).map(x => x.label),
+    }))
+  }
+
+  function renderIconoTarjeta(tipo?: string) {
+    switch (tipo) {
+      case "VERDE":    return <span className={`${styles.cardIcon} ${styles.verde}`} />
+      case "AMARILLA": return <span className={`${styles.cardIcon} ${styles.amarilla}`} />
+      case "ROJA":     return <span className={`${styles.cardIcon} ${styles.roja}`} />
+      default:         return null
+    }
+  }
+
+  async function handleVerDetalle(p: FixturePartido) {
+    if (!p.id_partido_real) return
+    setCargandoDetalle(true)
+    try {
+      const detalle = await obtenerDetallePartido(p.id_partido_real)
+      setDetallePartido(detalle)
+      setDetalleModal(true)
+    } catch {
+      alert("No se pudo cargar el detalle del partido")
+    } finally {
+      setCargandoDetalle(false)
     }
   }
 
@@ -969,6 +1062,7 @@ export default function FixtureAdmin() {
                         <tr>
                           <th>Local</th>
                           <th>Visitante</th>
+                          <th>Resultado</th>
                           <th>Horario</th>
                           <th>Ubicación</th>
                           <th>Estado</th>
@@ -977,9 +1071,14 @@ export default function FixtureAdmin() {
                       </thead>
                       <tbody>
                         {ps.map(p => (
-                          <tr key={p.id_fixture_partido} className={p.estado === "TERMINADO" ? styles.jugado : ""}>
+                          <tr key={p.id_fixture_partido}>
                             <td>{p.nombre_equipo_local ?? p.placeholder_local ?? "—"}</td>
                             <td>{p.nombre_equipo_visitante ?? p.placeholder_visitante ?? "—"}</td>
+                            <td>
+                              {p.estado === "TERMINADO" && p.goles_local != null
+                                ? <span className={styles.resScore}>{p.goles_local} - {p.goles_visitante}</span>
+                                : "—"}
+                            </td>
                             <td>{p.horario ? p.horario.slice(0, 5) : "—"}</td>
                             <td>{p.ubicacion ?? "—"}</td>
                             <td>
@@ -988,19 +1087,33 @@ export default function FixtureAdmin() {
                               </span>
                             </td>
                             <td className={styles.acciones}>
-                              <button className={styles.btnPDF} title={p.estado === 'TERMINADO' ? 'Planilla completa' : 'Planilla vacía'} disabled={generandoPDF} onClick={() => handlePlanillaPartido(p)}>📄</button>
-                              {p.estado !== "TERMINADO" && (
+                              <button className={styles.btnPDF} title={p.estado === 'TERMINADO' ? 'Planilla completa' : 'Planilla vacía'} disabled={generandoPDF} onClick={() => handlePlanillaPartido(p)}>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="9" y1="13" x2="15" y2="13"/>
+                                <line x1="9" y1="17" x2="12" y2="17"/>
+                              </svg>
+                              <span>PDF</span>
+                            </button>
+                              {p.estado === "TERMINADO" ? (
+                                <>
+                                  {p.id_partido_real && (
+                                    <button className={styles.btnDetalle} onClick={() => handleVerDetalle(p)} disabled={cargandoDetalle}>Detalle</button>
+                                  )}
+                                  {p.id_partido_real && (
+                                    <button className={styles.btnEditar} onClick={() => navigate(`/admin/partidos/nueva-planilla?partido=${p.id_partido_real}`)}>Editar planilla</button>
+                                  )}
+                                </>
+                              ) : (
                                 <>
                                   {!p.placeholder_local && !p.placeholder_visitante && (
-                                    <button className={styles.btnCargar}
-                                      onClick={() => navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`)}>
-                                      Cargar resultado
-                                    </button>
+                                    <button className={styles.btnCargar} onClick={() => navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`)}>Cargar resultado</button>
                                   )}
                                   <button className={styles.btnEditar} onClick={() => abrirFormularioEdicion(p)}>Editar</button>
-                                  <button className={styles.btnEliminar} onClick={() => handleEliminar(p.id_fixture_partido)}>Eliminar</button>
                                 </>
                               )}
+                              <button className={styles.btnEliminar} onClick={() => handleEliminar(p)}>Eliminar</button>
                             </td>
                           </tr>
                         ))}
@@ -1034,6 +1147,7 @@ export default function FixtureAdmin() {
                         <tr>
                           <th>Local</th>
                           <th>Visitante</th>
+                          <th>Resultado</th>
                           <th>Horario</th>
                           <th>Ubicación</th>
                           <th>Estado</th>
@@ -1042,9 +1156,14 @@ export default function FixtureAdmin() {
                       </thead>
                       <tbody>
                         {ps.map(p => (
-                          <tr key={p.id_fixture_partido} className={p.estado === "TERMINADO" ? styles.jugado : ""}>
+                          <tr key={p.id_fixture_partido}>
                             <td>{p.nombre_equipo_local ?? equiposPorId[p.id_equipo_local] ?? p.id_equipo_local}</td>
                             <td>{p.nombre_equipo_visitante ?? equiposPorId[p.id_equipo_visitante] ?? p.id_equipo_visitante}</td>
+                            <td>
+                              {p.estado === "TERMINADO" && p.goles_local != null
+                                ? <span className={styles.resScore}>{p.goles_local} - {p.goles_visitante}</span>
+                                : "—"}
+                            </td>
                             <td>{p.horario ? p.horario.slice(0, 5) : "—"}</td>
                             <td>{p.ubicacion ?? "—"}</td>
                             <td>
@@ -1053,29 +1172,31 @@ export default function FixtureAdmin() {
                               </span>
                             </td>
                             <td className={styles.acciones}>
-                              <button className={styles.btnPDF} title={p.estado === 'TERMINADO' ? 'Planilla completa' : 'Planilla vacía'} disabled={generandoPDF} onClick={() => handlePlanillaPartido(p)}>📄</button>
-                              {p.estado !== "TERMINADO" && (
+                              <button className={styles.btnPDF} title={p.estado === 'TERMINADO' ? 'Planilla completa' : 'Planilla vacía'} disabled={generandoPDF} onClick={() => handlePlanillaPartido(p)}>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="9" y1="13" x2="15" y2="13"/>
+                                <line x1="9" y1="17" x2="12" y2="17"/>
+                              </svg>
+                              <span>PDF</span>
+                            </button>
+                              {p.estado === "TERMINADO" ? (
                                 <>
-                                  <button
-                                    className={styles.btnCargar}
-                                    onClick={() => navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`)}
-                                  >
-                                    Cargar resultado
-                                  </button>
-                                  <button
-                                    className={styles.btnEditar}
-                                    onClick={() => abrirFormularioEdicion(p)}
-                                  >
-                                    Editar
-                                  </button>
-                                  <button
-                                    className={styles.btnEliminar}
-                                    onClick={() => handleEliminar(p.id_fixture_partido)}
-                                  >
-                                    Eliminar
-                                  </button>
+                                  {p.id_partido_real && (
+                                    <button className={styles.btnDetalle} onClick={() => handleVerDetalle(p)} disabled={cargandoDetalle}>Detalle</button>
+                                  )}
+                                  {p.id_partido_real && (
+                                    <button className={styles.btnEditar} onClick={() => navigate(`/admin/partidos/nueva-planilla?partido=${p.id_partido_real}`)}>Editar planilla</button>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  <button className={styles.btnCargar} onClick={() => navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`)}>Cargar resultado</button>
+                                  <button className={styles.btnEditar} onClick={() => abrirFormularioEdicion(p)}>Editar</button>
                                 </>
                               )}
+                              <button className={styles.btnEliminar} onClick={() => handleEliminar(p)}>Eliminar</button>
                             </td>
                           </tr>
                         ))}
@@ -1087,6 +1208,136 @@ export default function FixtureAdmin() {
             })
           )}
         </section>
+      )}
+
+      {/* Modal detalle de partido jugado */}
+      {detalleModal && detallePartido && (
+        <div className={styles.modalOverlay} onClick={() => setDetalleModal(false)}>
+          <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div>
+                <h2>{detallePartido.nombre_torneo}</h2>
+                <p className={styles.modalSubHeader}>
+                  Fecha {detallePartido.numero_fecha} | {new Date(detallePartido.fecha + "T00:00:00").toLocaleDateString()}
+                </p>
+              </div>
+              <button className={styles.modalCloseBtn} onClick={() => setDetalleModal(false)}>×</button>
+            </div>
+
+            <div className={styles.mainScoreBanner}>
+              <div className={styles.bigTeamName}>{detallePartido.equipo_local_nombre}</div>
+              <div className={styles.bigScore}>{detallePartido.goles_local} - {detallePartido.goles_visitante}</div>
+              <div className={styles.bigTeamName}>{detallePartido.equipo_visitante_nombre}</div>
+            </div>
+
+            <div className={styles.refereeRibbon}>
+              <div className={styles.refereeItem}>
+                <span>🏁</span>
+                <span>Árbitros: <strong>{detallePartido.arbitros || "No designados"}</strong></span>
+              </div>
+              {(detallePartido.juez_mesa_local || detallePartido.juez_mesa_visitante) && (
+                <div className={styles.refereeItem}>
+                  <span>📋</span>
+                  <span>Mesa: <strong>{[detallePartido.juez_mesa_local, detallePartido.juez_mesa_visitante].filter(Boolean).join(" / ")}</strong></span>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.detailsBody}>
+              {detallePartido.categoria_torneo === "SUB_12" ? (
+                <div className={styles.sub12Grid}>
+                  {[
+                    { label: "🏠", equipo: detallePartido.equipo_local_nombre, lista: detallePartido.lista_jugadores_local },
+                    { label: "🚩", equipo: detallePartido.equipo_visitante_nombre, lista: detallePartido.lista_jugadores_visitante },
+                  ].map(({ label, equipo, lista }) => (
+                    <div key={equipo} className={styles.teamSection}>
+                      <h3>{label} {equipo}</h3>
+                      <div className={styles.plantillaList}>
+                        {parsePlantilla(lista).map((j, i) => (
+                          <div key={i} className={styles.jugadorRow}>
+                            <span className={styles.tshirt}>{j.rol === "JUGADOR" ? (j.camiseta || "-") : "📋"}</span>
+                            <span>
+                              {j.nombreCompleto}
+                              {j.capitan && <small className={styles.capitanTag}> (C)</small>}
+                              {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  {[
+                    {
+                      label: "🏠", equipo: detallePartido.equipo_local_nombre,
+                      lista: detallePartido.lista_jugadores_local,
+                      goles: detallePartido.lista_goles_local,
+                      tarjetas: detallePartido.lista_tarjetas_local,
+                    },
+                    {
+                      label: "🚩", equipo: detallePartido.equipo_visitante_nombre,
+                      lista: detallePartido.lista_jugadores_visitante,
+                      goles: detallePartido.lista_goles_visitante,
+                      tarjetas: detallePartido.lista_tarjetas_visitante,
+                    },
+                  ].map(({ label, equipo, lista, goles, tarjetas }, idx) => (
+                    <div key={equipo}>
+                      {idx > 0 && <hr className={styles.divider} />}
+                      <div className={styles.teamSection}>
+                        <h3>{label} {equipo}</h3>
+                        <div className={styles.infoGrid}>
+                          <div className={styles.infoCol}>
+                            <label>📋 Plantilla</label>
+                            <div className={styles.plantillaList}>
+                              {parsePlantilla(lista).map((j, i) => (
+                                <div key={i} className={styles.jugadorRow}>
+                                  <span className={styles.tshirt}>{j.rol === "JUGADOR" ? (j.camiseta || "-") : "📋"}</span>
+                                  <span>
+                                    {j.nombreCompleto}
+                                    {j.capitan && <small className={styles.capitanTag}> (C)</small>}
+                                    {j.rol !== "JUGADOR" && <small className={styles.rolTag}> ({j.rol})</small>}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className={styles.infoCol}>
+                            <label>🏑 Goles / 🎴 Sanciones</label>
+                            {agruparGoles(goles).map((g, i) => (
+                              <div key={i} className={styles.incidenciaItem}>
+                                <div className={styles.incRow}>
+                                  <span>🏑 {g.jugador} {g.esAutogol && <strong>(En contra)</strong>}</span>
+                                  {g.tiempos.length > 1 && <span className={styles.incCount}>x{g.tiempos.length}</span>}
+                                </div>
+                                <small className={styles.incTiempos}>{g.tiempos.join("  ")}</small>
+                              </div>
+                            ))}
+                            {agruparTarjetas(tarjetas).map((t, i) => (
+                              <div key={i} className={styles.incidenciaItem}>
+                                <div className={styles.incRow}>
+                                  <span>{renderIconoTarjeta(t.tipoTarjeta)}{t.jugador}</span>
+                                  {t.tiempos.length > 1 && <span className={styles.incCount}>x{t.tiempos.length}</span>}
+                                </div>
+                                <small className={styles.incTiempos}>{t.tiempos.join("  ")}</small>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+
+            <div className={styles.modalFooter}>
+              <p>Ubicación: <strong>{detallePartido.ubicacion}</strong></p>
+              <p className={styles.audit}>Cargado por: {detallePartido.creado_por}</p>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Modal exportar PDF */}

@@ -23,7 +23,6 @@ import TorneoDetalle from "./pages/admin/torneos/TorneoDetalle"
 import { ProtectedRoute } from "./auth/ProtectedRoute"
 import Personas from "./pages/admin/personas/Personas"
 import PersonaDetalle from "./pages/admin/personas/PersonaDetalle"
-import PartidosPage from "./pages/admin/partidos/PartidosPage"
 import PartidoPlanilla from "./pages/admin/partidos/PartidoPlanilla"
 import NoticiasForm from "./pages/admin/noticias/NoticiasForm"
 import FichajesAdmin from "./pages/admin/fichajes/FichajesAdmin"
@@ -125,7 +124,6 @@ export default function App() {
           }
         >
           <Route path="/admin" element={<PanelAdmin />} />
-          <Route path="/admin/partidos" element={<PartidosPage />} />
           <Route path="/admin/partidos/nueva-planilla" element={<PartidoPlanilla />} />
           <Route path="/admin/partidos/:id_partido" element={<PartidoPlanilla />} />
           <Route path="/admin/noticias" element={<NoticiasForm />} />

@@ -156,30 +156,56 @@
   margin-bottom: 15px;
 }
 
-.eventRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
-  align-items: center;
+.eventRowHeader { display: none; } /* unused, kept for compat */
+.eventRowHeaderCuarto { display: none; }
+.eventRow { display: none; } /* replaced by eventTable */
+
+.eventTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
 }
 
-.eventRow select, .eventRow input {
+.eventTable thead th {
+  text-align: left;
+  padding: 4px 6px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+  white-space: nowrap;
+}
+
+.eventTable tbody td {
+  padding: 4px 6px;
+  vertical-align: middle;
+}
+
+.eventTable select,
+.eventTable input[type="text"] {
   background: #252525;
   border: 1px solid #333;
   color: white;
   padding: 6px;
   border-radius: 4px;
   font-size: 0.85rem;
-  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.eventRow select:first-child {
-  flex: 1;
-  min-width: 140px;
-}
+.eventTable td:nth-child(1) { min-width: 140px; }
+.eventTable td:nth-child(2) { width: 70px; }
+.eventTable td:nth-child(3) { width: 70px; }
+.eventTable td:nth-child(4) { width: 60px; }
+.eventTable td:last-child   { width: auto; white-space: nowrap; }
 
-.eventRow input[type="text"] { width: 55px; }
+/* Autogol: columna más angosta */
+.golesTable td:nth-child(5) { width: 38px; text-align: center; }
+
+/* Tipo tarjeta: columna más ancha */
+.tarjetasTable td:nth-child(2) { width: 100px; }
 
 .checkboxLabel {
   font-size: 0.75rem;
@@ -190,11 +216,20 @@
 }
 
 .deleteBtn {
-  background: transparent;
-  border: none;
-  color: #ff6b6b;
+  background: rgba(242, 139, 130, 0.12);
+  border: 1px solid rgba(242, 139, 130, 0.3);
+  color: #f28b82;
   cursor: pointer;
-  padding: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.deleteBtn:hover {
+  background: rgba(242, 139, 130, 0.28);
 }
 
 /* Modal Resumen */
@@ -358,4 +393,14 @@
     transform: scale(1.3); /* Checkbox más fáciles de tocar */
     margin-right: 10px;
   }
+}
+
+.cuartoReadonly {
+  width: 48px !important;
+  text-align: center;
+  background: rgba(138, 180, 248, 0.08) !important;
+  color: #8ab4f8 !important;
+  font-weight: 700;
+  border-color: rgba(138, 180, 248, 0.2) !important;
+  cursor: default;
 }

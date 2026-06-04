@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { obtenerPartidosRecientes, obtenerDetallePartido } from "../../../api/partidos.api";
 import Button from "../../../components/ui/button/Button";
 import PartidoDetalleModal from "../../../components/partidos/PartidoDetalleModal";
-
 import { obtenerNoticiasRecientes } from "../../../api/noticias.api";
 import { obtenerStatsGlobales } from "../../../api/estadisticas.api";
+import { listarProximosPartidos } from "../../../api/fixture.api";
+import type { FixturePartido } from "../../../types/fixture";
 
 /**
  * Página de inicio pública.
@@ -17,6 +18,7 @@ export default function Home() {
 
   const [noticias, setNoticias] = useState<any[]>([]);
   const [partidos, setPartidos] = useState<any[]>([]);
+  const [proximosPartidos, setProximosPartidos] = useState<FixturePartido[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingDetalle, setLoadingDetalle] = useState(false);
   const [selectedPartido, setSelectedPartido] = useState<any>(null);
@@ -31,15 +33,17 @@ export default function Home() {
       setLoading(true);
       try {
         // Usamos Promise.all para que carguen en paralelo, es más eficiente 🚀
-        const [partidosData, noticiasData, statsData] = await Promise.all([
+        const [partidosData, noticiasData, statsData, proximosData] = await Promise.all([
           obtenerPartidosRecientes(),
           obtenerNoticiasRecientes(),
-          obtenerStatsGlobales()
+          obtenerStatsGlobales(),
+          listarProximosPartidos(),
         ]);
 
         setPartidos(partidosData.slice(0, 5));
         setNoticias(noticiasData.slice(0, 3));
         setStats(statsData);
+        setProximosPartidos(proximosData.slice(0, 6));
       } catch (error) {
         console.error("Error cargando datos del Home:", error);
       } finally {
@@ -81,24 +85,51 @@ export default function Home() {
         </div>
       </header>
 
-      <section className={styles.stats}>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>📊</div>
-          <div className={styles.statContent}>
-            <span>Partidos Temporada</span>
-            {/* Ahora este número viene del count() real de la DB */}
-            <strong>{stats.partidos_totales}</strong> 
+      <div className={styles.statsAndFixtureRow}>
+        {/* Tarjeta compacta de estadísticas */}
+        <div className={styles.compactStatsCard}>
+          <div className={styles.compactStatRow}>
+            <span className={styles.compactStatIcon}>📊</span>
+            <span className={styles.compactStatLabel}>Partidos Temporada</span>
+            <strong className={styles.compactStatValue}>{stats.partidos_totales}</strong>
+          </div>
+          <div className={styles.compactStatDivider} />
+          <div className={styles.compactStatRow}>
+            <span className={styles.compactStatIcon}>🏑</span>
+            <span className={styles.compactStatLabel}>Goles Convertidos</span>
+            <strong className={styles.compactStatValue}>{stats.goles_totales}</strong>
           </div>
         </div>
 
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>🏑</div>
-          <div className={styles.statContent}>
-            <span>Goles Convertidos</span>
-            <strong>{stats.goles_totales}</strong>
-          </div>
+        {/* Próximos partidos del fixture */}
+        <div className={styles.proximosCard}>
+          <h3 className={styles.proximosTitle}>Próximos Encuentros</h3>
+          {proximosPartidos.length === 0 ? (
+            <p className={styles.proximosEmpty}>No hay encuentros programados.</p>
+          ) : (
+            <ul className={styles.proximosList}>
+              {proximosPartidos.map((p) => (
+                <li key={p.id_fixture_partido} className={styles.proximoItem}>
+                  <span className={styles.proximoFecha}>
+                    {p.fecha_programada
+                      ? new Date(p.fecha_programada + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" })
+                      : "—"}
+                    {p.horario && <span className={styles.proximoHorario}> {p.horario.slice(0, 5)}</span>}
+                  </span>
+                  <span className={styles.proximoVs}>
+                    <span className={styles.proximoEquipo}>{p.nombre_equipo_local ?? p.placeholder_local ?? "—"}</span>
+                    <span className={styles.proximoSeparator}>vs</span>
+                    <span className={styles.proximoEquipo}>{p.nombre_equipo_visitante ?? p.placeholder_visitante ?? "—"}</span>
+                  </span>
+                  {p.categoria && (
+                    <span className={styles.proximoBadge}>{p.categoria.replace(/_/g, " ")}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-      </section>
+      </div>
 
       {/* --- SECCIÓN DE NOTICIAS --- */}
         <section className={styles.newsSection}>
