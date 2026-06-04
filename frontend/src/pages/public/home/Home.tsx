@@ -43,7 +43,19 @@ export default function Home() {
         setPartidos(partidosData.slice(0, 5));
         setNoticias(noticiasData.slice(0, 3));
         setStats(statsData);
-        setProximosPartidos(proximosData.slice(0, 6));
+        const ahora = Date.now();
+        const vigentes = proximosData.filter((p) => {
+          if (!p.fecha_programada) return true;
+          const [year, month, day] = p.fecha_programada.split("-").map(Number);
+          if (p.horario) {
+            const [h, m] = p.horario.split(":").map(Number);
+            const inicio = new Date(year, month - 1, day, h, m, 0).getTime();
+            return ahora < inicio + 60 * 60 * 1000;
+          }
+          // Sin hora: ocultar si la fecha ya pasó
+          return new Date(year, month - 1, day).getTime() >= new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).getTime();
+        });
+        setProximosPartidos(vigentes.slice(0, 6));
       } catch (error) {
         console.error("Error cargando datos del Home:", error);
       } finally {
