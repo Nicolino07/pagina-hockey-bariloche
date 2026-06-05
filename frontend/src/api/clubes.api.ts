@@ -56,3 +56,13 @@ export async function deleteClub(id: number): Promise<void> {
   await api.delete(`/clubes/${id}`)
 }
 
+// 🔐 SUPERUSUARIO
+export async function subirLogoClub(id: number, file: File): Promise<{ logo_url: string }> {
+  const formData = new FormData()
+  formData.append("file", file)
+  const res = await api.post(`/clubes/${id}/logo`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  })
+  return res.data
+}
+

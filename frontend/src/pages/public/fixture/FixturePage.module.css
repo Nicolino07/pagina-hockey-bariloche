@@ -210,8 +210,23 @@
   white-space: nowrap;
 }
 
-.equipo:first-child { text-align: right; }
-.equipo:last-child  { text-align: left; }
+.equipoLado {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.escudo {
+  display: none;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 50%;
+  transform: scale(1.15);
+  flex-shrink: 0;
+}
 
 .separador {
   font-size: 1rem;
@@ -458,22 +473,43 @@
   }
 
   .horarioCol {
-    min-width: 60px;
-    max-width: 60px;
-    padding: 8px 6px;
+    min-width: 56px;
+    max-width: 56px;
+    padding: 8px 4px;
   }
 
   .horario {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
   }
 
   .equipo {
-    font-size: 0.85rem;
+    font-size: 0.78rem;
   }
 
   .equipos {
-    padding: 8px 10px;
-    gap: 6px;
+    padding: 8px 6px;
+    gap: 4px;
+  }
+
+  .equipoLado {
+    gap: 4px;
+  }
+
+  .escudo {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 400px) {
+  .escudo {
+    width: 22px;
+    height: 22px;
+  }
+
+  .horarioCol {
+    min-width: 44px;
+    max-width: 44px;
   }
 }
 

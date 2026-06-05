@@ -75,6 +75,8 @@ class FixturePartidoResponse(BaseModel):
     id_torneo: int
     id_equipo_local: Optional[int] = None
     id_equipo_visitante: Optional[int] = None
+    id_club_local: Optional[int] = None
+    id_club_visitante: Optional[int] = None
     nombre_equipo_local: Optional[str] = None
     nombre_equipo_visitante: Optional[str] = None
     nombre_torneo: Optional[str] = None

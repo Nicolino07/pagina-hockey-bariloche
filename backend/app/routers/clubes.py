@@ -3,8 +3,10 @@ Rutas para la gestión de clubes deportivos.
 Permite listar, crear, actualizar, eliminar y restaurar clubes.
 Las operaciones de escritura requieren rol SUPERUSUARIO.
 """
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, UploadFile, File, HTTPException
 from sqlalchemy.orm import Session
+import os
+import shutil
 
 from app.database import get_db
 from app.schemas.club import Club, ClubCreate, ClubUpdate
@@ -66,6 +68,25 @@ def eliminar_club(
 ):
     """Elimina lógicamente (soft delete) un club. Solo accesible por SUPERUSUARIO."""
     clubes_services.eliminar_club(db, id_club, current_user)
+
+
+# 🔐 SUPERUSUARIO
+@router.post("/{id_club}/logo", status_code=status.HTTP_200_OK)
+def subir_logo_club(
+    id_club: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_superuser),
+):
+    """Sube o reemplaza el logo de un club. Solo accesible por SUPERUSUARIO."""
+    clubes_services.obtener_club(db, id_club)  # valida que exista
+    if file.content_type not in ("image/jpeg", "image/png", "image/webp"):
+        raise HTTPException(status_code=400, detail="Formato no soportado. Usá JPG, PNG o WebP.")
+    ext = file.filename.rsplit(".", 1)[-1].lower() if file.filename and "." in file.filename else "jpg"
+    dest = f"/app/static/clubes/{id_club}.{ext}"
+    with open(dest, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    return {"logo_url": f"/logos/clubes/{id_club}.{ext}"}
 
 
 # 🔐 SUPERUSUARIO

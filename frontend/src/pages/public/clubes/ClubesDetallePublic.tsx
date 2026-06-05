@@ -155,7 +155,16 @@ export default function ClubesDetallePublic() {
         {/* 2. HEADER DEL CLUB */}
         <header className={styles.header}>
           <div className={styles.headerInfo}>
-            <div className={styles.clubLogo}>{club.nombre.substring(0,2).toUpperCase()}</div>
+            <div className={styles.clubLogo}>
+              <img
+                src={`/logos/clubes/${club.id_club}.jpg`}
+                alt={club.nombre}
+                className={styles.clubLogoImg}
+                onLoad={(e) => { e.currentTarget.style.display = 'block'; (e.currentTarget.nextSibling as HTMLElement).style.display = 'none'; }}
+                onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextSibling as HTMLElement).style.display = 'flex'; }}
+              />
+              <span style={{ display: 'none' }}>{club.nombre.substring(0,2).toUpperCase()}</span>
+            </div>
             <div>
               <h1>{club.nombre}</h1>
               <p>{equipoSeleccionado?.categoria}{equipoSeleccionado?.division ? ` ${equipoSeleccionado.division}` : ""} - {equipoSeleccionado?.genero}</p>

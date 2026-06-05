@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from sqlalchemy.exc import IntegrityError  
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy.exc import IntegrityError
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -112,3 +113,10 @@ app.include_router(goles, prefix=API_PREFIX)
 app.include_router(tarjetas, prefix=API_PREFIX)
 app.include_router(posiciones, prefix=API_PREFIX)
 app.include_router(fixture, prefix=API_PREFIX)
+
+# =====================================================
+# Archivos estáticos (logos de clubes)
+# =====================================================
+STATIC_DIR = "/app/static"
+os.makedirs(f"{STATIC_DIR}/clubes", exist_ok=True)
+app.mount("/logos", StaticFiles(directory=STATIC_DIR), name="logos")

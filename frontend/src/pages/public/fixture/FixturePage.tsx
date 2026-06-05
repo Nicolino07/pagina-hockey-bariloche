@@ -339,7 +339,18 @@ export default function FixturePage() {
                                 </div>
                                 <div className={styles.equiposCol}>
                                   <div className={styles.equipos}>
-                                    <span className={styles.equipo}>{p.nombre_equipo_local ?? "Local"}</span>
+                                    <div className={styles.equipoLado} style={{ justifyContent: 'flex-end' }}>
+                                      {p.id_club_local && (
+                                        <img
+                                          src={`/logos/clubes/${p.id_club_local}.jpg`}
+                                          alt=""
+                                          className={styles.escudo}
+                                          onLoad={(e) => { e.currentTarget.style.display = 'block' }}
+                                          onError={(e) => { e.currentTarget.style.display = 'none' }}
+                                        />
+                                      )}
+                                      <span className={styles.equipo} style={{ textAlign: 'right', flex: 'none' }}>{p.nombre_equipo_local ?? "Local"}</span>
+                                    </div>
                                     {p.estado === "TERMINADO" && p.goles_local !== null && p.goles_visitante !== null ? (
                                       <span className={styles.resultado}>
                                         {p.goles_local} - {p.goles_visitante}
@@ -347,7 +358,18 @@ export default function FixturePage() {
                                     ) : (
                                       <span className={styles.separador}>vs</span>
                                     )}
-                                    <span className={styles.equipo}>{p.nombre_equipo_visitante ?? "Visitante"}</span>
+                                    <div className={styles.equipoLado} style={{ justifyContent: 'flex-start' }}>
+                                      <span className={styles.equipo} style={{ flex: 'none' }}>{p.nombre_equipo_visitante ?? "Visitante"}</span>
+                                      {p.id_club_visitante && (
+                                        <img
+                                          src={`/logos/clubes/${p.id_club_visitante}.jpg`}
+                                          alt=""
+                                          className={styles.escudo}
+                                          onLoad={(e) => { e.currentTarget.style.display = 'block' }}
+                                          onError={(e) => { e.currentTarget.style.display = 'none' }}
+                                        />
+                                      )}
+                                    </div>
                                   </div>
                                   {p.estado !== "BORRADOR" && (
                                     <div className={styles.estadoRow}>

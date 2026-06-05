@@ -67,6 +67,8 @@ export interface FixturePartido {
   id_torneo: number
   id_equipo_local: number
   id_equipo_visitante: number
+  id_club_local: number | null
+  id_club_visitante: number | null
   nombre_equipo_local: string | null
   nombre_equipo_visitante: string | null
   nombre_torneo: string | null

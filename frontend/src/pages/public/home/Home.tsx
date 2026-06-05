@@ -122,23 +122,49 @@ export default function Home() {
             <ul className={styles.proximosList}>
               {proximosPartidos.map((p) => (
                 <li key={p.id_fixture_partido} className={styles.proximoItem}>
-                  <span className={styles.proximoFecha}>
-                    {p.fecha_programada
-                      ? new Date(p.fecha_programada + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" })
-                      : "—"}
-                    {p.horario && <span className={styles.proximoHorario}> {p.horario.slice(0, 5)}</span>}
-                  </span>
-                  <span className={styles.proximoVs}>
-                    <span className={styles.proximoEquipo}>{p.nombre_equipo_local ?? p.placeholder_local ?? "—"}</span>
+                  {/* Fila superior: meta info */}
+                  <div className={styles.proximoMeta}>
+                    <span className={styles.proximoFecha}>
+                      {p.fecha_programada
+                        ? new Date(p.fecha_programada + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" })
+                        : "—"}
+                      {p.horario && <span className={styles.proximoHorario}> · {p.horario.slice(0, 5)}</span>}
+                    </span>
+                    {p.categoria && (
+                      <span className={styles.proximoBadge}>{p.categoria.replace(/_/g, " ")}</span>
+                    )}
+                    {p.ubicacion && (
+                      <span className={styles.proximoUbicacion}>📍 {p.ubicacion}</span>
+                    )}
+                  </div>
+                  {/* Fila inferior: equipos y logos */}
+                  <div className={styles.proximoVs}>
+                    <div className={styles.proximoLado} style={{ justifyContent: 'flex-end' }}>
+                      {p.id_club_local && (
+                        <img
+                          src={`/logos/clubes/${p.id_club_local}.jpg`}
+                          alt=""
+                          className={styles.proximoEscudo}
+                          onLoad={(e) => { e.currentTarget.style.display = 'block' }}
+                          onError={(e) => { e.currentTarget.style.display = 'none' }}
+                        />
+                      )}
+                      <span className={styles.proximoEquipo} style={{ textAlign: 'right' }}>{p.nombre_equipo_local ?? p.placeholder_local ?? "—"}</span>
+                    </div>
                     <span className={styles.proximoSeparator}>vs</span>
-                    <span className={styles.proximoEquipo}>{p.nombre_equipo_visitante ?? p.placeholder_visitante ?? "—"}</span>
-                  </span>
-                  {p.categoria && (
-                    <span className={styles.proximoBadge}>{p.categoria.replace(/_/g, " ")}</span>
-                  )}
-                  {p.ubicacion && (
-                    <span className={styles.proximoUbicacion}>📍 {p.ubicacion}</span>
-                  )}
+                    <div className={styles.proximoLado} style={{ justifyContent: 'flex-start' }}>
+                      <span className={styles.proximoEquipo}>{p.nombre_equipo_visitante ?? p.placeholder_visitante ?? "—"}</span>
+                      {p.id_club_visitante && (
+                        <img
+                          src={`/logos/clubes/${p.id_club_visitante}.jpg`}
+                          alt=""
+                          className={styles.proximoEscudo}
+                          onLoad={(e) => { e.currentTarget.style.display = 'block' }}
+                          onError={(e) => { e.currentTarget.style.display = 'none' }}
+                        />
+                      )}
+                    </div>
+                  </div>
                 </li>
               ))}
             </ul>

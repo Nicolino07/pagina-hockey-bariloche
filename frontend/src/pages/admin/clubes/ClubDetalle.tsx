@@ -8,7 +8,7 @@ import Button from "../../../components/ui/button/Button";
 import PlantelEquipo from "../equipos/PlantelEquipo";
 
 import { crearEquipo, getEquiposByClub, updateEquipo, deleteEquipo } from "../../../api/equipos.api";
-import { getClubById, updateClub } from "../../../api/clubes.api";
+import { getClubById, updateClub, subirLogoClub } from "../../../api/clubes.api";
 import { crearFichaje, getFichajesPorClub, darBajaFichaje, getPersonasDisponiblesParaFichar } from "../../../api/fichajes.api";
 
 import type { Club } from "../../../types/club";
@@ -50,6 +50,8 @@ export default function ClubDetalle() {
   const [editandoClub, setEditandoClub] = useState(false);
   const [clubForm, setClubForm] = useState({ direccion: "", telefono: "", email: "", provincia: "", ciudad: "" });
   const [savingClub, setSavingClub] = useState(false);
+  const [logoKey, setLogoKey] = useState(0);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const [form, setForm] = useState<EquipoCreate>({
     nombre: "", categoria: "MAYORES", division: null, genero: "FEMENINO", id_club: Number(id_club),
@@ -60,6 +62,17 @@ export default function ClubDetalle() {
     searchTerm: "",
     rol: "JUGADOR" // Valor inicial predeterminado
   });
+
+  const handleSubirLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !id_club) return;
+    setUploadingLogo(true);
+    try {
+      await subirLogoClub(Number(id_club), file);
+      setLogoKey(k => k + 1);
+    } catch { alert("Error al subir el logo"); }
+    finally { setUploadingLogo(false); e.target.value = ""; }
+  };
 
   const handleGuardarClub = async () => {
     if (!id_club) return;
@@ -232,8 +245,23 @@ export default function ClubDetalle() {
       <header className={styles.header}>
 
         <div className={styles.titleInfo}>
-          <h1>{club.nombre}</h1>
-          <span className={styles.cityBadge}>{club.ciudad}</span>
+          <div className={styles.headerLogo}>
+            <img
+              key={logoKey}
+              src={`/logos/clubes/${club.id_club}.jpg`}
+              alt=""
+              className={styles.headerLogoImg}
+              onLoad={(e) => { e.currentTarget.style.display = 'block'; (e.currentTarget.nextSibling as HTMLElement).style.display = 'none'; }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextSibling as HTMLElement).style.display = 'flex'; }}
+            />
+            <span style={{ display: 'none' }} className={styles.headerLogoInitials}>
+              {club.nombre.substring(0, 2).toUpperCase()}
+            </span>
+          </div>
+          <div>
+            <h1>{club.nombre}</h1>
+            <span className={styles.cityBadge}>{club.ciudad}</span>
+          </div>
         </div>
         <div className={styles.botones}>
           <Button variant="secondary" onClick={() => { setShowInfoClub(!showInfoClub); setEditandoClub(false); }}>
@@ -245,6 +273,25 @@ export default function ClubDetalle() {
 
       {showInfoClub && (
         <div className={styles.infoClubPanel}>
+          <div className={styles.logoSection}>
+            <div className={styles.logoPreview}>
+              <img
+                key={logoKey}
+                src={`/logos/clubes/${club.id_club}.jpg`}
+                alt=""
+                className={styles.logoImg}
+                onLoad={(e) => { e.currentTarget.style.display = 'block'; (e.currentTarget.nextSibling as HTMLElement).style.display = 'none'; }}
+                onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextSibling as HTMLElement).style.display = 'flex'; }}
+              />
+              <span style={{ display: 'none' }} className={styles.logoPlaceholder}>
+                {club.nombre.substring(0, 2).toUpperCase()}
+              </span>
+            </div>
+            <label className={styles.logoUploadLabel}>
+              {uploadingLogo ? "Subiendo..." : "📷 Cambiar logo"}
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleSubirLogo} disabled={uploadingLogo} hidden />
+            </label>
+          </div>
           {!editandoClub ? (
             <>
               <div className={styles.infoClubGrid}>

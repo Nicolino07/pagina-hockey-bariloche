@@ -59,6 +59,16 @@ export default function ClubesPage() {
               className={styles.row}
               onClick={() => navigate(`/public/clubes/${club.id_club}`)}
             >
+              <div className={styles.clubLogoMini}>
+                <img
+                  src={`/logos/clubes/${club.id_club}.jpg`}
+                  alt=""
+                  className={styles.clubLogoMiniImg}
+                  onLoad={(e) => { e.currentTarget.style.display = 'block'; (e.currentTarget.nextSibling as HTMLElement).style.display = 'none'; }}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextSibling as HTMLElement).style.display = 'flex'; }}
+                />
+                <span style={{ display: 'none' }}>{club.nombre.substring(0,2).toUpperCase()}</span>
+              </div>
               <span className={styles.clubNombre}>{club.nombre}</span>
               {club.ciudad && (
                 <span className={styles.clubCiudad}>📍 {club.ciudad}</span>
