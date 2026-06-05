@@ -140,6 +140,7 @@ export default function Home() {
                   {/* Fila inferior: equipos y logos */}
                   <div className={styles.proximoVs}>
                     <div className={styles.proximoLado} style={{ justifyContent: 'flex-end' }}>
+                      <span className={styles.proximoEquipo} style={{ textAlign: 'right' }}>{p.nombre_equipo_local ?? p.placeholder_local ?? "—"}</span>
                       {p.id_club_local && (
                         <img
                           src={`/logos/clubes/${p.id_club_local}.jpg?v=2`}
@@ -149,11 +150,9 @@ export default function Home() {
                           onError={(e) => { e.currentTarget.style.display = 'none' }}
                         />
                       )}
-                      <span className={styles.proximoEquipo} style={{ textAlign: 'right' }}>{p.nombre_equipo_local ?? p.placeholder_local ?? "—"}</span>
                     </div>
                     <span className={styles.proximoSeparator}>vs</span>
                     <div className={styles.proximoLado} style={{ justifyContent: 'flex-start' }}>
-                      <span className={styles.proximoEquipo}>{p.nombre_equipo_visitante ?? p.placeholder_visitante ?? "—"}</span>
                       {p.id_club_visitante && (
                         <img
                           src={`/logos/clubes/${p.id_club_visitante}.jpg?v=2`}
@@ -163,6 +162,7 @@ export default function Home() {
                           onError={(e) => { e.currentTarget.style.display = 'none' }}
                         />
                       )}
+                      <span className={styles.proximoEquipo}>{p.nombre_equipo_visitante ?? p.placeholder_visitante ?? "—"}</span>
                     </div>
                   </div>
                 </li>

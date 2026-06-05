@@ -340,6 +340,7 @@ export default function FixturePage() {
                                 <div className={styles.equiposCol}>
                                   <div className={styles.equipos}>
                                     <div className={styles.equipoLado} style={{ justifyContent: 'flex-end' }}>
+                                      <span className={styles.equipo} style={{ textAlign: 'right', flex: 'none' }}>{p.nombre_equipo_local ?? "Local"}</span>
                                       {p.id_club_local && (
                                         <img
                                           src={`/logos/clubes/${p.id_club_local}.jpg?v=2`}
@@ -349,7 +350,6 @@ export default function FixturePage() {
                                           onError={(e) => { e.currentTarget.style.display = 'none' }}
                                         />
                                       )}
-                                      <span className={styles.equipo} style={{ textAlign: 'right', flex: 'none' }}>{p.nombre_equipo_local ?? "Local"}</span>
                                     </div>
                                     {p.estado === "TERMINADO" && p.goles_local !== null && p.goles_visitante !== null ? (
                                       <span className={styles.resultado}>
@@ -359,7 +359,6 @@ export default function FixturePage() {
                                       <span className={styles.separador}>vs</span>
                                     )}
                                     <div className={styles.equipoLado} style={{ justifyContent: 'flex-start' }}>
-                                      <span className={styles.equipo} style={{ flex: 'none' }}>{p.nombre_equipo_visitante ?? "Visitante"}</span>
                                       {p.id_club_visitante && (
                                         <img
                                           src={`/logos/clubes/${p.id_club_visitante}.jpg?v=2`}
@@ -369,6 +368,7 @@ export default function FixturePage() {
                                           onError={(e) => { e.currentTarget.style.display = 'none' }}
                                         />
                                       )}
+                                      <span className={styles.equipo} style={{ flex: 'none' }}>{p.nombre_equipo_visitante ?? "Visitante"}</span>
                                     </div>
                                   </div>
                                   {p.estado !== "BORRADOR" && (

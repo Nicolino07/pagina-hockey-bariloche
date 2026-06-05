@@ -185,8 +185,8 @@
 
 .proximoEscudo {
   display: none;
-  width: 52px;
-  height: 52px;
+  width: 36px;
+  height: 36px;
   object-fit: cover;
   border-radius: 50%;
   transform: scale(1.15);
