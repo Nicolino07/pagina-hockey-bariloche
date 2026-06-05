@@ -248,7 +248,7 @@ export default function ClubDetalle() {
           <div className={styles.headerLogo}>
             <img
               key={logoKey}
-              src={`/logos/clubes/${club.id_club}.jpg`}
+              src={`/logos/clubes/${club.id_club}.jpg?v=2`}
               alt=""
               className={styles.headerLogoImg}
               onLoad={(e) => { e.currentTarget.style.display = 'block'; (e.currentTarget.nextSibling as HTMLElement).style.display = 'none'; }}
@@ -277,7 +277,7 @@ export default function ClubDetalle() {
             <div className={styles.logoPreview}>
               <img
                 key={logoKey}
-                src={`/logos/clubes/${club.id_club}.jpg`}
+                src={`/logos/clubes/${club.id_club}.jpg?v=2`}
                 alt=""
                 className={styles.logoImg}
                 onLoad={(e) => { e.currentTarget.style.display = 'block'; (e.currentTarget.nextSibling as HTMLElement).style.display = 'none'; }}

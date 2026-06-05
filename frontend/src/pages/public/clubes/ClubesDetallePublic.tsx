@@ -157,7 +157,7 @@ export default function ClubesDetallePublic() {
           <div className={styles.headerInfo}>
             <div className={styles.clubLogo}>
               <img
-                src={`/logos/clubes/${club.id_club}.jpg`}
+                src={`/logos/clubes/${club.id_club}.jpg?v=2`}
                 alt={club.nombre}
                 className={styles.clubLogoImg}
                 onLoad={(e) => { e.currentTarget.style.display = 'block'; (e.currentTarget.nextSibling as HTMLElement).style.display = 'none'; }}

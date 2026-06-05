@@ -142,7 +142,7 @@ export default function Home() {
                     <div className={styles.proximoLado} style={{ justifyContent: 'flex-end' }}>
                       {p.id_club_local && (
                         <img
-                          src={`/logos/clubes/${p.id_club_local}.jpg`}
+                          src={`/logos/clubes/${p.id_club_local}.jpg?v=2`}
                           alt=""
                           className={styles.proximoEscudo}
                           onLoad={(e) => { e.currentTarget.style.display = 'block' }}
@@ -156,7 +156,7 @@ export default function Home() {
                       <span className={styles.proximoEquipo}>{p.nombre_equipo_visitante ?? p.placeholder_visitante ?? "—"}</span>
                       {p.id_club_visitante && (
                         <img
-                          src={`/logos/clubes/${p.id_club_visitante}.jpg`}
+                          src={`/logos/clubes/${p.id_club_visitante}.jpg?v=2`}
                           alt=""
                           className={styles.proximoEscudo}
                           onLoad={(e) => { e.currentTarget.style.display = 'block' }}

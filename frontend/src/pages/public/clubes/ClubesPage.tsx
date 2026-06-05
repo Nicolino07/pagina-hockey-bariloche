@@ -61,7 +61,7 @@ export default function ClubesPage() {
             >
               <div className={styles.clubLogoMini}>
                 <img
-                  src={`/logos/clubes/${club.id_club}.jpg`}
+                  src={`/logos/clubes/${club.id_club}.jpg?v=2`}
                   alt=""
                   className={styles.clubLogoMiniImg}
                   onLoad={(e) => { e.currentTarget.style.display = 'block'; (e.currentTarget.nextSibling as HTMLElement).style.display = 'none'; }}

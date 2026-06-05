@@ -342,7 +342,7 @@ export default function FixturePage() {
                                     <div className={styles.equipoLado} style={{ justifyContent: 'flex-end' }}>
                                       {p.id_club_local && (
                                         <img
-                                          src={`/logos/clubes/${p.id_club_local}.jpg`}
+                                          src={`/logos/clubes/${p.id_club_local}.jpg?v=2`}
                                           alt=""
                                           className={styles.escudo}
                                           onLoad={(e) => { e.currentTarget.style.display = 'block' }}
@@ -362,7 +362,7 @@ export default function FixturePage() {
                                       <span className={styles.equipo} style={{ flex: 'none' }}>{p.nombre_equipo_visitante ?? "Visitante"}</span>
                                       {p.id_club_visitante && (
                                         <img
-                                          src={`/logos/clubes/${p.id_club_visitante}.jpg`}
+                                          src={`/logos/clubes/${p.id_club_visitante}.jpg?v=2`}
                                           alt=""
                                           className={styles.escudo}
                                           onLoad={(e) => { e.currentTarget.style.display = 'block' }}
