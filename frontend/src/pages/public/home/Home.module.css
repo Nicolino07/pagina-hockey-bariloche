@@ -380,7 +380,7 @@
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
 }
 
@@ -392,6 +392,8 @@
   border: 1px solid #2a2d31;
   border-radius: 12px;
   transition: all 0.2s ease;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .ultimosItem:hover {
@@ -460,6 +462,10 @@
 .ultimosTorneo {
   font-size: 0.75rem;
   color: #9aa0a6;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -897,7 +903,11 @@
 @media (max-width: 768px) {
   .ultimosList,
   .proximosList {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ultimosEncuentrosContainer {
+    padding: 16px;
   }
 }
 
