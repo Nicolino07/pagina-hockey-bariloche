@@ -110,6 +110,10 @@ class Partido(Base, AuditFieldsMixin):
     goles_local_manual: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     goles_visitante_manual: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
+    # Goles por defecto (cuando se otorga puntos por descalificación, no presentación, etc.)
+    goles_por_defecto_local: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    goles_por_defecto_visitante: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+
     # Mesa / organización
     juez_mesa_local: Mapped[Optional[str]] = mapped_column(String(100))
     juez_mesa_visitante: Mapped[Optional[str]] = mapped_column(String(100))
@@ -149,6 +153,8 @@ class PartidoDetallado(Base):
     id_torneo = Column(Integer)
     id_equipo_local = Column(Integer)
     id_equipo_visitante = Column(Integer)
+    id_club_local = Column(Integer)
+    id_club_visitante = Column(Integer)
     nombre_torneo = Column(String)
     categoria_torneo = Column(String)
     genero_torneo = Column(String)

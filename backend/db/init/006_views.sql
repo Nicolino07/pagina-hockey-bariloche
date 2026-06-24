@@ -169,37 +169,43 @@ SELECT
     p.id_inscripcion_local,
     p.id_inscripcion_visitante,
 
-    -- goles local
-    SUM(
-        CASE
-            WHEN (
-                it.id_inscripcion = p.id_inscripcion_local
-                AND NOT g.es_autogol
-            )
-            OR (
-                it.id_inscripcion = p.id_inscripcion_visitante
-                AND g.es_autogol
-            )
-            THEN 1
-            ELSE 0
-        END
-    ) AS goles_local,
+    -- goles local = goles reales + goles por defecto
+    COALESCE(
+        SUM(
+            CASE
+                WHEN (
+                    it.id_inscripcion = p.id_inscripcion_local
+                    AND NOT g.es_autogol
+                )
+                OR (
+                    it.id_inscripcion = p.id_inscripcion_visitante
+                    AND g.es_autogol
+                )
+                THEN 1
+                ELSE 0
+            END
+        ),
+        0
+    ) + COALESCE(p.goles_por_defecto_local, 0) AS goles_local,
 
-    -- goles visitante
-    SUM(
-        CASE
-            WHEN (
-                it.id_inscripcion = p.id_inscripcion_visitante
-                AND NOT g.es_autogol
-            )
-            OR (
-                it.id_inscripcion = p.id_inscripcion_local
-                AND g.es_autogol
-            )
-            THEN 1
-            ELSE 0
-        END
-    ) AS goles_visitante
+    -- goles visitante = goles reales + goles por defecto
+    COALESCE(
+        SUM(
+            CASE
+                WHEN (
+                    it.id_inscripcion = p.id_inscripcion_visitante
+                    AND NOT g.es_autogol
+                )
+                OR (
+                    it.id_inscripcion = p.id_inscripcion_local
+                    AND g.es_autogol
+                )
+                THEN 1
+                ELSE 0
+            END
+        ),
+        0
+    ) + COALESCE(p.goles_por_defecto_visitante, 0) AS goles_visitante
 
 FROM partido p
 LEFT JOIN gol g
@@ -217,7 +223,9 @@ GROUP BY
     p.id_partido,
     p.id_torneo,
     p.id_inscripcion_local,
-    p.id_inscripcion_visitante;
+    p.id_inscripcion_visitante,
+    p.goles_por_defecto_local,
+    p.goles_por_defecto_visitante;
 
 
 
@@ -669,6 +677,8 @@ CREATE OR REPLACE VIEW vw_partidos_detallados AS
     t.division AS division_torneo,
     itl.id_equipo AS id_equipo_local,
     itv.id_equipo AS id_equipo_visitante,
+    el.id_club AS id_club_local,
+    ev.id_club AS id_club_visitante,
     t.nombre AS nombre_torneo,
     p.fecha,
     p.horario,
@@ -689,13 +699,13 @@ CREATE OR REPLACE VIEW vw_partidos_detallados AS
              JOIN participan_partido pp ON g.id_participante_partido = pp.id_participante_partido
              JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante
              JOIN plantel pl ON pi.id_plantel = pl.id_plantel
-          WHERE g.id_partido = p.id_partido AND (pl.id_equipo = itl.id_equipo AND NOT g.es_autogol OR pl.id_equipo = itv.id_equipo AND g.es_autogol))) AS goles_local,
+          WHERE g.id_partido = p.id_partido AND (pl.id_equipo = itl.id_equipo AND NOT g.es_autogol OR pl.id_equipo = itv.id_equipo AND g.es_autogol))) + COALESCE(p.goles_por_defecto_local, 0) AS goles_local,
     COALESCE(p.goles_visitante_manual::bigint, ( SELECT count(*) AS count
            FROM gol g
              JOIN participan_partido pp ON g.id_participante_partido = pp.id_participante_partido
              JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante
              JOIN plantel pl ON pi.id_plantel = pl.id_plantel
-          WHERE g.id_partido = p.id_partido AND (pl.id_equipo = itv.id_equipo AND NOT g.es_autogol OR pl.id_equipo = itl.id_equipo AND g.es_autogol))) AS goles_visitante,
+          WHERE g.id_partido = p.id_partido AND (pl.id_equipo = itv.id_equipo AND NOT g.es_autogol OR pl.id_equipo = itl.id_equipo AND g.es_autogol))) + COALESCE(p.goles_por_defecto_visitante, 0) AS goles_visitante,
     ( SELECT string_agg((((((((per.apellido::text || '|'::text) || per.nombre::text) || '|'::text) || COALESCE(pp.numero_camiseta::text, ''::text)) || '|'::text) || pi.rol_en_plantel) || '|'::text) || COALESCE((pi.id_plantel_integrante = p.id_capitan_local)::text,'false'), '; '::text ORDER BY pi.rol_en_plantel DESC, pp.numero_camiseta) AS string_agg
            FROM participan_partido pp
              JOIN plantel_integrante pi ON pp.id_plantel_integrante = pi.id_plantel_integrante

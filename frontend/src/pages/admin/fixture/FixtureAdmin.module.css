@@ -46,6 +46,13 @@
   min-width: 280px;
 }
 
+.hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted, #9aa0a6);
+}
+
 .input {
   width: 100%;
   padding: 10px 14px;
@@ -246,6 +253,21 @@
 
 .btnEliminar:hover {
   background: rgba(242, 139, 130, 0.3);
+}
+
+.btnOtorgarPuntos {
+  background: rgba(251, 188, 4, 0.15);
+  color: #fbbc04;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.btnOtorgarPuntos:hover {
+  background: rgba(251, 188, 4, 0.3);
 }
 
 /* Panel generación automática */

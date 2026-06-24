@@ -11,6 +11,7 @@ export interface Torneo {
   fecha_inicio: string
   fecha_fin: string | null
   activo: boolean
+  torneo_base_id?: number | null
   creado_en: string
   actualizado_en: string | null
   creado_por: string
@@ -25,6 +26,7 @@ export interface TorneoCreate {
   tipo: TipoTorneo
   fecha_inicio?: string | null
   fecha_fin?: string | null
+  torneo_base_id?: number | null
 }
 
 export interface TorneoUpdate {
@@ -36,4 +38,5 @@ export interface TorneoUpdate {
   fecha_inicio: string
   fecha_fin?: string | null
   activo: boolean
+  torneo_base_id?: number | null
 }

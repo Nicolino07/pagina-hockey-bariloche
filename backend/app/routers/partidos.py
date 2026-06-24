@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
 from app.dependencies.permissions import require_editor, require_superuser
-from app.schemas.partido import PartidoBase, PartidoDetalle
+from app.schemas.partido import PartidoBase, PartidoDetalle, OtorgarPuntosRequest
 from app.schemas.planilla_partido import PlanillaPartidoCreate, PartidoEdicionResponse
 
 from app.services.partidos_services import (
@@ -20,6 +20,7 @@ from app.services.partidos_services import (
     get_partido_edicion,
     actualizar_planilla_partido,
     eliminar_partido_service,
+    otorgar_puntos_partido,
 )
 
 router = APIRouter(
@@ -126,3 +127,19 @@ def actualizar_planilla(
     Requiere rol EDITOR o superior.
     """
     return actualizar_planilla_partido(db, id_partido, data, current_user)
+
+
+@router.post("/fixture/{id_fixture_partido}/otorgar-puntos", response_model=PartidoBase)
+def otorgar_puntos(
+    id_fixture_partido: int,
+    data: OtorgarPuntosRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
+):
+    """
+    Otorga puntos a un partido mediante goles por defecto
+    (descalificación, no presentación, abandono, etc.).
+    Crea el partido si no existe, cambia el estado a TERMINADO y recalcula posiciones.
+    Requiere rol EDITOR o superior.
+    """
+    return otorgar_puntos_partido(db, id_fixture_partido, data.goles_local, data.goles_visitante, current_user)

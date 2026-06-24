@@ -13,6 +13,7 @@ class TorneoBase(BaseModel):
     fecha_inicio: date = Field(default_factory=date.today)
     fecha_fin: Optional[date] = None
     activo: bool = True
+    torneo_base_id: Optional[int] = None
 
     @validator('fecha_fin')
     def validar_fecha_fin(cls, v, values):

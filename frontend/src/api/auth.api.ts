@@ -36,15 +36,10 @@ export async function login(email: string, password: string): Promise<LoginRespo
 
     console.log('✅ Login exitoso para:', email)
 
-    const userData = {
-      email,
-      token: access_token
-    }
+    // 💾 Datos NO sensibles del usuario (el AuthContext completará con el JWT)
+    authUtils.setUser({ email })
 
-    // 💾 Guardar en localStorage
-    authUtils.setAuthData(access_token, userData)
-
-    // 🧠 Guardar en memoria (FUENTE REAL)
+    // 🧠 El access token vive solo en memoria (fuente real)
     setAccessToken(access_token)
 
     return response.data

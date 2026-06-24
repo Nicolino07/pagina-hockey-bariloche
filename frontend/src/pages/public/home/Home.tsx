@@ -40,7 +40,7 @@ export default function Home() {
           listarProximosPartidos(),
         ]);
 
-        setPartidos(partidosData.slice(0, 5));
+        setPartidos(partidosData.slice(0, 8));
         setNoticias(noticiasData.slice(0, 3));
         setStats(statsData);
         const ahora = Date.now();
@@ -122,22 +122,7 @@ export default function Home() {
             <ul className={styles.proximosList}>
               {proximosPartidos.map((p) => (
                 <li key={p.id_fixture_partido} className={styles.proximoItem}>
-                  {/* Fila superior: meta info */}
-                  <div className={styles.proximoMeta}>
-                    <span className={styles.proximoFecha}>
-                      {p.fecha_programada
-                        ? new Date(p.fecha_programada + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" })
-                        : "—"}
-                      {p.horario && <span className={styles.proximoHorario}> · {p.horario.slice(0, 5)}</span>}
-                    </span>
-                    {p.categoria && (
-                      <span className={styles.proximoBadge}>{p.categoria.replace(/_/g, " ")}</span>
-                    )}
-                    {p.ubicacion && (
-                      <span className={styles.proximoUbicacion}>📍 {p.ubicacion}</span>
-                    )}
-                  </div>
-                  {/* Fila inferior: equipos y logos */}
+                  {/* Fila superior: equipos y logos */}
                   <div className={styles.proximoVs}>
                     <div className={styles.proximoLado} style={{ justifyContent: 'flex-end' }}>
                       <span className={styles.proximoEquipo} style={{ textAlign: 'right' }}>{p.nombre_equipo_local ?? p.placeholder_local ?? "—"}</span>
@@ -164,6 +149,24 @@ export default function Home() {
                       )}
                       <span className={styles.proximoEquipo}>{p.nombre_equipo_visitante ?? p.placeholder_visitante ?? "—"}</span>
                     </div>
+                  </div>
+                  {/* Fila inferior: meta info */}
+                  <div className={styles.proximoMeta}>
+                    <span className={styles.proximoFecha}>
+                      {p.fecha_programada
+                        ? new Date(p.fecha_programada + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" })
+                        : "—"}
+                      {p.horario && <span className={styles.proximoHorario}> · {p.horario.slice(0, 5)}</span>}
+                    </span>
+                    {p.ubicacion && (
+                      <span className={styles.proximoUbicacion}>📍 {p.ubicacion}</span>
+                    )}
+                    {p.categoria && (
+                      <span className={styles.proximoBadge}>{p.categoria.replace(/_/g, " ")}</span>
+                    )}
+                    {p.genero && (
+                      <span className={styles.proximoBadge}>{p.genero === 'FEMENINO' ? '♀ Fem.' : p.genero === 'MASCULINO' ? '♂ Masc.' : '⚥ Mixto'}</span>
+                    )}
                   </div>
                 </li>
               ))}
@@ -220,50 +223,58 @@ export default function Home() {
           </div>
         </section>
 
-      <div className={styles.tableContainer}>
+      <div className={styles.ultimosEncuentrosContainer}>
         <h3>Ultimos Encuentros</h3>
         {loading ? (
           <p className={styles.loadingText}>Cargando datos...</p>
         ) : (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Torneo</th>
-                <th>Encuentro</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {partidos.map((partido) => (
-                <tr key={partido.id_partido}>
-                  <td data-label="Fecha">📅 {new Date(partido.fecha + "T00:00:00").toLocaleDateString()}</td>
-                  <td data-label="Torneo">
-                    <div className={styles.torneoCol}>
-                      <div>{partido.nombre_torneo}</div>
-                      <div className={styles.torneoMeta}>
-                        {partido.categoria_torneo && <span className={styles.metaBadge}>{partido.categoria_torneo.replace(/_/g, ' ')}</span>}
-                        {partido.division_torneo && <span className={styles.metaBadge}>{partido.division_torneo}</span>}
-                        {partido.genero_torneo && <span className={styles.metaBadge}>{partido.genero_torneo === 'FEMENINO' ? '♀ Fem.' : partido.genero_torneo === 'MASCULINO' ? '♂ Masc.' : '⚥ Mixto'}</span>}
-                      </div>
-                    </div>
-                  </td>
-                  <td data-label="Encuentro">
-                    <div className={styles.matchupRow}>
-                      <strong>{partido.equipo_local_nombre}</strong>
-                      <span className={styles.resHighlight}>{partido.goles_local} - {partido.goles_visitante}</span>
-                      <strong>{partido.equipo_visitante_nombre}</strong>
-                    </div>
-                  </td>
-                  <td>
-                    <Button variant="secondary" size="sm" onClick={() => handleVerDetalle(partido)} disabled={loadingDetalle}>
-                      {loadingDetalle ? "Cargando..." : "📄 Detalle"}
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <ul className={styles.ultimosList}>
+            {partidos.map((partido) => (
+              <li key={partido.id_partido} className={styles.ultimosItem} onClick={() => handleVerDetalle(partido)} style={{ cursor: 'pointer' }}>
+                {/* Fila superior: equipos con logos y resultado */}
+                <div className={styles.ultimosVs}>
+                  <div className={styles.ultimosLado} style={{ justifyContent: 'flex-end' }}>
+                    <span className={styles.ultimosEquipo} style={{ textAlign: 'right' }}>{partido.equipo_local_nombre}</span>
+                    {partido.id_club_local && (
+                      <img
+                        src={`/logos/clubes/${partido.id_club_local}.jpg?v=2`}
+                        alt=""
+                        className={styles.ultimosEscudo}
+                        onLoad={(e) => { e.currentTarget.style.display = 'block' }}
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      />
+                    )}
+                  </div>
+                  <span className={styles.ultimosResultado}>{partido.goles_local} - {partido.goles_visitante}</span>
+                  <div className={styles.ultimosLado} style={{ justifyContent: 'flex-start' }}>
+                    {partido.id_club_visitante && (
+                      <img
+                        src={`/logos/clubes/${partido.id_club_visitante}.jpg?v=2`}
+                        alt=""
+                        className={styles.ultimosEscudo}
+                        onLoad={(e) => { e.currentTarget.style.display = 'block' }}
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      />
+                    )}
+                    <span className={styles.ultimosEquipo}>{partido.equipo_visitante_nombre}</span>
+                  </div>
+                </div>
+                {/* Fila inferior: meta info */}
+                <div className={styles.ultimosMeta}>
+                  <span className={styles.ultimosFecha}>
+                    {new Date(partido.fecha + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" })}
+                  </span>
+                  <span className={styles.ultimosTorneo}>{partido.nombre_torneo}</span>
+                  {partido.categoria_torneo && (
+                    <span className={styles.ultimoBadge}>{partido.categoria_torneo.replace(/_/g, " ")}</span>
+                  )}
+                  {partido.genero_torneo && (
+                    <span className={styles.ultimoBadge}>{partido.genero_torneo === 'FEMENINO' ? '♀ Fem.' : partido.genero_torneo === 'MASCULINO' ? '♂ Masc.' : '⚥ Mixto'}</span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 

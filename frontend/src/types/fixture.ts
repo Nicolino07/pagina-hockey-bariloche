@@ -2,6 +2,7 @@ export type EstadoPartido = "BORRADOR" | "PENDIENTE" | "TERMINADO" | "SUSPENDIDO
 export type TipoFixture = "simple" | "ida_y_vuelta" | "ida_y_vuelta_aleatorio"
 export type TipoFormatoPlayoff = "ida" | "ida_y_vuelta"
 export type TipoAsignacion = "automatico" | "manual"
+export type TipoRondaInicial = "dieciseisavos" | "octavos" | "cuartos" | "semifinal" | "final"
 
 export interface DueloManual {
   id_equipo_local: number

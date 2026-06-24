@@ -95,6 +95,7 @@ def login(
 
 
 @router.post("/refresh")
+@limiter.limit("10/minute")
 def refresh(request: Request, response: Response, db: Session = Depends(get_db)):
     """Renueva el access token usando el refresh token almacenado en cookie."""
     access_token, new_refresh_token = refresh_access_token(db, request)

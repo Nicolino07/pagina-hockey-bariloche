@@ -56,7 +56,12 @@ class PartidoUpdate(BaseModel):
     actualizado_por: Optional[str] = Field(None, max_length=100)
     
 class PartidoResultadoUpdate(BaseModel):
- 
+    actualizado_por: Optional[str] = Field(None, max_length=100)
+
+
+class OtorgarPuntosRequest(BaseModel):
+    goles_local: int = Field(..., ge=0, description="Goles a otorgar al equipo local")
+    goles_visitante: int = Field(..., ge=0, description="Goles a otorgar al equipo visitante")
     actualizado_por: Optional[str] = Field(None, max_length=100)
 
 
@@ -64,6 +69,8 @@ class PartidoResultadoUpdate(BaseModel):
 class PartidoDetalle(BaseModel):
     id_partido: int
     id_torneo: int
+    id_club_local: Optional[int] = None
+    id_club_visitante: Optional[int] = None
     categoria_torneo: Optional[str] = None
     genero_torneo: Optional[str] = None
     division_torneo: Optional[str] = None
@@ -75,7 +82,7 @@ class PartidoDetalle(BaseModel):
     observaciones: Optional[str] = None
     creado_por: Optional[str] = None
     creado_en: Optional[datetime] = None
-    
+
     # Equipos y Marcador
     equipo_local_nombre: str
     equipo_visitante_nombre: str

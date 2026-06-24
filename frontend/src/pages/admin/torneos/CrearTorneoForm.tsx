@@ -1,6 +1,6 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Button from "../../../components/ui/button/Button"
-import { crearTorneo, actualizarTorneo } from "../../../api/torneos.api"
+import { crearTorneo, actualizarTorneo, listarTorneos } from "../../../api/torneos.api"
 import type { TipoGenero, TipoCategoria, TipoTorneo } from "../../../constants/enums"
 import { GENEROS, CATEGORIAS, TIPOS_TORNEO, DIVISIONES } from "../../../constants/enums"
 import type { Torneo } from "../../../types/torneo"
@@ -28,6 +28,7 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
     genero: TipoGenero
     tipo: TipoTorneo
     fecha_inicio: string
+    torneo_base_id: number | null
   }>({
     nombre: torneoEditar?.nombre ?? "",
     categoria: torneoEditar?.categoria ?? "MAYORES",
@@ -35,10 +36,25 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
     genero: torneoEditar?.genero ?? "FEMENINO",
     tipo: torneoEditar?.tipo ?? "LIGA",
     fecha_inicio: torneoEditar?.fecha_inicio ?? "",
+    torneo_base_id: torneoEditar?.torneo_base_id ?? null,
   })
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [torneosLiga, setTorneosLiga] = useState<Torneo[]>([])
+
+  useEffect(() => {
+    listarTorneos()
+      .then(torneos => {
+        const ligas = torneos.filter(t => t.tipo === "LIGA")
+        console.log("Torneos LIGA cargados:", ligas)
+        setTorneosLiga(ligas)
+      })
+      .catch(err => {
+        console.error("Error cargando torneos:", err)
+        setTorneosLiga([])
+      })
+  }, [])
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -51,6 +67,9 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
     e.preventDefault()
     setLoading(true)
     setError(null)
+
+    console.log("Enviando formulario:", form)
+    console.log("torneo_base_id específicamente:", form.torneo_base_id)
 
     try {
       if (modoEdicion && torneoEditar) {
@@ -144,6 +163,28 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
           ))}
         </select>
       </div>
+
+      {(form.tipo === "PLAYOFF" || form.tipo === "COPA") && (
+        <div className={styles.field}>
+          <label className={styles.label}>Torneo base <span className={styles.optional}>(opcional)</span></label>
+          <select
+            className={styles.select}
+            name="torneo_base_id"
+            value={form.torneo_base_id ?? ""}
+            onChange={(e) => setForm(prev => ({
+              ...prev,
+              torneo_base_id: e.target.value ? parseInt(e.target.value) : null
+            }))}
+          >
+            <option value="">— Sin torneo base —</option>
+            {torneosLiga.map(torneo => (
+              <option key={torneo.id_torneo} value={torneo.id_torneo}>
+                {torneo.nombre} ({torneo.categoria})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className={styles.field}>
         <label className={styles.label}>Fecha inicio</label>

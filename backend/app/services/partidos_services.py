@@ -11,6 +11,7 @@ from app.models.gol import Gol
 from app.models.tarjeta import Tarjeta
 from app.models.plantel_integrante import PlantelIntegrante
 from app.models.fixture_partido import FixturePartido
+from app.models.enums import EstadoPartido
 
 
 def crear_planilla_partido(db: Session, data, current_user):
@@ -418,4 +419,80 @@ def actualizar_planilla_partido(db: Session, id_partido: int, data, current_user
         db.rollback()
         if isinstance(e, HTTPException):
             raise e
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def otorgar_puntos_partido(db: Session, id_fixture_partido: int, goles_local: int, goles_visitante: int, current_user):
+    """
+    Otorga puntos a un partido (goles por defecto) cuando hay descalificación, no presentación, etc.
+    Si el partido no existe, lo crea. Transiciona el estado a TERMINADO y recalcula posiciones.
+    """
+    try:
+        # Buscar el fixture partido
+        fp = db.get(FixturePartido, id_fixture_partido)
+        if not fp:
+            raise HTTPException(404, "Fixture de partido no encontrado")
+
+        # Si ya existe un partido real, actualizarlo
+        if fp.id_partido_real:
+            partido = db.get(Partido, fp.id_partido_real)
+        else:
+            # Crear un nuevo partido
+            partido = Partido(
+                id_torneo=fp.id_torneo,
+                id_inscripcion_local=None,  # Será llenado por el fixture
+                id_inscripcion_visitante=None,
+                fecha=fp.fecha_programada if hasattr(fp, 'fecha_programada') else None,
+                horario=fp.horario if hasattr(fp, 'horario') else None,
+                ubicacion=fp.ubicacion if hasattr(fp, 'ubicacion') else None,
+                numero_fecha=fp.numero_fecha if hasattr(fp, 'numero_fecha') else None,
+                estado_partido=EstadoPartido.BORRADOR,
+                creado_por=current_user.username,
+            )
+
+            # Obtener inscripciones de los equipos
+            from app.models.inscripcion_torneo import InscripcionTorneo
+            insc_local = db.query(InscripcionTorneo).filter(
+                InscripcionTorneo.id_torneo == fp.id_torneo,
+                InscripcionTorneo.id_equipo == fp.id_equipo_local
+            ).first()
+            insc_visitante = db.query(InscripcionTorneo).filter(
+                InscripcionTorneo.id_torneo == fp.id_torneo,
+                InscripcionTorneo.id_equipo == fp.id_equipo_visitante
+            ).first()
+
+            if not insc_local or not insc_visitante:
+                raise HTTPException(400, "Los equipos no están inscritos en este torneo")
+
+            partido.id_inscripcion_local = insc_local.id_inscripcion
+            partido.id_inscripcion_visitante = insc_visitante.id_inscripcion
+
+            db.add(partido)
+            db.flush()
+
+            # Vincular el partido al fixture
+            fp.id_partido_real = partido.id_partido
+
+        # Actualizar goles y estado del partido
+        partido.goles_por_defecto_local = goles_local
+        partido.goles_por_defecto_visitante = goles_visitante
+        partido.estado_partido = EstadoPartido.TERMINADO
+        partido.actualizado_por = current_user.username
+
+        # Marcar el fixture como terminado también
+        fp.estado = "TERMINADO"
+
+        db.flush()
+
+        # Recalcular tabla de posiciones
+        db.execute(text("SELECT recalcular_tabla_posiciones(:id_torneo)"), {"id_torneo": partido.id_torneo})
+
+        db.commit()
+        return partido
+
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))

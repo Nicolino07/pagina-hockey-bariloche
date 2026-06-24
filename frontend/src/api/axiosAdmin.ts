@@ -2,7 +2,9 @@
 import axios from 'axios'
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import config from './config/index'
-import { getAccessToken, setAccessToken, clearAccessToken } from '../auth/TokenManager'
+import { getAccessToken, clearAccessToken } from '../auth/TokenManager'
+import { refreshSession, stopSession } from '../auth/sessionManager'
+import { authUtils } from '../utils/auth'
 
 
 
@@ -22,21 +24,6 @@ const axiosAdmin = axios.create({
   withCredentials: true,
   timeout: config.api.timeout,
 })
-
-// ============================================
-// SISTEMA DE REFRESH TOKEN CON COLA
-// ============================================
-let isRefreshing = false
-let refreshSubscribers: ((token: string) => void)[] = []
-
-const onRefreshed = (token: string) => {
-  refreshSubscribers.forEach(callback => callback(token))
-  refreshSubscribers = []
-}
-
-const addRefreshSubscriber = (callback: (token: string) => void) => {
-  refreshSubscribers.push(callback)
-}
 
 // ============================================
 // INTERCEPTOR DE REQUEST (CORRECCIÓN DE RUTAS)
@@ -92,42 +79,19 @@ axiosAdmin.interceptors.response.use(
     }
     
     originalRequest._retry = true
-    
-    if (isRefreshing) {
-      return new Promise((resolve) => {
-        addRefreshSubscriber((token: string) => {
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${token}`
-          }
-          resolve(axiosAdmin(originalRequest))
-        })
-      })
-    }
-    
-    isRefreshing = true
-    
-    try {
-      const { refreshToken } = await import('./auth.api')
-      const response = await refreshToken()
-      
-      if (!response.access_token) throw new Error()
-      
-      setAccessToken(response.access_token)
-      
-      if (originalRequest.headers) {
-        originalRequest.headers.Authorization = `Bearer ${response.access_token}`
-      }
-      
-      onRefreshed(response.access_token)
-      return axiosAdmin(originalRequest)
-      
-    } catch (refreshError) {
+
+    // 🔄 Renovación coordinada (deduplicada entre peticiones y pestañas).
+    const newToken = await refreshSession()
+
+    if (!newToken) {
       forceLogout()
-      return Promise.reject(refreshError)
+      return Promise.reject(error)
     }
-     finally {
-      isRefreshing = false
+
+    if (originalRequest.headers) {
+      originalRequest.headers.Authorization = `Bearer ${newToken}`
     }
+    return axiosAdmin(originalRequest)
   }
 )
 
@@ -135,12 +99,9 @@ axiosAdmin.interceptors.response.use(
 // FUNCIONES AUXILIARES
 // ============================================
 function forceLogout() {
+  stopSession(true)
   clearAccessToken()
-  localStorage.removeItem('user')
-
-  // 🔥 Siempre limpiar estado interno
-  refreshSubscribers = []
-  isRefreshing = false
+  authUtils.clearAuth()
 
   if (window.location.pathname !== '/login') {
     window.location.href = '/login'

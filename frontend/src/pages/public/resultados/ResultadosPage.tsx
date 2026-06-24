@@ -2,8 +2,11 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { obtenerPartidosRecientes, obtenerDetallePartido } from "../../../api/partidos.api"
 import { listarTorneosPublico } from "../../../api/torneos.api"
+import { listarFixturePorTorneo } from "../../../api/fixture.api"
 import PartidoDetalleModal from "../../../components/partidos/PartidoDetalleModal"
+import BracketPlayoff from "../../../pages/public/posiciones/BracketPlayoff"
 import type { Torneo } from "../../../types/torneo"
+import type { FixturePartido } from "../../../types/fixture"
 import styles from "./ResultadosPage.module.css"
 
 const ORDEN_CATEGORIA: Record<string, number> = {
@@ -39,6 +42,8 @@ export default function ResultadosPage() {
   const [torneosHistoricos, setTorneosHistoricos] = useState<Torneo[]>([])
   const [verHistoricos, setVerHistoricos] = useState(false)
   const [loadingHistoricos, setLoadingHistoricos] = useState(false)
+  const [verPlayoff, setVerPlayoff] = useState(false)
+  const [partidosPlayoff, setPartidosPlayoff] = useState<FixturePartido[]>([])
 
   useEffect(() => {
     Promise.all([listarTorneosPublico(), obtenerPartidosRecientes()])
@@ -87,8 +92,26 @@ export default function ResultadosPage() {
       .finally(() => setLoadingHistoricos(false))
   }
 
-  const torneoActual = torneos.find(t => t.id_torneo === torneoSeleccionado)
-    ?? torneosHistoricos.find(t => t.id_torneo === torneoSeleccionado)
+  // Filtrar torneos: ocultar los que tienen torneo_base_id (son playoffs/copas)
+  const torneosEnSelector = torneos.filter(t => !t.torneo_base_id)
+  const torneosHistoricosFiltrados = torneosHistoricos.filter(t => !t.torneo_base_id)
+
+  const torneoActual = (torneosEnSelector.find(t => t.id_torneo === torneoSeleccionado)
+    ?? torneosHistoricosFiltrados.find(t => t.id_torneo === torneoSeleccionado))
+
+  // Si torneoSeleccionado es un torneo base, buscar si existe un playoff/copa vinculado
+  const playoffDelBase = torneoSeleccionado && torneosEnSelector.find(t => t.id_torneo === torneoSeleccionado)
+    ? torneos.find(t => t.torneo_base_id === torneoSeleccionado && (t.tipo === "PLAYOFF" || t.tipo === "COPA"))
+    : undefined
+
+  // Cargar partidos del playoff cuando sea necesario
+  useEffect(() => {
+    if (verPlayoff && playoffDelBase) {
+      listarFixturePorTorneo(playoffDelBase.id_torneo)
+        .then(setPartidosPlayoff)
+        .catch(() => setPartidosPlayoff([]))
+    }
+  }, [verPlayoff, playoffDelBase])
 
   // Partidos del torneo seleccionado con filtros aplicados
   const partidosFiltrados = partidos
@@ -159,7 +182,7 @@ export default function ResultadosPage() {
                 <span>🏆</span>
                 <span>TORNEOS</span>
               </div>
-              {torneos.filter(t => torneosConPartidos.has(t.id_torneo)).map(t => {
+              {torneosEnSelector.filter(t => torneosConPartidos.has(t.id_torneo)).map(t => {
                 const activo = torneoSeleccionado === t.id_torneo
                 return (
                   <button
@@ -183,15 +206,15 @@ export default function ResultadosPage() {
                   </button>
                 )
               })}
-              {torneos.filter(t => torneosConPartidos.has(t.id_torneo)).length === 0 && (
+              {torneosEnSelector.filter(t => torneosConPartidos.has(t.id_torneo)).length === 0 && (
                 <p className={styles.infoSmall}>Sin partidos registrados</p>
               )}
 
               {/* Históricos */}
-              {verHistoricos && torneosHistoricos.length > 0 && (
+              {verHistoricos && torneosHistoricosFiltrados.length > 0 && (
                 <>
                   <div className={styles.historicosHeader}>Históricos</div>
-                  {torneosHistoricos.map(t => {
+                  {torneosHistoricosFiltrados.map(t => {
                     const activo = torneoSeleccionado === t.id_torneo
                     return (
                       <button
@@ -245,7 +268,43 @@ export default function ResultadosPage() {
                   </span>
                 </div>
 
-                <div className={styles.filtrosRow}>
+                {/* Pestañas Liga/Playoff */}
+                {torneoSeleccionado && playoffDelBase && (
+                  <div className={styles.viewTabsContainer}>
+                    <div className={styles.viewTabs}>
+                      <button
+                        onClick={() => setVerPlayoff(false)}
+                        className={`${styles.viewTabBtn} ${!verPlayoff ? styles.active : ""}`}
+                      >
+                        Liga
+                      </button>
+                      <button
+                        onClick={() => setVerPlayoff(true)}
+                        className={`${styles.viewTabBtn} ${verPlayoff ? styles.active : ""}`}
+                      >
+                        {playoffDelBase.tipo === "PLAYOFF" ? "Playoff" : "Copa"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {verPlayoff && playoffDelBase && partidosPlayoff.length > 0 ? (
+                  // Vista del bracket de playoff
+                  <div style={{ padding: "20px" }}>
+                    <BracketPlayoff
+                      partidos={partidosPlayoff}
+                      onPartidoClick={(partido) => {
+                        if (partido.id_partido_real) {
+                          handleVerDetalle({ id_partido: partido.id_partido_real })
+                        }
+                      }}
+                    />
+                  </div>
+                ) : verPlayoff && playoffDelBase ? (
+                  <div className={styles.placeholder}>Cargando playoff...</div>
+                ) : (
+                  <>
+                    <div className={styles.filtrosRow}>
                   <input
                     className={styles.filtroInput}
                     placeholder="Buscar equipo..."
@@ -290,8 +349,10 @@ export default function ResultadosPage() {
                       ))}
                     </div>
                   </div>
-                ))
-                }
+                    ))
+                    }
+                  </>
+                )}
               </>
             )}
           </div>

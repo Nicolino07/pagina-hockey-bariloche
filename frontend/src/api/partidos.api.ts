@@ -136,3 +136,26 @@ export const getHistorialPorEquipo = async (id_equipo: number, limit = 10) => {
   });
   return response.data;
 };
+
+/**
+ * Otorga puntos a un partido mediante goles por defecto
+ * (descalificación, no presentación, abandono, etc.)
+ */
+export const otorgarPuntosPartido = async (id_fixture_partido: number, golesLocal: number, golesVisitante: number) => {
+  try {
+    const response = await api.post(`/partidos/fixture/${id_fixture_partido}/otorgar-puntos`, {
+      goles_local: golesLocal,
+      goles_visitante: golesVisitante,
+    }, {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    const mensaje = error.response?.data?.detail || "Error al otorgar puntos";
+    console.error("Error en otorgarPuntosPartido:", mensaje);
+    throw new Error(mensaje);
+  }
+};

@@ -25,11 +25,16 @@ def _decode_user_id(credentials: HTTPAuthorizationCredentials) -> int:
             settings.jwt_secret,
             algorithms=[settings.jwt_algorithm],
         )
+        # Solo los tokens de acceso autentican peticiones; rechazamos los de
+        # invitación, reset, etc. aunque estén firmados con el mismo secreto.
+        if payload.get("type") != "access":
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
+
         user_id = payload.get("sub")
         if not user_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
         return int(user_id)
-    except JWTError:
+    except (JWTError, ValueError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido o expirado")
 
 

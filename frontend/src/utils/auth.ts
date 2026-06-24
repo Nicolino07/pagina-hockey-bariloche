@@ -1,37 +1,47 @@
-/** Estructura de los datos de autenticación persistidos en localStorage. */
+/**
+ * Datos NO sensibles del usuario persistidos en localStorage.
+ * El access token NUNCA se guarda aquí: vive solo en memoria (TokenManager)
+ * y se rehidrata vía /auth/refresh (cookie httpOnly) al recargar la página.
+ */
 interface StoredAuth {
-  token: string
   user: any
 }
 
 /** Clave utilizada para guardar los datos de auth en localStorage. */
 const AUTH_KEY = 'auth_data'
 
-/** Utilidades para persistir y recuperar datos de autenticación en localStorage. */
+/** Utilidades para persistir datos NO sensibles de la sesión en localStorage. */
 export const authUtils = {
   /**
-   * Guarda el token y los datos del usuario en localStorage.
-   * @param token - Token JWT de acceso.
-   * @param user - Objeto de usuario retornado por el servidor.
+   * Guarda los datos del usuario (sin token) en localStorage.
+   * @param user - Objeto de usuario (id, email, rol). No incluir el token.
    */
-  setAuthData(token: string, user: any) {
-    const data: StoredAuth = { token, user }
+  setUser(user: any) {
+    const data: StoredAuth = { user }
     localStorage.setItem(AUTH_KEY, JSON.stringify(data))
   },
 
   /**
-   * Recupera los datos de autenticación almacenados.
-   * @returns Objeto con token y usuario, o null si no existe o está corrupto.
+   * Recupera los datos del usuario almacenados.
+   * @returns El objeto de usuario, o null si no existe o está corrupto.
    */
-  getAuthData(): StoredAuth | null {
+  getUser(): any | null {
     const raw = localStorage.getItem(AUTH_KEY)
     if (!raw) return null
 
     try {
-      return JSON.parse(raw)
+      return (JSON.parse(raw) as StoredAuth).user ?? null
     } catch {
       return null
     }
+  },
+
+  /**
+   * Indica si había una sesión iniciada (hint para intentar rehidratarla).
+   * @returns true si hay datos de sesión persistidos.
+   */
+  hasSession(): boolean {
+    return !!localStorage.getItem(AUTH_KEY)
   },
 
   /**

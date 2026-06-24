@@ -4,6 +4,7 @@ import styles from "./BracketPlayoff.module.css"
 
 interface Props {
   partidos: FixturePartido[]
+  onPartidoClick?: (partido: FixturePartido) => void
 }
 
 interface Llave {
@@ -96,7 +97,7 @@ function esPlaceholder(p: FixturePartido, lado: "local" | "visitante"): boolean 
   return !p.id_equipo_visitante
 }
 
-export default function BracketPlayoff({ partidos }: Props) {
+export default function BracketPlayoff({ partidos, onPartidoClick }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -200,9 +201,19 @@ export default function BracketPlayoff({ partidos }: Props) {
                       <div
                         className={styles.llave}
                         data-llave={`${ri}-${li}`}
+                        style={{ cursor: onPartidoClick ? 'pointer' : 'default' }}
+                        onClick={() => onPartidoClick?.(llave.partidos[0])}
                       >
                         {/* Equipo local */}
                         <div className={`${styles.equipo} ${localGana ? styles.ganador : ""} ${visitanteGana ? styles.perdedor : ""} ${localPH ? styles.placeholder : ""}`}>
+                          {llave.partidos[0].id_club_local && (
+                            <img
+                              src={`/logos/clubes/${llave.partidos[0].id_club_local}.jpg?v=2`}
+                              alt=""
+                              className={styles.escudo}
+                              onError={(e) => { e.currentTarget.style.display = 'none' }}
+                            />
+                          )}
                           <span className={styles.equipoNombre}>{localNombre}</span>
                           {llave.golesLocal !== null && (
                             <span className={`${styles.goles} ${localGana ? styles.golesGanador : ""}`}>
@@ -216,6 +227,14 @@ export default function BracketPlayoff({ partidos }: Props) {
 
                         {/* Equipo visitante */}
                         <div className={`${styles.equipo} ${visitanteGana ? styles.ganador : ""} ${localGana ? styles.perdedor : ""} ${visitantePH ? styles.placeholder : ""}`}>
+                          {llave.partidos[0].id_club_visitante && (
+                            <img
+                              src={`/logos/clubes/${llave.partidos[0].id_club_visitante}.jpg?v=2`}
+                              alt=""
+                              className={styles.escudo}
+                              onError={(e) => { e.currentTarget.style.display = 'none' }}
+                            />
+                          )}
                           <span className={styles.equipoNombre}>{visitanteNombre}</span>
                           {llave.golesVisitante !== null && (
                             <span className={`${styles.goles} ${visitanteGana ? styles.golesGanador : ""}`}>
@@ -224,10 +243,21 @@ export default function BracketPlayoff({ partidos }: Props) {
                           )}
                         </div>
 
-                        {/* Badge ida y vuelta */}
-                        {llave.partidos.length === 2 && (
-                          <div className={styles.idaVueltaBadge}>ida y vuelta</div>
-                        )}
+                        {/* Fecha, hora, ubicación e ida y vuelta en una línea */}
+                        <div className={styles.detallesCompactos}>
+                          {llave.partidos[0].fecha_programada && (
+                            <span>{new Date(llave.partidos[0].fecha_programada + 'T00:00:00').toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}</span>
+                          )}
+                          {llave.partidos[0].horario && (
+                            <span>{llave.partidos[0].horario.slice(0, 5)}</span>
+                          )}
+                          {llave.partidos[0].ubicacion && (
+                            <span>{llave.partidos[0].ubicacion}</span>
+                          )}
+                          {llave.partidos.length === 2 && (
+                            <span className={styles.idaVueltaBadgeCompacto}>IyV</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )

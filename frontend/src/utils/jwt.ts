@@ -38,16 +38,16 @@ export function decodeJwt(token: string): JwtPayload | null {
     const payloadJson = atob(padded)
     const payload = JSON.parse(payloadJson) as JwtPayload
     
-    console.log('🔐 Token decodificado:', {
-      sub: payload.sub,
-      username: payload.username,
-      rol: payload.rol,
-      exp: new Date(payload.exp * 1000).toLocaleString(),
-      expUnix: payload.exp,
-      nowUnix: Date.now() / 1000,
-      timeLeft: (payload.exp - Date.now() / 1000).toFixed(0) + 's'
-    })
-    
+    if (import.meta.env.DEV) {
+      console.log('🔐 Token decodificado:', {
+        sub: payload.sub,
+        username: payload.username,
+        rol: payload.rol,
+        exp: new Date(payload.exp * 1000).toLocaleString(),
+        timeLeft: (payload.exp - Date.now() / 1000).toFixed(0) + 's'
+      })
+    }
+
     return payload
   } catch (error) {
     console.error('❌ Error decodificando JWT:', error, 'Token:', token?.substring(0, 50) + '...')

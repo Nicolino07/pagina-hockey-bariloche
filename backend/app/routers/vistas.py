@@ -173,7 +173,6 @@ def get_goleadores_torneo(id_torneo: int, db: Session = Depends(get_db)):
         SELECT * FROM v_goleadores_torneo
         WHERE id_torneo = :id_torneo
         ORDER BY goles_netos_en_torneo DESC
-        LIMIT 10
     """)
     result = db.execute(query, {"id_torneo": id_torneo}).mappings().all()
     return result

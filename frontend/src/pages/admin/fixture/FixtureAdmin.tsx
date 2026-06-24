@@ -27,6 +27,7 @@ import type {
   PlayoffPreviewResponse,
   TipoFormatoPlayoff,
   TipoAsignacion,
+  TipoRondaInicial,
   DueloManual,
   PlayoffRonda,
 } from "../../../types/fixture"
@@ -34,7 +35,8 @@ import Button from "../../../components/ui/button/Button"
 import { exportarFixturePDF } from "./exportarFixturePDF"
 import { generarPlanillaPDF, generarPlanillaCompletaPDF } from "../../../services/PlanillaVacia.service"
 import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api"
-import { obtenerDetallePartido, eliminarPartido } from "../../../api/partidos.api"
+import { obtenerDetallePartido, eliminarPartido, otorgarPuntosPartido } from "../../../api/partidos.api"
+import OtorgarPuntosModal from "../../../components/admin/OtorgarPuntosModal"
 import styles from "./FixtureAdmin.module.css"
 
 /** Valores iniciales del formulario de partido. */
@@ -102,6 +104,7 @@ export default function FixtureAdmin() {
   // Generación playoff
   const [formatoPlayoff, setFormatoPlayoff] = useState<TipoFormatoPlayoff>("ida")
   const [asignacionPlayoff, setAsignacionPlayoff] = useState<TipoAsignacion>("automatico")
+  const [rondaInicialPlayoff, setRondaInicialPlayoff] = useState<TipoRondaInicial | "">("")
   const [duelos, setDuelos] = useState<DueloManual[]>([{ id_equipo_local: 0, id_equipo_visitante: 0 }])
   const [previewPlayoff, setPreviewPlayoff] = useState<PlayoffPreviewResponse | null>(null)
   const [loadingPreviewPlayoff, setLoadingPreviewPlayoff] = useState(false)
@@ -117,6 +120,11 @@ export default function FixtureAdmin() {
   const [detalleModal, setDetalleModal] = useState(false)
   const [detallePartido, setDetallePartido] = useState<any | null>(null)
   const [cargandoDetalle, setCargandoDetalle] = useState(false)
+
+  // Modal de otorgar puntos
+  const [otorgarPuntosModal, setOtorgarPuntosModal] = useState(false)
+  const [partidoOtorgarPuntos, setPartidoOtorgarPuntos] = useState<FixturePartido | null>(null)
+  const [otorgandoPuntos, setOtorgandoPuntos] = useState(false)
 
   useEffect(() => {
     listarTorneos().then(setTorneos).catch(console.error)
@@ -332,7 +340,8 @@ export default function FixtureAdmin() {
     try {
       const resultado = await previsualizarPlayoff(
         torneoId, formatoPlayoff, asignacionPlayoff,
-        asignacionPlayoff === "manual" ? duelos : undefined
+        asignacionPlayoff === "manual" ? duelos : undefined,
+        asignacionPlayoff === "automatico" && rondaInicialPlayoff ? rondaInicialPlayoff : null
       )
       setPreviewPlayoff(resultado)
     } catch (e: any) {
@@ -349,7 +358,8 @@ export default function FixtureAdmin() {
     try {
       const nuevos = await generarPlayoff(
         torneoId, formatoPlayoff, asignacionPlayoff,
-        asignacionPlayoff === "manual" ? duelos : undefined
+        asignacionPlayoff === "manual" ? duelos : undefined,
+        asignacionPlayoff === "automatico" && rondaInicialPlayoff ? rondaInicialPlayoff : null
       )
       setPartidos(nuevos)
       setPreviewPlayoff(null)
@@ -466,6 +476,34 @@ export default function FixtureAdmin() {
     }
   }
 
+  function abrirOtorgarPuntosModal(p: FixturePartido) {
+    setPartidoOtorgarPuntos(p)
+    setOtorgarPuntosModal(true)
+  }
+
+  async function handleConfirmarOtorgarPuntos(golesLocal: number, golesVisitante: number) {
+    if (!partidoOtorgarPuntos?.id_fixture_partido) return
+
+    setOtorgandoPuntos(true)
+    try {
+      await otorgarPuntosPartido(partidoOtorgarPuntos.id_fixture_partido, golesLocal, golesVisitante)
+      setOtorgarPuntosModal(false)
+      setPartidoOtorgarPuntos(null)
+
+      // Recargar partidos
+      if (torneoId) {
+        setLoadingPartidos(true)
+        const fix = await listarFixturePorTorneoAdmin(torneoId)
+        setPartidos(fix)
+        setLoadingPartidos(false)
+      }
+    } catch (err: any) {
+      alert(err.message || "Error al otorgar puntos")
+    } finally {
+      setOtorgandoPuntos(false)
+    }
+  }
+
   // ── Planilla PDF por partido ─────────────────────────────────────────────
 
   async function handlePlanillaPartido(p: FixturePartido) {
@@ -562,7 +600,7 @@ export default function FixtureAdmin() {
 
         {torneoId && !mostrarFormulario && !mostrarGenerador && !preview && (
           <>
-            {!esPlayoff && <Button onClick={abrirFormularioNuevo}>+ Programar partido</Button>}
+            <Button onClick={abrirFormularioNuevo}>+ Programar partido</Button>
             <Button onClick={abrirGenerador}>⚡ Generar fixture</Button>
             {partidos.length > 0 && (
               <>
@@ -659,6 +697,29 @@ export default function FixtureAdmin() {
                     Manual (elegir enfrentamientos)
                   </label>
                 </div>
+
+                {asignacionPlayoff === "automatico" && (
+                  <div style={{ marginTop: 12 }}>
+                    <label className={styles.label}>Ronda inicial</label>
+                    <select
+                      className={styles.select}
+                      value={rondaInicialPlayoff}
+                      onChange={e => { setRondaInicialPlayoff(e.target.value as TipoRondaInicial | ""); setPreviewPlayoff(null) }}
+                    >
+                      <option value="">Todos los inscriptos (automático)</option>
+                      <option value="dieciseisavos">Dieciseisavos (32 equipos)</option>
+                      <option value="octavos">Octavos (16 equipos)</option>
+                      <option value="cuartos">Cuartos (8 equipos)</option>
+                      <option value="semifinal">Semifinal (4 equipos)</option>
+                      <option value="final">Final (2 equipos)</option>
+                    </select>
+                    <small className={styles.hint}>
+                      {torneoSeleccionado?.torneo_base_id
+                        ? "Clasifican los N mejores según la tabla del torneo base."
+                        : "Se toman N equipos entre los inscriptos (sin torneo base, ej: ascenso/descenso)."}
+                    </small>
+                  </div>
+                )}
 
                 {asignacionPlayoff === "manual" && (
                   <div style={{ marginTop: 12 }}>
@@ -1111,7 +1172,10 @@ export default function FixtureAdmin() {
                               ) : (
                                 <>
                                   {!p.placeholder_local && !p.placeholder_visitante && (
-                                    <button className={styles.btnCargar} onClick={() => navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`)}>Cargar resultado</button>
+                                    <>
+                                      <button className={styles.btnCargar} onClick={() => navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`)}>Cargar resultado</button>
+                                      <button className={styles.btnOtorgarPuntos} onClick={() => abrirOtorgarPuntosModal(p)}>Otorgar puntos</button>
+                                    </>
                                   )}
                                   <button className={styles.btnEditar} onClick={() => abrirFormularioEdicion(p)}>Editar fixture</button>
                                 </>
@@ -1197,6 +1261,7 @@ export default function FixtureAdmin() {
                               ) : (
                                 <>
                                   <button className={styles.btnCargar} onClick={() => navigate(`/admin/partidos/nueva-planilla?fixture=${p.id_fixture_partido}`)}>Cargar resultado</button>
+                                  <button className={styles.btnOtorgarPuntos} onClick={() => abrirOtorgarPuntosModal(p)}>Otorgar puntos</button>
                                   <button className={styles.btnEditar} onClick={() => abrirFormularioEdicion(p)}>Editar fixture</button>
                                 </>
                               )}
@@ -1366,6 +1431,19 @@ export default function FixtureAdmin() {
           </div>
         </div>
       )}
+
+      {/* Modal Otorgar Puntos */}
+      <OtorgarPuntosModal
+        isOpen={otorgarPuntosModal}
+        equipoLocal={partidoOtorgarPuntos?.nombre_equipo_local || "Local"}
+        equipoVisitante={partidoOtorgarPuntos?.nombre_equipo_visitante || "Visitante"}
+        onConfirm={handleConfirmarOtorgarPuntos}
+        onCancel={() => {
+          setOtorgarPuntosModal(false)
+          setPartidoOtorgarPuntos(null)
+        }}
+        loading={otorgandoPuntos}
+      />
     </div>
   )
 }

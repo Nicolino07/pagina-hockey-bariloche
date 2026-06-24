@@ -121,29 +121,33 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
 .proximoItem {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 10px 0;
-  border-bottom: 1px solid #2a2d31;
+  padding: 12px;
+  border: 1px solid #2a2d31;
+  border-radius: 12px;
+  transition: all 0.2s ease;
 }
 
-.proximoItem:last-child {
-  border-bottom: none;
+.proximoItem:hover {
+  background-color: rgba(138, 180, 248, 0.05);
+  border-color: #8ab4f8;
 }
 
-/* Fila superior: fecha, hora, badge, ubicación */
+/* Fila inferior: fecha, hora, badge, ubicación */
 .proximoMeta {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  overflow: hidden;
+  flex-wrap: wrap;
 }
 
 .proximoFecha {
@@ -211,13 +215,10 @@
 }
 
 .proximoUbicacion {
-  flex: 1;
   font-size: 0.72rem;
   color: #9aa0a6;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 /* Noticias / News Section */
@@ -358,6 +359,119 @@
 
 .matchupRow strong:last-child {
   text-align: left;
+}
+
+/* Últimos Encuentros - Formato de tarjetas */
+.ultimosEncuentrosContainer {
+  background: #202124;
+  border: 1px solid #3c4043;
+  border-radius: 24px;
+  padding: 24px;
+}
+
+.ultimosEncuentrosContainer h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.ultimosList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.ultimosItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #2a2d31;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.ultimosItem:hover {
+  background-color: rgba(138, 180, 248, 0.05);
+  border-color: #8ab4f8;
+}
+
+.ultimosVs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  min-width: 0;
+}
+
+.ultimosLado {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ultimosEquipo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.ultimosEscudo {
+  display: none;
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 50%;
+  transform: scale(1.15);
+  flex-shrink: 0;
+}
+
+.ultimosResultado {
+  background: #303134;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-weight: 800;
+  color: #8ab4f8;
+  flex-shrink: 0;
+}
+
+.ultimosMeta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ultimosFecha {
+  font-size: 0.78rem;
+  color: #8ab4f8;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ultimosTorneo {
+  font-size: 0.75rem;
+  color: #9aa0a6;
+  white-space: nowrap;
+}
+
+.ultimoBadge {
+  font-size: 0.65rem;
+  color: #9aa0a6;
+  background: #303134;
+  border: 1px solid #3c4043;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .torneoCol {
@@ -780,6 +894,13 @@
   }
 }
 
+@media (max-width: 768px) {
+  .ultimosList,
+  .proximosList {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 480px) {
   .header h1 {
     font-size: 1.8rem;
@@ -815,6 +936,11 @@
   .proximoFecha {
     min-width: 46px;
     font-size: 0.72rem;
+  }
+
+  .ultimosEscudo {
+    width: 26px;
+    height: 26px;
   }
 }
 

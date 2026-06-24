@@ -10,6 +10,7 @@ import type {
   PlayoffRonda,
   TipoFormatoPlayoff,
   TipoAsignacion,
+  TipoRondaInicial,
   DueloManual,
 } from "../types/fixture"
 
@@ -71,8 +72,9 @@ export async function previsualizarPlayoff(
   formato: TipoFormatoPlayoff,
   asignacion: TipoAsignacion,
   duelos?: DueloManual[],
+  rondaInicial?: TipoRondaInicial | null,
 ): Promise<PlayoffPreviewResponse> {
-  const res = await axiosAdmin.post<PlayoffPreviewResponse>(`/fixture/playoff/preview/${idTorneo}`, { formato, asignacion, duelos })
+  const res = await axiosAdmin.post<PlayoffPreviewResponse>(`/fixture/playoff/preview/${idTorneo}`, { formato, asignacion, duelos, ronda_inicial: rondaInicial ?? null })
   return res.data
 }
 
@@ -81,8 +83,9 @@ export async function generarPlayoff(
   formato: TipoFormatoPlayoff,
   asignacion: TipoAsignacion,
   duelos?: DueloManual[],
+  rondaInicial?: TipoRondaInicial | null,
 ): Promise<FixturePartido[]> {
-  const res = await axiosAdmin.post<FixturePartido[]>(`/fixture/playoff/generar/${idTorneo}`, { formato, asignacion, duelos })
+  const res = await axiosAdmin.post<FixturePartido[]>(`/fixture/playoff/generar/${idTorneo}`, { formato, asignacion, duelos, ronda_inicial: rondaInicial ?? null })
   return res.data
 }
 

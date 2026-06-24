@@ -545,3 +545,40 @@
 
 .backBtn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.88rem; padding: 0; margin-bottom: 20px; display: inline-block; }
 .backBtn:hover { color: var(--text-main); }
+
+/* Tabs para cambiar entre Liga y Playoff */
+.viewTabsContainer {
+  margin-bottom: 24px;
+}
+
+.viewTabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border-color);
+  background: transparent;
+}
+
+.viewTabBtn {
+  padding: 12px 24px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  position: relative;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+}
+
+.viewTabBtn:hover {
+  color: var(--text-main);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.viewTabBtn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: transparent;
+}

@@ -153,6 +153,45 @@
   font-size: 0.9rem;
 }
 
+/* ── Escudos de clubes ───────────────────────── */
+.escudo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* ── Detalles compactos en una línea ──────────── */
+.detallesCompactos {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  padding: 3px 6px;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-main);
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  line-height: 1;
+  text-align: center;
+}
+
+.detallesCompactos span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.idaVueltaBadgeCompacto {
+  background: var(--border-color);
+  color: var(--text-main);
+  padding: 1px 3px;
+  border-radius: 2px;
+  font-weight: 600;
+  font-size: 0.5rem;
+  letter-spacing: 0.2px;
+}
+
 /* ── Scrollbar ───────────────────────────────── */
 .scrollArea::-webkit-scrollbar { height: 4px; }
 .scrollArea::-webkit-scrollbar-thumb {

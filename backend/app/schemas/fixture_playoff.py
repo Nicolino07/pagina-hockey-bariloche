@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 TipoFormatoPlayoff = Literal["ida", "ida_y_vuelta"]
 TipoAsignacion = Literal["automatico", "manual"]
+TipoRondaInicial = Literal["dieciseisavos", "octavos", "cuartos", "semifinal", "final"]
 
 
 class DueloManual(BaseModel):
@@ -15,6 +16,9 @@ class GenerarPlayoffRequest(BaseModel):
     formato: TipoFormatoPlayoff = "ida"
     asignacion: TipoAsignacion = "automatico"
     duelos: Optional[list[DueloManual]] = None  # solo para asignacion=manual
+    # Ronda inicial (solo automatico). Si se indica, clasifican los N mejores
+    # de la tabla del torneo base. Si es None, se usan todos los inscriptos.
+    ronda_inicial: Optional[TipoRondaInicial] = None
 
 
 class PlayoffPartidoPreview(BaseModel):

@@ -9,9 +9,11 @@ from sqlalchemy import (
     Date,
     CheckConstraint,
     Enum,
+    ForeignKey,
 )
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import Optional
 from app.models.base import Base
 from app.models.enums import CategoriaTipo, GeneroTipo, TipoTorneo
 
@@ -74,6 +76,11 @@ class Torneo(Base, AuditFieldsMixin, SoftDeleteMixin):
         nullable=False
     )
 
+    torneo_base_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("torneo.id_torneo", ondelete="SET NULL"),
+        nullable=True,
+        default=None
+    )
 
     # Relaciones
     fases = relationship("Fase", back_populates="torneo")

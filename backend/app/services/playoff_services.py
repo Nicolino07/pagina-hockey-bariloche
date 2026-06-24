@@ -10,7 +10,19 @@ from app.models.fixture_partido import FixturePartido
 from app.models.fixture_playoff_ronda import FixturePlayoffRonda
 from app.models.inscripcion_torneo import InscripcionTorneo
 from app.models.equipo import Equipo
+from app.models.posicion import Posicion
+from app.models.torneo import Torneo
 from app.schemas.fixture_playoff import GenerarPlayoffRequest, PlayoffPreviewResponse
+
+
+# Cantidad de equipos que clasifican según la ronda inicial elegida.
+_EQUIPOS_POR_RONDA = {
+    "final": 2,
+    "semifinal": 4,
+    "cuartos": 8,
+    "octavos": 16,
+    "dieciseisavos": 32,
+}
 
 
 # Nombres de ronda según cantidad de partidos en esa ronda
@@ -42,6 +54,90 @@ def _obtener_equipos(db: Session, id_torneo: int) -> list[dict]:
     if len(inscripciones) % 2 != 0:
         raise HTTPException(400, "El número de equipos debe ser par para un playoff")
     return [{"id": i.id_equipo, "nombre": i.equipo.nombre} for i in inscripciones]
+
+
+def _ordenar_seeds(equipos: list[dict]) -> list[dict]:
+    """
+    Reordena una lista ya ordenada por mérito (mejor primero) para que los
+    enfrentamientos de la primera ronda crucen mejor contra peor:
+    (1º vs último), (2º vs anteúltimo), etc.
+    """
+    ordenados: list[dict] = []
+    i, j = 0, len(equipos) - 1
+    while i < j:
+        ordenados.append(equipos[i])
+        ordenados.append(equipos[j])
+        i += 1
+        j -= 1
+    return ordenados
+
+
+def _obtener_equipos_clasificados(db: Session, id_torneo: int, n_equipos: int) -> list[dict]:
+    """
+    Devuelve los N mejores equipos según la tabla de posiciones del torneo base
+    del torneo de playoff, ordenados de mejor a peor.
+    """
+    torneo = db.get(Torneo, id_torneo)
+    if not torneo or not torneo.torneo_base_id:
+        raise HTTPException(
+            400,
+            "Para elegir la ronda inicial el torneo debe tener un torneo base configurado.",
+        )
+
+    filas = (
+        db.query(Posicion)
+        .filter(Posicion.id_torneo == torneo.torneo_base_id)
+        .order_by(
+            Posicion.puntos.desc(),
+            Posicion.diferencia_gol.desc(),
+            Posicion.goles_a_favor.desc(),
+        )
+        .all()
+    )
+    if len(filas) < n_equipos:
+        raise HTTPException(
+            400,
+            f"El torneo base tiene {len(filas)} equipos en la tabla; "
+            f"se necesitan {n_equipos} para esa ronda inicial.",
+        )
+    return [{"id": f.id_equipo, "nombre": f.equipo.nombre} for f in filas[:n_equipos]]
+
+
+def _obtener_equipos_automatico(
+    db: Session, id_torneo: int, ronda_inicial: str | None
+) -> list[dict]:
+    """
+    Resuelve la lista de equipos para el modo automático.
+    - Con ronda_inicial: toma los N mejores de la tabla del torneo base y los
+      siembra (mejor vs peor) para la primera ronda.
+    - Sin ronda_inicial: usa todos los inscriptos en orden aleatorio.
+    """
+    if ronda_inicial:
+        n_equipos = _EQUIPOS_POR_RONDA.get(ronda_inicial)
+        if not n_equipos:
+            raise HTTPException(400, "Ronda inicial inválida.")
+
+        torneo = db.get(Torneo, id_torneo)
+        if torneo and torneo.torneo_base_id:
+            # Con torneo base: clasifican los N mejores de su tabla, sembrados.
+            clasificados = _obtener_equipos_clasificados(db, id_torneo, n_equipos)
+            return _ordenar_seeds(clasificados)
+
+        # Sin torneo base (ej: playoff de ascenso/descenso con equipos de
+        # distintas divisiones): se toman N equipos entre los inscriptos.
+        equipos = _obtener_equipos(db, id_torneo)
+        if len(equipos) < n_equipos:
+            raise HTTPException(
+                400,
+                f"Hay {len(equipos)} equipos inscriptos; "
+                f"se necesitan {n_equipos} para esa ronda inicial.",
+            )
+        random.shuffle(equipos)
+        return equipos[:n_equipos]
+
+    equipos = _obtener_equipos(db, id_torneo)
+    random.shuffle(equipos)
+    return equipos
 
 
 def _calcular_rondas(n_equipos: int) -> list[dict]:
@@ -105,8 +201,7 @@ def previsualizar_playoff(
             for d in request.duelos
         ]
     else:
-        equipos = _obtener_equipos(db, id_torneo)
-        random.shuffle(equipos)
+        equipos = _obtener_equipos_automatico(db, id_torneo, request.ronda_inicial)
         n_equipos = len(equipos)
         rondas_config = _calcular_rondas(n_equipos)
         equipos_disponibles = list(equipos)
@@ -197,8 +292,7 @@ def generar_playoff(
     if request.asignacion == "manual" and request.duelos:
         return _generar_playoff_manual(db, id_torneo, request, username)
 
-    equipos = _obtener_equipos(db, id_torneo)
-    random.shuffle(equipos)
+    equipos = _obtener_equipos_automatico(db, id_torneo, request.ronda_inicial)
     rondas_config = _calcular_rondas(len(equipos))
 
     nuevos_partidos = []
@@ -277,6 +371,7 @@ def _crear_partido_playoff(
         id_equipo_visitante=id_visitante,
         placeholder_local=placeholder_local,
         placeholder_visitante=placeholder_visitante,
+        estado="PENDIENTE",  # Los partidos de playoff van directamente a PENDIENTE
         creado_por=username,
     )
     db.add(p1)
@@ -290,6 +385,7 @@ def _crear_partido_playoff(
             id_equipo_visitante=id_local,
             placeholder_local=placeholder_visitante,
             placeholder_visitante=placeholder_local,
+            estado="PENDIENTE",  # Los partidos de playoff van directamente a PENDIENTE
             creado_por=username,
         )
         db.add(p2)

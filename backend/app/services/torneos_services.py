@@ -40,6 +40,7 @@ def crear_torneo(
         fecha_inicio=data.fecha_inicio,
         fecha_fin=data.fecha_fin,
         activo=data.activo if hasattr(data, 'activo') else True,
+        torneo_base_id=data.torneo_base_id if hasattr(data, 'torneo_base_id') else None,
         creado_por=current_user.username
     )
     
@@ -175,6 +176,7 @@ def actualizar_torneo(
     torneo.tipo = TipoTorneo(data.tipo) if isinstance(data.tipo, str) else data.tipo
     torneo.fecha_inicio = data.fecha_inicio
     torneo.fecha_fin = data.fecha_fin
+    torneo.torneo_base_id = data.torneo_base_id if hasattr(data, 'torneo_base_id') else None
     torneo.actualizado_por = current_user.username
     
     # Si se marca como inactivo y no tiene fecha_fin, establecerla

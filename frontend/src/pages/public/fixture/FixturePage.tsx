@@ -4,6 +4,7 @@ import { listarTorneosPublico } from "../../../api/torneos.api"
 import { listarProximosPartidos, listarFixturePorTorneo } from "../../../api/fixture.api"
 import type { Torneo } from "../../../types/torneo"
 import type { FixturePartido } from "../../../types/fixture"
+import BracketPlayoff from "../posiciones/BracketPlayoff"
 import styles from "./FixturePage.module.css"
 
 function formatHorario(horario: string | null): string {
@@ -122,6 +123,16 @@ export default function FixturePage() {
   const [verHistoricos, setVerHistoricos] = useState(false)
   const [loadingHistoricos, setLoadingHistoricos] = useState(false)
   const [verCompleto, setVerCompleto] = useState(false)
+  const [verPlayoff, setVerPlayoff] = useState(false)
+
+  // Filtrar torneos: ocultar los que tienen torneo_base_id (son playoffs/copas)
+  const torneosEnSelector = torneos.filter(t => !t.torneo_base_id)
+  const torneosHistoricosFiltrados = torneosHistoricos.filter(t => !t.torneo_base_id)
+
+  // Si torneoId es un torneo base, buscar si existe un playoff/copa vinculado
+  const playoffDelBase = torneoId && torneosEnSelector.find(t => t.id_torneo === torneoId)
+    ? torneos.find(t => t.torneo_base_id === torneoId && (t.tipo === "PLAYOFF" || t.tipo === "COPA"))
+    : undefined
 
   useEffect(() => {
     listarTorneosPublico()
@@ -146,14 +157,21 @@ export default function FixturePage() {
 
   useEffect(() => {
     setLoading(true)
-    const promesa = torneoId
-      ? listarFixturePorTorneo(torneoId)
+    let idCargar = torneoId
+
+    // Si verPlayoff = true, cargar el playoff del torneo base
+    if (verPlayoff && playoffDelBase) {
+      idCargar = playoffDelBase.id_torneo
+    }
+
+    const promesa = idCargar
+      ? listarFixturePorTorneo(idCargar)
       : listarProximosPartidos()
     promesa
       .then(setPartidos)
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [torneoId])
+  }, [torneoId, verPlayoff])
 
   function toggleColapso(key: string) {
     setColapsados(prev => {
@@ -215,11 +233,11 @@ export default function FixturePage() {
               </button>
             </div>
 
-            {ordenarTorneos(torneos).map(t => (
+            {ordenarTorneos(torneosEnSelector).map(t => (
               <button
                 key={t.id_torneo}
                 className={`${styles.torneoFila} ${torneoId === t.id_torneo ? styles.torneoFilaActiva : ""}`}
-                onClick={() => { setTorneoId(t.id_torneo); setSelectorAbierto(false) }}
+                onClick={() => { setTorneoId(t.id_torneo); setSelectorAbierto(false); setVerPlayoff(false) }}
               >
                 <div className={styles.torneoFilaInfo}>
                   <span className={styles.torneoFilaNombre}>{t.nombre}</span>
@@ -245,10 +263,10 @@ export default function FixturePage() {
               <p className={styles.torneosVacio}>Sin torneos activos</p>
             )}
 
-            {verHistoricos && torneosHistoricos.length > 0 && (
+            {verHistoricos && torneosHistoricosFiltrados.length > 0 && (
               <>
                 <div className={styles.historicosHeader}>Históricos</div>
-                {torneosHistoricos.map(t => (
+                {torneosHistoricosFiltrados.map(t => (
                   <button
                     key={t.id_torneo}
                     className={`${styles.torneoFila} ${torneoId === t.id_torneo ? styles.torneoFilaActiva : ""}`}
@@ -282,8 +300,33 @@ export default function FixturePage() {
 
         {/* ── Columna principal: partidos ── */}
         <div className={styles.colPartidos}>
+          {/* Botones para cambiar entre Liga y Playoff */}
+          {torneoId && playoffDelBase && (
+            <div className={styles.viewTabsContainer}>
+              <div className={styles.viewTabs}>
+                <button
+                  onClick={() => setVerPlayoff(false)}
+                  className={`${styles.viewTabBtn} ${!verPlayoff ? styles.active : ""}`}
+                >
+                  Liga
+                </button>
+                <button
+                  onClick={() => setVerPlayoff(true)}
+                  className={`${styles.viewTabBtn} ${verPlayoff ? styles.active : ""}`}
+                >
+                  {playoffDelBase.tipo === "PLAYOFF" ? "Playoff" : "Copa"}
+                </button>
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <p className={styles.infoMsg}>Cargando partidos...</p>
+          ) : verPlayoff && partidos.length > 0 ? (
+            // Vista de bracket para playoff/copa
+            <div style={{ padding: "20px" }}>
+              <BracketPlayoff partidos={partidos} />
+            </div>
           ) : partidosFiltrados.length === 0 ? (
             <>
               <p className={styles.infoMsg}>No hay partidos próximos para este torneo.</p>

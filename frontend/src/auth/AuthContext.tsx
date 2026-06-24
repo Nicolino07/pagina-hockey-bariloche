@@ -14,6 +14,7 @@ import axiosAdmin from '../api/axiosAdmin'
 import { authUtils } from '../utils/auth'
 import { decodeJwt } from '../utils/jwt'
 import { setAccessToken, clearAccessToken } from '../auth/TokenManager'
+import { startSession, stopSession, refreshSession } from '../auth/sessionManager'
 
 interface User {
   id: number
@@ -37,36 +38,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  /** Cierra la sesión localmente cuando expira por inactividad o es revocada. */
+  const handleSessionExpired = () => {
+    stopSession()
+    authUtils.clearAuth()
+    clearAccessToken()
+    setUser(null)
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login'
+    }
+  }
+
   useEffect(() => {
-  const initAuth = async () => { // <--- Ahora es async
-    const stored = authUtils.getAuthData();
+  const initAuth = async () => {
+    // Sin hint de sesión previa no intentamos rehidratar (evita pegarle a
+    // /auth/refresh en visitantes anónimos del sitio público).
+    if (!authUtils.hasSession()) {
+      setIsLoading(false);
+      return;
+    }
 
-    if (stored?.token) {
-      try {
-        setAccessToken(stored.token);
-        
-        // 🛡️ VALIDACIÓN REAL: Preguntamos al servidor si el token sirve
-        const response = await axiosAdmin.get('/auth/me'); 
-        const payload = decodeJwt(stored.token);
-
-        if (payload) {
-          setUser({
-            id: Number(payload.sub),
-            email: payload.username,
-            rol: payload.rol,
-            ...response.data // Usamos la info fresca del servidor
-          });
-        }
-      } catch (error) {
-        console.error('❌ Token expirado o inválido:', error);
+    try {
+      // 🔑 Rehidratamos el access token SOLO en memoria desde la cookie httpOnly.
+      const token = await refreshSession();
+      if (!token) {
         authUtils.clearAuth();
         clearAccessToken();
         setUser(null);
+        return;
       }
+
+      // 🛡️ Confirmamos la sesión contra el servidor.
+      const response = await axiosAdmin.get('/auth/me');
+      const payload = decodeJwt(token);
+
+      if (payload) {
+        setUser({
+          id: Number(payload.sub),
+          email: payload.username,
+          rol: payload.rol,
+          ...response.data
+        });
+        // 🔄 Sesión deslizante: renueva el token mientras haya actividad.
+        startSession(handleSessionExpired);
+      }
+    } catch (error) {
+      console.error('❌ No se pudo restaurar la sesión:', error);
+      authUtils.clearAuth();
+      clearAccessToken();
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Solo cuando la API responde (o falla), dejamos de cargar
-    setIsLoading(false); 
   };
 
   initAuth();
@@ -83,13 +106,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...userData
     }
 
-    // 💾 Guardar en localStorage
-    authUtils.setAuthData(token, userInfo)
+    // 💾 Guardar datos NO sensibles del usuario (sin token) en localStorage
+    authUtils.setUser(userInfo)
 
-    // 🧠 Guardar en memoria
+    // 🧠 El access token vive solo en memoria
     setAccessToken(token)
 
     setUser(userInfo)
+
+    // 🔄 Iniciar la sesión deslizante tras el login.
+    startSession(handleSessionExpired)
   }
 
   const logout = async () => {
@@ -100,6 +126,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.warn('⚠️ Error en logout backend:', error)
     }
 
+    // 🛑 Detener la sesión deslizante y avisar a las demás pestañas.
+    stopSession(true)
     authUtils.clearAuth()
     clearAccessToken()
     setUser(null)

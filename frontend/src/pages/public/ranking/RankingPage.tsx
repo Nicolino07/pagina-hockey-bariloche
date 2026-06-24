@@ -45,6 +45,10 @@ export default function RankingPage() {
   const [filtroPersona, setFiltroPersona] = useState("")
   const [filtroEquipo, setFiltroEquipo] = useState("")
   const [paginaTarjetas, setPaginaTarjetas] = useState(1)
+
+  // Paginación de goleadores
+  const [paginaGoleadores, setPaginaGoleadores] = useState(1)
+
   const POR_PAGINA = 20
   const [torneosHistoricos, setTorneosHistoricos] = useState<Torneo[]>([])
   const [verHistoricos, setVerHistoricos] = useState(false)
@@ -91,7 +95,7 @@ export default function RankingPage() {
       obtenerTarjetasAcumuladas(torneoSeleccionado),
       obtenerVallaMenosVencida(torneoSeleccionado),
     ])
-      .then(([g, t, v]) => { setGoleadores(g); setTarjetas(t); setValla(v) })
+      .then(([g, t, v]) => { setGoleadores(g); setTarjetas(t); setValla(v); setPaginaGoleadores(1) })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [torneoSeleccionado])
@@ -241,45 +245,72 @@ export default function RankingPage() {
                 <div className={styles.tableCard}>
 
                   {/* GOLEADORES */}
-                  {tab === "goleadores" && (
-                    goleadores.length > 0 ? (
-                      <div className={styles.responsiveScroll}>
-                        <table className={styles.table}>
-                          <thead>
-                            <tr>
-                              <th>#</th>
-                              <th className={styles.alignLeft}>Jugador</th>
-                              <th className={styles.alignLeft}>Equipo</th>
-                              <th>Goles</th>
-                              <th>PJ</th>
-                              <th>Prom.</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {goleadores.map(g => (
-                              <tr key={g.id_persona}>
-                                <td>{g.ranking_en_torneo}</td>
-                                <td className={styles.alignLeft}>
-                                  <span className={styles.playerName}>{g.apellido}, {g.nombre}</span>
-                                </td>
-                                <td className={styles.alignLeft}>
-                                  <span className={styles.playerTeam}>{g.nombre_equipo}</span>
-                                </td>
-                                <td className={styles.bold}>
-                                  {g.goles_netos_en_torneo}
-                                  {g.autogoles_en_torneo > 0 && (
-                                    <span className={styles.autogol}> ({g.autogoles_en_torneo} en contra)</span>
-                                  )}
-                                </td>
-                                <td className={styles.muted}>{g.partidos_jugados}</td>
-                                <td className={styles.muted}>{g.promedio_goles ?? "—"}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : <p className={styles.info}>Sin goles registrados.</p>
-                  )}
+                  {tab === "goleadores" && (() => {
+                    const totalPaginasG = Math.ceil(goleadores.length / POR_PAGINA)
+                    const paginaG = Math.min(paginaGoleadores, totalPaginasG || 1)
+                    const visiblesG = goleadores.slice((paginaG - 1) * POR_PAGINA, paginaG * POR_PAGINA)
+
+                    return goleadores.length === 0
+                      ? <p className={styles.info}>Sin goles registrados.</p>
+                      : (
+                        <>
+                          <div className={styles.responsiveScroll}>
+                            <table className={styles.table}>
+                              <thead>
+                                <tr>
+                                  <th>#</th>
+                                  <th className={styles.alignLeft}>Jugador</th>
+                                  <th className={styles.alignLeft}>Equipo</th>
+                                  <th>Goles</th>
+                                  <th>PJ</th>
+                                  <th>Prom.</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {visiblesG.map(g => (
+                                  <tr key={g.id_persona}>
+                                    <td>{g.ranking_en_torneo}</td>
+                                    <td className={styles.alignLeft}>
+                                      <span className={styles.playerName}>{g.apellido}, {g.nombre}</span>
+                                    </td>
+                                    <td className={styles.alignLeft}>
+                                      <span className={styles.playerTeam}>{g.nombre_equipo}</span>
+                                    </td>
+                                    <td className={styles.bold}>
+                                      {g.goles_netos_en_torneo}
+                                      {g.autogoles_en_torneo > 0 && (
+                                        <span className={styles.autogol}> ({g.autogoles_en_torneo} en contra)</span>
+                                      )}
+                                    </td>
+                                    <td className={styles.muted}>{g.partidos_jugados}</td>
+                                    <td className={styles.muted}>{g.promedio_goles ?? "—"}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          {totalPaginasG > 1 && (
+                            <div className={styles.paginacion}>
+                              <button
+                                className={styles.paginaBtn}
+                                disabled={paginaG === 1}
+                                onClick={() => setPaginaGoleadores(p => p - 1)}
+                              >←</button>
+                              <span className={styles.paginaInfo}>
+                                {paginaG} / {totalPaginasG}
+                                <span className={styles.paginaTotal}> ({goleadores.length} jugadores)</span>
+                              </span>
+                              <button
+                                className={styles.paginaBtn}
+                                disabled={paginaG === totalPaginasG}
+                                onClick={() => setPaginaGoleadores(p => p + 1)}
+                              >→</button>
+                            </div>
+                          )}
+                        </>
+                      )
+                  })()}
 
                   {/* TARJETAS */}
                   {tab === "tarjetas" && (() => {

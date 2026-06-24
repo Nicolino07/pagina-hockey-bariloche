@@ -46,7 +46,6 @@ export default function Navbar() {
           {isAuthenticated && (
             <>
               <span className={styles.separator} />
-              <Link to="/admin">Panel</Link>
               <Link to="/admin/fixture">Fixture</Link>
               <Link to="/admin/noticias">Noticias</Link>
               <Link to="/admin/fichajes">Fichajes</Link>
@@ -107,7 +106,6 @@ export default function Navbar() {
           {isAuthenticated && (
             <>
               <hr />
-              <Link to="/admin" onClick={close}>Panel</Link>
               <Link to="/admin/fixture" onClick={close}>Fixture</Link>
               <Link to="/admin/noticias" onClick={close}>Noticias</Link>
               <Link to="/admin/fichajes" onClick={close}>Fichajes</Link>
