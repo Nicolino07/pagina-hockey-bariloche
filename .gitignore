@@ -61,3 +61,8 @@ Thumbs.db
 # =====================
 *.cache
 *.tmp
+
+# Backups (no versionar dumps ni logs)
+backups/*.dump
+backups/*.log
+backups/.env.*
