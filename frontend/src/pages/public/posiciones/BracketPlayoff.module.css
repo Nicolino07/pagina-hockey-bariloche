@@ -192,6 +192,21 @@
   letter-spacing: 0.2px;
 }
 
+/* ── Partido por el 3er / 4to puesto (fuera del bracket) ── */
+.tercerPuesto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border-color);
+}
+
+.tercerPuestoLlave {
+  width: 180px;
+}
+
 /* ── Scrollbar ───────────────────────────────── */
 .scrollArea::-webkit-scrollbar { height: 4px; }
 .scrollArea::-webkit-scrollbar-thumb {

@@ -73,8 +73,9 @@ export async function previsualizarPlayoff(
   asignacion: TipoAsignacion,
   duelos?: DueloManual[],
   rondaInicial?: TipoRondaInicial | null,
+  tercerPuesto: boolean = false,
 ): Promise<PlayoffPreviewResponse> {
-  const res = await axiosAdmin.post<PlayoffPreviewResponse>(`/fixture/playoff/preview/${idTorneo}`, { formato, asignacion, duelos, ronda_inicial: rondaInicial ?? null })
+  const res = await axiosAdmin.post<PlayoffPreviewResponse>(`/fixture/playoff/preview/${idTorneo}`, { formato, asignacion, duelos, ronda_inicial: rondaInicial ?? null, tercer_puesto: tercerPuesto })
   return res.data
 }
 
@@ -84,8 +85,9 @@ export async function generarPlayoff(
   asignacion: TipoAsignacion,
   duelos?: DueloManual[],
   rondaInicial?: TipoRondaInicial | null,
+  tercerPuesto: boolean = false,
 ): Promise<FixturePartido[]> {
-  const res = await axiosAdmin.post<FixturePartido[]>(`/fixture/playoff/generar/${idTorneo}`, { formato, asignacion, duelos, ronda_inicial: rondaInicial ?? null })
+  const res = await axiosAdmin.post<FixturePartido[]>(`/fixture/playoff/generar/${idTorneo}`, { formato, asignacion, duelos, ronda_inicial: rondaInicial ?? null, tercer_puesto: tercerPuesto })
   return res.data
 }
 

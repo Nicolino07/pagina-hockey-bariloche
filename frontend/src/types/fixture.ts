@@ -15,6 +15,7 @@ export interface PlayoffRonda {
   nombre: string
   orden: number
   ida_y_vuelta: boolean
+  es_tercer_puesto?: boolean
 }
 
 export interface PlayoffPartidoPreview {
@@ -29,6 +30,7 @@ export interface PlayoffRondaPreview {
   nombre: string
   orden: number
   ida_y_vuelta: boolean
+  es_tercer_puesto?: boolean
   partidos: PlayoffPartidoPreview[]
 }
 
@@ -90,6 +92,7 @@ export interface FixturePartido {
   placeholder_visitante: string | null
   id_fixture_playoff_ronda: number | null
   nombre_ronda_playoff: string | null
+  es_tercer_puesto?: boolean
   creado_en: string
   creado_por: string | null
 }

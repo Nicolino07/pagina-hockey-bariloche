@@ -18,6 +18,7 @@ interface Ronda {
   nombre: string
   orden: number
   llaves: Llave[]
+  esTercerPuesto: boolean
 }
 
 function calcularGoles(partido: FixturePartido): { gl: number | null; gv: number | null } {
@@ -83,7 +84,10 @@ function construirRondas(partidos: FixturePartido[]): Ronda[] {
       llaves.push({ partidos: grupo, golesLocal: gl, golesVisitante: gv, ganadorId })
     }
 
-    return { nombre: r.nombre, orden: r.partidos[0].id_fixture_playoff_ronda!, llaves }
+    const esTercerPuesto = r.partidos.some(p => p.es_tercer_puesto) ||
+      r.nombre.toLowerCase().includes("tercer puesto")
+
+    return { nombre: r.nombre, orden: r.partidos[0].id_fixture_playoff_ronda!, llaves, esTercerPuesto }
   })
 }
 
@@ -102,6 +106,9 @@ export default function BracketPlayoff({ partidos, onPartidoClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const rondas = construirRondas(partidos)
+  // El partido por el 3er puesto se muestra aparte, fuera del flujo del bracket.
+  const rondasPrincipales = rondas.filter(r => !r.esTercerPuesto)
+  const rondaTercerPuesto = rondas.find(r => r.esTercerPuesto) ?? null
 
   useEffect(() => {
     let raf: number
@@ -127,8 +134,8 @@ export default function BracketPlayoff({ partidos, onPartidoClick }: Props) {
       ctx.strokeStyle = borderColor
       ctx.lineWidth = 1.5
 
-      rondas.forEach((ronda, ri) => {
-        if (ri >= rondas.length - 1) return
+      rondasPrincipales.forEach((ronda, ri) => {
+        if (ri >= rondasPrincipales.length - 1) return
 
         ronda.llaves.forEach((_, li) => {
           const llaveActual = container.querySelector<HTMLElement>(`[data-llave="${ri}-${li}"]`)
@@ -173,99 +180,114 @@ export default function BracketPlayoff({ partidos, onPartidoClick }: Props) {
     return <p className={styles.empty}>No hay partidos de playoff para mostrar.</p>
   }
 
+  function renderLlaveCard(llave: Llave, dataLlave?: string) {
+    const p = llave.partidos[0]
+    const localNombre = nombreEquipo(p, "local")
+    const visitanteNombre = nombreEquipo(p, "visitante")
+    const localPH = esPlaceholder(p, "local")
+    const visitantePH = esPlaceholder(p, "visitante")
+    const localGana = llave.ganadorId === p.id_equipo_local
+    const visitanteGana = llave.ganadorId === p.id_equipo_visitante
+
+    return (
+      <div
+        className={styles.llave}
+        data-llave={dataLlave}
+        style={{ cursor: onPartidoClick ? 'pointer' : 'default' }}
+        onClick={() => onPartidoClick?.(llave.partidos[0])}
+      >
+        {/* Equipo local */}
+        <div className={`${styles.equipo} ${localGana ? styles.ganador : ""} ${visitanteGana ? styles.perdedor : ""} ${localPH ? styles.placeholder : ""}`}>
+          {llave.partidos[0].id_club_local && (
+            <img
+              src={`/logos/clubes/${llave.partidos[0].id_club_local}.jpg?v=2`}
+              alt=""
+              className={styles.escudo}
+              onError={(e) => { e.currentTarget.style.display = 'none' }}
+            />
+          )}
+          <span className={styles.equipoNombre}>{localNombre}</span>
+          {llave.golesLocal !== null && (
+            <span className={`${styles.goles} ${localGana ? styles.golesGanador : ""}`}>
+              {llave.golesLocal}
+            </span>
+          )}
+        </div>
+
+        {/* Divisor */}
+        <div className={styles.divisor} />
+
+        {/* Equipo visitante */}
+        <div className={`${styles.equipo} ${visitanteGana ? styles.ganador : ""} ${localGana ? styles.perdedor : ""} ${visitantePH ? styles.placeholder : ""}`}>
+          {llave.partidos[0].id_club_visitante && (
+            <img
+              src={`/logos/clubes/${llave.partidos[0].id_club_visitante}.jpg?v=2`}
+              alt=""
+              className={styles.escudo}
+              onError={(e) => { e.currentTarget.style.display = 'none' }}
+            />
+          )}
+          <span className={styles.equipoNombre}>{visitanteNombre}</span>
+          {llave.golesVisitante !== null && (
+            <span className={`${styles.goles} ${visitanteGana ? styles.golesGanador : ""}`}>
+              {llave.golesVisitante}
+            </span>
+          )}
+        </div>
+
+        {/* Fecha, hora, ubicación e ida y vuelta en una línea */}
+        <div className={styles.detallesCompactos}>
+          {llave.partidos[0].fecha_programada && (
+            <span>{new Date(llave.partidos[0].fecha_programada + 'T00:00:00').toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}</span>
+          )}
+          {llave.partidos[0].horario && (
+            <span>{llave.partidos[0].horario.slice(0, 5)}</span>
+          )}
+          {llave.partidos[0].ubicacion && (
+            <span>{llave.partidos[0].ubicacion}</span>
+          )}
+          {llave.partidos.length === 2 && (
+            <span className={styles.idaVueltaBadgeCompacto}>IyV</span>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.scrollArea}>
         <div className={styles.bracketContainer} ref={containerRef}>
           <canvas className={styles.canvas} ref={canvasRef} />
 
-          {rondas.map((ronda, ri) => (
+          {rondasPrincipales.map((ronda, ri) => (
             <div key={ronda.orden} className={styles.rondaCol}>
               <div className={styles.rondaNombre}>{ronda.nombre}</div>
               <div className={styles.llavesCol}>
-                {ronda.llaves.map((llave, li) => {
-                  const p = llave.partidos[0]
-                  const localNombre = nombreEquipo(p, "local")
-                  const visitanteNombre = nombreEquipo(p, "visitante")
-                  const localPH = esPlaceholder(p, "local")
-                  const visitantePH = esPlaceholder(p, "visitante")
-                  const localGana = llave.ganadorId === p.id_equipo_local
-                  const visitanteGana = llave.ganadorId === p.id_equipo_visitante
-
-                  return (
-                    <div
-                      key={li}
-                      className={styles.llaveSpacer}
-                      style={{ flex: rondas[0].llaves.length / (ronda.llaves.length || 1) }}
-                    >
-                      <div
-                        className={styles.llave}
-                        data-llave={`${ri}-${li}`}
-                        style={{ cursor: onPartidoClick ? 'pointer' : 'default' }}
-                        onClick={() => onPartidoClick?.(llave.partidos[0])}
-                      >
-                        {/* Equipo local */}
-                        <div className={`${styles.equipo} ${localGana ? styles.ganador : ""} ${visitanteGana ? styles.perdedor : ""} ${localPH ? styles.placeholder : ""}`}>
-                          {llave.partidos[0].id_club_local && (
-                            <img
-                              src={`/logos/clubes/${llave.partidos[0].id_club_local}.jpg?v=2`}
-                              alt=""
-                              className={styles.escudo}
-                              onError={(e) => { e.currentTarget.style.display = 'none' }}
-                            />
-                          )}
-                          <span className={styles.equipoNombre}>{localNombre}</span>
-                          {llave.golesLocal !== null && (
-                            <span className={`${styles.goles} ${localGana ? styles.golesGanador : ""}`}>
-                              {llave.golesLocal}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Divisor */}
-                        <div className={styles.divisor} />
-
-                        {/* Equipo visitante */}
-                        <div className={`${styles.equipo} ${visitanteGana ? styles.ganador : ""} ${localGana ? styles.perdedor : ""} ${visitantePH ? styles.placeholder : ""}`}>
-                          {llave.partidos[0].id_club_visitante && (
-                            <img
-                              src={`/logos/clubes/${llave.partidos[0].id_club_visitante}.jpg?v=2`}
-                              alt=""
-                              className={styles.escudo}
-                              onError={(e) => { e.currentTarget.style.display = 'none' }}
-                            />
-                          )}
-                          <span className={styles.equipoNombre}>{visitanteNombre}</span>
-                          {llave.golesVisitante !== null && (
-                            <span className={`${styles.goles} ${visitanteGana ? styles.golesGanador : ""}`}>
-                              {llave.golesVisitante}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Fecha, hora, ubicación e ida y vuelta en una línea */}
-                        <div className={styles.detallesCompactos}>
-                          {llave.partidos[0].fecha_programada && (
-                            <span>{new Date(llave.partidos[0].fecha_programada + 'T00:00:00').toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}</span>
-                          )}
-                          {llave.partidos[0].horario && (
-                            <span>{llave.partidos[0].horario.slice(0, 5)}</span>
-                          )}
-                          {llave.partidos[0].ubicacion && (
-                            <span>{llave.partidos[0].ubicacion}</span>
-                          )}
-                          {llave.partidos.length === 2 && (
-                            <span className={styles.idaVueltaBadgeCompacto}>IyV</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+                {ronda.llaves.map((llave, li) => (
+                  <div
+                    key={li}
+                    className={styles.llaveSpacer}
+                    style={{ flex: rondasPrincipales[0].llaves.length / (ronda.llaves.length || 1) }}
+                  >
+                    {renderLlaveCard(llave, `${ri}-${li}`)}
+                  </div>
+                ))}
               </div>
             </div>
           ))}
         </div>
+
+        {rondaTercerPuesto && rondaTercerPuesto.llaves.length > 0 && (
+          <div className={styles.tercerPuesto}>
+            <div className={styles.rondaNombre}>3er / 4to puesto</div>
+            {rondaTercerPuesto.llaves.map((llave, li) => (
+              <div key={li} className={styles.tercerPuestoLlave}>
+                {renderLlaveCard(llave)}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

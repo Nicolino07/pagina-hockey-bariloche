@@ -237,7 +237,11 @@ CREATE TABLE IF NOT EXISTS torneo (
     fecha_inicio    DATE DEFAULT CURRENT_DATE,
     fecha_fin       DATE CHECK (fecha_fin IS NULL OR fecha_fin >= fecha_inicio),
     activo          BOOLEAN DEFAULT TRUE,
-    
+
+    -- Vincula un playoff/copa con su torneo base (liga regular)
+    torneo_base_id  INT DEFAULT NULL
+        REFERENCES torneo(id_torneo) ON DELETE SET NULL,
+
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP DEFAULT NULL,
     borrado_en      TIMESTAMP DEFAULT NULL,
@@ -333,6 +337,10 @@ CREATE TABLE IF NOT EXISTS partido (
     goles_local_manual      INT DEFAULT NULL CHECK (goles_local_manual >= 0),
     goles_visitante_manual  INT DEFAULT NULL CHECK (goles_visitante_manual >= 0),
 
+    -- Goles por defecto (walkover / partido perdido administrativamente)
+    goles_por_defecto_local     INT DEFAULT NULL,
+    goles_por_defecto_visitante INT DEFAULT NULL,
+
     -- Auditoría
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP DEFAULT NULL,
@@ -350,6 +358,12 @@ CREATE TABLE IF NOT EXISTS partido (
         id_capitan_local IS NULL
         OR id_capitan_visitante IS NULL
         OR id_capitan_local <> id_capitan_visitante
+    ),
+    CONSTRAINT chk_goles_defecto_local_no_negativo CHECK (
+        goles_por_defecto_local IS NULL OR goles_por_defecto_local >= 0
+    ),
+    CONSTRAINT chk_goles_defecto_visitante_no_negativo CHECK (
+        goles_por_defecto_visitante IS NULL OR goles_por_defecto_visitante >= 0
     )
 
 );

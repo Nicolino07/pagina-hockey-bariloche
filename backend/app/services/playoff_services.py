@@ -254,6 +254,22 @@ def previsualizar_playoff(
             "partidos": partidos,
         })
 
+    if request.tercer_puesto:
+        semifinal = _ronda_semifinal(rondas_config)
+        if semifinal:
+            rondas_preview.append({
+                "nombre": "Tercer puesto",
+                "orden": rondas_config[-1]["orden"] + 1,
+                "ida_y_vuelta": request.formato == "ida_y_vuelta",
+                "es_tercer_puesto": True,
+                "partidos": [{
+                    "local": None,
+                    "visitante": None,
+                    "placeholder_local": f"Perdedor {semifinal['nombre']} 1",
+                    "placeholder_visitante": f"Perdedor {semifinal['nombre']} 2",
+                }],
+            })
+
     total_partidos = sum(
         len([p for p in r["partidos"] if "bye" not in p])
         for r in rondas_preview
@@ -262,7 +278,7 @@ def previsualizar_playoff(
         total_partidos *= 2
 
     return PlayoffPreviewResponse(
-        total_rondas=len(rondas_config),
+        total_rondas=len(rondas_preview),
         total_partidos=total_partidos,
         formato=request.formato,
         rondas=rondas_preview,
@@ -343,6 +359,11 @@ def generar_playoff(
                     username=username,
                 )
 
+    if request.tercer_puesto:
+        nuevos_partidos += _crear_ronda_tercer_puesto(
+            db, id_torneo, rondas_config, request.formato, username
+        )
+
     db.commit()
     for fp in nuevos_partidos:
         db.refresh(fp)
@@ -393,6 +414,53 @@ def _crear_partido_playoff(
 
     db.flush()
     return partidos
+
+
+def _ronda_semifinal(rondas_config: list[dict]) -> dict | None:
+    """Devuelve la config de la ronda de semifinal (2 partidos) del bracket, o None."""
+    for ronda in rondas_config:
+        if ronda["n_partidos"] == 2:
+            return ronda
+    return None
+
+
+def _crear_ronda_tercer_puesto(
+    db: Session,
+    id_torneo: int,
+    rondas_config: list[dict],
+    formato: str,
+    username: str,
+) -> list[FixturePartido]:
+    """
+    Crea la ronda del partido por el 3er puesto (perdedores de la semifinal).
+    Solo se crea si el bracket tiene semifinal. La ronda se ubica después de la
+    Final (orden = orden_final + 1) y se marca con es_tercer_puesto=True.
+    Devuelve la lista de partidos creados (1 o 2 según el formato).
+    """
+    semifinal = _ronda_semifinal(rondas_config)
+    if not semifinal:
+        return []
+
+    orden = rondas_config[-1]["orden"] + 1
+    ronda_obj = FixturePlayoffRonda(
+        id_torneo=id_torneo,
+        nombre="Tercer puesto",
+        orden=orden,
+        ida_y_vuelta=formato == "ida_y_vuelta",
+        es_tercer_puesto=True,
+        creado_por=username,
+    )
+    db.add(ronda_obj)
+    db.flush()
+
+    nombre_sf = semifinal["nombre"]
+    return _crear_partido_playoff(
+        db, id_torneo, ronda_obj.id_fixture_playoff_ronda,
+        placeholder_local=f"Perdedor {nombre_sf} 1",
+        placeholder_visitante=f"Perdedor {nombre_sf} 2",
+        formato=formato,
+        username=username,
+    )
 
 
 def _generar_playoff_manual(
@@ -448,6 +516,11 @@ def _generar_playoff_manual(
                     username=username,
                 )
 
+    if request.tercer_puesto:
+        nuevos_partidos += _crear_ronda_tercer_puesto(
+            db, id_torneo, rondas_config, request.formato, username
+        )
+
     db.commit()
     for fp in nuevos_partidos:
         db.refresh(fp)
@@ -468,6 +541,10 @@ def avanzar_ganador(db: Session, id_fixture_partido: int, username: str) -> None
 
     ronda = db.get(FixturePlayoffRonda, fp.id_fixture_playoff_ronda)
     if not ronda:
+        return
+
+    # La ronda de 3er puesto es terminal: no propaga a ninguna ronda siguiente.
+    if ronda.es_tercer_puesto:
         return
 
     from app.models.partido import PartidoDetallado
@@ -491,12 +568,18 @@ def avanzar_ganador(db: Session, id_fixture_partido: int, username: str) -> None
 
     if gl > gv:
         id_ganador = fp.id_equipo_local
+        id_perdedor = fp.id_equipo_visitante
     elif gv > gl:
         id_ganador = fp.id_equipo_visitante
+        id_perdedor = fp.id_equipo_local
     else:
         return  # Empate — no avanza automáticamente
 
     _asignar_ganador_siguiente_ronda(db, fp, ronda, id_ganador, username)
+
+    # Perdedor de la semifinal → partido por el 3er puesto (si existe)
+    numero_llave = _numero_llave_en_ronda(db, fp, ronda)
+    _asignar_perdedor_tercer_puesto(db, ronda, numero_llave, id_perdedor, username)
 
 
 def _asignar_ganador_siguiente_ronda(
@@ -541,6 +624,65 @@ def _asignar_ganador_siguiente_ronda(
             siguiente.id_equipo_visitante = id_ganador
             siguiente.placeholder_visitante = None
         siguiente.actualizado_por = username
+
+    db.flush()
+
+
+def _numero_llave_en_ronda(
+    db: Session, fp: FixturePartido, ronda: FixturePlayoffRonda
+) -> int:
+    """Posición (1-based) de la llave del partido dentro de su ronda (formato ida)."""
+    partidos_ronda = (
+        db.query(FixturePartido)
+        .filter(FixturePartido.id_fixture_playoff_ronda == ronda.id_fixture_playoff_ronda)
+        .order_by(FixturePartido.id_fixture_partido)
+        .all()
+    )
+    indices = [p.id_fixture_partido for p in partidos_ronda]
+    return indices.index(fp.id_fixture_partido) + 1
+
+
+def _asignar_perdedor_tercer_puesto(
+    db: Session,
+    ronda: FixturePlayoffRonda,
+    numero_llave: int,
+    id_perdedor: int,
+    username: str,
+) -> None:
+    """
+    Si el torneo tiene una ronda de 3er puesto, coloca al perdedor de la
+    semifinal en el placeholder correspondiente ("Perdedor {ronda} {numero_llave}").
+    En ida y vuelta hay 2 partidos espejados: se actualizan ambos.
+    """
+    tercer = (
+        db.query(FixturePlayoffRonda)
+        .filter(
+            FixturePlayoffRonda.id_torneo == ronda.id_torneo,
+            FixturePlayoffRonda.es_tercer_puesto.is_(True),
+        )
+        .first()
+    )
+    if not tercer:
+        return
+
+    placeholder = f"Perdedor {ronda.nombre} {numero_llave}"
+    partidos = (
+        db.query(FixturePartido)
+        .filter(FixturePartido.id_fixture_playoff_ronda == tercer.id_fixture_playoff_ronda)
+        .filter(
+            (FixturePartido.placeholder_local == placeholder) |
+            (FixturePartido.placeholder_visitante == placeholder)
+        )
+        .all()
+    )
+    for p in partidos:
+        if p.placeholder_local == placeholder:
+            p.id_equipo_local = id_perdedor
+            p.placeholder_local = None
+        if p.placeholder_visitante == placeholder:
+            p.id_equipo_visitante = id_perdedor
+            p.placeholder_visitante = None
+        p.actualizado_por = username
 
     db.flush()
 
@@ -590,10 +732,15 @@ def _avanzar_ganador_ida_vuelta(
 
     if gl1 > gv1:
         id_ganador = par[0].id_equipo_local
+        id_perdedor = par[0].id_equipo_visitante
     elif gv1 > gl1:
         id_ganador = par[0].id_equipo_visitante
+        id_perdedor = par[0].id_equipo_local
     else:
         return  # Empate global — no avanza automáticamente
+
+    # Perdedor de la semifinal → partido por el 3er puesto (si existe)
+    _asignar_perdedor_tercer_puesto(db, ronda, numero_llave, id_perdedor, username)
 
     placeholder = f"Ganador {ronda.nombre} {numero_llave}"
 

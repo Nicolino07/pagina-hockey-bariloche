@@ -19,6 +19,9 @@ class GenerarPlayoffRequest(BaseModel):
     # Ronda inicial (solo automatico). Si se indica, clasifican los N mejores
     # de la tabla del torneo base. Si es None, se usan todos los inscriptos.
     ronda_inicial: Optional[TipoRondaInicial] = None
+    # Agrega un partido por el 3er puesto (perdedores de semifinal).
+    # Solo tiene efecto si el bracket tiene semifinal (4+ equipos).
+    tercer_puesto: bool = False
 
 
 class PlayoffPartidoPreview(BaseModel):
@@ -48,6 +51,7 @@ class PlayoffRondaResponse(BaseModel):
     nombre: str
     orden: int
     ida_y_vuelta: bool
+    es_tercer_puesto: bool = False
 
     class Config:
         from_attributes = True

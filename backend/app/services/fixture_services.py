@@ -51,8 +51,10 @@ def _enriquecer(fp: FixturePartido, db: Session | None = None) -> dict:
     data["placeholder_visitante"] = getattr(fp, "placeholder_visitante", None)
     data["id_fixture_playoff_ronda"] = getattr(fp, "id_fixture_playoff_ronda", None)
     data["nombre_ronda_playoff"] = None
+    data["es_tercer_puesto"] = False
     if fp.id_fixture_playoff_ronda and fp.playoff_ronda:
         data["nombre_ronda_playoff"] = fp.playoff_ronda.nombre
+        data["es_tercer_puesto"] = fp.playoff_ronda.es_tercer_puesto
     return data
 
 

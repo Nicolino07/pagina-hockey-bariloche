@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS fixture_playoff_ronda (
     nombre                   VARCHAR(100) NOT NULL,
     orden                    INT NOT NULL,
     ida_y_vuelta             BOOLEAN NOT NULL DEFAULT FALSE,
+    es_tercer_puesto         BOOLEAN NOT NULL DEFAULT FALSE,
 
     creado_en                TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     creado_por               VARCHAR(100),

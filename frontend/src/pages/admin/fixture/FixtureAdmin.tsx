@@ -105,6 +105,7 @@ export default function FixtureAdmin() {
   const [formatoPlayoff, setFormatoPlayoff] = useState<TipoFormatoPlayoff>("ida")
   const [asignacionPlayoff, setAsignacionPlayoff] = useState<TipoAsignacion>("automatico")
   const [rondaInicialPlayoff, setRondaInicialPlayoff] = useState<TipoRondaInicial | "">("")
+  const [tercerPuesto, setTercerPuesto] = useState(false)
   const [duelos, setDuelos] = useState<DueloManual[]>([{ id_equipo_local: 0, id_equipo_visitante: 0 }])
   const [previewPlayoff, setPreviewPlayoff] = useState<PlayoffPreviewResponse | null>(null)
   const [loadingPreviewPlayoff, setLoadingPreviewPlayoff] = useState(false)
@@ -341,7 +342,8 @@ export default function FixtureAdmin() {
       const resultado = await previsualizarPlayoff(
         torneoId, formatoPlayoff, asignacionPlayoff,
         asignacionPlayoff === "manual" ? duelos : undefined,
-        asignacionPlayoff === "automatico" && rondaInicialPlayoff ? rondaInicialPlayoff : null
+        asignacionPlayoff === "automatico" && rondaInicialPlayoff ? rondaInicialPlayoff : null,
+        tercerPuesto
       )
       setPreviewPlayoff(resultado)
     } catch (e: any) {
@@ -359,7 +361,8 @@ export default function FixtureAdmin() {
       const nuevos = await generarPlayoff(
         torneoId, formatoPlayoff, asignacionPlayoff,
         asignacionPlayoff === "manual" ? duelos : undefined,
-        asignacionPlayoff === "automatico" && rondaInicialPlayoff ? rondaInicialPlayoff : null
+        asignacionPlayoff === "automatico" && rondaInicialPlayoff ? rondaInicialPlayoff : null,
+        tercerPuesto
       )
       setPartidos(nuevos)
       setPreviewPlayoff(null)
@@ -679,6 +682,23 @@ export default function FixtureAdmin() {
                 )}
               </div>
             </div>
+
+            {esPlayoff && (
+              <div className={styles.tipoSelector}>
+                <label className={styles.radioLabel}>
+                  <input
+                    type="checkbox"
+                    checked={tercerPuesto}
+                    onChange={() => { setTercerPuesto(v => !v); setPreviewPlayoff(null) }}
+                  />
+                  Agregar partido por el 3er puesto
+                </label>
+                <p className={styles.hint}>
+                  Los perdedores de las semifinales juegan por el 3er y 4to puesto.
+                  Solo aplica si el bracket tiene semifinal (4+ equipos).
+                </p>
+              </div>
+            )}
 
             {esPlayoff && (
               <div className={styles.tipoSelector}>

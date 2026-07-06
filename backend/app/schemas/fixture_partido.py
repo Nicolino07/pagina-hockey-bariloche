@@ -97,6 +97,7 @@ class FixturePartidoResponse(BaseModel):
     placeholder_visitante: Optional[str] = None
     id_fixture_playoff_ronda: Optional[int] = None
     nombre_ronda_playoff: Optional[str] = None
+    es_tercer_puesto: bool = False
     creado_en: datetime
     creado_por: Optional[str]
 

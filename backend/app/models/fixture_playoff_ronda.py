@@ -15,6 +15,7 @@ class FixturePlayoffRonda(Base):
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)
     orden: Mapped[int] = mapped_column(Integer, nullable=False)
     ida_y_vuelta: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    es_tercer_puesto: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     creado_en: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.utcnow)
     creado_por: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
