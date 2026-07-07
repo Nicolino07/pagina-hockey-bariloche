@@ -28,7 +28,21 @@ def crear_torneo(
         raise ConflictError(
             "Ya existe un torneo activo con ese nombre, categoría, división y género"
         )
-    
+
+    # Validar coincidencia con el torneo base (si se indicó)
+    cat_str = data.categoria.value if hasattr(data.categoria, "value") else data.categoria
+    gen_str = data.genero.value if hasattr(data.genero, "value") else data.genero
+    torneo_base_id = getattr(data, "torneo_base_id", None)
+    base = None
+    if torneo_base_id:
+        base = db.get(Torneo, torneo_base_id)
+        if not base or base.borrado_en is not None:
+            raise NotFoundError("El torneo base no existe")
+        if base.categoria.value != cat_str or base.genero.value != gen_str:
+            raise ConflictError(
+                "El torneo base debe coincidir en categoría y género con el torneo que se crea."
+            )
+
     # Crear el torneo
     from app.models.enums import TipoTorneo
     torneo = Torneo(
@@ -40,14 +54,34 @@ def crear_torneo(
         fecha_inicio=data.fecha_inicio,
         fecha_fin=data.fecha_fin,
         activo=data.activo if hasattr(data, 'activo') else True,
-        torneo_base_id=data.torneo_base_id if hasattr(data, 'torneo_base_id') else None,
+        torneo_base_id=torneo_base_id,
         creado_por=current_user.username
     )
-    
+
     db.add(torneo)
+    db.flush()  # necesitamos id_torneo para las inscripciones
+
+    # Con torneo base: inscribir automáticamente todos sus equipos activos.
+    if base is not None:
+        from app.models.inscripcion_torneo import InscripcionTorneo
+        equipos_base = (
+            db.query(InscripcionTorneo.id_equipo)
+            .filter(
+                InscripcionTorneo.id_torneo == base.id_torneo,
+                InscripcionTorneo.fecha_baja.is_(None),
+            )
+            .all()
+        )
+        for (id_equipo,) in equipos_base:
+            db.add(InscripcionTorneo(
+                id_torneo=torneo.id_torneo,
+                id_equipo=id_equipo,
+                creado_por=current_user.username,
+            ))
+
     db.commit()
     db.refresh(torneo)
-    
+
     return torneo
 
 

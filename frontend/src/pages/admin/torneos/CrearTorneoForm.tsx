@@ -46,8 +46,8 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
   useEffect(() => {
     listarTorneos()
       .then(torneos => {
-        const ligas = torneos.filter(t => t.tipo === "LIGA")
-        console.log("Torneos LIGA cargados:", ligas)
+        // Solo ligas activas: son las que pueden servir de base para un playoff/copa.
+        const ligas = torneos.filter(t => t.tipo === "LIGA" && t.activo)
         setTorneosLiga(ligas)
       })
       .catch(err => {
@@ -55,6 +55,19 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
         setTorneosLiga([])
       })
   }, [])
+
+  // Bases válidas: ligas activas que coinciden en categoría y género con el torneo.
+  const basesDisponibles = torneosLiga.filter(
+    t => t.categoria === form.categoria && t.genero === form.genero
+  )
+
+  // Si la base elegida deja de coincidir (se cambió categoría/género), se limpia.
+  useEffect(() => {
+    if (form.torneo_base_id && !basesDisponibles.some(t => t.id_torneo === form.torneo_base_id)) {
+      setForm(prev => ({ ...prev, torneo_base_id: null }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.categoria, form.genero, torneosLiga])
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -177,9 +190,9 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
             }))}
           >
             <option value="">— Sin torneo base —</option>
-            {torneosLiga.map(torneo => (
+            {basesDisponibles.map(torneo => (
               <option key={torneo.id_torneo} value={torneo.id_torneo}>
-                {torneo.nombre} ({torneo.categoria})
+                {torneo.nombre} · {torneo.categoria}{torneo.division ? ` ${torneo.division}` : ""} · {torneo.genero}
               </option>
             ))}
           </select>

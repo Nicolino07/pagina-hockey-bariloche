@@ -142,8 +142,14 @@ export default function FixtureAdmin() {
     const torneoActual = torneos.find(t => t.id_torneo === torneoId)
     const esPlayoffTorneo = torneoActual?.tipo === "PLAYOFF" || torneoActual?.tipo === "COPA"
 
+    // En playoff/copa con torneo base, los equipos se toman de los inscriptos
+    // del torneo base (no de los del propio playoff).
+    const idInscripciones = (esPlayoffTorneo && torneoActual?.torneo_base_id)
+      ? torneoActual.torneo_base_id
+      : torneoId
+
     const promesas: Promise<any>[] = [
-      listarInscripcionesTorneo(torneoId),
+      listarInscripcionesTorneo(idInscripciones),
       listarFixturePorTorneoAdmin(torneoId),
       ...(esPlayoffTorneo ? [listarRondasPlayoff(torneoId)] : []),
     ]

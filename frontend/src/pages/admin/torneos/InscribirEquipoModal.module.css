@@ -6,6 +6,12 @@
   margin-bottom: 20px;
 }
 
+.nota {
+  font-size: 0.85rem;
+  color: var(--text-muted, #9aa0a6);
+  margin: 0 0 12px;
+}
+
 .list {
   list-style: none;
   padding: 0;

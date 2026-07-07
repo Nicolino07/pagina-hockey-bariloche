@@ -39,7 +39,8 @@ def _nombre_ronda(n_partidos: int) -> str:
     return _NOMBRES_RONDA.get(n_partidos, f"Ronda de {n_partidos * 2}")
 
 
-def _obtener_equipos(db: Session, id_torneo: int) -> list[dict]:
+def _listar_equipos_inscriptos(db: Session, id_torneo: int) -> list[dict]:
+    """Equipos inscriptos (sin baja) de un torneo, sin validaciones."""
     inscripciones = (
         db.query(InscripcionTorneo)
         .filter(
@@ -49,11 +50,27 @@ def _obtener_equipos(db: Session, id_torneo: int) -> list[dict]:
         .join(Equipo, InscripcionTorneo.id_equipo == Equipo.id_equipo)
         .all()
     )
-    if len(inscripciones) < 2:
-        raise HTTPException(400, "Se necesitan al menos 2 equipos inscriptos")
-    if len(inscripciones) % 2 != 0:
-        raise HTTPException(400, "El número de equipos debe ser par para un playoff")
     return [{"id": i.id_equipo, "nombre": i.equipo.nombre} for i in inscripciones]
+
+
+def _pool_equipos(db: Session, id_torneo: int) -> list[dict]:
+    """
+    Pool de equipos disponibles para el playoff/copa:
+    - si el torneo tiene torneo_base, los inscriptos del torneo base;
+    - si no, los inscriptos del propio torneo.
+    """
+    torneo = db.get(Torneo, id_torneo)
+    origen = torneo.torneo_base_id if (torneo and torneo.torneo_base_id) else id_torneo
+    return _listar_equipos_inscriptos(db, origen)
+
+
+def _obtener_equipos(db: Session, id_torneo: int) -> list[dict]:
+    equipos = _pool_equipos(db, id_torneo)
+    if len(equipos) < 2:
+        raise HTTPException(400, "Se necesitan al menos 2 equipos inscriptos")
+    if len(equipos) % 2 != 0:
+        raise HTTPException(400, "El número de equipos debe ser par para un playoff")
+    return equipos
 
 
 def _ordenar_seeds(equipos: list[dict]) -> list[dict]:
@@ -72,16 +89,18 @@ def _ordenar_seeds(equipos: list[dict]) -> list[dict]:
     return ordenados
 
 
-def _obtener_equipos_clasificados(db: Session, id_torneo: int, n_equipos: int) -> list[dict]:
+def _obtener_equipos_clasificados(
+    db: Session, id_torneo: int, n_equipos: int | None = None
+) -> list[dict]:
     """
-    Devuelve los N mejores equipos según la tabla de posiciones del torneo base
-    del torneo de playoff, ordenados de mejor a peor.
+    Devuelve los equipos según la tabla de posiciones del torneo base, ordenados
+    de mejor a peor. Con n_equipos=None se toman todos los de la tabla.
     """
     torneo = db.get(Torneo, id_torneo)
     if not torneo or not torneo.torneo_base_id:
         raise HTTPException(
             400,
-            "Para elegir la ronda inicial el torneo debe tener un torneo base configurado.",
+            "El torneo debe tener un torneo base configurado para clasificar por posiciones.",
         )
 
     filas = (
@@ -94,13 +113,22 @@ def _obtener_equipos_clasificados(db: Session, id_torneo: int, n_equipos: int) -
         )
         .all()
     )
-    if len(filas) < n_equipos:
-        raise HTTPException(
-            400,
-            f"El torneo base tiene {len(filas)} equipos en la tabla; "
-            f"se necesitan {n_equipos} para esa ronda inicial.",
-        )
-    return [{"id": f.id_equipo, "nombre": f.equipo.nombre} for f in filas[:n_equipos]]
+    if n_equipos is None:
+        seleccion = filas
+    else:
+        if len(filas) < n_equipos:
+            raise HTTPException(
+                400,
+                f"El torneo base tiene {len(filas)} equipos en la tabla; "
+                f"se necesitan {n_equipos} para esa ronda inicial.",
+            )
+        seleccion = filas[:n_equipos]
+
+    if len(seleccion) < 2:
+        raise HTTPException(400, "El torneo base necesita al menos 2 equipos en la tabla de posiciones.")
+    if len(seleccion) % 2 != 0:
+        raise HTTPException(400, "El número de equipos del torneo base debe ser par para un playoff.")
+    return [{"id": f.id_equipo, "nombre": f.equipo.nombre} for f in seleccion]
 
 
 def _obtener_equipos_automatico(
@@ -110,7 +138,9 @@ def _obtener_equipos_automatico(
     Resuelve la lista de equipos para el modo automático.
     - Con ronda_inicial: toma los N mejores de la tabla del torneo base y los
       siembra (mejor vs peor) para la primera ronda.
-    - Sin ronda_inicial: usa todos los inscriptos en orden aleatorio.
+    - Sin ronda_inicial y con torneo base: toma todos los equipos del base
+      ordenados por posición y los siembra (mejor vs peor).
+    - Sin ronda_inicial y sin torneo base: usa todos los inscriptos al azar.
     """
     if ronda_inicial:
         n_equipos = _EQUIPOS_POR_RONDA.get(ronda_inicial)
@@ -134,6 +164,13 @@ def _obtener_equipos_automatico(
             )
         random.shuffle(equipos)
         return equipos[:n_equipos]
+
+    # Sin ronda_inicial: con torneo base usamos todos sus equipos sembrados por
+    # posición; sin base, todos los inscriptos del propio torneo al azar.
+    torneo = db.get(Torneo, id_torneo)
+    if torneo and torneo.torneo_base_id:
+        clasificados = _obtener_equipos_clasificados(db, id_torneo, None)
+        return _ordenar_seeds(clasificados)
 
     equipos = _obtener_equipos(db, id_torneo)
     random.shuffle(equipos)
@@ -187,7 +224,7 @@ def previsualizar_playoff(
 ) -> PlayoffPreviewResponse:
     # En modo manual usamos los duelos como primera ronda
     if request.asignacion == "manual" and request.duelos:
-        equipos_todos = _obtener_equipos(db, id_torneo)
+        equipos_todos = _pool_equipos(db, id_torneo)
         equipos_por_id = {e["id"]: e["nombre"] for e in equipos_todos}
         n_equipos = len(request.duelos) * 2
         rondas_config = _calcular_rondas(n_equipos)

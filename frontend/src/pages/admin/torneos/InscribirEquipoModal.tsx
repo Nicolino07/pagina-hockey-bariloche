@@ -1,7 +1,8 @@
+import { useEffect, useState } from "react"
 import Button from "../../../components/ui/button/Button"
 import Modal from "../../../components/ui/modal/Modal"
 import { useEquipos } from "../../../hooks/useEquipos"
-import { inscribirEquipoTorneo } from "../../../api/torneos.api"
+import { inscribirEquipoTorneo, listarInscripcionesTorneo } from "../../../api/torneos.api"
 
 import type { Torneo } from "../../../types/torneo"
 import type { InscripcionTorneoDetalle } from "../../../types/inscripcion"
@@ -35,11 +36,26 @@ export default function InscribirEquipoModal({
 
   const esPostemporada = torneo.tipo === "PLAYOFF" || torneo.tipo === "COPA" || !torneo.tipo
 
+  // Con torneo base solo se pueden inscribir equipos que jugaron ese torneo.
+  const conBase = !!torneo.torneo_base_id
+  const [idsBase, setIdsBase] = useState<Set<number> | null>(null)
+
+  useEffect(() => {
+    if (!torneo.torneo_base_id) {
+      setIdsBase(null)
+      return
+    }
+    listarInscripcionesTorneo(torneo.torneo_base_id)
+      .then(insc => setIdsBase(new Set(insc.map(i => i.id_equipo))))
+      .catch(() => setIdsBase(new Set()))
+  }, [torneo.torneo_base_id])
+
   const equiposFiltrados = equipos.filter(
     (e: Equipo) =>
       e.categoria === torneo.categoria &&
       (esPostemporada || (e.division ?? null) === (torneo.division ?? null)) &&
-      e.genero === torneo.genero
+      e.genero === torneo.genero &&
+      (!conBase || (idsBase?.has(e.id_equipo) ?? false))
   )
 
   /**
@@ -62,8 +78,13 @@ export default function InscribirEquipoModal({
       open={true} 
       title="Inscribir equipo" 
       onClose={onClose}
-      titleClassName={styles.modalTitulo} 
+      titleClassName={styles.modalTitulo}
     >
+      {conBase && (
+        <p className={styles.nota}>
+          Solo se pueden inscribir equipos que jugaron el torneo base.
+        </p>
+      )}
       <ul className={styles.list}>
         {equiposFiltrados.map((e: Equipo) => {
           const yaInscripto = inscripciones.some(
