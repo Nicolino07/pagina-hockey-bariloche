@@ -1,0 +1,216 @@
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  color: var(--text-muted, #9aa0a6);
+  font-size: 1rem;
+}
+
+.selectorRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-muted, #9aa0a6);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.select {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #3c4043);
+  background: var(--bg-card, #202124);
+  color: var(--text-primary, #e8eaed);
+  font-size: 0.95rem;
+  min-width: 260px;
+}
+
+.muted {
+  color: var(--text-muted, #9aa0a6);
+}
+
+.errorBox {
+  background: rgba(217, 48, 37, 0.12);
+  border: 1px solid #d93025;
+  color: #f28b82;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin: 12px 0;
+  font-size: 0.9rem;
+}
+
+.okBox {
+  background: rgba(52, 168, 83, 0.12);
+  border: 1px solid #34a853;
+  color: #81c995;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin: 12px 0;
+  font-size: 0.9rem;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  border: 1px solid var(--border-color, #3c4043);
+  border-radius: 12px;
+  background: var(--bg-card, #202124);
+  overflow: hidden;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  cursor: pointer;
+  flex-wrap: wrap;
+}
+
+.cardHead:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.cardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fecha {
+  font-size: 0.8rem;
+  color: var(--text-muted, #9aa0a6);
+}
+
+.equipos {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.vs {
+  color: var(--text-muted, #9aa0a6);
+  font-weight: 400;
+  margin: 0 4px;
+}
+
+.torneo {
+  font-size: 0.85rem;
+  color: var(--text-muted, #9aa0a6);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badgeComp,
+.badgeNoComp,
+.badgeEstado {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badgeComp {
+  background: rgba(66, 133, 244, 0.15);
+  color: #8ab4f8;
+}
+
+.badgeNoComp {
+  background: rgba(251, 188, 5, 0.15);
+  color: #fdd663;
+}
+
+.badgeEstado {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary, #e8eaed);
+}
+
+.arbitrosActuales {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 0.85rem;
+  color: var(--text-primary, #e8eaed);
+}
+
+.sinArbitros {
+  color: #fdd663;
+  font-style: italic;
+}
+
+.chevron {
+  color: var(--text-muted, #9aa0a6);
+  font-size: 0.7rem;
+  margin-top: 4px;
+}
+
+.editor {
+  border-top: 1px solid var(--border-color, #3c4043);
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.selects {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.acciones {
+  margin-top: 16px;
+}
+
+.btnPrimario {
+  background: var(--accent, #4285f4);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.btnPrimario:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnSecundario {
+  background: transparent;
+  color: var(--text-primary, #e8eaed);
+  border: 1px solid var(--border-color, #3c4043);
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}

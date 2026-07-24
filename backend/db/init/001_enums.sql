@@ -135,7 +135,8 @@ CREATE TYPE tipo_usuario AS ENUM (
   'SUPERUSUARIO',
   'ADMIN',
   'EDITOR',
-  'LECTOR'
+  'LECTOR',
+  'ADMIN_ARBITROS'
 );
 
 COMMIT;

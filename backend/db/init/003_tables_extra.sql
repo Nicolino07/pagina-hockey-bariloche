@@ -129,6 +129,16 @@ CREATE TABLE IF NOT EXISTS fixture_partido (
         CHECK (id_equipo_local IS NULL OR id_equipo_visitante IS NULL OR id_equipo_local <> id_equipo_visitante)
 );
 
+-- Unificación partido/fixture: FK de agrupación en partido hacia el calendario.
+-- Se agregan acá porque fixture_fecha / fixture_playoff_ronda se crean en este archivo.
+ALTER TABLE partido
+    ADD CONSTRAINT fk_partido_fixture_fecha
+        FOREIGN KEY (id_fixture_fecha)
+        REFERENCES fixture_fecha(id_fixture_fecha) ON DELETE SET NULL,
+    ADD CONSTRAINT fk_partido_fixture_playoff_ronda
+        FOREIGN KEY (id_fixture_playoff_ronda)
+        REFERENCES fixture_playoff_ronda(id_fixture_playoff_ronda) ON DELETE SET NULL;
+
 
 CREATE TABLE noticias (
     id_noticia      INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

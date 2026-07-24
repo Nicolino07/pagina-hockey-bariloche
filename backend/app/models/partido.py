@@ -62,15 +62,31 @@ class Partido(Base, AuditFieldsMixin):
 
     horario: Mapped[Optional[time]] = mapped_column(Time)
 
-    # Equipos
-    id_inscripcion_local: Mapped[int] = mapped_column(
-        ForeignKey("inscripcion_torneo.id_inscripcion", ondelete="RESTRICT"),
-        nullable=False
+    # Equipos (inscripción opcional; se deriva de equipo + torneo cuando hace falta)
+    id_inscripcion_local: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("inscripcion_torneo.id_inscripcion", ondelete="RESTRICT")
     )
 
-    id_inscripcion_visitante: Mapped[int] = mapped_column(
-        ForeignKey("inscripcion_torneo.id_inscripcion", ondelete="RESTRICT"),
-        nullable=False
+    id_inscripcion_visitante: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("inscripcion_torneo.id_inscripcion", ondelete="RESTRICT")
+    )
+
+    # Referencia directa a equipos (nullable: soporta placeholders de playoff)
+    id_equipo_local: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("equipo.id_equipo", ondelete="RESTRICT")
+    )
+    id_equipo_visitante: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("equipo.id_equipo", ondelete="RESTRICT")
+    )
+    placeholder_local: Mapped[Optional[str]] = mapped_column(String(100))
+    placeholder_visitante: Mapped[Optional[str]] = mapped_column(String(100))
+
+    # Agrupación del calendario (jornada / ronda de playoff)
+    id_fixture_fecha: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("fixture_fecha.id_fixture_fecha", ondelete="SET NULL")
+    )
+    id_fixture_playoff_ronda: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("fixture_playoff_ronda.id_fixture_playoff_ronda", ondelete="SET NULL")
     )
 
     # Arbitraje

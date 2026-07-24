@@ -77,10 +77,14 @@ echo "  Usuario    : $DB_USER"
 echo "  Base       : $DB_NAME"
 echo
 echo "Esto ELIMINA la base '$DB_NAME' actual y la reemplaza."
-read -r -p "Escribí el nombre de la base para confirmar: " CONFIRMACION
-if [[ "$CONFIRMACION" != "$DB_NAME" ]]; then
-    error "confirmación incorrecta; no se tocó nada"
-    exit 1
+# En local se restaura directo. En vps queda una confirmación simple porque
+# el DROP DATABASE es irreversible y ahí la base es producción.
+if [[ "$ENTORNO" == "vps" ]]; then
+    read -r -p "¿Continuar? [s/N]: " CONFIRMACION
+    if [[ "$CONFIRMACION" != "s" && "$CONFIRMACION" != "S" ]]; then
+        error "cancelado; no se tocó nada"
+        exit 1
+    fi
 fi
 
 # ---------------------------------------------------------------------------

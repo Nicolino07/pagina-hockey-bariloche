@@ -28,6 +28,7 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
     genero: TipoGenero
     tipo: TipoTorneo
     fecha_inicio: string
+    es_competitiva: boolean
     torneo_base_id: number | null
   }>({
     nombre: torneoEditar?.nombre ?? "",
@@ -36,6 +37,7 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
     genero: torneoEditar?.genero ?? "FEMENINO",
     tipo: torneoEditar?.tipo ?? "LIGA",
     fecha_inicio: torneoEditar?.fecha_inicio ?? "",
+    es_competitiva: torneoEditar?.es_competitiva ?? true,
     torneo_base_id: torneoEditar?.torneo_base_id ?? null,
   })
 
@@ -209,6 +211,24 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
           onChange={handleChange}
           required
         />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input
+            type="checkbox"
+            name="es_competitiva"
+            checked={form.es_competitiva}
+            onChange={(e) =>
+              setForm(prev => ({ ...prev, es_competitiva: e.target.checked }))
+            }
+          />
+          Torneo competitivo
+        </label>
+        <small className={styles.optional}>
+          Si está marcado, un árbitro no puede dirigir partidos de un club donde
+          tiene un rol activo. Desmarcá para torneos formativos (ej. SUB-12/SUB-14).
+        </small>
       </div>
 
       {error && <p className={styles.error}>{error}</p>}

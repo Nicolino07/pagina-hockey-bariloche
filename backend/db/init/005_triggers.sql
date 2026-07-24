@@ -117,6 +117,13 @@ AFTER INSERT OR UPDATE ON partido
 FOR EACH ROW
 EXECUTE FUNCTION fn_validar_arbitros_no_jugadores();
 
+-- Designación de árbitros: reglas de club propio y torneo propio
+DROP TRIGGER IF EXISTS trg_validar_designacion_arbitros ON partido;
+CREATE TRIGGER trg_validar_designacion_arbitros
+BEFORE INSERT OR UPDATE OF id_arbitro1, id_arbitro2 ON partido
+FOR EACH ROW
+EXECUTE FUNCTION fn_validar_designacion_arbitros();
+
 -- No existen goles sin partido terminado 
 CREATE TRIGGER trg_validar_gol_partido
 BEFORE INSERT ON gol

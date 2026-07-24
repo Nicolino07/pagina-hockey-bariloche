@@ -100,6 +100,7 @@ export default function GestionUsuarios() {
               <option value="EDITOR">EDITOR</option>
               <option value="ADMIN">ADMIN</option>
               <option value="SUPERUSUARIO">SUPERUSUARIO</option>
+              <option value="ADMIN_ARBITROS">ADMIN_ARBITROS</option>
             </select>
           </div>
           <button disabled={loading} className={styles.btnSubmit}>
@@ -144,6 +145,7 @@ export default function GestionUsuarios() {
                     <option value="EDITOR">EDITOR</option>
                     <option value="ADMIN">ADMIN</option>
                     <option value="SUPERUSUARIO">SUPERUSUARIO</option>
+                    <option value="ADMIN_ARBITROS">ADMIN_ARBITROS</option>
                   </select>
                 </td>
                 <td>
@@ -189,6 +191,7 @@ export default function GestionUsuarios() {
                 <option value="EDITOR">EDITOR</option>
                 <option value="ADMIN">ADMIN</option>
                 <option value="SUPERUSUARIO">SUPERUSUARIO</option>
+                <option value="ADMIN_ARBITROS">ADMIN_ARBITROS</option>
               </select>
 
               <button

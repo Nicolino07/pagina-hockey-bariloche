@@ -42,6 +42,7 @@ import Noticias from "./pages/public/noticias/Noticias"
 import FixturePage from "./pages/public/fixture/FixturePage"
 import ResultadosPage from "./pages/public/resultados/ResultadosPage"
 import FixtureAdmin from "./pages/admin/fixture/FixtureAdmin"
+import DesignacionArbitros from "./pages/admin/arbitros/DesignacionArbitros"
 import MainLayout from "./layouts/MainLayout"
 
 import { useState, useEffect } from 'react';
@@ -117,17 +118,34 @@ export default function App() {
         <Route path="/fixture" element={<FixturePage />} />
         <Route path="/resultados" element={<ResultadosPage />} />
 
+        {/* Panel: accesible por todos los roles administrativos (incluye ADMIN_ARBITROS) */}
+        <Route
+          element={
+            <ProtectedRoute allowedRoles={['EDITOR','ADMIN','SUPERUSUARIO','ADMIN_ARBITROS']} />
+          }
+        >
+          <Route path="/admin" element={<PanelAdmin />} />
+        </Route>
+
         {/* EDITOR+ */}
         <Route
           element={
             <ProtectedRoute allowedRoles={['EDITOR','ADMIN','SUPERUSUARIO']} />
           }
         >
-          <Route path="/admin" element={<PanelAdmin />} />
           <Route path="/admin/partidos/nueva-planilla" element={<PartidoPlanilla />} />
           <Route path="/admin/partidos/:id_partido" element={<PartidoPlanilla />} />
           <Route path="/admin/noticias" element={<NoticiasForm />} />
           <Route path="/admin/fichajes" element={<FichajesAdmin />} />
+        </Route>
+
+        {/* ADMIN_ARBITROS (designación de árbitros) */}
+        <Route
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN_ARBITROS','SUPERUSUARIO']} />
+          }
+        >
+          <Route path="/admin/arbitros" element={<DesignacionArbitros />} />
         </Route>
 
         {/* ADMIN+ */}

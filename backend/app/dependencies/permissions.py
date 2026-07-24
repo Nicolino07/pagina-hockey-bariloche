@@ -38,3 +38,10 @@ require_lector = require_roles(
     TipoUsuario.ADMIN,
     TipoUsuario.SUPERUSUARIO,
 )
+
+# Designación de árbitros: exclusivo del admin de árbitros
+# (más el superusuario como llave maestra del sistema).
+require_arbitros = require_roles(
+    TipoUsuario.ADMIN_ARBITROS,
+    TipoUsuario.SUPERUSUARIO,
+)

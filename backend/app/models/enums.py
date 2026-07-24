@@ -28,7 +28,8 @@ class RolPersonaTipo(str, enum.Enum):
 
 class EstadoPartido(str, enum.Enum):
     """Estado en el que se encuentra un partido"""
-    BORRADOR = 'BORRADOR',
+    BORRADOR = 'BORRADOR'
+    PENDIENTE = 'PENDIENTE'
     TERMINADO = 'TERMINADO'
     SUSPENDIDO = 'SUSPENDIDO'
     ANULADO = 'ANULADO'
@@ -88,3 +89,4 @@ class TipoUsuario(str, enum.Enum):
     ADMIN = 'ADMIN'
     EDITOR = 'EDITOR'
     LECTOR = 'LECTOR'
+    ADMIN_ARBITROS = 'ADMIN_ARBITROS'

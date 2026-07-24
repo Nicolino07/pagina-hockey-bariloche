@@ -66,6 +66,42 @@ class OtorgarPuntosRequest(BaseModel):
 
 
 
+class DesignarArbitrosRequest(BaseModel):
+    """Payload para designar (o quitar) los árbitros de un partido."""
+    id_arbitro1: Optional[int] = None
+    id_arbitro2: Optional[int] = None
+
+
+class ArbitroDisponible(BaseModel):
+    """Persona con rol ARBITRO y su disponibilidad para un partido concreto."""
+    id_persona: int
+    nombre: str
+    apellido: str
+    disponible: bool
+    motivo: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PartidoDesignable(BaseModel):
+    """Partido en estado BORRADOR/PENDIENTE candidato a designación de árbitros."""
+    id_partido: int
+    id_torneo: int
+    nombre_torneo: Optional[str] = None
+    es_competitiva: bool
+    fecha: date
+    horario: Optional[time] = None
+    estado_partido: str
+    equipo_local: str
+    equipo_visitante: str
+    id_arbitro1: Optional[int] = None
+    id_arbitro2: Optional[int] = None
+    nombre_arbitro1: Optional[str] = None
+    nombre_arbitro2: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PartidoDetalle(BaseModel):
     id_partido: int
     id_torneo: int

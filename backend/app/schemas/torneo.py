@@ -13,6 +13,9 @@ class TorneoBase(BaseModel):
     fecha_inicio: date = Field(default_factory=date.today)
     fecha_fin: Optional[date] = None
     activo: bool = True
+    # Si es TRUE aplica la Regla 1 de designación de árbitros (bloquea árbitros
+    # con rol activo en un club del partido). En categorías formativas suele ir en FALSE.
+    es_competitiva: bool = True
     torneo_base_id: Optional[int] = None
 
     @validator('fecha_fin')

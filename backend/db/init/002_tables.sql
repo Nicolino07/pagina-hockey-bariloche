@@ -238,6 +238,10 @@ CREATE TABLE IF NOT EXISTS torneo (
     fecha_fin       DATE CHECK (fecha_fin IS NULL OR fecha_fin >= fecha_inicio),
     activo          BOOLEAN DEFAULT TRUE,
 
+    -- Marca si el torneo aplica la Regla 1 de designación de árbitros
+    -- (bloquea árbitros con rol activo en un club del partido).
+    es_competitiva  BOOLEAN NOT NULL DEFAULT TRUE,
+
     -- Vincula un playoff/copa con su torneo base (liga regular)
     torneo_base_id  INT DEFAULT NULL
         REFERENCES torneo(id_torneo) ON DELETE SET NULL,
@@ -309,10 +313,23 @@ CREATE TABLE IF NOT EXISTS partido (
     fecha          DATE DEFAULT CURRENT_DATE,
     horario        TIME,
 
-    id_inscripcion_local INT NOT NULL 
+    -- Inscripción: opcional. Se deriva de equipo + torneo cuando hace falta.
+    -- (Unificación partido/fixture: los programados y placeholders no la tienen.)
+    id_inscripcion_local INT
         REFERENCES inscripcion_torneo(id_inscripcion) ON DELETE RESTRICT,
-    id_inscripcion_visitante INT NOT NULL
+    id_inscripcion_visitante INT
         REFERENCES inscripcion_torneo(id_inscripcion) ON DELETE RESTRICT,
+
+    -- Equipos (referencia directa; nullable para placeholders de playoff)
+    id_equipo_local     INT REFERENCES equipo(id_equipo) ON DELETE RESTRICT,
+    id_equipo_visitante INT REFERENCES equipo(id_equipo) ON DELETE RESTRICT,
+    placeholder_local     VARCHAR(100),
+    placeholder_visitante VARCHAR(100),
+
+    -- Agrupación del calendario (jornada / ronda de playoff).
+    -- Los FK se agregan en 003_tables_extra.sql (esas tablas se crean después).
+    id_fixture_fecha INT,
+    id_fixture_playoff_ronda INT,
 
     -- Arbitraje
     id_arbitro1    INT REFERENCES persona(id_persona) ON DELETE SET NULL,

@@ -76,6 +76,15 @@ class Torneo(Base, AuditFieldsMixin, SoftDeleteMixin):
         nullable=False
     )
 
+    # Marca si el torneo aplica la Regla 1 de designación de árbitros
+    # (bloquea árbitros con rol activo en un club del partido).
+    es_competitiva: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        server_default="true",
+        nullable=False
+    )
+
     torneo_base_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("torneo.id_torneo", ondelete="SET NULL"),
         nullable=True,
