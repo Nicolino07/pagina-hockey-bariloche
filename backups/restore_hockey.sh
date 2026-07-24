@@ -59,20 +59,13 @@ if [[ "$BACKUP_FILE" == *.gpg ]]; then
         error "gpg no está instalado (apt install gnupg)"
         exit 1
     fi
-    # La passphrase puede venir del .env (útil para scripts) o pedirse por
-    # teclado. NO se acepta como argumento: los argumentos de un proceso son
-    # visibles con "ps" y quedan en el historial del shell.
-    if [[ -z "${BACKUP_PASSPHRASE:-}" ]]; then
-        if [[ ! -t 0 ]]; then
-            error "el backup está cifrado y no hay passphrase: definí"
-            error "BACKUP_PASSPHRASE en $ENV_FILE o ejecutá el restore en una terminal."
-            exit 1
-        fi
-        read -rs -p "Passphrase del backup: " BACKUP_PASSPHRASE; echo
-        if [[ -z "$BACKUP_PASSPHRASE" ]]; then
-            error "no se ingresó ninguna passphrase"
-            exit 1
-        fi
+    # Se pide siempre por teclado. Visible a propósito: la passphrase es larga
+    # y así se puede verificar que se pegó bien. Si el archivo no está cifrado,
+    # ni se pregunta.
+    read -r -p "Passphrase del backup: " BACKUP_PASSPHRASE
+    if [[ -z "$BACKUP_PASSPHRASE" ]]; then
+        error "no se ingresó ninguna passphrase"
+        exit 1
     fi
 fi
 
