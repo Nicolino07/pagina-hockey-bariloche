@@ -38,18 +38,16 @@ def listar_partidos_designables(db: Session, torneo_id: Optional[int] = None):
                 p.fecha,
                 p.horario,
                 p.estado_partido::text AS estado_partido,
-                el.nombre              AS equipo_local,
-                ev.nombre              AS equipo_visitante,
+                COALESCE(el.nombre, p.placeholder_local)     AS equipo_local,
+                COALESCE(ev.nombre, p.placeholder_visitante) AS equipo_visitante,
                 p.id_arbitro1,
                 p.id_arbitro2,
                 (a1.nombre || ' ' || a1.apellido) AS nombre_arbitro1,
                 (a2.nombre || ' ' || a2.apellido) AS nombre_arbitro2
             FROM partido p
             JOIN torneo t  ON t.id_torneo = p.id_torneo
-            JOIN inscripcion_torneo il ON il.id_inscripcion = p.id_inscripcion_local
-            JOIN equipo el ON el.id_equipo = il.id_equipo
-            JOIN inscripcion_torneo iv ON iv.id_inscripcion = p.id_inscripcion_visitante
-            JOIN equipo ev ON ev.id_equipo = iv.id_equipo
+            LEFT JOIN equipo el ON el.id_equipo = p.id_equipo_local
+            LEFT JOIN equipo ev ON ev.id_equipo = p.id_equipo_visitante
             LEFT JOIN persona a1 ON a1.id_persona = p.id_arbitro1
             LEFT JOIN persona a2 ON a2.id_persona = p.id_arbitro2
             WHERE p.estado_partido IN ('BORRADOR', 'PENDIENTE')

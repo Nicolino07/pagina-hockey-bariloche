@@ -895,13 +895,12 @@ DECLARE
     v_club_local     INT;
     v_club_visitante INT;
 BEGIN
+    -- Clubes por referencia directa a equipo (sirve para partidos jugados y programados).
     SELECT el.id_club, ev.id_club
     INTO v_club_local, v_club_visitante
     FROM partido p
-    JOIN inscripcion_torneo il ON il.id_inscripcion = p.id_inscripcion_local
-    JOIN equipo el ON el.id_equipo = il.id_equipo
-    JOIN inscripcion_torneo iv ON iv.id_inscripcion = p.id_inscripcion_visitante
-    JOIN equipo ev ON ev.id_equipo = iv.id_equipo
+    LEFT JOIN equipo el ON el.id_equipo = p.id_equipo_local
+    LEFT JOIN equipo ev ON ev.id_equipo = p.id_equipo_visitante
     WHERE p.id_partido = p_id_partido;
 
     RETURN EXISTS (

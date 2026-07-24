@@ -92,8 +92,8 @@ class PartidoDesignable(BaseModel):
     fecha: date
     horario: Optional[time] = None
     estado_partido: str
-    equipo_local: str
-    equipo_visitante: str
+    equipo_local: Optional[str] = None
+    equipo_visitante: Optional[str] = None
     id_arbitro1: Optional[int] = None
     id_arbitro2: Optional[int] = None
     nombre_arbitro1: Optional[str] = None
