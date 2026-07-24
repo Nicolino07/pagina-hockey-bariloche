@@ -91,7 +91,9 @@ if [[ "$CIFRADO" == true ]]; then
     TMP_DUMP="$(mktemp)"
     chmod 600 "$TMP_DUMP"
     log "Descifrando..."
-    if ! gpg --batch --quiet --decrypt --passphrase-fd 3 \
+    # El --yes es necesario: mktemp ya creó el archivo, y gpg --batch se niega
+    # a sobrescribir un archivo existente si no se lo autoriza explícitamente.
+    if ! gpg --batch --yes --quiet --decrypt --passphrase-fd 3 \
             --output "$TMP_DUMP" "$BACKUP_FILE" 3<<<"$BACKUP_PASSPHRASE"; then
         error "no se pudo descifrar (¿passphrase incorrecta?)"
         exit 1
