@@ -160,12 +160,18 @@ if ! gpg --batch --yes --quiet \
     exit 1
 fi
 
-# Verificar que lo cifrado se puede volver a abrir y sigue siendo un dump
-# válido. Un backup que no se puede descifrar no es un backup.
+# Verificar que lo cifrado se puede volver a abrir. Un backup que no se puede
+# descifrar no es un backup.
+#
+# Se compara byte a byte contra el dump original en vez de pasarlo por
+# pg_restore: pg_restore -l lee sólo la tabla de contenidos y cierra la
+# tubería, y gpg muere con SIGPIPE ("Broken pipe") en cuanto el dump no entra
+# en el buffer. "cmp" consume toda la entrada, y de paso verifica más: que el
+# descifrado sea idéntico al original, no sólo que se pueda leer.
 log "Verificando el descifrado..."
 if ! gpg --batch --quiet --decrypt --passphrase-fd 3 "$DESTINO" 3<<<"$BACKUP_PASSPHRASE" \
-        | docker exec -i "$CONTAINER_NAME" pg_restore -l > /dev/null; then
-    error "el archivo cifrado no se pudo descifrar o no es un dump válido"
+        | cmp -s - "$TMP_DUMP"; then
+    error "el archivo cifrado no se pudo descifrar o no coincide con el original"
     rm -f "$DESTINO"
     exit 1
 fi
