@@ -1082,84 +1082,244 @@ docker compose exec api alembic history
 
 ## Backups
 
-Los scripts en `backups/` gestionan el backup y restauración de la base de datos. Generan archivos `.dump` (formato binario de PostgreSQL, más eficiente que SQL plano).
+Los scripts en `backups/` gestionan el backup y la restauración de la base. Generan
+archivos `.dump.gpg`: un dump binario de PostgreSQL (formato custom, `-Fc`) **cifrado con
+GPG simétrico AES-256**.
+
+Ambos scripts son **idénticos en todos los proyectos** que corren en el VPS
+(`pagina-hockey-bariloche` y `pagina-AAH`). Todo lo que cambia entre proyectos y entornos
+vive en `backups/.env.<entorno>`. Al actualizar uno, copiar el mismo archivo al otro.
 
 ### Scripts disponibles
 
 | Script | Uso |
 |--------|-----|
-| `backup_hockey.sh` | Genera un backup y opcionalmente lo sube a Google Drive |
-| `restore_hockey.sh` | Restaura la base desde un archivo `.dump` |
+| `backup_hockey.sh` | Genera un backup cifrado y, en `vps`, lo sube a Google Drive |
+| `restore_hockey.sh` | Restaura la base desde un `.dump.gpg` (o un `.dump` viejo sin cifrar) |
 
-Ambos scripts reciben un argumento de entorno (`local` o `vps`) y leen su configuración desde un archivo `backups/.env.<entorno>`.
+Ambos reciben un argumento de entorno (`local` o `vps`) y leen su configuración desde
+`backups/.env.<entorno>`.
 
-### Archivo de configuración por entorno
+### Configuración por entorno
 
-Crear `backups/.env.local` y/o `backups/.env.vps` con:
+| Variable | Obligatoria | Descripción |
+|----------|-------------|-------------|
+| `CONTAINER_NAME` | sí | Nombre del contenedor de PostgreSQL |
+| `DB_USER` | sí | Usuario de la base |
+| `DB_NAME` | sí | Nombre de la base |
+| `BACKUP_PATH` | sí | Carpeta destino de los dumps. **Debe existir**: el script no la crea |
+| `BACKUP_PASSPHRASE` | sí | Passphrase de cifrado GPG |
+| `DRIVE_REMOTE` | no (default `drive`) | Remoto de rclone. Cada cuenta de Google es un remoto distinto |
+| `DRIVE_FOLDER` | sí en `vps` | Carpeta destino en Drive. Una por proyecto |
+| `RETENTION_DAYS` | no (default `30`) | Días de retención, local y en Drive |
 
-```env
-DB_NAME=hockey
-DB_USER=hockey_user
-CONTAINER_NAME=hockey_db
-BACKUP_PATH=/ruta/donde/guardar/los/dumps
+Ejemplo de `backups/.env.vps` (hockey). El usuario y la base se toman del `.env` del
+proyecto para no duplicar credenciales:
+
+```bash
+PROJECT_PATH="/root/proyectos/pagina-hockey-bariloche"
+source "$PROJECT_PATH/.env"
+
+CONTAINER_NAME="hockey_db"
+DB_USER=$POSTGRES_USER
+DB_NAME=$POSTGRES_DB
+BACKUP_PATH="/root/proyectos/pagina-hockey-bariloche/backups"
+
+DRIVE_REMOTE="drive"
+DRIVE_FOLDER="backups/hockey-bari"
+
+RETENTION_DAYS=30
+
+BACKUP_PASSPHRASE='...'
 ```
+
+El de AAH es igual cambiando `PROJECT_PATH`, `CONTAINER_NAME="aah_db"` y
+`DRIVE_FOLDER="backups/aah"`. **Cada proyecto necesita su propia `DRIVE_FOLDER`**: la
+limpieza por retención borra todo lo que haya en la carpeta configurada, así que dos
+proyectos apuntando a la misma se borran los backups entre sí.
+
+Los archivos `.env.*` están en `.gitignore` y **nunca** se versionan.
+
+> **Permisos:** el `.env.<entorno>` contiene la passphrase. Con `644` cualquier usuario del
+> sistema puede leerla. Dejarlo en `600` (solo el dueño):
+>
+> ```bash
+> chmod 600 backups/.env.vps
+> chmod 600 .env               # el .env del proyecto tiene aún más secretos
+> ```
+>
+> El script avisa si detecta permisos distintos de `600` o `400`.
+
+### La passphrase
+
+Es lo único que protege los dumps subidos a Drive. Requisitos:
+
+- **30+ caracteres aleatorios.** No una frase memorizable ni una reutilizada de otro lado.
+- **Sin comilla simple (`'`).** En el `.env` va entre comillas simples y dentro de ese
+  formato no hay forma de escaparla. Cualquier otro carácter es literal y seguro.
+- **Comillas simples, no dobles.** El `.env` se lee con `source`: con comillas dobles bash
+  expande `$` y las comillas invertidas, y el backup queda cifrado con una passphrase
+  distinta de la que figura en el archivo, sin ningún error visible.
+
+```bash
+openssl rand -base64 33
+```
+
+> **Custodia:** guardar la passphrase **también fuera del VPS** (gestor de contraseñas). Si
+> se pierde el servidor y la passphrase estaba únicamente ahí, los backups de Drive quedan
+> indescifrables — que es exactamente el escenario para el que existe el backup.
+>
+> Anotar **desde qué fecha rige**. Si se rota, los backups anteriores siguen necesitando la
+> passphrase vieja: GPG no reencripta nada retroactivamente.
 
 ### Hacer un backup manualmente
 
 ```bash
-# En entorno local
-./backups/backup_hockey.sh local
-
-# En el VPS
-./backups/backup_hockey.sh vps
+./backups/backup_hockey.sh local     # entorno local
+./backups/backup_hockey.sh vps       # en el VPS
 ```
 
-El archivo generado tiene el formato: `backup_hockey_YYYY-MM-DD_HH-MM-SS.dump`
+Salida esperada:
 
-En el entorno `vps`, además de guardar el archivo localmente:
-- Lo sube a **Google Drive** usando `rclone` (carpeta `backups/hockey`)
-- Elimina de Drive los backups con más de 30 días
-- Elimina del disco local los backups con más de 30 días
+```
+[2026-07-23_22-40-00] Iniciando backup (vps) de 'hockey_db' en 'hockey_db'...
+[2026-07-23_22-40-01] Verificando el dump...
+[2026-07-23_22-40-01] Dump válido: 25 tablas con datos, 1.5M sin cifrar.
+[2026-07-23_22-40-01] Cifrando (AES-256)...
+[2026-07-23_22-40-01] Verificando el descifrado...
+[2026-07-23_22-40-02] Backup generado: .../backup_hockey_db_2026-07-23_22-40-00.dump.gpg (1.2M)
+[2026-07-23_22-40-02] Subiendo a drive:backups/hockey-bari ...
+[2026-07-23_22-40-55] Subido: drive:backups/hockey-bari/backup_hockey_db_...dump.gpg
+[2026-07-23_22-40-56] Backup finalizado correctamente: backup_hockey_db_...dump.gpg
+```
+
+El archivo generado tiene el formato `backup_<DB_NAME>_YYYY-MM-DD_HH-MM-SS.dump.gpg`.
+
+### Qué hace el script
+
+1. Valida la configuración y que `BACKUP_PATH` exista.
+2. Genera el dump con `pg_dump -Fc` en un archivo temporal.
+3. **Verifica el dump** con `pg_restore -l` y comprueba que contenga datos de al menos una
+   tabla. Si no, aborta.
+4. **Cifra** con GPG simétrico AES-256. La passphrase se pasa por *file descriptor*, nunca
+   como argumento: los argumentos de un proceso son visibles con `ps`.
+5. **Verifica el cifrado** descifrando y comparando byte a byte contra el original.
+6. Borra el dump en claro. Ante cualquier fallo también se borra el archivo a medias.
+7. Solo en `vps`: sube a Drive con `rclone` y limpia lo que supere `RETENTION_DAYS` en la
+   carpeta remota.
+8. Limpia los backups locales que superen `RETENTION_DAYS`.
+9. Avisa con `BACKUP OBSOLETO` y sale con error si no hay ningún backup de menos de 48 h.
+
+La limpieza por retención corre **únicamente si el backup del día salió bien**. Si algo
+falla antes, el script termina y los backups viejos quedan intactos.
 
 ### Restaurar desde un backup
 
 ```bash
-# En entorno local
-./backups/restore_hockey.sh local /ruta/al/archivo.dump
+# 1. Traer el archivo desde Drive
+rclone lsl drive:backups/hockey-bari
+rclone copy drive:backups/hockey-bari/backup_hockey_db_2026-07-23_01-00-01.dump.gpg /tmp/
 
-# En el VPS
-./backups/restore_hockey.sh vps /ruta/al/archivo.dump
+# 2. Bajar la API: si sigue arriba se reconecta y el DROP DATABASE falla
+docker compose stop api
+
+# 3. Restaurar
+./backups/restore_hockey.sh vps /tmp/backup_hockey_db_2026-07-23_01-00-01.dump.gpg
+
+# 4. Levantar la API
+docker compose start api
 ```
 
-> **Atención:** la restauración usa `--clean --if-exists`, lo que elimina y recrea las tablas antes de restaurar. No ejecutar en producción sin confirmar primero.
+El script detecta por la extensión si el archivo está cifrado, así que sirve igual para los
+`.dump` viejos sin cifrar.
+
+> **Atención:** la restauración hace `DROP DATABASE` y vuelve a crear la base desde cero. El
+> script pide confirmación tipeando el nombre exacto de la base; cualquier otra cosa aborta
+> sin tocar nada.
+
+Antes de destruir nada, el script descifra a un temporal y **verifica el dump con
+`pg_restore -l`**. Si la passphrase es incorrecta o el archivo está corrupto, se detiene con
+la base intacta. El temporal descifrado se borra siempre, incluso ante un fallo.
 
 ### Backup automático en el VPS
 
-El backup automático está configurado como un cron job en el VPS que ejecuta el script a la **1:00 AM**. Para verificarlo o editarlo:
+Un cron job por proyecto, ejecutando como `root`:
+
+```
+0  1 * * * /root/proyectos/pagina-hockey-bariloche/backups/backup_hockey.sh vps >> /root/proyectos/pagina-hockey-bariloche/backups/backup.log 2>&1
+30 3 * * * /root/proyectos/pagina-AAH/backups/backup_hockey.sh vps >> /root/proyectos/pagina-AAH/backups/backup.log 2>&1
+```
 
 ```bash
-crontab -l          # Ver cron jobs activos
-crontab -e          # Editar
+crontab -l          # ver
+crontab -e          # editar
 ```
 
-La línea configurada en el VPS es:
+> **La ruta del `>>` tiene que existir.** El shell abre el archivo de salida *antes* de
+> ejecutar el comando: si el directorio no existe, la redirección falla y el script **no
+> llega a ejecutarse**. No queda dump, ni log, ni error visible en ningún lado. Es la causa
+> del corte de backups de julio de 2026 (ver más abajo).
 
-```
-0 1 * * * /root/proyectos/pagina-hockey-bariloche/backups/backup_hockey.sh vps >> /root/proyectos/backups/backup.log 2>&1
-```
-
-El log se guarda en `/root/proyectos/backups/backup.log`.
-
-### Dependencia: rclone
-
-El script de VPS requiere `rclone` instalado y configurado con acceso a Google Drive. Para verificar:
+Para probar el cron sin esperar al horario, ejecutar **la línea completa**, con el redirect
+incluido — no alcanza con correr el script suelto, porque el fallo puede estar en el
+redirect:
 
 ```bash
-rclone listremotes        # Debe aparecer "drive:"
-rclone ls drive:backups/hockey   # Lista los backups en Drive
+bash -c 'cd / && /root/proyectos/pagina-hockey-bariloche/backups/backup_hockey.sh vps >> /root/proyectos/pagina-hockey-bariloche/backups/backup.log 2>&1'
+echo "exit=$?"
 ```
 
-Si `rclone` no está configurado, seguir la [guía oficial de rclone con Google Drive](https://rclone.org/drive/).
+### Dependencias
+
+```bash
+rclone listremotes                    # un remoto por cada cuenta de Google
+rclone lsl drive:backups/hockey-bari  # backups en Drive
+gpg --version                         # si falta: apt install gnupg
+```
+
+Si `rclone` no está configurado, seguir la
+[guía oficial de rclone con Google Drive](https://rclone.org/drive/).
+
+### Verificación periódica
+
+Un backup que nunca se restauró no es un backup. Cada tanto, y siempre después de tocar los
+scripts o la passphrase:
+
+```bash
+# Restaurar en una base descartable, sin tocar la de producción
+# (usar un .env con DB_NAME apuntando a una base de prueba)
+./backups/restore_hockey.sh local /ruta/al/backup.dump.gpg
+```
+
+Hacerlo con la passphrase **del gestor de contraseñas**, no copiándola del `.env`: el punto
+es detectar un error de transcripción antes de necesitarla de verdad.
+
+### Problemas conocidos
+
+**Corte de backups, 4 al 23 de julio de 2026.** Al mover el repo a
+`/root/proyectos/pagina-hockey-bariloche/` para montar la segunda página, el `crontab` quedó
+redirigiendo el log a `/root/proyectos/backups/backup.log`, un directorio que dejó de
+existir. La redirección fallaba y el script nunca se ejecutaba: 19 días sin backups y sin
+ninguna señal. De ahí vienen el chequeo de frescura de 48 h y la eliminación del `mkdir -p`
+que antes creaba `BACKUP_PATH` en silencio.
+
+**El `.env` del proyecto debe ser bash válido.** El `.env.<entorno>` hace `source` del `.env`
+del proyecto. Un solo valor sin comillas con espacios o paréntesis es un error de sintaxis
+que **aborta el `source` entero**, dejando vacías todas las variables posteriores:
+
+```bash
+APP_NAME=Hockey Bariloche API (DEV)      # rompe el source
+APP_NAME="Hockey Bariloche API (DEV)"    # correcto
+```
+
+Verificar con `bash -n .env`. El script detecta el síntoma y lo reporta, pero conviene no
+llegar a eso.
+
+**Archivos de marzo de 2026 en `drive:backups/hockey`.** Dos dumps fueron subidos con otra
+cuenta de Google y el remoto actual no puede borrarlos (`403 insufficientFilePermissions`).
+Aparecen como error en la limpieza pero no afectan el backup. Se borran a mano desde la web
+de Drive con la cuenta dueña. La carpeta `backups/hockey` quedó obsoleta al pasar a
+`backups/hockey-bari` y contiene los dumps **sin cifrar** anteriores a julio de 2026.
 
 ---
 
