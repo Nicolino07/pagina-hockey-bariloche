@@ -11,20 +11,45 @@ from app.models.gol import Gol
 from app.models.tarjeta import Tarjeta
 from app.models.plantel_integrante import PlantelIntegrante
 from app.models.fixture_partido import FixturePartido
+from app.models.inscripcion_torneo import InscripcionTorneo
 from app.models.enums import EstadoPartido
 
 
 def crear_planilla_partido(db: Session, data, current_user):
     try:
         # =========================
-        # 1️⃣ Crear partido
+        # 1️⃣ Obtener o crear el partido
         # =========================
-        partido = Partido(**data.partido.dict())
-        partido.estado_partido = "BORRADOR"
-        partido.creado_por = current_user.username
+        # Si el partido viene de un fixture ya materializado, se reutiliza ese
+        # mismo partido (preserva los árbitros designados) en vez de crear otro.
+        partido = None
+        if data.id_fixture_partido:
+            fp = db.get(FixturePartido, data.id_fixture_partido)
+            if fp and fp.id_partido_real:
+                partido = db.get(Partido, fp.id_partido_real)
 
-        db.add(partido)
-        db.flush()  # tenemos id_partido
+        campos = data.partido.dict()
+        if partido is not None:
+            arb1_prev, arb2_prev = partido.id_arbitro1, partido.id_arbitro2
+            for k, v in campos.items():
+                setattr(partido, k, v)
+            # No pisar la designación de árbitros si la planilla no la trae.
+            if campos.get("id_arbitro1") is None:
+                partido.id_arbitro1 = arb1_prev
+            if campos.get("id_arbitro2") is None:
+                partido.id_arbitro2 = arb2_prev
+            partido.actualizado_por = current_user.username
+            # Limpiar participaciones previas por si es una recarga.
+            db.query(ParticipanPartido).filter(
+                ParticipanPartido.id_partido == partido.id_partido
+            ).delete()
+            db.flush()
+        else:
+            partido = Partido(**campos)
+            partido.estado_partido = "BORRADOR"
+            partido.creado_por = current_user.username
+            db.add(partido)
+            db.flush()  # tenemos id_partido
 
         # =========================
         # 2️⃣ Crear participantes
@@ -451,7 +476,6 @@ def otorgar_puntos_partido(db: Session, id_fixture_partido: int, goles_local: in
             )
 
             # Obtener inscripciones de los equipos
-            from app.models.inscripcion_torneo import InscripcionTorneo
             insc_local = db.query(InscripcionTorneo).filter(
                 InscripcionTorneo.id_torneo == fp.id_torneo,
                 InscripcionTorneo.id_equipo == fp.id_equipo_local
@@ -472,6 +496,22 @@ def otorgar_puntos_partido(db: Session, id_fixture_partido: int, goles_local: in
 
             # Vincular el partido al fixture
             fp.id_partido_real = partido.id_partido
+
+        # Si el partido (espejo del fixture) aún no tiene inscripción, derivarla
+        # de equipo + torneo para que cuente en resultados y posiciones.
+        if partido.id_inscripcion_local is None or partido.id_inscripcion_visitante is None:
+            insc_local = db.query(InscripcionTorneo).filter(
+                InscripcionTorneo.id_torneo == fp.id_torneo,
+                InscripcionTorneo.id_equipo == fp.id_equipo_local,
+            ).first()
+            insc_visitante = db.query(InscripcionTorneo).filter(
+                InscripcionTorneo.id_torneo == fp.id_torneo,
+                InscripcionTorneo.id_equipo == fp.id_equipo_visitante,
+            ).first()
+            if not insc_local or not insc_visitante:
+                raise HTTPException(400, "Los equipos no están inscritos en este torneo")
+            partido.id_inscripcion_local = insc_local.id_inscripcion
+            partido.id_inscripcion_visitante = insc_visitante.id_inscripcion
 
         # Actualizar goles y estado del partido
         partido.goles_por_defecto_local = goles_local

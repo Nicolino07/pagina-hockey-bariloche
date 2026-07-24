@@ -9,9 +9,65 @@ from app.models.fixture_partido import FixturePartido
 from app.models.fixture_fecha import FixtureFecha
 from app.models.fixture_playoff_ronda import FixturePlayoffRonda
 from app.models.inscripcion_torneo import InscripcionTorneo
-from app.models.partido import PartidoDetallado
+from app.models.partido import Partido, PartidoDetallado
 from app.models.equipo import Equipo
 from app.models.torneo import Torneo
+
+
+# ── Espejo en `partido` (unificación fase liga) ──────────────────────────────
+# Cada partido programado del fixture se refleja en la tabla `partido`, que es
+# donde viven los árbitros designados y el resultado. Al cargar el resultado se
+# actualiza ese mismo `partido` (no se crea otro), preservando la designación.
+
+def _crear_partido_espejo(db: Session, fp: FixturePartido) -> None:
+    """Crea el partido espejo de un fixture_partido y lo vincula por id_partido_real."""
+    if fp.id_partido_real:
+        return
+    p = Partido(
+        id_torneo=fp.id_torneo,
+        id_equipo_local=fp.id_equipo_local,
+        id_equipo_visitante=fp.id_equipo_visitante,
+        placeholder_local=fp.placeholder_local,
+        placeholder_visitante=fp.placeholder_visitante,
+        id_fixture_fecha=fp.id_fixture_fecha,
+        id_fixture_playoff_ronda=fp.id_fixture_playoff_ronda,
+        fecha=fp.fecha_programada,
+        horario=fp.horario,
+        ubicacion=fp.ubicacion,
+        numero_fecha=fp.numero_fecha,
+        estado_partido=fp.estado or ("PENDIENTE" if fp.fecha_programada else "BORRADOR"),
+        creado_por=fp.creado_por,
+    )
+    db.add(p)
+    db.flush()
+    fp.id_partido_real = p.id_partido
+
+
+def _sync_partido_espejo(db: Session, fp: FixturePartido) -> None:
+    """Sincroniza el partido espejo con los datos de programación del fixture."""
+    if not fp.id_partido_real:
+        return
+    p = db.get(Partido, fp.id_partido_real)
+    if not p or p.estado_partido == "TERMINADO":
+        return
+    p.estado_partido = fp.estado
+    p.fecha = fp.fecha_programada
+    p.horario = fp.horario
+    p.ubicacion = fp.ubicacion
+    p.numero_fecha = fp.numero_fecha
+    p.id_equipo_local = fp.id_equipo_local
+    p.id_equipo_visitante = fp.id_equipo_visitante
+    p.placeholder_local = fp.placeholder_local
+    p.placeholder_visitante = fp.placeholder_visitante
+
+
+def _eliminar_partido_espejo(db: Session, fp: FixturePartido) -> None:
+    """Elimina el partido espejo de un fixture no jugado."""
+    if not fp.id_partido_real:
+        return
+    p = db.get(Partido, fp.id_partido_real)
+    if p and p.estado_partido != "TERMINADO":
+        db.delete(p)
 from app.schemas.fixture_partido import (
     FixturePartidoCreate,
     FixturePartidoUpdate,
@@ -95,6 +151,8 @@ def crear_fixture_partido(db: Session, data: FixturePartidoCreate, username: str
         creado_por=username,
     )
     db.add(fp)
+    db.flush()
+    _crear_partido_espejo(db, fp)
     db.commit()
     db.refresh(fp)
 
@@ -175,6 +233,9 @@ def actualizar_fixture_partido(
         elif not fp.fecha_programada and fp.estado == "PENDIENTE":
             fp.estado = "BORRADOR"
 
+    # mantener el partido espejo alineado con la programación del fixture
+    _sync_partido_espejo(db, fp)
+
     # avanzar ganador automáticamente en playoffs
     if fp.estado == "TERMINADO" and fp.id_fixture_playoff_ronda:
         from app.services.playoff_services import avanzar_ganador
@@ -194,6 +255,7 @@ def eliminar_fixture_partido(db: Session, id_fixture_partido: int):
     if fp.estado == "TERMINADO":
         raise HTTPException(400, "No se puede eliminar un partido ya jugado")
 
+    _eliminar_partido_espejo(db, fp)
     db.delete(fp)
     db.commit()
 
@@ -346,7 +408,21 @@ def generar_fixture(db: Session, id_torneo: int, tipo: str, username: str) -> li
             "El torneo tiene partidos ya jugados. No se puede regenerar el fixture.",
         )
 
-    # borra fixture previo (partidos no jugados y fechas)
+    # borra fixture previo (partidos no jugados y fechas), incluidos sus espejos
+    espejo_ids = [
+        fp.id_partido_real
+        for fp in db.query(FixturePartido)
+        .filter(
+            FixturePartido.id_torneo == id_torneo,
+            FixturePartido.id_partido_real.isnot(None),
+        )
+        .all()
+    ]
+    if espejo_ids:
+        db.query(Partido).filter(
+            Partido.id_partido.in_(espejo_ids),
+            Partido.estado_partido != "TERMINADO",
+        ).delete(synchronize_session=False)
     db.query(FixturePartido).filter(FixturePartido.id_torneo == id_torneo).delete()
     db.query(FixtureFecha).filter(FixtureFecha.id_torneo == id_torneo).delete()
     db.flush()
@@ -405,6 +481,10 @@ def generar_fixture(db: Session, id_torneo: int, tipo: str, username: str) -> li
                 db.add(fp)
                 nuevos.append(fp)
 
+    db.flush()
+    for fp in nuevos:
+        _crear_partido_espejo(db, fp)
+
     db.commit()
     for fp in nuevos:
         db.refresh(fp)
@@ -424,6 +504,22 @@ def eliminar_fixture_torneo(db: Session, id_torneo: int) -> None:
     )
     if tiene_jugados:
         raise HTTPException(400, "Hay partidos ya jugados. No se puede eliminar el fixture completo.")
+
+    # borrar los partidos espejo (no jugados) antes de eliminar el fixture
+    espejo_ids = [
+        fp.id_partido_real
+        for fp in db.query(FixturePartido)
+        .filter(
+            FixturePartido.id_torneo == id_torneo,
+            FixturePartido.id_partido_real.isnot(None),
+        )
+        .all()
+    ]
+    if espejo_ids:
+        db.query(Partido).filter(
+            Partido.id_partido.in_(espejo_ids),
+            Partido.estado_partido != "TERMINADO",
+        ).delete(synchronize_session=False)
 
     db.query(FixturePartido).filter(FixturePartido.id_torneo == id_torneo).delete()
     db.query(FixtureFecha).filter(FixtureFecha.id_torneo == id_torneo).delete()
