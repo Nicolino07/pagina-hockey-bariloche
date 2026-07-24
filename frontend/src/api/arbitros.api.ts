@@ -10,11 +10,11 @@ export interface PartidoDesignable {
   id_torneo: number
   nombre_torneo: string | null
   es_competitiva: boolean
-  fecha: string
+  fecha: string | null
   horario: string | null
   estado_partido: string
-  equipo_local: string
-  equipo_visitante: string
+  equipo_local: string | null
+  equipo_visitante: string | null
   id_arbitro1: number | null
   id_arbitro2: number | null
   nombre_arbitro1: string | null
