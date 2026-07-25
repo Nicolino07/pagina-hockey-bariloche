@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.exceptions import (
     AuthenticationError,
     AuthorizationError,
+    SessionTooLongError,
 )
 
 def login_user(
@@ -55,6 +56,8 @@ def login_user(
         id_usuario=user.id_usuario,
         token_hash=hash_refresh_token(refresh_token_value),
         expires_at=datetime.utcnow() + settings.refresh_token_expire_timedelta,
+        # Marca el inicio de sesión: base del tope absoluto de 4 h.
+        session_started_at=datetime.utcnow(),
         created_by_ip=request.client.host if request.client else None,
         user_agent=request.headers.get("user-agent"),
         revoked=False,
@@ -95,8 +98,16 @@ def refresh_access_token(db: Session, request: Request):
     if token_db.expires_at <= datetime.utcnow():
         raise AuthenticationError("Refresh token expirado")
 
-    if not token_db:
-        raise AuthenticationError("Refresh token inválido")
+    # ⏳ Tope absoluto de sesión: aunque el refresh token siga vigente, pasadas
+    # session_max_hours desde el login original la sesión se corta y hay que
+    # volver a autenticarse con contraseña. Revocamos solo este token (en cada
+    # cadena hay un único token vivo), sin tocar sesiones de otros dispositivos.
+    session_started_at = token_db.session_started_at or token_db.created_at
+    if datetime.utcnow() - session_started_at >= settings.session_max_timedelta:
+        token_db.revoked = True
+        token_db.revoked_at = datetime.utcnow()
+        db.commit()
+        raise SessionTooLongError()
 
     user = db.query(Usuario).get(token_db.id_usuario)
 
@@ -106,7 +117,7 @@ def refresh_access_token(db: Session, request: Request):
     # 🔑 Nuevo access token
     access_token = create_access_token({
         "sub": str(user.id_usuario),
-        "username": user.email, 
+        "username": user.email,
         "rol": user.tipo,
     })
 
@@ -120,6 +131,8 @@ def refresh_access_token(db: Session, request: Request):
         id_usuario=user.id_usuario,
         token_hash=hash_refresh_token(new_refresh_token),
         expires_at=datetime.utcnow() + settings.refresh_token_expire_timedelta,
+        # Arrastramos el login original: el tope de 4 h NO se reinicia al rotar.
+        session_started_at=session_started_at,
         revoked=False,
     ))
 

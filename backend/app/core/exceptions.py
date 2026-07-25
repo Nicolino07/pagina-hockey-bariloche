@@ -29,6 +29,12 @@ class AuthorizationError(AppError):
     message = "Permisos insuficientes"
 
 
+class SessionTooLongError(AuthenticationError):
+    """La sesión superó el tope absoluto de duración; requiere re-login."""
+    code = "SESSION_TOO_LONG"
+    message = "La sesión superó el tiempo máximo permitido. Ingresá tu contraseña nuevamente."
+
+
 
 # =========================
 # Dominio / Negocio

@@ -14,7 +14,14 @@ import axiosAdmin from '../api/axiosAdmin'
 import { authUtils } from '../utils/auth'
 import { decodeJwt } from '../utils/jwt'
 import { setAccessToken, clearAccessToken } from '../auth/TokenManager'
-import { startSession, stopSession, refreshSession } from '../auth/sessionManager'
+import {
+  startSession,
+  stopSession,
+  refreshSession,
+  beginSession,
+  flagSessionExpired,
+} from '../auth/sessionManager'
+import type { ExpiryReason } from '../auth/sessionManager'
 
 interface User {
   id: number
@@ -38,8 +45,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  /** Cierra la sesión localmente cuando expira por inactividad o es revocada. */
-  const handleSessionExpired = () => {
+  /** Cierra la sesión localmente cuando expira por inactividad, tope o revocación. */
+  const handleSessionExpired = (reason: ExpiryReason = 'inactivity') => {
+    // Dejamos registrado el motivo para que el login muestre el mensaje adecuado
+    // (p. ej. "sesión demasiado larga, ingresá tu contraseña nuevamente").
+    if (reason !== 'logout') flagSessionExpired(reason)
     stopSession()
     authUtils.clearAuth()
     clearAccessToken()
@@ -113,6 +123,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(token)
 
     setUser(userInfo)
+
+    // ⏱️ Marca el inicio de sesión (reloj del tope absoluto de 4 h).
+    beginSession()
 
     // 🔄 Iniciar la sesión deslizante tras el login.
     startSession(handleSessionExpired)

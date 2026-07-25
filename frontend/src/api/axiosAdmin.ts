@@ -3,7 +3,7 @@ import axios from 'axios'
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import config from './config/index'
 import { getAccessToken, clearAccessToken } from '../auth/TokenManager'
-import { refreshSession, stopSession } from '../auth/sessionManager'
+import { refreshSession, stopSession, flagSessionExpired } from '../auth/sessionManager'
 import { authUtils } from '../utils/auth'
 
 
@@ -69,7 +69,10 @@ axiosAdmin.interceptors.response.use(
 
     // 🚨 Evitar loop si falla el refresh
     if (originalRequest.url?.includes('auth/refresh')) {
-      forceLogout()
+      // Si el backend cortó por tope absoluto de sesión, mostramos el mensaje
+      // específico en el login.
+      const code = (error.response?.data as any)?.error?.code
+      forceLogout(code === 'SESSION_TOO_LONG' ? 'too_long' : undefined)
       return Promise.reject(error)
     }
     
@@ -98,7 +101,8 @@ axiosAdmin.interceptors.response.use(
 // ============================================
 // FUNCIONES AUXILIARES
 // ============================================
-function forceLogout() {
+function forceLogout(reason?: 'too_long') {
+  if (reason) flagSessionExpired(reason)
   stopSession(true)
   clearAccessToken()
   authUtils.clearAuth()

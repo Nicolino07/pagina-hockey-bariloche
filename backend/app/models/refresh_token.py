@@ -66,6 +66,15 @@ class RefreshToken(Base):
         default=datetime.utcnow
     )
 
+    # Momento del login original. Se arrastra sin cambios en cada rotación del
+    # refresh token, de modo que el tope absoluto de sesión (session_max_hours)
+    # se mide desde el login y no se reinicia al renovar.
+    session_started_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP,
+        nullable=False,
+        default=datetime.utcnow
+    )
+
     created_by_ip: Mapped[Optional[str]]
     user_agent: Mapped[Optional[str]]
 

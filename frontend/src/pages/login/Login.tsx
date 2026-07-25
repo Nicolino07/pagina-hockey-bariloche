@@ -1,10 +1,19 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { login as loginApi } from "../../api/auth.api"
 import { useAuth } from "../../auth/AuthContext"
-import { decodeJwt } from "../../utils/jwt"  
+import { decodeJwt } from "../../utils/jwt"
+import { takeSessionExpiredReason } from "../../auth/sessionManager"
 import styles from "./Login.module.css"
 import { Link } from "react-router-dom"
+
+/** Mensaje a mostrar según el motivo por el que se cerró la sesión anterior. */
+const AVISO_SESION: Record<string, string> = {
+  too_long:
+    "Tu sesión superó el tiempo máximo (4 horas). Por seguridad, ingresá tu contraseña nuevamente.",
+  inactivity:
+    "Tu sesión se cerró por inactividad. Ingresá nuevamente para continuar.",
+}
 
 /**
  * Página de inicio de sesión.
@@ -20,6 +29,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const [aviso, setAviso] = useState<string | null>(null)
+
+  // Muestra (una sola vez) el motivo por el que se cerró la sesión anterior.
+  useEffect(() => {
+    const reason = takeSessionExpiredReason()
+    if (reason && AVISO_SESION[reason]) setAviso(AVISO_SESION[reason])
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,6 +76,23 @@ export default function Login() {
       <div className={styles.card}>
         <h1 className={styles.title}>Hockey Bariloche</h1>
         <h2 className={styles.title}>Iniciar sesión</h2>
+
+        {aviso && (
+          <p
+            role="status"
+            style={{
+              background: "#fff8e1",
+              border: "1px solid #f0c36d",
+              color: "#7a5b00",
+              padding: "0.6rem 0.8rem",
+              borderRadius: "8px",
+              fontSize: "0.9rem",
+              margin: "0 0 1rem",
+            }}
+          >
+            {aviso}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputGroup}>

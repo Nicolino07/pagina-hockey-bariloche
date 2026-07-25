@@ -15,14 +15,25 @@
  */
 import { getAccessToken, setAccessToken } from './TokenManager'
 
+/** Motivo por el que se cierra la sesión (para mostrar el mensaje adecuado). */
+export type ExpiryReason = 'inactivity' | 'too_long' | 'logout'
+
 /** Segundos de margen para renovar el token antes de su expiración real. */
 const SKEW_MS = 60 * 1000
 /** Tiempo sin actividad tras el cual dejamos de renovar la sesión. */
-const INACTIVITY_LIMIT_MS = 30 * 60 * 1000
+const INACTIVITY_LIMIT_MS = 20 * 60 * 1000
+/**
+ * Tope absoluto de sesión: aun con actividad continua, pasado este tiempo desde
+ * el login cortamos la sesión y pedimos la contraseña nuevamente. Debe coincidir
+ * con `session_max_hours` del backend (que es quien lo hace cumplir de verdad).
+ */
+const SESSION_MAX_MS = 4 * 60 * 60 * 1000
 /** Frecuencia con la que evaluamos si corresponde renovar el token. */
 const CHECK_EVERY_MS = 20 * 1000
 /** Nombre del canal de coordinación entre pestañas. */
 const CHANNEL_NAME = 'hbp_auth'
+/** Clave donde persistimos el inicio de sesión (sobrevive recargas). */
+const SESSION_START_KEY = 'hbp_session_start'
 
 /** Eventos del DOM considerados como actividad del usuario. */
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click']
@@ -32,7 +43,50 @@ let lastActivity = Date.now()
 let intervalId: number | null = null
 let channel: BroadcastChannel | null = null
 let inFlight: Promise<string | null> | null = null
-let onExpired: (() => void) | null = null
+let onExpired: ((reason: ExpiryReason) => void) | null = null
+
+/**
+ * Marca el inicio de una sesión nueva (login). Reinicia el reloj del tope
+ * absoluto de 4 h; persiste para que las recargas no lo reseteen.
+ */
+export function beginSession() {
+  localStorage.setItem(SESSION_START_KEY, String(Date.now()))
+}
+
+/** Momento de inicio de la sesión actual; si no hay registro, asume ahora. */
+function getSessionStart(): number {
+  const raw = localStorage.getItem(SESSION_START_KEY)
+  const n = raw ? parseInt(raw, 10) : NaN
+  return Number.isFinite(n) ? n : Date.now()
+}
+
+/** Limpia el registro de inicio de sesión. */
+function clearSessionStart() {
+  localStorage.removeItem(SESSION_START_KEY)
+}
+
+/** Clave del motivo de cierre, para que la pantalla de login lo muestre. */
+const EXPIRED_FLAG_KEY = 'hbp_session_expired_reason'
+
+/** Deja registrado el motivo del último cierre para mostrarlo en el login. */
+export function flagSessionExpired(reason: ExpiryReason) {
+  try {
+    sessionStorage.setItem(EXPIRED_FLAG_KEY, reason)
+  } catch {
+    /* sessionStorage no disponible: ignoramos, es solo informativo. */
+  }
+}
+
+/** Lee y consume (una sola vez) el motivo del último cierre de sesión. */
+export function takeSessionExpiredReason(): ExpiryReason | null {
+  try {
+    const r = sessionStorage.getItem(EXPIRED_FLAG_KEY)
+    if (r) sessionStorage.removeItem(EXPIRED_FLAG_KEY)
+    return (r as ExpiryReason) || null
+  } catch {
+    return null
+  }
+}
 
 /**
  * Lee el campo `exp` (en ms) de un JWT sin verificar la firma y sin loguear.
@@ -119,10 +173,17 @@ async function check() {
   const exp = tokenExpMs(token)
   if (!token || !exp) return
 
-  // ⏱️ Cierre por inactividad real: si pasaron 30 min sin actividad, cerramos
+  // 🔒 Tope absoluto de sesión: pasadas 4 h desde el login cerramos aunque el
+  // usuario esté activo. Pedirá la contraseña nuevamente.
+  if (Date.now() - getSessionStart() >= SESSION_MAX_MS) {
+    onExpired?.('too_long')
+    return
+  }
+
+  // ⏱️ Cierre por inactividad real: si pasaron 20 min sin actividad, cerramos
   // ya mismo, sin esperar a que venza el token.
   if (Date.now() - lastActivity >= INACTIVITY_LIMIT_MS) {
-    onExpired?.()
+    onExpired?.('inactivity')
     return
   }
 
@@ -130,11 +191,11 @@ async function check() {
   if (exp - Date.now() > SKEW_MS) return
 
   // El usuario está activo y el token está por vencer → lo renovamos.
-  // (Sesión perpetua mientras trabaje, hasta el tope del refresh token.)
+  // (Sesión deslizante mientras trabaje, hasta el tope absoluto de 4 h.)
   const newToken = await refreshSession()
   const stillValid = tokenExpMs(newToken ?? getAccessToken())
   if (!newToken && (!stillValid || stillValid <= Date.now())) {
-    onExpired?.()
+    onExpired?.('inactivity')
   }
 }
 
@@ -147,7 +208,7 @@ function setupChannel() {
     if (data?.type === 'token' && data.token) {
       setAccessToken(data.token)
     } else if (data?.type === 'logout') {
-      onExpired?.()
+      onExpired?.('logout')
     }
   }
 }
@@ -155,13 +216,17 @@ function setupChannel() {
 /**
  * Inicia el seguimiento de actividad y la renovación proactiva de la sesión.
  * Es idempotente: múltiples llamadas no duplican listeners ni timers.
- * @param onSessionExpired - Callback a ejecutar cuando la sesión debe cerrarse.
+ * @param onSessionExpired - Callback a ejecutar cuando la sesión debe cerrarse;
+ *   recibe el motivo del cierre para mostrar el mensaje adecuado.
  */
-export function startSession(onSessionExpired: () => void) {
+export function startSession(onSessionExpired: (reason: ExpiryReason) => void) {
   onExpired = onSessionExpired
   if (started) return
   started = true
   lastActivity = Date.now()
+  // Rehidratación tras recargar: si no hay inicio registrado, lo fijamos ahora
+  // (el login ya lo fija explícitamente vía beginSession()).
+  if (!localStorage.getItem(SESSION_START_KEY)) beginSession()
 
   ACTIVITY_EVENTS.forEach((e) =>
     window.addEventListener(e, markActivity, { passive: true })
@@ -191,4 +256,5 @@ export function stopSession(broadcast = false) {
   channel = null
   started = false
   inFlight = null
+  clearSessionStart()
 }

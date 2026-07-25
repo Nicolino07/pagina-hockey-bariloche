@@ -48,6 +48,9 @@ CREATE TABLE IF NOT EXISTS refresh_token (
     revoked          BOOLEAN NOT NULL DEFAULT FALSE,
     revoked_at       TIMESTAMP,
     created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    -- Login original: se arrastra en cada rotación para medir el tope
+    -- absoluto de sesión (ver session_max_hours) desde el login real.
+    session_started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_by_ip    INET,
     user_agent       TEXT,
 

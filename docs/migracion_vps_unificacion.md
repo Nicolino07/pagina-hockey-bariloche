@@ -19,13 +19,21 @@ El código nuevo lee y escribe todo sobre `partido`; `fixture_fecha` y
 
 ## Cómo se aplican en el VPS
 
-El `entrypoint.sh` del backend detecta que la DB **ya existe** (tiene
-`alembic_version`) y corre `alembic upgrade head`. Así que al desplegar el código
-nuevo y levantar el contenedor, las migraciones 0021→0026 se aplican solas sobre
-la DB de prod (que está en 0020).
+**La migración se corre A MANO después del deploy.** El `entrypoint.sh` que haría
+`alembic upgrade head` automático **NO se ejecuta** hoy: el `Dockerfile` usa
+`CMD ["uvicorn", ...]` (arranca uvicorn directo) y el `docker-compose.yml` también
+tiene `command: uvicorn ...`. Ambos saltean el `entrypoint.sh`. Por eso, tras
+`docker compose up --build`, hay que correr:
+
+```bash
+docker exec hockey_api alembic upgrade head
+```
 
 > Recordá el esquema dual: `db/init` (instalación desde cero) y Alembic (DBs
 > existentes) ya están sincronizados. En el VPS aplica **Alembic** (la DB existe).
+>
+> Mejora pendiente: cablear el `entrypoint.sh` (Dockerfile `ENTRYPOINT` + sacar el
+> `command` del compose) para que la migración corra sola en cada deploy.
 
 ---
 
@@ -69,9 +77,12 @@ Confirmar que el `.sql.gpg` quedó bien y es restaurable. **No migrar sin esto.*
    ```bash
    docker compose up -d --build api
    ```
-3. Mirar el log del entrypoint: debe decir
-   `DB existente — aplicando migraciones pendientes (upgrade head)` y correr
-   `0020 → 0021 → ... → 0026` sin errores.
+3. Correr la migración **a mano** (el entrypoint no se ejecuta, ver arriba):
+   ```bash
+   docker exec hockey_api alembic current        # debe estar en 0020
+   docker exec hockey_api alembic upgrade head    # 0020 → ... → 0026
+   ```
+   Verificar que llega a **0026** sin errores.
 
 ## Paso 3 — Verificación
 
