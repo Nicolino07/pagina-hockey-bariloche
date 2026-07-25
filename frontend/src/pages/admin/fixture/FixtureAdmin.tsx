@@ -546,6 +546,8 @@ export default function FixtureAdmin() {
           fecha:        p.fecha_programada ?? undefined,
           numero_fecha: p.numero_fecha    ?? undefined,
           ubicacion:    p.ubicacion       ?? undefined,
+          arbitro1:     p.nombre_arbitro1 ?? undefined,
+          arbitro2:     p.nombre_arbitro2 ?? undefined,
         })
       }
     } catch {

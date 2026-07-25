@@ -122,10 +122,10 @@ class PartidoEdicionResponse(BaseModel):
     id_partido: int
     id_torneo: int
     id_fase: Optional[int] = None
-    fecha: date
+    fecha: Optional[date] = None
     horario: Optional[time] = None
-    id_inscripcion_local: int
-    id_inscripcion_visitante: int
+    id_inscripcion_local: Optional[int] = None
+    id_inscripcion_visitante: Optional[int] = None
     id_arbitro1: Optional[int] = None
     id_arbitro2: Optional[int] = None
     id_capitan_local: Optional[int] = None

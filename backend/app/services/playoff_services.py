@@ -6,7 +6,7 @@ import random
 from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
-from app.models.fixture_partido import FixturePartido
+from app.models.partido import Partido, PartidoDetallado
 from app.models.fixture_playoff_ronda import FixturePlayoffRonda
 from app.models.inscripcion_torneo import InscripcionTorneo
 from app.models.equipo import Equipo
@@ -327,18 +327,21 @@ def generar_playoff(
 ) -> list:
     # Verificar que no haya partidos jugados
     tiene_jugados = (
-        db.query(FixturePartido)
+        db.query(Partido)
         .filter(
-            FixturePartido.id_torneo == id_torneo,
-            FixturePartido.estado == "TERMINADO",
+            Partido.id_torneo == id_torneo,
+            Partido.estado_partido == "TERMINADO",
         )
         .first()
     )
     if tiene_jugados:
         raise HTTPException(400, "El torneo tiene partidos ya jugados. No se puede regenerar el fixture.")
 
-    # Limpiar fixture previo
-    db.query(FixturePartido).filter(FixturePartido.id_torneo == id_torneo).delete()
+    # Limpiar bracket previo: partidos programados (no jugados) y sus rondas.
+    db.query(Partido).filter(
+        Partido.id_torneo == id_torneo,
+        Partido.estado_partido != "TERMINADO",
+    ).delete(synchronize_session=False)
     db.query(FixturePlayoffRonda).filter(FixturePlayoffRonda.id_torneo == id_torneo).delete()
     db.flush()
 
@@ -419,31 +422,31 @@ def _crear_partido_playoff(
     id_visitante: int | None = None,
     placeholder_local: str | None = None,
     placeholder_visitante: str | None = None,
-) -> list[FixturePartido]:
+) -> list[Partido]:
     """Crea 1 o 2 partidos según el formato (ida / ida y vuelta)."""
     partidos = []
-    p1 = FixturePartido(
+    p1 = Partido(
         id_torneo=id_torneo,
         id_fixture_playoff_ronda=id_ronda,
         id_equipo_local=id_local,
         id_equipo_visitante=id_visitante,
         placeholder_local=placeholder_local,
         placeholder_visitante=placeholder_visitante,
-        estado="PENDIENTE",  # Los partidos de playoff van directamente a PENDIENTE
+        estado_partido="PENDIENTE",  # Los partidos de playoff van directamente a PENDIENTE
         creado_por=username,
     )
     db.add(p1)
     partidos.append(p1)
 
     if formato == "ida_y_vuelta" and (id_local or placeholder_local):
-        p2 = FixturePartido(
+        p2 = Partido(
             id_torneo=id_torneo,
             id_fixture_playoff_ronda=id_ronda,
             id_equipo_local=id_visitante,
             id_equipo_visitante=id_local,
             placeholder_local=placeholder_visitante,
             placeholder_visitante=placeholder_local,
-            estado="PENDIENTE",  # Los partidos de playoff van directamente a PENDIENTE
+            estado_partido="PENDIENTE",  # Los partidos de playoff van directamente a PENDIENTE
             creado_por=username,
         )
         db.add(p2)
@@ -467,7 +470,7 @@ def _crear_ronda_tercer_puesto(
     rondas_config: list[dict],
     formato: str,
     username: str,
-) -> list[FixturePartido]:
+) -> list[Partido]:
     """
     Crea la ronda del partido por el 3er puesto (perdedores de la semifinal).
     Solo se crea si el bracket tiene semifinal. La ronda se ubica después de la
@@ -572,7 +575,7 @@ def avanzar_ganador(db: Session, id_fixture_partido: int, username: str) -> None
     busca el partido de la siguiente ronda con el placeholder correspondiente
     y lo reemplaza por el equipo ganador.
     """
-    fp = db.get(FixturePartido, id_fixture_partido)
+    fp = db.get(Partido, id_fixture_partido)
     if not fp or not fp.id_fixture_playoff_ronda:
         return
 
@@ -585,11 +588,11 @@ def avanzar_ganador(db: Session, id_fixture_partido: int, username: str) -> None
         return
 
     from app.models.partido import PartidoDetallado
-    if not fp.id_partido_real:
+    if not fp.id_partido:
         return
     db.flush()
     db.expire_all()
-    resultado = db.get(PartidoDetallado, fp.id_partido_real)
+    resultado = db.get(PartidoDetallado, fp.id_partido)
     if not resultado:
         return
 
@@ -621,34 +624,34 @@ def avanzar_ganador(db: Session, id_fixture_partido: int, username: str) -> None
 
 def _asignar_ganador_siguiente_ronda(
     db: Session,
-    fp: FixturePartido,
+    fp: Partido,
     ronda: FixturePlayoffRonda,
     id_ganador: int,
     username: str,
 ) -> None:
     """Busca el placeholder en la ronda siguiente y lo reemplaza con el equipo ganador."""
     partidos_ronda = (
-        db.query(FixturePartido)
-        .filter(FixturePartido.id_fixture_playoff_ronda == ronda.id_fixture_playoff_ronda)
-        .order_by(FixturePartido.id_fixture_partido)
+        db.query(Partido)
+        .filter(Partido.id_fixture_playoff_ronda == ronda.id_fixture_playoff_ronda)
+        .order_by(Partido.id_partido)
         .all()
     )
-    indices = [p.id_fixture_partido for p in partidos_ronda]
-    pos = indices.index(fp.id_fixture_partido)
+    indices = [p.id_partido for p in partidos_ronda]
+    pos = indices.index(fp.id_partido)
     numero_llave = pos + 1
 
     placeholder = f"Ganador {ronda.nombre} {numero_llave}"
 
     siguientes = (
-        db.query(FixturePartido)
+        db.query(Partido)
         .join(FixturePlayoffRonda)
         .filter(
             FixturePlayoffRonda.id_torneo == ronda.id_torneo,
             FixturePlayoffRonda.orden == ronda.orden + 1,
         )
         .filter(
-            (FixturePartido.placeholder_local == placeholder) |
-            (FixturePartido.placeholder_visitante == placeholder)
+            (Partido.placeholder_local == placeholder) |
+            (Partido.placeholder_visitante == placeholder)
         )
         .all()
     )
@@ -666,17 +669,17 @@ def _asignar_ganador_siguiente_ronda(
 
 
 def _numero_llave_en_ronda(
-    db: Session, fp: FixturePartido, ronda: FixturePlayoffRonda
+    db: Session, fp: Partido, ronda: FixturePlayoffRonda
 ) -> int:
     """Posición (1-based) de la llave del partido dentro de su ronda (formato ida)."""
     partidos_ronda = (
-        db.query(FixturePartido)
-        .filter(FixturePartido.id_fixture_playoff_ronda == ronda.id_fixture_playoff_ronda)
-        .order_by(FixturePartido.id_fixture_partido)
+        db.query(Partido)
+        .filter(Partido.id_fixture_playoff_ronda == ronda.id_fixture_playoff_ronda)
+        .order_by(Partido.id_partido)
         .all()
     )
-    indices = [p.id_fixture_partido for p in partidos_ronda]
-    return indices.index(fp.id_fixture_partido) + 1
+    indices = [p.id_partido for p in partidos_ronda]
+    return indices.index(fp.id_partido) + 1
 
 
 def _asignar_perdedor_tercer_puesto(
@@ -704,11 +707,11 @@ def _asignar_perdedor_tercer_puesto(
 
     placeholder = f"Perdedor {ronda.nombre} {numero_llave}"
     partidos = (
-        db.query(FixturePartido)
-        .filter(FixturePartido.id_fixture_playoff_ronda == tercer.id_fixture_playoff_ronda)
+        db.query(Partido)
+        .filter(Partido.id_fixture_playoff_ronda == tercer.id_fixture_playoff_ronda)
         .filter(
-            (FixturePartido.placeholder_local == placeholder) |
-            (FixturePartido.placeholder_visitante == placeholder)
+            (Partido.placeholder_local == placeholder) |
+            (Partido.placeholder_visitante == placeholder)
         )
         .all()
     )
@@ -726,7 +729,7 @@ def _asignar_perdedor_tercer_puesto(
 
 def _avanzar_ganador_ida_vuelta(
     db: Session,
-    fp: FixturePartido,
+    fp: Partido,
     ronda: FixturePlayoffRonda,
     username: str,
 ) -> None:
@@ -738,29 +741,29 @@ def _avanzar_ganador_ida_vuelta(
 
     # Todos los partidos de la ronda ordenados
     partidos_ronda = (
-        db.query(FixturePartido)
-        .filter(FixturePartido.id_fixture_playoff_ronda == ronda.id_fixture_playoff_ronda)
-        .order_by(FixturePartido.id_fixture_partido)
+        db.query(Partido)
+        .filter(Partido.id_fixture_playoff_ronda == ronda.id_fixture_playoff_ronda)
+        .order_by(Partido.id_partido)
         .all()
     )
 
-    indices = [p.id_fixture_partido for p in partidos_ronda]
-    pos = indices.index(fp.id_fixture_partido)
+    indices = [p.id_partido for p in partidos_ronda]
+    pos = indices.index(fp.id_partido)
     # Los partidos van de a pares: posición 0-1 = llave 1, 2-3 = llave 2, etc.
     llave_idx = pos // 2
     numero_llave = llave_idx + 1
     par = partidos_ronda[llave_idx * 2 : llave_idx * 2 + 2]
 
     # Ambos deben estar terminados
-    if len(par) < 2 or par[0].estado != "TERMINADO" or par[1].estado != "TERMINADO":
+    if len(par) < 2 or par[0].estado_partido != "TERMINADO" or par[1].estado_partido != "TERMINADO":
         return
-    if not par[0].id_partido_real or not par[1].id_partido_real:
+    if not par[0].id_partido or not par[1].id_partido:
         return
 
     db.flush()
     db.expire_all()
-    p1 = db.get(PartidoDetallado, par[0].id_partido_real)
-    p2 = db.get(PartidoDetallado, par[1].id_partido_real)
+    p1 = db.get(PartidoDetallado, par[0].id_partido)
+    p2 = db.get(PartidoDetallado, par[1].id_partido)
     if not p1 or not p2:
         return
 
@@ -782,15 +785,15 @@ def _avanzar_ganador_ida_vuelta(
     placeholder = f"Ganador {ronda.nombre} {numero_llave}"
 
     siguientes = (
-        db.query(FixturePartido)
+        db.query(Partido)
         .join(FixturePlayoffRonda)
         .filter(
             FixturePlayoffRonda.id_torneo == ronda.id_torneo,
             FixturePlayoffRonda.orden == ronda.orden + 1,
         )
         .filter(
-            (FixturePartido.placeholder_local == placeholder) |
-            (FixturePartido.placeholder_visitante == placeholder)
+            (Partido.placeholder_local == placeholder) |
+            (Partido.placeholder_visitante == placeholder)
         )
         .all()
     )

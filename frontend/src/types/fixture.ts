@@ -86,6 +86,10 @@ export interface FixturePartido {
   id_partido_real: number | null
   goles_local: number | null
   goles_visitante: number | null
+  id_arbitro1: number | null
+  id_arbitro2: number | null
+  nombre_arbitro1: string | null
+  nombre_arbitro2: string | null
   nombre_equipo_descansa: string | null
   rueda: string | null
   placeholder_local: string | null

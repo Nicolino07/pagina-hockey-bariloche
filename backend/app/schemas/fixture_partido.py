@@ -91,6 +91,10 @@ class FixturePartidoResponse(BaseModel):
     id_partido_real: Optional[int]
     goles_local: Optional[int] = None
     goles_visitante: Optional[int] = None
+    id_arbitro1: Optional[int] = None
+    id_arbitro2: Optional[int] = None
+    nombre_arbitro1: Optional[str] = None
+    nombre_arbitro2: Optional[str] = None
     nombre_equipo_descansa: Optional[str] = None
     rueda: Optional[str] = None
     placeholder_local: Optional[str] = None

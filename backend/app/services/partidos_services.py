@@ -10,7 +10,6 @@ from app.models.participan_partido import ParticipanPartido
 from app.models.gol import Gol
 from app.models.tarjeta import Tarjeta
 from app.models.plantel_integrante import PlantelIntegrante
-from app.models.fixture_partido import FixturePartido
 from app.models.inscripcion_torneo import InscripcionTorneo
 from app.models.enums import EstadoPartido
 
@@ -24,9 +23,8 @@ def crear_planilla_partido(db: Session, data, current_user):
         # mismo partido (preserva los árbitros designados) en vez de crear otro.
         partido = None
         if data.id_fixture_partido:
-            fp = db.get(FixturePartido, data.id_fixture_partido)
-            if fp and fp.id_partido_real:
-                partido = db.get(Partido, fp.id_partido_real)
+            # El id del fixture es el id del partido (unificación).
+            partido = db.get(Partido, data.id_fixture_partido)
 
         campos = data.partido.dict()
         if partido is not None:
@@ -136,15 +134,11 @@ def crear_planilla_partido(db: Session, data, current_user):
         # =========================
         # 5️⃣ Vincular fixture si viene
         # =========================
-        if data.id_fixture_partido:
-            fp = db.get(FixturePartido, data.id_fixture_partido)
-            if fp and fp.estado != "TERMINADO":
-                fp.estado = "TERMINADO"
-                fp.id_partido_real = partido.id_partido
-                db.flush()
-                if fp.id_fixture_playoff_ronda:
-                    from app.services.playoff_services import avanzar_ganador
-                    avanzar_ganador(db, fp.id_fixture_partido, current_user.username)
+        # Si es un partido de playoff, avanzar el ganador a la ronda siguiente.
+        if partido.id_fixture_playoff_ronda:
+            db.flush()
+            from app.services.playoff_services import avanzar_ganador
+            avanzar_ganador(db, partido.id_partido, current_user.username)
 
         db.commit()
         return partido
@@ -224,12 +218,14 @@ def get_partido_edicion(db: Session, id_partido: int):
     if not partido:
         raise HTTPException(404, "Partido no encontrado")
 
-    # Obtener equipo del equipo local para separar participantes
-    insc_local = db.get(InscripcionTorneo, partido.id_inscripcion_local)
-    insc_visitante = db.get(InscripcionTorneo, partido.id_inscripcion_visitante)
+    # Obtener el equipo local/visitante para separar participantes.
+    # Si el partido no tiene inscripción (espejo del fixture aún no jugado),
+    # se usa el equipo directo.
+    insc_local = db.get(InscripcionTorneo, partido.id_inscripcion_local) if partido.id_inscripcion_local else None
+    insc_visitante = db.get(InscripcionTorneo, partido.id_inscripcion_visitante) if partido.id_inscripcion_visitante else None
 
-    id_equipo_local = insc_local.id_equipo if insc_local else None
-    id_equipo_visitante = insc_visitante.id_equipo if insc_visitante else None
+    id_equipo_local = insc_local.id_equipo if insc_local else partido.id_equipo_local
+    id_equipo_visitante = insc_visitante.id_equipo if insc_visitante else partido.id_equipo_visitante
 
     # Separar participantes en local/visitante basándose en el equipo del plantel integrante
     participantes_local = []
@@ -276,9 +272,8 @@ def get_partido_edicion(db: Session, id_partido: int):
                 "observaciones": tarjeta.observaciones
             })
 
-    # Obtener id_fixture_partido si existe vínculo
-    fp = db.query(FixturePartido).filter(FixturePartido.id_partido_real == id_partido).first()
-    id_fixture_partido = fp.id_fixture_partido if fp else None
+    # El id del fixture es el mismo id del partido (unificación).
+    id_fixture_partido = id_partido
 
     return {
         "id_partido": partido.id_partido,
@@ -453,60 +448,21 @@ def otorgar_puntos_partido(db: Session, id_fixture_partido: int, goles_local: in
     Si el partido no existe, lo crea. Transiciona el estado a TERMINADO y recalcula posiciones.
     """
     try:
-        # Buscar el fixture partido
-        fp = db.get(FixturePartido, id_fixture_partido)
-        if not fp:
-            raise HTTPException(404, "Fixture de partido no encontrado")
+        # El id del fixture es el id del partido (unificación); el partido existe.
+        partido = db.get(Partido, id_fixture_partido)
+        if not partido:
+            raise HTTPException(404, "Partido no encontrado")
 
-        # Si ya existe un partido real, actualizarlo
-        if fp.id_partido_real:
-            partido = db.get(Partido, fp.id_partido_real)
-        else:
-            # Crear un nuevo partido
-            partido = Partido(
-                id_torneo=fp.id_torneo,
-                id_inscripcion_local=None,  # Será llenado por el fixture
-                id_inscripcion_visitante=None,
-                fecha=fp.fecha_programada if hasattr(fp, 'fecha_programada') else None,
-                horario=fp.horario if hasattr(fp, 'horario') else None,
-                ubicacion=fp.ubicacion if hasattr(fp, 'ubicacion') else None,
-                numero_fecha=fp.numero_fecha if hasattr(fp, 'numero_fecha') else None,
-                estado_partido=EstadoPartido.BORRADOR,
-                creado_por=current_user.username,
-            )
-
-            # Obtener inscripciones de los equipos
-            insc_local = db.query(InscripcionTorneo).filter(
-                InscripcionTorneo.id_torneo == fp.id_torneo,
-                InscripcionTorneo.id_equipo == fp.id_equipo_local
-            ).first()
-            insc_visitante = db.query(InscripcionTorneo).filter(
-                InscripcionTorneo.id_torneo == fp.id_torneo,
-                InscripcionTorneo.id_equipo == fp.id_equipo_visitante
-            ).first()
-
-            if not insc_local or not insc_visitante:
-                raise HTTPException(400, "Los equipos no están inscritos en este torneo")
-
-            partido.id_inscripcion_local = insc_local.id_inscripcion
-            partido.id_inscripcion_visitante = insc_visitante.id_inscripcion
-
-            db.add(partido)
-            db.flush()
-
-            # Vincular el partido al fixture
-            fp.id_partido_real = partido.id_partido
-
-        # Si el partido (espejo del fixture) aún no tiene inscripción, derivarla
-        # de equipo + torneo para que cuente en resultados y posiciones.
+        # Si el partido no tiene inscripción, derivarla de equipo + torneo
+        # para que cuente en resultados y posiciones.
         if partido.id_inscripcion_local is None or partido.id_inscripcion_visitante is None:
             insc_local = db.query(InscripcionTorneo).filter(
-                InscripcionTorneo.id_torneo == fp.id_torneo,
-                InscripcionTorneo.id_equipo == fp.id_equipo_local,
+                InscripcionTorneo.id_torneo == partido.id_torneo,
+                InscripcionTorneo.id_equipo == partido.id_equipo_local,
             ).first()
             insc_visitante = db.query(InscripcionTorneo).filter(
-                InscripcionTorneo.id_torneo == fp.id_torneo,
-                InscripcionTorneo.id_equipo == fp.id_equipo_visitante,
+                InscripcionTorneo.id_torneo == partido.id_torneo,
+                InscripcionTorneo.id_equipo == partido.id_equipo_visitante,
             ).first()
             if not insc_local or not insc_visitante:
                 raise HTTPException(400, "Los equipos no están inscritos en este torneo")
@@ -519,10 +475,12 @@ def otorgar_puntos_partido(db: Session, id_fixture_partido: int, goles_local: in
         partido.estado_partido = EstadoPartido.TERMINADO
         partido.actualizado_por = current_user.username
 
-        # Marcar el fixture como terminado también
-        fp.estado = "TERMINADO"
-
         db.flush()
+
+        # Si es un partido de playoff, avanzar el ganador a la ronda siguiente.
+        if partido.id_fixture_playoff_ronda:
+            from app.services.playoff_services import avanzar_ganador
+            avanzar_ganador(db, partido.id_partido, current_user.username)
 
         # Recalcular tabla de posiciones
         db.execute(text("SELECT recalcular_tabla_posiciones(:id_torneo)"), {"id_torneo": partido.id_torneo})

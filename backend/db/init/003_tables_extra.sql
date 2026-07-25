@@ -97,37 +97,10 @@ CREATE TABLE IF NOT EXISTS fixture_playoff_ronda (
 );
 
 -- ================================================
--- FIXTURE_PARTIDO
+-- FIXTURE (agrupación del calendario)
+-- El "partido programado" es un `partido` (tabla única); acá quedan solo las
+-- estructuras de agrupación (fixture_fecha, fixture_playoff_ronda).
 -- ================================================
-
-CREATE TABLE IF NOT EXISTS fixture_partido (
-    id_fixture_partido       INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_fixture_fecha         INT
-        REFERENCES fixture_fecha(id_fixture_fecha) ON DELETE CASCADE,
-    id_torneo                INT NOT NULL REFERENCES torneo(id_torneo) ON DELETE CASCADE,
-    id_equipo_local          INT REFERENCES equipo(id_equipo),          -- NULL en partidos playoff sin equipos definidos
-    id_equipo_visitante      INT REFERENCES equipo(id_equipo),          -- NULL en partidos playoff sin equipos definidos
-    id_fixture_playoff_ronda INT REFERENCES fixture_playoff_ronda(id_fixture_playoff_ronda) ON DELETE CASCADE,
-
-    placeholder_local        VARCHAR(100),   -- Ej: "Ganador SF1" mientras no hay equipo definido
-    placeholder_visitante    VARCHAR(100),
-
-    numero_fecha             INT,
-    fecha_programada         DATE,
-    horario                  TIME,
-    ubicacion                VARCHAR(200),
-
-    estado                   tipo_estado_partido NOT NULL DEFAULT 'BORRADOR',
-    id_partido_real          INT REFERENCES partido(id_partido) ON DELETE SET NULL,
-
-    creado_en                TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    creado_por               VARCHAR(100),
-    actualizado_en           TIMESTAMP DEFAULT NULL,
-    actualizado_por          VARCHAR(100),
-
-    CONSTRAINT chk_fixture_equipos_distintos
-        CHECK (id_equipo_local IS NULL OR id_equipo_visitante IS NULL OR id_equipo_local <> id_equipo_visitante)
-);
 
 -- Unificación partido/fixture: FK de agrupación en partido hacia el calendario.
 -- Se agregan acá porque fixture_fecha / fixture_playoff_ronda se crean en este archivo.

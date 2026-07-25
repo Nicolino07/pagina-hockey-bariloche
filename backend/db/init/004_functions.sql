@@ -853,30 +853,6 @@ BEGIN
 END;
 $$;
 
--- Función para validar fixture_partido (añadir al final del archivo 004_functions.sql)
-CREATE OR REPLACE FUNCTION fn_validar_fixture_partido()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    v_mismo_club BOOLEAN;
-BEGIN
-    -- Verificar si ambos equipos son del mismo club
-    SELECT (e1.id_club = e2.id_club)
-    INTO v_mismo_club
-    FROM equipo e1
-    JOIN equipo e2 ON e2.id_equipo = NEW.id_equipo_visitante
-    WHERE e1.id_equipo = NEW.id_equipo_local;
-
-    -- Opcional: Permitir o no partidos entre equipos del mismo club
-    -- IF v_mismo_club THEN
-    --     RAISE EXCEPTION 'No se pueden programar partidos entre equipos del mismo club en el fixture';
-    -- END IF;
-
-    RETURN NEW;
-END;
-$$;
-
 -- =====================================================
 -- DESIGNACIÓN DE ÁRBITROS
 -- =====================================================

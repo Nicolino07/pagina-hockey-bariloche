@@ -19,7 +19,7 @@ const nombreCompleto = (p: any): string => {
 };
 
 export const generarPlanillaPDF = (datos: any) => {
-  const { torneo, local, visitante, plantelLocal, plantelVisitante, cuerpoTecnicoLocal = [], cuerpoTecnicoVisitante = [], fecha, numero_fecha, ubicacion } = datos;
+  const { torneo, local, visitante, plantelLocal, plantelVisitante, cuerpoTecnicoLocal = [], cuerpoTecnicoVisitante = [], fecha, numero_fecha, ubicacion, arbitro1, arbitro2 } = datos;
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   
@@ -34,8 +34,8 @@ export const generarPlanillaPDF = (datos: any) => {
   doc.text("PLANILLA - AHBLS", pageWidth / 2, 10, { align: "center" });
 
   doc.setFontSize(9);
-  // El rect mide 18 de alto (de 14 a 32)
-  doc.rect(marginLeft, 14, pageWidth - marginLeft - marginRight, 18);
+  // El rect mide 24 de alto (de 14 a 38), con línea extra de árbitros
+  doc.rect(marginLeft, 14, pageWidth - marginLeft - marginRight, 24);
   
   // Línea 1: Torneo y N° de Fecha
   doc.setFont("helvetica", "bold");
@@ -68,7 +68,15 @@ export const generarPlanillaPDF = (datos: any) => {
   doc.setFont("helvetica", "normal");
   doc.text(ubicacion || `.......................................................`, pageWidth / 2 + 5, 31);
 
-  const startYJugadores = 40; // Bajamos un poquito el inicio de tablas para que no pegue al cuadro
+  // Línea 4: Árbitros designados
+  doc.setFont("helvetica", "bold");
+  doc.text(`ÁRBITROS:`, marginLeft + 2, 37);
+  doc.setFont("helvetica", "normal");
+  const arbitrosTexto = [arbitro1, arbitro2].filter(Boolean).join("   -   ")
+    || ".............................................................................";
+  doc.text(arbitrosTexto, marginLeft + 22, 37);
+
+  const startYJugadores = 46; // Inicio de tablas debajo del cuadro de cabecera
 
   // --- 2. FUNCIÓN PARA DIBUJAR PLANTEL ---
   const dibujarPlantel = (plantel: any[], nombre: string, xPos: number) => {
@@ -406,9 +414,10 @@ export const generarPlanillaCompletaPDF = (detalle: any) => {
   // Árbitros
   const yFirmas = (doc as any).lastAutoTable.finalY + 12;
   doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-  const arbs = detalle.arbitros ? detalle.arbitros.split(' / ') : [];
-  doc.text(`ÁRBITRO 1: ${arbs[0] || '_____________________________'}`, marginLeft + 2, yFirmas);
-  doc.text(`ÁRBITRO 2: ${arbs[1] || '_____________________________'}`, pageWidth / 2 + 5, yFirmas);
+  const arb1 = detalle.nombre_arbitro1 || (detalle.arbitros ? detalle.arbitros.split(';')[0]?.trim() : '') || '_____________________________';
+  const arb2 = detalle.nombre_arbitro2 || (detalle.arbitros ? detalle.arbitros.split(';')[1]?.trim() : '') || '_____________________________';
+  doc.text(`ÁRBITRO 1: ${arb1}`, marginLeft + 2, yFirmas);
+  doc.text(`ÁRBITRO 2: ${arb2}`, pageWidth / 2 + 5, yFirmas);
 
   // Sección de goles
   const yGolesTitle = yFirmas + 10;

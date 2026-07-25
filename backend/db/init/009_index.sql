@@ -189,8 +189,5 @@ ON refresh_token (expires_at);
 CREATE INDEX idx_fixture_fecha_torneo
 ON fixture_fecha (id_torneo);
 
-CREATE INDEX idx_fixture_partido_fecha
-ON fixture_partido (id_fixture_fecha);
-
 COMMIT;
 

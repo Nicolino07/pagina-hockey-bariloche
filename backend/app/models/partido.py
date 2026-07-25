@@ -116,7 +116,7 @@ class Partido(Base, AuditFieldsMixin):
     estado_partido: Mapped[EstadoPartido] = mapped_column(
         Enum(
             EstadoPartido,
-            name="estado_partido",
+            name="tipo_estado_partido",
             native_enum=True
         ),
         nullable=False

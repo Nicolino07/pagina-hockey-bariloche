@@ -20,4 +20,3 @@ class FixturePlayoffRonda(Base):
     creado_por: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     torneo = relationship("Torneo", backref="playoff_rondas")
-    partidos = relationship("FixturePartido", back_populates="playoff_ronda", cascade="all, delete-orphan")

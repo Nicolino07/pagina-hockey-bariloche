@@ -5,69 +5,13 @@ import random
 from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
-from app.models.fixture_partido import FixturePartido
 from app.models.fixture_fecha import FixtureFecha
 from app.models.fixture_playoff_ronda import FixturePlayoffRonda
 from app.models.inscripcion_torneo import InscripcionTorneo
 from app.models.partido import Partido, PartidoDetallado
 from app.models.equipo import Equipo
 from app.models.torneo import Torneo
-
-
-# ── Espejo en `partido` (unificación fase liga) ──────────────────────────────
-# Cada partido programado del fixture se refleja en la tabla `partido`, que es
-# donde viven los árbitros designados y el resultado. Al cargar el resultado se
-# actualiza ese mismo `partido` (no se crea otro), preservando la designación.
-
-def _crear_partido_espejo(db: Session, fp: FixturePartido) -> None:
-    """Crea el partido espejo de un fixture_partido y lo vincula por id_partido_real."""
-    if fp.id_partido_real:
-        return
-    p = Partido(
-        id_torneo=fp.id_torneo,
-        id_equipo_local=fp.id_equipo_local,
-        id_equipo_visitante=fp.id_equipo_visitante,
-        placeholder_local=fp.placeholder_local,
-        placeholder_visitante=fp.placeholder_visitante,
-        id_fixture_fecha=fp.id_fixture_fecha,
-        id_fixture_playoff_ronda=fp.id_fixture_playoff_ronda,
-        fecha=fp.fecha_programada,
-        horario=fp.horario,
-        ubicacion=fp.ubicacion,
-        numero_fecha=fp.numero_fecha,
-        estado_partido=fp.estado or ("PENDIENTE" if fp.fecha_programada else "BORRADOR"),
-        creado_por=fp.creado_por,
-    )
-    db.add(p)
-    db.flush()
-    fp.id_partido_real = p.id_partido
-
-
-def _sync_partido_espejo(db: Session, fp: FixturePartido) -> None:
-    """Sincroniza el partido espejo con los datos de programación del fixture."""
-    if not fp.id_partido_real:
-        return
-    p = db.get(Partido, fp.id_partido_real)
-    if not p or p.estado_partido == "TERMINADO":
-        return
-    p.estado_partido = fp.estado
-    p.fecha = fp.fecha_programada
-    p.horario = fp.horario
-    p.ubicacion = fp.ubicacion
-    p.numero_fecha = fp.numero_fecha
-    p.id_equipo_local = fp.id_equipo_local
-    p.id_equipo_visitante = fp.id_equipo_visitante
-    p.placeholder_local = fp.placeholder_local
-    p.placeholder_visitante = fp.placeholder_visitante
-
-
-def _eliminar_partido_espejo(db: Session, fp: FixturePartido) -> None:
-    """Elimina el partido espejo de un fixture no jugado."""
-    if not fp.id_partido_real:
-        return
-    p = db.get(Partido, fp.id_partido_real)
-    if p and p.estado_partido != "TERMINADO":
-        db.delete(p)
+from app.models.persona import Persona
 from app.schemas.fixture_partido import (
     FixturePartidoCreate,
     FixturePartidoUpdate,
@@ -76,61 +20,75 @@ from app.schemas.fixture_partido import (
 )
 
 
-def _enriquecer(fp: FixturePartido, db: Session | None = None) -> dict:
-    """Agrega nombres de equipos, torneo, resultado y descanso al response."""
-    data = {c.name: getattr(fp, c.name) for c in fp.__table__.columns}
-    data["nombre_equipo_local"] = fp.equipo_local.nombre if fp.equipo_local else None
-    data["nombre_equipo_visitante"] = fp.equipo_visitante.nombre if fp.equipo_visitante else None
-    data["id_club_local"] = fp.equipo_local.id_club if fp.equipo_local else None
-    data["id_club_visitante"] = fp.equipo_visitante.id_club if fp.equipo_visitante else None
-    data["nombre_torneo"] = fp.torneo.nombre if fp.torneo else None
-    data["categoria"] = fp.torneo.categoria.value if fp.torneo else None
-    data["division"] = fp.torneo.division if fp.torneo else None
-    data["genero"] = fp.torneo.genero.value if fp.torneo else None
-    data["goles_local"] = None
-    data["goles_visitante"] = None
-    if db and fp.id_partido_real:
-        detalle = db.get(PartidoDetallado, fp.id_partido_real)
+def _enriquecer_partido(p: Partido, db: Session) -> dict:
+    """Arma la respuesta del fixture directamente desde un `partido`.
+    Mantiene la misma forma que _enriquecer (clave id_fixture_partido = id_partido)."""
+    el = db.get(Equipo, p.id_equipo_local) if p.id_equipo_local else None
+    ev = db.get(Equipo, p.id_equipo_visitante) if p.id_equipo_visitante else None
+    t = db.get(Torneo, p.id_torneo)
+    ff = db.get(FixtureFecha, p.id_fixture_fecha) if p.id_fixture_fecha else None
+    ronda = db.get(FixturePlayoffRonda, p.id_fixture_playoff_ronda) if p.id_fixture_playoff_ronda else None
+    estado = str(getattr(p.estado_partido, "value", p.estado_partido))
+
+    data = {
+        "id_fixture_partido": p.id_partido,
+        "id_torneo": p.id_torneo,
+        "id_equipo_local": p.id_equipo_local,
+        "id_equipo_visitante": p.id_equipo_visitante,
+        "id_club_local": el.id_club if el else None,
+        "id_club_visitante": ev.id_club if ev else None,
+        "nombre_equipo_local": el.nombre if el else None,
+        "nombre_equipo_visitante": ev.nombre if ev else None,
+        "nombre_torneo": t.nombre if t else None,
+        "categoria": t.categoria.value if t else None,
+        "division": t.division if t else None,
+        "genero": t.genero.value if t else None,
+        "fecha_programada": p.fecha,
+        "horario": p.horario,
+        "ubicacion": p.ubicacion,
+        "numero_fecha": p.numero_fecha,
+        "estado": estado,
+        "id_partido_real": p.id_partido,
+        "goles_local": None,
+        "goles_visitante": None,
+        "id_arbitro1": p.id_arbitro1,
+        "id_arbitro2": p.id_arbitro2,
+        "nombre_arbitro1": None,
+        "nombre_arbitro2": None,
+        "nombre_equipo_descansa": None,
+        "rueda": ff.rueda if ff else None,
+        "placeholder_local": p.placeholder_local,
+        "placeholder_visitante": p.placeholder_visitante,
+        "id_fixture_playoff_ronda": p.id_fixture_playoff_ronda,
+        "nombre_ronda_playoff": ronda.nombre if ronda else None,
+        "es_tercer_puesto": ronda.es_tercer_puesto if ronda else False,
+        "creado_en": p.creado_en,
+        "creado_por": p.creado_por,
+    }
+
+    if estado == "TERMINADO":
+        detalle = db.get(PartidoDetallado, p.id_partido)
         if detalle:
             data["goles_local"] = detalle.goles_local
             data["goles_visitante"] = detalle.goles_visitante
-    # descanso y rueda de la fecha
-    data["nombre_equipo_descansa"] = None
-    data["rueda"] = None
-    if fp.fixture_fecha:
-        data["rueda"] = fp.fixture_fecha.rueda
-        if fp.fixture_fecha.equipo_descansa:
-            data["nombre_equipo_descansa"] = fp.fixture_fecha.equipo_descansa.nombre
-
-    # campos de playoff
-    data["placeholder_local"] = getattr(fp, "placeholder_local", None)
-    data["placeholder_visitante"] = getattr(fp, "placeholder_visitante", None)
-    data["id_fixture_playoff_ronda"] = getattr(fp, "id_fixture_playoff_ronda", None)
-    data["nombre_ronda_playoff"] = None
-    data["es_tercer_puesto"] = False
-    if fp.id_fixture_playoff_ronda and fp.playoff_ronda:
-        data["nombre_ronda_playoff"] = fp.playoff_ronda.nombre
-        data["es_tercer_puesto"] = fp.playoff_ronda.es_tercer_puesto
+    if p.id_arbitro1:
+        a1 = db.get(Persona, p.id_arbitro1)
+        data["nombre_arbitro1"] = f"{a1.apellido} {a1.nombre}" if a1 else None
+    if p.id_arbitro2:
+        a2 = db.get(Persona, p.id_arbitro2)
+        data["nombre_arbitro2"] = f"{a2.apellido} {a2.nombre}" if a2 else None
+    if ff and ff.id_equipo_descansa:
+        ed = db.get(Equipo, ff.id_equipo_descansa)
+        data["nombre_equipo_descansa"] = ed.nombre if ed else None
     return data
 
 
 def obtener_fixture_por_id(db: Session, id_fixture_partido: int):
-    """Devuelve un partido del fixture por su ID."""
-    fp = (
-        db.query(FixturePartido)
-        .options(
-            joinedload(FixturePartido.equipo_local),
-            joinedload(FixturePartido.equipo_visitante),
-            joinedload(FixturePartido.torneo),
-            joinedload(FixturePartido.fixture_fecha).joinedload(FixtureFecha.equipo_descansa),
-            joinedload(FixturePartido.playoff_ronda),
-        )
-        .filter(FixturePartido.id_fixture_partido == id_fixture_partido)
-        .first()
-    )
-    if not fp:
+    """Devuelve un partido del fixture por su ID (= id_partido)."""
+    p = db.get(Partido, id_fixture_partido)
+    if not p:
         raise HTTPException(404, "Partido del fixture no encontrado")
-    return _enriquecer(fp, db)
+    return _enriquecer_partido(p, db)
 
 
 def crear_fixture_partido(db: Session, data: FixturePartidoCreate, username: str):
@@ -138,75 +96,52 @@ def crear_fixture_partido(db: Session, data: FixturePartidoCreate, username: str
     if data.id_equipo_local == data.id_equipo_visitante:
         raise HTTPException(400, "El equipo local y visitante deben ser distintos")
 
-    fp = FixturePartido(
+    p = Partido(
         id_torneo=data.id_torneo,
         id_equipo_local=data.id_equipo_local,
         id_equipo_visitante=data.id_equipo_visitante,
-        fecha_programada=data.fecha_programada,
+        fecha=data.fecha_programada,
         horario=data.horario,
         ubicacion=data.ubicacion,
         numero_fecha=data.numero_fecha,
         id_fixture_playoff_ronda=data.id_fixture_playoff_ronda,
-        estado=data.estado if data.estado else ("PENDIENTE" if data.fecha_programada else "BORRADOR"),
+        estado_partido=data.estado if data.estado else ("PENDIENTE" if data.fecha_programada else "BORRADOR"),
         creado_por=username,
     )
-    db.add(fp)
-    db.flush()
-    _crear_partido_espejo(db, fp)
+    db.add(p)
     db.commit()
-    db.refresh(fp)
-
-    db.refresh(fp, ["equipo_local", "equipo_visitante", "torneo"])
-    return _enriquecer(fp, db)
+    db.refresh(p)
+    return _enriquecer_partido(p, db)
 
 
 def listar_fixture_por_torneo(db: Session, id_torneo: int, solo_publicos: bool = False) -> list:
     """Lista los partidos de un torneo ordenados por fecha.
     Con solo_publicos=True excluye los BORRADOR (no tienen fecha asignada).
     """
-    estados_ocultos = ["BORRADOR"] if solo_publicos else []
-    query = (
-        db.query(FixturePartido)
-        .options(
-            joinedload(FixturePartido.equipo_local),
-            joinedload(FixturePartido.equipo_visitante),
-            joinedload(FixturePartido.torneo),
-            joinedload(FixturePartido.fixture_fecha).joinedload(FixtureFecha.equipo_descansa),
-            joinedload(FixturePartido.playoff_ronda),
-        )
-        .filter(FixturePartido.id_torneo == id_torneo)
-    )
-    if estados_ocultos:
-        query = query.filter(FixturePartido.estado.notin_(estados_ocultos))
+    query = db.query(Partido).filter(Partido.id_torneo == id_torneo)
+    if solo_publicos:
+        query = query.filter(Partido.estado_partido != "BORRADOR")
     partidos = query.order_by(
-        FixturePartido.numero_fecha.asc().nulls_last(),
-        FixturePartido.fecha_programada.asc().nulls_last(),
-        FixturePartido.horario.asc().nulls_last(),
+        Partido.numero_fecha.asc().nulls_last(),
+        Partido.fecha.asc().nulls_last(),
+        Partido.horario.asc().nulls_last(),
     ).all()
-    return [_enriquecer(fp, db) for fp in partidos]
+    return [_enriquecer_partido(p, db) for p in partidos]
 
 
 def listar_fixture_proximos(db: Session, id_torneo: int | None = None) -> list:
     """Lista partidos visibles al público: PENDIENTE, SUSPENDIDO y REPROGRAMADO."""
-    query = (
-        db.query(FixturePartido)
-        .options(
-            joinedload(FixturePartido.equipo_local),
-            joinedload(FixturePartido.equipo_visitante),
-            joinedload(FixturePartido.torneo),
-            joinedload(FixturePartido.fixture_fecha).joinedload(FixtureFecha.equipo_descansa),
-            joinedload(FixturePartido.playoff_ronda),
-        )
-        .filter(FixturePartido.estado.in_(["PENDIENTE", "SUSPENDIDO", "REPROGRAMADO"]))
+    query = db.query(Partido).filter(
+        Partido.estado_partido.in_(["PENDIENTE", "SUSPENDIDO", "REPROGRAMADO"])
     )
     if id_torneo:
-        query = query.filter(FixturePartido.id_torneo == id_torneo)
+        query = query.filter(Partido.id_torneo == id_torneo)
 
     partidos = query.order_by(
-        FixturePartido.fecha_programada.asc().nulls_last(),
-        FixturePartido.horario.asc().nulls_last(),
+        Partido.fecha.asc().nulls_last(),
+        Partido.horario.asc().nulls_last(),
     ).all()
-    return [_enriquecer(fp, db) for fp in partidos]
+    return [_enriquecer_partido(p, db) for p in partidos]
 
 
 def actualizar_fixture_partido(
@@ -216,47 +151,54 @@ def actualizar_fixture_partido(
     Si se asigna fecha_programada a un BORRADOR, pasa automáticamente a PENDIENTE.
     Si se quita la fecha_programada de un PENDIENTE, vuelve a BORRADOR.
     """
-    fp = db.get(FixturePartido, id_fixture_partido)
-    if not fp:
+    p = db.get(Partido, id_fixture_partido)
+    if not p:
         raise HTTPException(404, "Partido del fixture no encontrado")
-    if fp.estado == "TERMINADO":
+    if str(getattr(p.estado_partido, "value", p.estado_partido)) == "TERMINADO":
         raise HTTPException(400, "No se puede editar un partido ya jugado")
 
     cambios = data.model_dump(exclude_unset=True)
-    for campo, valor in cambios.items():
-        setattr(fp, campo, valor)
+    # Mapeo de campos del fixture a columnas de partido.
+    if "fecha_programada" in cambios:
+        p.fecha = cambios["fecha_programada"]
+    if "horario" in cambios:
+        p.horario = cambios["horario"]
+    if "ubicacion" in cambios:
+        p.ubicacion = cambios["ubicacion"]
+    if "numero_fecha" in cambios:
+        p.numero_fecha = cambios["numero_fecha"]
+    if "estado" in cambios:
+        p.estado_partido = cambios["estado"]
 
-    # transición automática de estado según fecha_programada
+    # transición automática de estado según la fecha
     if "estado" not in cambios:
-        if fp.fecha_programada and fp.estado == "BORRADOR":
-            fp.estado = "PENDIENTE"
-        elif not fp.fecha_programada and fp.estado == "PENDIENTE":
-            fp.estado = "BORRADOR"
+        estado_actual = str(getattr(p.estado_partido, "value", p.estado_partido))
+        if p.fecha and estado_actual == "BORRADOR":
+            p.estado_partido = "PENDIENTE"
+        elif not p.fecha and estado_actual == "PENDIENTE":
+            p.estado_partido = "BORRADOR"
 
-    # mantener el partido espejo alineado con la programación del fixture
-    _sync_partido_espejo(db, fp)
+    p.actualizado_por = username
 
     # avanzar ganador automáticamente en playoffs
-    if fp.estado == "TERMINADO" and fp.id_fixture_playoff_ronda:
+    if str(getattr(p.estado_partido, "value", p.estado_partido)) == "TERMINADO" and p.id_fixture_playoff_ronda:
         from app.services.playoff_services import avanzar_ganador
-        avanzar_ganador(db, fp.id_fixture_partido, username)
+        avanzar_ganador(db, p.id_partido, username)
 
     db.commit()
-    db.refresh(fp)
-    db.refresh(fp, ["equipo_local", "equipo_visitante", "torneo"])
-    return _enriquecer(fp, db)
+    db.refresh(p)
+    return _enriquecer_partido(p, db)
 
 
 def eliminar_fixture_partido(db: Session, id_fixture_partido: int):
     """Elimina un partido programado siempre que no haya sido jugado."""
-    fp = db.get(FixturePartido, id_fixture_partido)
-    if not fp:
+    p = db.get(Partido, id_fixture_partido)
+    if not p:
         raise HTTPException(404, "Partido del fixture no encontrado")
-    if fp.estado == "TERMINADO":
+    if str(getattr(p.estado_partido, "value", p.estado_partido)) == "TERMINADO":
         raise HTTPException(400, "No se puede eliminar un partido ya jugado")
 
-    _eliminar_partido_espejo(db, fp)
-    db.delete(fp)
+    db.delete(p)
     db.commit()
 
 
@@ -395,10 +337,10 @@ def generar_fixture(db: Session, id_torneo: int, tipo: str, username: str) -> li
     Falla si ya existen partidos no jugados en el fixture.
     """
     tiene_jugados = (
-        db.query(FixturePartido)
+        db.query(Partido)
         .filter(
-            FixturePartido.id_torneo == id_torneo,
-            FixturePartido.estado == "TERMINADO",
+            Partido.id_torneo == id_torneo,
+            Partido.estado_partido == "TERMINADO",
         )
         .first()
     )
@@ -408,22 +350,11 @@ def generar_fixture(db: Session, id_torneo: int, tipo: str, username: str) -> li
             "El torneo tiene partidos ya jugados. No se puede regenerar el fixture.",
         )
 
-    # borra fixture previo (partidos no jugados y fechas), incluidos sus espejos
-    espejo_ids = [
-        fp.id_partido_real
-        for fp in db.query(FixturePartido)
-        .filter(
-            FixturePartido.id_torneo == id_torneo,
-            FixturePartido.id_partido_real.isnot(None),
-        )
-        .all()
-    ]
-    if espejo_ids:
-        db.query(Partido).filter(
-            Partido.id_partido.in_(espejo_ids),
-            Partido.estado_partido != "TERMINADO",
-        ).delete(synchronize_session=False)
-    db.query(FixturePartido).filter(FixturePartido.id_torneo == id_torneo).delete()
+    # borra los partidos programados (no jugados) y las jornadas previas
+    db.query(Partido).filter(
+        Partido.id_torneo == id_torneo,
+        Partido.estado_partido != "TERMINADO",
+    ).delete(synchronize_session=False)
     db.query(FixtureFecha).filter(FixtureFecha.id_torneo == id_torneo).delete()
     db.flush()
 
@@ -453,7 +384,7 @@ def generar_fixture(db: Session, id_torneo: int, tipo: str, username: str) -> li
         rondas_vuelta = [[(v, l) for l, v in ronda] for ronda in rondas_vuelta]
         ruedas.append(("vuelta", rondas_vuelta, descansos_vuelta))
 
-    nuevos: list[FixturePartido] = []
+    nuevos: list[Partido] = []
 
     for rueda, rondas, descansos in ruedas:
         offset = len(rondas_ida) if rueda == "vuelta" else 0
@@ -470,24 +401,21 @@ def generar_fixture(db: Session, id_torneo: int, tipo: str, username: str) -> li
             db.flush()
 
             for local, visitante in ronda:
-                fp = FixturePartido(
+                p = Partido(
                     id_torneo=id_torneo,
                     id_fixture_fecha=fecha_obj.id_fixture_fecha,
                     id_equipo_local=local["id"],
                     id_equipo_visitante=visitante["id"],
                     numero_fecha=numero_fecha,
+                    estado_partido="BORRADOR",
                     creado_por=username,
                 )
-                db.add(fp)
-                nuevos.append(fp)
-
-    db.flush()
-    for fp in nuevos:
-        _crear_partido_espejo(db, fp)
+                db.add(p)
+                nuevos.append(p)
 
     db.commit()
-    for fp in nuevos:
-        db.refresh(fp)
+    for p in nuevos:
+        db.refresh(p)
 
     return listar_fixture_por_torneo(db, id_torneo)
 
@@ -495,32 +423,19 @@ def generar_fixture(db: Session, id_torneo: int, tipo: str, username: str) -> li
 def eliminar_fixture_torneo(db: Session, id_torneo: int) -> None:
     """Elimina todo el fixture de un torneo si no hay partidos jugados."""
     tiene_jugados = (
-        db.query(FixturePartido)
+        db.query(Partido)
         .filter(
-            FixturePartido.id_torneo == id_torneo,
-            FixturePartido.estado == "TERMINADO",
+            Partido.id_torneo == id_torneo,
+            Partido.estado_partido == "TERMINADO",
         )
         .first()
     )
     if tiene_jugados:
         raise HTTPException(400, "Hay partidos ya jugados. No se puede eliminar el fixture completo.")
 
-    # borrar los partidos espejo (no jugados) antes de eliminar el fixture
-    espejo_ids = [
-        fp.id_partido_real
-        for fp in db.query(FixturePartido)
-        .filter(
-            FixturePartido.id_torneo == id_torneo,
-            FixturePartido.id_partido_real.isnot(None),
-        )
-        .all()
-    ]
-    if espejo_ids:
-        db.query(Partido).filter(
-            Partido.id_partido.in_(espejo_ids),
-            Partido.estado_partido != "TERMINADO",
-        ).delete(synchronize_session=False)
-
-    db.query(FixturePartido).filter(FixturePartido.id_torneo == id_torneo).delete()
+    db.query(Partido).filter(
+        Partido.id_torneo == id_torneo,
+        Partido.estado_partido != "TERMINADO",
+    ).delete(synchronize_session=False)
     db.query(FixtureFecha).filter(FixtureFecha.id_torneo == id_torneo).delete()
     db.commit()

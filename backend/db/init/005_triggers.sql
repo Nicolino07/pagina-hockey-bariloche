@@ -72,11 +72,6 @@ BEFORE UPDATE ON fixture_fecha
 FOR EACH ROW
 EXECUTE FUNCTION fn_set_actualizado_en();
 
-CREATE TRIGGER trg_fixture_partido_actualizado
-BEFORE UPDATE ON fixture_partido
-FOR EACH ROW
-EXECUTE FUNCTION fn_set_actualizado_en();
-
 
 -- =====================================================
 -- VALIDACIONES DE DOMINIO
@@ -243,12 +238,6 @@ ON fixture_fecha
 FOR EACH ROW
 EXECUTE FUNCTION fn_auditoria_generica();
 
-CREATE TRIGGER trg_audit_fixture_partido
-AFTER INSERT OR UPDATE OR DELETE
-ON fixture_partido
-FOR EACH ROW
-EXECUTE FUNCTION fn_auditoria_generica();
-
 -- PARTIDOS / EVENTOS
 CREATE TRIGGER trg_audit_partido
 AFTER INSERT OR UPDATE OR DELETE
@@ -326,36 +315,6 @@ CREATE TRIGGER trg_validar_refresh_token
 BEFORE INSERT ON refresh_token
 FOR EACH ROW
 EXECUTE FUNCTION fn_validar_refresh_token();
-
--- Validar que un equipo no juegue contra sí mismo en fixture
-CREATE OR REPLACE FUNCTION fn_validar_fixture_partido()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    v_mismo_club BOOLEAN;
-BEGIN
-    -- Verificar si ambos equipos son del mismo club
-    SELECT (e1.id_club = e2.id_club)
-    INTO v_mismo_club
-    FROM equipo e1
-    JOIN equipo e2 ON e2.id_equipo = NEW.id_equipo_visitante
-    WHERE e1.id_equipo = NEW.id_equipo_local;
-    
-    -- Opcional: Permitir o no partidos entre equipos del mismo club
-    -- IF v_mismo_club THEN
-    --     RAISE EXCEPTION 'No se pueden programar partidos entre equipos del mismo club en el fixture';
-    -- END IF;
-    
-    RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER trg_validar_fixture_partido
-BEFORE INSERT OR UPDATE ON fixture_partido
-FOR EACH ROW
-EXECUTE FUNCTION fn_validar_fixture_partido();
-
 
 -- =====================================================
 -- AUDITORÍA ESPECÍFICA PARA PLANTEL_INTEGRANTE (OPCIONAL)

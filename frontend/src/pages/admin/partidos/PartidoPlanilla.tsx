@@ -89,7 +89,7 @@ export default function PartidoPlanilla() {
   // Si viene ?fixture=X, precarga fecha, horario, ubicación y número de fecha del partido programado.
   useEffect(() => {
     if (!fixtureId) return
-    obtenerFixturePartido(fixtureId).then(fp => {
+    obtenerFixturePartido(fixtureId).then(async fp => {
       setIdFixturePartido(fp.id_fixture_partido)
       setTorneoId(fp.id_torneo)
       setPartidoInfo(prev => ({
@@ -99,6 +99,21 @@ export default function PartidoPlanilla() {
         ubicacion: fp.ubicacion ?? "",
         numero_fecha: fp.numero_fecha ? String(fp.numero_fecha) : "",
       }))
+      // Precargar los árbitros designados desde el partido espejo del fixture.
+      if (fp.id_partido_real) {
+        try {
+          const p = await getPartidoParaEditar(fp.id_partido_real)
+          setPartidoInfo(prev => ({
+            ...prev,
+            id_arbitro1: p.id_arbitro1 ? String(p.id_arbitro1) : prev.id_arbitro1,
+            id_arbitro2: p.id_arbitro2 ? String(p.id_arbitro2) : prev.id_arbitro2,
+            juez_mesa_local: p.juez_mesa_local ?? prev.juez_mesa_local,
+            juez_mesa_visitante: p.juez_mesa_visitante ?? prev.juez_mesa_visitante,
+          }))
+        } catch (e) {
+          console.error(e)
+        }
+      }
       // Los equipos se precargan cuando inscripciones ya cargó (siguiente efecto)
     }).catch(console.error)
   }, [fixtureId])
