@@ -4,8 +4,10 @@ Agrega la columna que guarda el login original. Se arrastra sin cambios en cada
 rotación del refresh token, para medir el tope absoluto de sesión
 (settings.session_max_hours) desde el login real y no reiniciarlo al renovar.
 
-Se agrega nullable, se backfillea con created_at (mejor aproximación del login
-para los tokens ya existentes) y recién ahí se marca NOT NULL.
+Se agrega directamente NOT NULL con DEFAULT CURRENT_TIMESTAMP: Postgres rellena
+las filas existentes con el default sin disparar triggers de fila. Evitamos un
+UPDATE de backfill a propósito, porque la tabla tiene un trigger de validación
+(fn_validar_refresh_token) que aborta al tocar tokens ya expirados.
 
 Revision ID: 0027
 Revises: 0026
@@ -23,20 +25,12 @@ depends_on = None
 def upgrade() -> None:
     op.add_column(
         "refresh_token",
-        sa.Column("session_started_at", sa.TIMESTAMP(), nullable=True),
-    )
-    # Backfill: para tokens ya emitidos, el mejor proxy del login es created_at.
-    op.execute(
-        "UPDATE refresh_token "
-        "SET session_started_at = created_at "
-        "WHERE session_started_at IS NULL"
-    )
-    op.alter_column(
-        "refresh_token",
-        "session_started_at",
-        existing_type=sa.TIMESTAMP(),
-        nullable=False,
-        server_default=sa.text("CURRENT_TIMESTAMP"),
+        sa.Column(
+            "session_started_at",
+            sa.TIMESTAMP(),
+            nullable=False,
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+        ),
     )
 
 
