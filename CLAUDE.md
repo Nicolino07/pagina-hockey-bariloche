@@ -34,6 +34,20 @@ Dentro de Front las apis, paginas publicas y administratibas mas login.
 - Bugs visuales pendientes: [listá cuáles si los conocés]
 - Fixture por categoría sin implementar
 
+### Post-unificación partido/fixture (limpieza pendiente, no urgente)
+- **Vista muerta `vw_fixture_partidos`** (`db/init/006_views.sql`): ya no la usa
+  nadie (solo aparece en grants). Lee de `partido`, así que no rompe nada; se puede
+  borrar (vista + su grant en `007_grants.sql`).
+- **Schemas `FixturePartido*`** (`app/schemas/fixture_partido.py`:
+  `FixturePartidoResponse/Create/Update/Preview`): siguen siendo el **contrato del
+  fixture** (no son el modelo, que ya no existe). Funcionan bien; el nombre quedó
+  histórico. Renombrarlos a algo como `FixturePartido*` → `PartidoProgramado*` sería
+  más claro, pero implica tocar router + frontend. Opcional.
+- **Marcador duplicado**: la fórmula del resultado vive en `vw_resultado_partido`
+  (posiciones) y `vw_partidos_detallados` (display). Ya se desincronizaron una vez
+  (ver migración 0025). Idealmente consolidar en una sola vista canónica. Ver
+  runbook y memoria del proyecto.
+
 ## Comandos útiles
 - Levantar proyecto: docker compose up 
 - Levantar proyecto + cambios: docker compose up --build
