@@ -26,7 +26,7 @@ ESTADOS_DESIGNABLES = ("BORRADOR", "PENDIENTE")
 
 
 def listar_partidos_designables(db: Session, torneo_id: Optional[int] = None):
-    """Devuelve los partidos en estado BORRADOR/PENDIENTE candidatos a designación."""
+    """Devuelve los partidos en estado BORRADOR/PENDIENTE de torneos activos, candidatos a designación."""
     filas = db.execute(
         text(
             """
@@ -34,7 +34,11 @@ def listar_partidos_designables(db: Session, torneo_id: Optional[int] = None):
                 p.id_partido,
                 p.id_torneo,
                 t.nombre               AS nombre_torneo,
+                t.categoria::text      AS categoria_torneo,
+                t.genero::text         AS genero_torneo,
+                t.division             AS division_torneo,
                 t.es_competitiva,
+                p.numero_fecha,
                 p.fecha,
                 p.horario,
                 p.estado_partido::text AS estado_partido,
@@ -51,6 +55,7 @@ def listar_partidos_designables(db: Session, torneo_id: Optional[int] = None):
             LEFT JOIN persona a1 ON a1.id_persona = p.id_arbitro1
             LEFT JOIN persona a2 ON a2.id_persona = p.id_arbitro2
             WHERE p.estado_partido IN ('BORRADOR', 'PENDIENTE')
+              AND t.activo = TRUE
               AND (:torneo_id IS NULL OR p.id_torneo = :torneo_id)
             ORDER BY p.fecha, p.horario NULLS LAST, p.id_partido
             """

@@ -551,7 +551,11 @@ export default function ClubDetalle() {
       {/* MODAL CONFIRMAR ELIMINACIÓN */}
       <Modal open={showConfirmDeleteModal} title="Eliminar Equipo" onClose={() => setShowConfirmDeleteModal(false)}>
         <p>¿Estás seguro de que querés eliminar el equipo <strong>{equipoAEliminar?.nombre}</strong>?</p>
-        <p className={styles.deleteWarning}>Esta acción es un soft-delete: el equipo quedará inactivo pero sus datos se conservan.</p>
+        <p className={styles.deleteWarning}>
+          Se elimina de forma <strong>definitiva</strong> y no se puede deshacer.
+          Solo se puede borrar un equipo sin datos asociados: si ya tiene planteles,
+          inscripciones o partidos, la acción será rechazada (esos equipos no se borran).
+        </p>
         <div className={styles.modalActions}>
           <Button variant="secondary" onClick={() => setShowConfirmDeleteModal(false)}>Cancelar</Button>
           <Button variant="danger" onClick={handleDeleteEquipo} disabled={saving}>Eliminar</Button>

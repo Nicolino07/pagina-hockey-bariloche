@@ -21,11 +21,6 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 1440
     refresh_token_expire_days: int = 30
 
-    # Tope absoluto de sesión: aunque el usuario esté activo y el refresh token
-    # siga vigente, pasado este tiempo desde el login se corta la sesión y hay
-    # que volver a ingresar la contraseña.
-    session_max_hours: int = 4
-
     cookie_secure: bool = False
     cookie_samesite: str = "strict"
 
@@ -36,10 +31,6 @@ class Settings(BaseSettings):
     @property
     def refresh_token_expire_timedelta(self) -> timedelta:
         return timedelta(days=self.refresh_token_expire_days)
-
-    @property
-    def session_max_timedelta(self) -> timedelta:
-        return timedelta(hours=self.session_max_hours)
 
 
 settings = Settings()

@@ -171,11 +171,15 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
           value={form.tipo}
           onChange={handleChange}
         >
-          {TIPOS_TORNEO.map(t => (
-            <option key={t} value={t}>
-              {t === "LIGA" ? "Liga" : t === "PLAYOFF" ? "Playoff" : "Copa"}
-            </option>
-          ))}
+          {TIPOS_TORNEO
+            /* Los playoff se crean desde su liga base (pestaña Play Off),
+               no desde este form. En edición sí se mantiene la opción. */
+            .filter(t => modoEdicion || t !== "PLAYOFF")
+            .map(t => (
+              <option key={t} value={t}>
+                {t === "LIGA" ? "Liga" : t === "PLAYOFF" ? "Playoff" : "Copa"}
+              </option>
+            ))}
         </select>
       </div>
 
@@ -223,7 +227,7 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
               setForm(prev => ({ ...prev, es_competitiva: e.target.checked }))
             }
           />
-          Torneo competitivo
+          Aplicar reglas de arbitraje
         </label>
         <small className={styles.optional}>
           Si está marcado, un árbitro no puede dirigir partidos de un club donde

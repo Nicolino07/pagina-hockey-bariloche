@@ -348,17 +348,59 @@ def cerrar_plantel(db: Session, id_plantel: int, current_user) -> Plantel:
     return plantel
 
 
-def soft_delete_plantel(
-    db: Session,
-    id_plantel: int,
-    current_user,
-) -> None:
+def dependencias_plantel(db: Session, id_plantel: int) -> dict:
+    """Cuenta los integrantes que impiden eliminar un plantel.
 
+    Un plantel que tuvo integrantes es historia real y no se borra (se cierra con
+    activo=False). Solo se puede eliminar un plantel mal cargado, vacío. No borra nada.
+    """
     plantel = db.get(Plantel, id_plantel)
     if not plantel:
         raise NotFoundError("Plantel no encontrado")
 
-    plantel.soft_delete(usuario=current_user.username)
+    integrantes = db.query(PlantelIntegrante).filter(
+        PlantelIntegrante.id_plantel == id_plantel
+    ).count()
+
+    return {
+        "id_plantel": id_plantel,
+        "nombre": plantel.nombre,
+        "integrantes": integrantes,
+        "puede_eliminar": integrantes == 0,
+    }
+
+
+def eliminar_plantel(
+    db: Session,
+    id_plantel: int,
+    current_user,
+) -> dict:
+    """Elimina un plantel de forma DEFINITIVA (solo si está vacío / mal cargado).
+
+    Si tiene integrantes, se rechaza: los planteles con historia se cierran
+    (activo=False), no se borran.
+    """
+    from app.models.auditoria_log import AuditoriaLog
+
+    dep = dependencias_plantel(db, id_plantel)
+    if not dep["puede_eliminar"]:
+        raise ConflictError(
+            f"No se puede eliminar el plantel '{dep['nombre']}': tiene "
+            f"{dep['integrantes']} integrantes. Los planteles con historia se "
+            "cierran, no se borran."
+        )
+
+    db.add(AuditoriaLog(
+        tabla_afectada="plantel",
+        id_registro=str(id_plantel),
+        operacion="DELETE",
+        valores_anteriores=dep,
+        id_usuario=current_user.id_usuario,
+    ))
+    db.query(Plantel).filter(
+        Plantel.id_plantel == id_plantel
+    ).delete(synchronize_session=False)
+    return dep
 
 
 def listar_planteles_por_equipo(
@@ -430,21 +472,6 @@ def cerrar_plantel(
     plantel.actualizado_por = current_user.username
 
     db.flush()
-    return plantel
-
-
-def restore_plantel(
-    db: Session,
-    id_plantel: int,
-    current_user,
-) -> Plantel:
-
-    plantel = db.get(Plantel, id_plantel)
-    if not plantel:
-        raise NotFoundError("Plantel no encontrado")
-
-    plantel.restore(usuario=current_user.username)
-
     return plantel
 
 

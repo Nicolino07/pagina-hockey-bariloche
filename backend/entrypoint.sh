@@ -13,11 +13,17 @@ conn.close()
 ")
 
 if [ "$HAS_ALEMBIC" = "False" ]; then
+    # DB nueva: db/init ya creó el esquema actualizado. Solo lo marcamos como
+    # aplicado (no es una migración de datos, y es necesario para que un
+    # 'upgrade' manual posterior no intente recrear todo desde cero).
     echo "DB nueva detectada — marcando migraciones como aplicadas (stamp head)"
     alembic stamp head
 else
-    echo "DB existente — aplicando migraciones pendientes (upgrade head)"
-    alembic upgrade head
+    # DB existente: las migraciones se aplican MANUALMENTE (decisión del equipo).
+    # Ejecutar a mano tras desplegar código con cambios de esquema:
+    #     docker exec hockey_api alembic upgrade head
+    echo "DB existente — migraciones NO se aplican automáticamente."
+    echo "Recordá correr manualmente: alembic upgrade head (mirá 'alembic current' vs 'heads')."
 fi
 
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000

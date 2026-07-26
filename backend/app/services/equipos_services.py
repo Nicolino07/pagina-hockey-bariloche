@@ -83,36 +83,68 @@ def actualizar_equipo(
     return equipo
 
 
-def eliminar_equipo(db: Session, equipo_id: int, current_user) -> None:
-    """Elimina lógicamente un equipo. Bloquea si tiene inscripciones en torneos activos."""
+def dependencias_equipo(db: Session, equipo_id: int) -> dict:
+    """Cuenta las dependencias que impiden eliminar un equipo.
+
+    Un equipo con planteles, inscripciones, partidos o posiciones es historia real
+    y no se borra. Solo se puede eliminar un equipo mal cargado. No borra nada.
+    """
+    from app.models.plantel import Plantel
+    from app.models.partido import Partido
+    from app.models.posicion import Posicion
+    from sqlalchemy import or_
+
     equipo = obtener_equipo(db, equipo_id)
 
-    inscripcion_activa = (
-        db.query(InscripcionTorneo)
-        .join(Torneo, InscripcionTorneo.id_torneo == Torneo.id_torneo)
-        .filter(
-            InscripcionTorneo.id_equipo == equipo_id,
-            InscripcionTorneo.fecha_baja.is_(None),
-            Torneo.activo.is_(True),
-            Torneo.borrado_en.is_(None),
+    planteles = db.query(Plantel).filter(Plantel.id_equipo == equipo_id).count()
+    inscripciones = db.query(InscripcionTorneo).filter(
+        InscripcionTorneo.id_equipo == equipo_id
+    ).count()
+    partidos = db.query(Partido).filter(
+        or_(
+            Partido.id_equipo_local == equipo_id,
+            Partido.id_equipo_visitante == equipo_id,
         )
-        .first()
-    )
+    ).count()
+    posiciones = db.query(Posicion).filter(Posicion.id_equipo == equipo_id).count()
 
-    if inscripcion_activa:
+    return {
+        "id_equipo": equipo_id,
+        "nombre": equipo.nombre,
+        "planteles": planteles,
+        "inscripciones": inscripciones,
+        "partidos": partidos,
+        "posiciones": posiciones,
+        "puede_eliminar": (
+            planteles == 0 and inscripciones == 0
+            and partidos == 0 and posiciones == 0
+        ),
+    }
+
+
+def eliminar_equipo(db: Session, equipo_id: int, current_user) -> dict:
+    """Elimina un equipo de forma DEFINITIVA (solo si está mal cargado / sin datos).
+
+    Si tiene planteles, inscripciones, partidos o posiciones, se rechaza: los
+    equipos con historia no se borran.
+    """
+    from app.models.auditoria_log import AuditoriaLog
+
+    dep = dependencias_equipo(db, equipo_id)
+    if not dep["puede_eliminar"]:
         raise ConflictError(
-            f"El equipo '{equipo.nombre}' tiene inscripciones activas en torneos en curso. "
-            "Finalizá los torneos antes de eliminar el equipo."
+            f"No se puede eliminar el equipo '{dep['nombre']}': tiene "
+            f"{dep['planteles']} planteles, {dep['inscripciones']} inscripciones, "
+            f"{dep['partidos']} partidos y {dep['posiciones']} posiciones asociadas. "
+            "Los equipos con historia no se borran."
         )
 
-    equipo.soft_delete(usuario=current_user.username)
-
-
-def restaurar_equipo(db: Session, equipo_id: int, current_user) -> Equipo:
-    equipo = db.get(Equipo, equipo_id)
-    if not equipo:
-        raise NotFoundError("Equipo no encontrado")
-
-    equipo.restore(usuario=current_user.username)
-
-    return equipo
+    db.add(AuditoriaLog(
+        tabla_afectada="equipo",
+        id_registro=str(equipo_id),
+        operacion="DELETE",
+        valores_anteriores=dep,
+        id_usuario=current_user.id_usuario,
+    ))
+    db.query(Equipo).filter(Equipo.id_equipo == equipo_id).delete(synchronize_session=False)
+    return dep

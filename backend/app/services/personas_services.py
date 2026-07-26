@@ -230,20 +230,86 @@ def obtener_personas_con_roles_activos(
 
 
 # =========================
-# Eliminar persona (soft)
+# Eliminar persona (definitivo)
 # =========================
+
+def dependencias_persona(db: Session, persona_id: int) -> dict:
+    """Cuenta la participación real que impide eliminar a una persona.
+
+    Una persona que jugó (integró un plantel) o arbitró un partido es historia real
+    y no se borra. Solo se puede eliminar una persona mal cargada, que nunca
+    participó. No borra nada.
+    """
+    from app.models.partido import Partido
+    from sqlalchemy import or_
+
+    persona = _get_persona(db, persona_id)
+
+    jugo = db.query(PlantelIntegrante).filter(
+        PlantelIntegrante.id_persona == persona_id
+    ).count()
+    arbitro = db.query(Partido).filter(
+        or_(
+            Partido.id_arbitro1 == persona_id,
+            Partido.id_arbitro2 == persona_id,
+        )
+    ).count()
+
+    return {
+        "id_persona": persona_id,
+        "nombre": f"{persona.apellido}, {persona.nombre}",
+        "jugo": jugo,
+        "arbitro": arbitro,
+        "puede_eliminar": jugo == 0 and arbitro == 0,
+    }
+
 
 def eliminar_persona(
     db: Session,
     persona_id: int,
     current_user,
-):
-    persona = _get_persona(db, persona_id)
+) -> dict:
+    """Elimina una persona de forma DEFINITIVA (solo si nunca participó).
 
-    persona.borrado_en = date.today()
-    persona.actualizado_por = current_user.username
+    Si jugó o arbitró, se rechaza. Si es un huérfano (mal cargado), se borra junto
+    con sus roles y fichajes administrativos, en orden (fichaje_rol referencia a
+    persona_rol con RESTRICT, así que va primero).
+    """
+    from app.models.fichaje_rol import FichajeRol
+    from app.models.auditoria_log import AuditoriaLog
 
-    db.commit()
+    dep = dependencias_persona(db, persona_id)
+    if not dep["puede_eliminar"]:
+        raise ConflictError(
+            f"No se puede eliminar a '{dep['nombre']}': participó en "
+            f"{dep['jugo']} planteles y arbitró {dep['arbitro']} partidos. "
+            "Las personas con historial deportivo no se borran."
+        )
+
+    # 1) Fichajes (referencian persona_rol con RESTRICT -> antes que los roles).
+    db.query(FichajeRol).filter(
+        FichajeRol.id_persona == persona_id
+    ).delete(synchronize_session=False)
+
+    # 2) Roles de la persona.
+    db.query(PersonaRol).filter(
+        PersonaRol.id_persona == persona_id
+    ).delete(synchronize_session=False)
+
+    # 3) Auditoría + persona (las columnas de árbitro en partido quedan en NULL,
+    #    aunque un huérfano no arbitró nada por la guarda).
+    db.add(AuditoriaLog(
+        tabla_afectada="persona",
+        id_registro=str(persona_id),
+        operacion="DELETE",
+        valores_anteriores=dep,
+        id_usuario=current_user.id_usuario,
+    ))
+    db.query(Persona).filter(
+        Persona.id_persona == persona_id
+    ).delete(synchronize_session=False)
+
+    return dep
 
 
 def listar_personas_roles_clubes(db: Session):

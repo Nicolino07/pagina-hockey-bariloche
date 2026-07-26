@@ -9,7 +9,11 @@ export interface PartidoDesignable {
   id_partido: number
   id_torneo: number
   nombre_torneo: string | null
+  categoria_torneo: string | null
+  genero_torneo: string | null
+  division_torneo: string | null
   es_competitiva: boolean
+  numero_fecha: number | null
   fecha: string | null
   horario: string | null
   estado_partido: string

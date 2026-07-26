@@ -1,6 +1,6 @@
 """
 Rutas para la gestión de clubes deportivos.
-Permite listar, crear, actualizar, eliminar y restaurar clubes.
+Permite listar, crear, actualizar y eliminar clubes.
 Las operaciones de escritura requieren rol SUPERUSUARIO.
 """
 from fastapi import APIRouter, Depends, status, UploadFile, File, HTTPException
@@ -59,15 +59,33 @@ def actualizar_club(
     )
 
 
+# 🔐 SUPERUSUARIO - Preview: puede eliminarse el club?
+@router.get("/{id_club}/impacto-eliminacion")
+def impacto_eliminacion_club(
+    id_club: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_superuser),
+):
+    """Devuelve si el club puede eliminarse y qué dependencias lo bloquean."""
+    try:
+        return clubes_services.dependencias_club(db, id_club)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # 🔐 SUPERUSUARIO
-@router.delete("/{id_club}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id_club}", status_code=status.HTTP_200_OK)
 def eliminar_club(
     id_club: int,
     db: Session = Depends(get_db),
     current_user: Usuario = Depends(require_superuser),
 ):
-    """Elimina lógicamente (soft delete) un club. Solo accesible por SUPERUSUARIO."""
-    clubes_services.eliminar_club(db, id_club, current_user)
+    """Elimina un club de forma DEFINITIVA (solo si no tiene datos asociados)."""
+    try:
+        dep = clubes_services.eliminar_club(db, id_club, current_user)
+        return {"detail": "Club eliminado definitivamente", "impacto": dep}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # 🔐 SUPERUSUARIO
@@ -89,12 +107,3 @@ def subir_logo_club(
     return {"logo_url": f"/logos/clubes/{id_club}.{ext}"}
 
 
-# 🔐 SUPERUSUARIO
-@router.post("/{id_club}/restore", response_model=Club)
-def restore_club(
-    id_club: int,
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_superuser),
-):
-    """Restaura un club previamente eliminado. Solo accesible por SUPERUSUARIO."""
-    return clubes_services.restaurar_club(db, id_club, current_user)

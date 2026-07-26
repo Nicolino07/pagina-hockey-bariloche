@@ -32,8 +32,62 @@ docker exec hockey_api alembic upgrade head
 > Recordá el esquema dual: `db/init` (instalación desde cero) y Alembic (DBs
 > existentes) ya están sincronizados. En el VPS aplica **Alembic** (la DB existe).
 >
-> Mejora pendiente: cablear el `entrypoint.sh` (Dockerfile `ENTRYPOINT` + sacar el
-> `command` del compose) para que la migración corra sola en cada deploy.
+> **Decisión (jul-2026): las migraciones se corren SIEMPRE a mano.** No cablear el
+> `entrypoint.sh` para auto-migrar. El `entrypoint.sh` ya quedó ajustado para que,
+> aun si algún día se lo cablea, en DB existente **no** haga `upgrade head` solo
+> (solo `stamp head` en DB nueva). El flujo estándar está más abajo.
+
+---
+
+## Flujo de deploy estándar (cualquier cambio de esquema)
+
+Vale para todo deploy que incluya una migración nueva (no solo la unificación).
+**Las migraciones son manuales**: forman parte obligatoria del runbook.
+
+```bash
+cd ~/proyectos/pagina-hockey-bariloche
+git pull                                     # o el tag de release
+
+# 1. (Recomendado) backup cifrado ANTES de migrar
+./backups/backup_hockey.sh
+
+# 2. Rebuild + levantar
+docker compose up -d --build
+
+# 3. Migrar A MANO (el entrypoint no auto-migra)
+docker exec hockey_api alembic current       # ver en qué revisión está
+docker exec hockey_api alembic heads         # ver la revisión objetivo
+docker exec hockey_api alembic upgrade head  # aplicar pendientes
+
+# 4. Verificar
+docker exec hockey_api alembic current       # debe coincidir con 'heads'
+docker logs --tail 40 hockey_api             # sin tracebacks
+# + probar el login y el flujo tocado en el navegador
+```
+
+**Orden que importa:** primero `up --build` (sube el código nuevo), después
+`alembic upgrade head`. El código nuevo suele **necesitar** la columna/tabla que
+crea la migración.
+
+### Trampas conocidas
+
+- **500 silencioso por migración olvidada.** El `entrypoint.sh` no tiene `set -e`
+  y, además, hoy ni se ejecuta (el `Dockerfile` usa `CMD uvicorn` y el compose un
+  `command: uvicorn`). Resultado: si desplegás código con cambio de esquema y
+  **olvidás** el `alembic upgrade head`, la API igual levanta contra el esquema
+  viejo y da **500** (p. ej. el INSERT de `refresh_token` fallando por columna
+  faltante). Si ves 500 tras un deploy, lo primero es `alembic current` vs `heads`.
+
+- **Trigger de validación en `refresh_token`.** La tabla tiene
+  `fn_validar_refresh_token`, que aborta al tocar tokens expirados. Un backfill por
+  `UPDATE ... SET col = ... WHERE ...` sobre esa tabla falla con
+  `Refresh token expirado`. Para agregar columnas usar
+  `ADD COLUMN NOT NULL DEFAULT ...` (es DDL, no dispara triggers de fila), no un
+  `UPDATE` de backfill. Caso real: migración **0027** (`session_started_at`).
+
+- **Rollback:** las migraciones tienen `downgrade`, pero un `DROP TABLE` no restaura
+  datos. Para volver atrás en serio usar el **backup**, no el `downgrade` (ver
+  sección Rollback abajo).
 
 ---
 
@@ -54,8 +108,9 @@ reales del VPS** antes de tocar prod.
    -- Fixtures "basura" (TERMINADO sin partido) que la 0023 descarta:
    SELECT count(*) FROM fixture_partido WHERE estado='TERMINADO' AND id_partido_real IS NULL;
    ```
-3. Levantar con el **código nuevo**: `docker compose up --build`. El entrypoint
-   corre `alembic upgrade head`. Verificar en el log que llega a **0026**.
+3. Levantar con el **código nuevo**: `docker compose up -d --build` y correr la
+   migración **a mano**: `docker exec hockey_api alembic upgrade head`. Verificar
+   con `alembic current` que llega a **0026**.
 4. **Verificar** post-migración (ver "Checklist de verificación" abajo).
 5. Probar en el navegador el ciclo completo: generar fixture, designar árbitros,
    cargar resultado, otorgar puntos, playoff con avance de ganador, resultados y

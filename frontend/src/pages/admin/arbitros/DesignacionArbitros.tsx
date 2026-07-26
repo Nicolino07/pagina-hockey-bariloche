@@ -14,6 +14,31 @@ import {
 } from "../../../api/arbitros.api"
 import styles from "./DesignacionArbitros.module.css"
 
+const CATEGORIA_LABEL: Record<string, string> = {
+  MAYORES: "Mayores",
+  SUB_19: "Sub-19",
+  SUB_16: "Sub-16",
+  SUB_14: "Sub-14",
+  SUB_12: "Sub-12",
+}
+
+const GENERO_LABEL: Record<string, string> = {
+  MASCULINO: "Masculino",
+  FEMENINO: "Femenino",
+  MIXTO: "Mixto",
+}
+
+/** Arma una etiqueta clara del torneo: nombre + categoría + género + división. */
+function etiquetaTorneo(p: PartidoDesignable): string {
+  const partes = [
+    p.nombre_torneo ?? `Torneo ${p.id_torneo}`,
+    p.categoria_torneo ? CATEGORIA_LABEL[p.categoria_torneo] ?? p.categoria_torneo : null,
+    p.genero_torneo ? GENERO_LABEL[p.genero_torneo] ?? p.genero_torneo : null,
+    p.division_torneo ? `División ${p.division_torneo}` : null,
+  ].filter(Boolean)
+  return partes.join(" · ")
+}
+
 export default function DesignacionArbitros() {
   const [partidos, setPartidos] = useState<PartidoDesignable[]>([])
   const [cargando, setCargando] = useState(true)
@@ -39,7 +64,7 @@ export default function DesignacionArbitros() {
 
   const torneos = useMemo(() => {
     const set = new Map<number, string>()
-    partidos.forEach((p) => set.set(p.id_torneo, p.nombre_torneo ?? `Torneo ${p.id_torneo}`))
+    partidos.forEach((p) => set.set(p.id_torneo, etiquetaTorneo(p)))
     return Array.from(set.entries())
   }, [partidos])
 
@@ -119,7 +144,8 @@ function PartidoRow({
       <div className={styles.cardHead} onClick={onToggle}>
         <div className={styles.cardInfo}>
           <span className={styles.fecha}>
-            {partido.fecha}
+            {partido.numero_fecha != null ? `Fecha ${partido.numero_fecha} · ` : ""}
+            {partido.fecha ?? "Sin fecha"}
             {partido.horario ? ` · ${partido.horario.slice(0, 5)}` : ""}
           </span>
           <span className={styles.equipos}>
@@ -127,12 +153,7 @@ function PartidoRow({
             {partido.equipo_visitante}
           </span>
           <span className={styles.torneo}>
-            {partido.nombre_torneo}
-            {partido.es_competitiva ? (
-              <span className={styles.badgeComp}>competitiva</span>
-            ) : (
-              <span className={styles.badgeNoComp}>no competitiva</span>
-            )}
+            {etiquetaTorneo(partido)}
             <span className={styles.badgeEstado}>{partido.estado_partido}</span>
           </span>
         </div>
@@ -216,6 +237,24 @@ function EditorArbitros({
 
   return (
     <div className={styles.editor}>
+      <div className={styles.reglasBox}>
+        <strong>Reglas de arbitraje aplicadas en este partido:</strong>
+        <ul>
+          <li>No puede arbitrar quien integra un plantel de este torneo (siempre).</li>
+          {partido.es_competitiva ? (
+            <li>
+              No puede arbitrar quien tenga un rol activo en el club local o
+              visitante (torneo con reglas de arbitraje).
+            </li>
+          ) : (
+            <li>
+              No se restringe por club propio: este torneo no aplica reglas de
+              arbitraje (formativo).
+            </li>
+          )}
+        </ul>
+      </div>
+
       {cargando ? (
         <p className={styles.muted}>Cargando árbitros disponibles…</p>
       ) : (

@@ -223,8 +223,9 @@ export default function Home() {
           </div>
         </section>
 
+        {/* --- SECCIÓN Ultimos encuentros--- */}
       <div className={styles.ultimosEncuentrosContainer}>
-        <h3>Ultimos Encuentros</h3>
+        <h3>Últimos Encuentros</h3>
         {loading ? (
           <p className={styles.loadingText}>Cargando datos...</p>
         ) : (

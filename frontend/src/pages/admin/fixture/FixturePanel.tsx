@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import { listarTorneos, listarInscripcionesTorneo } from "../../../api/torneos.api"
+import { listarInscripcionesTorneo } from "../../../api/torneos.api"
 import {
   listarFixturePorTorneoAdmin,
   programarPartido,
@@ -37,7 +37,7 @@ import { generarPlanillaPDF, generarPlanillaCompletaPDF } from "../../../service
 import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api"
 import { obtenerDetallePartido, eliminarPartido, otorgarPuntosPartido } from "../../../api/partidos.api"
 import OtorgarPuntosModal from "../../../components/admin/OtorgarPuntosModal"
-import styles from "./FixtureAdmin.module.css"
+import styles from "./FixturePanel.module.css"
 
 /** Valores iniciales del formulario de partido. */
 const FORM_VACIO: FixturePartidoCreate = {
@@ -71,16 +71,20 @@ const ESTADOS_BADGE: Record<EstadoPartido, string> = {
   REPROGRAMADO: styles.badgeReprogramado,
 }
 
+interface FixturePanelProps {
+  /** Torneo cuyo fixture se administra. El id se toma de acá, no de un selector. */
+  torneo: Torneo
+}
+
 /**
- * Panel de administración del fixture.
+ * Panel de administración del fixture de un torneo.
  * Permite programar partidos individuales y generar automáticamente
  * fixtures de liga (round-robin) o brackets de playoff/copa.
- * La vista se adapta según el tipo de torneo seleccionado.
+ * La vista se adapta según el tipo de torneo recibido por prop.
  */
-export default function FixtureAdmin() {
+export default function FixturePanel({ torneo }: FixturePanelProps) {
   const navigate = useNavigate()
-  const [torneos, setTorneos] = useState<Torneo[]>([])
-  const [torneoId, setTorneoId] = useState<number | null>(null)
+  const torneoId = torneo.id_torneo
   const [inscripciones, setInscripciones] = useState<InscripcionTorneoDetalle[]>([])
   const [partidos, setPartidos] = useState<FixturePartido[]>([])
   const [loadingPartidos, setLoadingPartidos] = useState(false)
@@ -128,10 +132,6 @@ export default function FixtureAdmin() {
   const [otorgandoPuntos, setOtorgandoPuntos] = useState(false)
 
   useEffect(() => {
-    listarTorneos().then(setTorneos).catch(console.error)
-  }, [])
-
-  useEffect(() => {
     if (!torneoId) return
     setInscripciones([])
     setPartidos([])
@@ -139,13 +139,12 @@ export default function FixtureAdmin() {
     setRondasPlayoff([])
     setLoadingPartidos(true)
 
-    const torneoActual = torneos.find(t => t.id_torneo === torneoId)
-    const esPlayoffTorneo = torneoActual?.tipo === "PLAYOFF" || torneoActual?.tipo === "COPA"
+    const esPlayoffTorneo = torneo.tipo === "PLAYOFF" || torneo.tipo === "COPA"
 
     // En playoff/copa con torneo base, los equipos se toman de los inscriptos
     // del torneo base (no de los del propio playoff).
-    const idInscripciones = (esPlayoffTorneo && torneoActual?.torneo_base_id)
-      ? torneoActual.torneo_base_id
+    const idInscripciones = (esPlayoffTorneo && torneo.torneo_base_id)
+      ? torneo.torneo_base_id
       : torneoId
 
     const promesas: Promise<any>[] = [
@@ -563,8 +562,8 @@ export default function FixtureAdmin() {
     inscripciones.map(i => [i.id_equipo, i.nombre_equipo])
   )
 
-  const torneoSeleccionado = torneos.find(t => t.id_torneo === torneoId) ?? null
-  const esPlayoff = torneoSeleccionado?.tipo === "PLAYOFF" || torneoSeleccionado?.tipo === "COPA"
+  const torneoSeleccionado = torneo
+  const esPlayoff = torneoSeleccionado.tipo === "PLAYOFF" || torneoSeleccionado.tipo === "COPA"
 
   // Agrupa partidos del preview por fecha para mostrarlos ordenados
   const fechasPreview = preview
@@ -584,32 +583,9 @@ export default function FixtureAdmin() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <h2 className={styles.title}>Fixture</h2>
-        <p className={styles.subtitle}>Programá los próximos partidos por torneo.</p>
-      </header>
-
-      {/* Selector de torneo */}
+      {/* Barra de acciones del fixture (el torneo ya viene por prop) */}
       <div className={styles.selectorRow}>
-        <label className={styles.label}>Torneo</label>
-        <select
-          className={styles.select}
-          value={torneoId ?? ""}
-          onChange={e => {
-            setTorneoId(Number(e.target.value) || null)
-            setMostrarFormulario(false)
-            setPreview(null)
-          }}
-        >
-          <option value="">— Seleccioná un torneo —</option>
-          {torneos.map(t => (
-            <option key={t.id_torneo} value={t.id_torneo}>
-              {t.nombre} — {t.categoria}{t.division ? ` ${t.division}` : ""} {t.genero}
-            </option>
-          ))}
-        </select>
-
-        {torneoId && !mostrarFormulario && !mostrarGenerador && !preview && (
+        {!mostrarFormulario && !mostrarGenerador && !preview && (
           <>
             <Button onClick={abrirFormularioNuevo}>+ Programar partido</Button>
             <Button onClick={abrirGenerador}>⚡ Generar fixture</Button>

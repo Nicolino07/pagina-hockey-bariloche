@@ -5,7 +5,7 @@ gestión de roles y eliminación lógica.
 - Lectura básica: rol EDITOR o superior.
 - Escritura y gestión de roles: rol ADMIN o superior.
 """
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from typing import Optional
@@ -166,15 +166,30 @@ def cerrar_rol(
         db, persona_id, rol_id, current_user
     )
 
+# 🔐 ADMIN / SUPERUSUARIO - Preview: ¿se puede eliminar la persona?
+@router.get("/{persona_id}/impacto-eliminacion")
+def impacto_eliminacion_persona(
+    persona_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    """Devuelve si la persona puede eliminarse y qué participación lo bloquea."""
+    try:
+        return personas_services.dependencias_persona(db, persona_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # 🔐 ADMIN / SUPERUSUARIO
-@router.delete(
-    "/{persona_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-)
+@router.delete("/{persona_id}", status_code=status.HTTP_200_OK)
 def eliminar_persona(
     persona_id: int,
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
-    """Elimina lógicamente (soft delete) a una persona. Requiere rol ADMIN o superior."""
-    personas_services.eliminar_persona(db, persona_id, current_user)
+    """Elimina una persona de forma DEFINITIVA (solo si nunca participó)."""
+    try:
+        dep = personas_services.eliminar_persona(db, persona_id, current_user)
+        return {"detail": "Persona eliminada definitivamente", "impacto": dep}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

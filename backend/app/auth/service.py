@@ -15,8 +15,19 @@ from app.core.config import settings
 from app.core.exceptions import (
     AuthenticationError,
     AuthorizationError,
-    SessionTooLongError,
 )
+
+def _purgar_tokens_vencidos(db: Session, id_usuario: int) -> None:
+    """
+    Borra los refresh tokens ya vencidos de este usuario (revocados o no).
+    Se llama de forma oportunista en login/refresh para que la tabla no
+    acumule filas muertas indefinidamente sin necesidad de un cron aparte.
+    """
+    db.query(RefreshToken).filter(
+        RefreshToken.id_usuario == id_usuario,
+        RefreshToken.expires_at <= datetime.utcnow(),
+    ).delete(synchronize_session=False)
+
 
 def login_user(
     db: Session,
@@ -49,6 +60,9 @@ def login_user(
         "rol": user.tipo,
     })
 
+    # 🧹 Aprovechamos el login para limpiar tokens vencidos de este usuario.
+    _purgar_tokens_vencidos(db, user.id_usuario)
+
     # 🔁 4. Refresh token (valor random)
     refresh_token_value = generate_refresh_token_value()
 
@@ -56,7 +70,7 @@ def login_user(
         id_usuario=user.id_usuario,
         token_hash=hash_refresh_token(refresh_token_value),
         expires_at=datetime.utcnow() + settings.refresh_token_expire_timedelta,
-        # Marca el inicio de sesión: base del tope absoluto de 4 h.
+        # Auditoría: momento del login original de esta cadena de sesión.
         session_started_at=datetime.utcnow(),
         created_by_ip=request.client.host if request.client else None,
         user_agent=request.headers.get("user-agent"),
@@ -98,17 +112,6 @@ def refresh_access_token(db: Session, request: Request):
     if token_db.expires_at <= datetime.utcnow():
         raise AuthenticationError("Refresh token expirado")
 
-    # ⏳ Tope absoluto de sesión: aunque el refresh token siga vigente, pasadas
-    # session_max_hours desde el login original la sesión se corta y hay que
-    # volver a autenticarse con contraseña. Revocamos solo este token (en cada
-    # cadena hay un único token vivo), sin tocar sesiones de otros dispositivos.
-    session_started_at = token_db.session_started_at or token_db.created_at
-    if datetime.utcnow() - session_started_at >= settings.session_max_timedelta:
-        token_db.revoked = True
-        token_db.revoked_at = datetime.utcnow()
-        db.commit()
-        raise SessionTooLongError()
-
     user = db.query(Usuario).get(token_db.id_usuario)
 
     if not user or not user.activo:
@@ -131,10 +134,13 @@ def refresh_access_token(db: Session, request: Request):
         id_usuario=user.id_usuario,
         token_hash=hash_refresh_token(new_refresh_token),
         expires_at=datetime.utcnow() + settings.refresh_token_expire_timedelta,
-        # Arrastramos el login original: el tope de 4 h NO se reinicia al rotar.
-        session_started_at=session_started_at,
+        # Auditoría: arrastramos el login original de la cadena de sesión.
+        session_started_at=token_db.session_started_at or token_db.created_at,
         revoked=False,
     ))
+
+    # 🧹 Aprovechamos el refresh para limpiar tokens vencidos de este usuario.
+    _purgar_tokens_vencidos(db, user.id_usuario)
 
     db.commit()
 

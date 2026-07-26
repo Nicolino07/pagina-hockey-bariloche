@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import styles from "./PersonaDetalle.module.css";
-import { getPersonaById, updatePersona } from "../../../api/personas.api";
+import { getPersonaById, updatePersona, impactoEliminacionPersona, eliminarPersona } from "../../../api/personas.api";
 import type { Persona } from "../../../types/persona";
 import { usePersonaConRoles } from "../../../hooks/usePersonaConRoles";
 import axiosAdmin from "../../../api/axiosAdmin"; 
@@ -31,6 +31,9 @@ export default function PersonaDetalle() {
   // 3. Estados para la Gestión de Roles
   const [showAddRol, setShowAddRol] = useState(false);
   const [selectedRol, setSelectedRol] = useState("");
+
+  // 4. Estado para la eliminación definitiva
+  const [eliminando, setEliminando] = useState(false);
 
   // Carga los datos completos de la persona al montar o cambiar el id de la URL.
   useEffect(() => {
@@ -114,6 +117,36 @@ export default function PersonaDetalle() {
       alert("Rol cerrado correctamente");
     } catch (err: any) {
       alert(err.response?.data?.detail || "No se pudo cerrar el rol. Verifique si tiene fichajes vigentes.");
+    }
+  };
+
+  /**
+   * Elimina la persona de forma DEFINITIVA (solo si nunca participó).
+   * Primero consulta el impacto: si jugó o arbitró, la acción se rechaza con el motivo.
+   */
+  const handleEliminarPersona = async () => {
+    setEliminando(true);
+    try {
+      const imp = await impactoEliminacionPersona(Number(id_persona));
+      if (!imp.puede_eliminar) {
+        alert(
+          `No se puede eliminar a ${imp.nombre}: participó en ${imp.jugo} planteles y ` +
+          `arbitró ${imp.arbitro} partidos. Las personas con historial deportivo no se borran.`
+        );
+        return;
+      }
+      const ok = window.confirm(
+        `¿Eliminar DEFINITIVAMENTE a ${imp.nombre}?\n\n` +
+        `Nunca participó (0 planteles, 0 arbitrajes). Se borra junto con sus roles y ` +
+        `fichajes administrativos. Esta acción no se puede deshacer.`
+      );
+      if (!ok) return;
+      await eliminarPersona(Number(id_persona));
+      navigate("/admin/personas");
+    } catch (err: any) {
+      alert(err.response?.data?.detail || "No se pudo eliminar la persona.");
+    } finally {
+      setEliminando(false);
     }
   };
 
@@ -241,6 +274,21 @@ export default function PersonaDetalle() {
             </tbody>
           </table>
         </div>
+      </section>
+
+      {/* ZONA DE PELIGRO — ELIMINACIÓN DEFINITIVA */}
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
+          <h2>Eliminar persona</h2>
+        </div>
+        <p style={{ margin: "0 0 12px", color: "#b91c1c" }}>
+          Borra a la persona de forma <strong>definitiva</strong>, junto con sus roles y
+          fichajes administrativos. Solo se puede si <strong>nunca participó</strong>: si jugó
+          o arbitró, la acción se rechaza (es historial deportivo y no se borra).
+        </p>
+        <Button variant="danger" disabled={eliminando} onClick={handleEliminarPersona}>
+          🗑 Eliminar persona
+        </Button>
       </section>
     </div>
   );

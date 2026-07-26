@@ -87,7 +87,27 @@ export async function actualizarTorneo(
   return res
 }
 
-// 🗑 Soft delete
+// Radio de impacto de una eliminación definitiva
+export interface ImpactoEliminacion {
+  id_torneo: number
+  nombre: string
+  finalizado: boolean
+  fases: number
+  partidos: number
+  goles: number
+  tarjetas: number
+  inscripciones: number
+}
+
+// 🔎 Preview: qué se borraría si se elimina el torneo (no borra nada)
+export async function impactoEliminacionTorneo(
+  id_torneo: number
+): Promise<ImpactoEliminacion> {
+  const { data } = await api.get(`/torneos/${id_torneo}/impacto-eliminacion`)
+  return data
+}
+
+// 🗑 Eliminación DEFINITIVA (borrado físico con cascada, irreversible)
 export async function eliminarTorneo(id_torneo: number) {
   const { data } = await api.delete(`/torneos/${id_torneo}`)
   return data

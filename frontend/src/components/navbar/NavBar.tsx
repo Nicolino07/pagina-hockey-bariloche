@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../auth/AuthContext"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import styles from "./NavBar.module.css"
 
 /**
@@ -14,18 +14,37 @@ export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
 
   /** Cierra la sesión del usuario, navega al inicio y cierra el menú mobile. */
   const handleLogout = () => {
     logout()
     navigate("/")
     setMenuOpen(false)
+    setUserMenuOpen(false)
   }
 
   const isSuper = user?.rol === "SUPERUSUARIO"
   const isAdminOrSuper = user?.rol === "ADMIN" || isSuper
+  const isAdminArbitros = user?.rol === "ADMIN_ARBITROS" || isSuper
+  // Noticias/Fichajes son rutas EDITOR/ADMIN/SUPERUSUARIO (ver App.tsx).
+  // ADMIN_ARBITROS no gestiona nada más que designaciones.
+  const puedeGestion = user?.rol === "EDITOR" || isAdminOrSuper
 
   const close = () => setMenuOpen(false)
+
+  // Cierra el dropdown de usuario al hacer click afuera.
+  useEffect(() => {
+    if (!userMenuOpen) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [userMenuOpen])
 
   return (
     <>
@@ -46,9 +65,17 @@ export default function Navbar() {
           {isAuthenticated && (
             <>
               <span className={styles.separator} />
-              <Link to="/admin/fixture">Fixture</Link>
-              <Link to="/admin/noticias">Noticias</Link>
-              <Link to="/admin/fichajes">Fichajes</Link>
+
+              {puedeGestion && (
+                <>
+                  <Link to="/admin/noticias">Noticias</Link>
+                  <Link to="/admin/fichajes">Fichajes</Link>
+                </>
+              )}
+
+              {isAdminArbitros && (
+                <Link to="/admin/arbitros">Designaciones</Link>
+              )}
 
               {isAdminOrSuper && (
                 <>
@@ -70,10 +97,21 @@ export default function Navbar() {
         {/* ---- DERECHA DESKTOP: usuario + salir / ingresar ---- */}
         <div className={styles.desktopRight}>
           {isAuthenticated ? (
-            <>
-              <span className={styles.userChip}>{user?.email}</span>
-              <button onClick={handleLogout} className={styles.logoutBtn}>Salir</button>
-            </>
+            <div className={styles.userMenu} ref={userMenuRef}>
+              <button
+                className={styles.userChipBtn}
+                onClick={() => setUserMenuOpen((v) => !v)}
+              >
+                <span className={styles.userChip}>{user?.email}</span>
+                <span className={`${styles.chevron} ${userMenuOpen ? styles.chevronOpen : ""}`}>▾</span>
+              </button>
+
+              {userMenuOpen && (
+                <div className={styles.userDropdown}>
+                  <button onClick={handleLogout} className={styles.logoutItem}>Salir</button>
+                </div>
+              )}
+            </div>
           ) : (
             <Link to="/login" className={styles.loginLink}>Ingresar</Link>
           )}
@@ -106,9 +144,17 @@ export default function Navbar() {
           {isAuthenticated && (
             <>
               <hr />
-              <Link to="/admin/fixture" onClick={close}>Fixture</Link>
-              <Link to="/admin/noticias" onClick={close}>Noticias</Link>
-              <Link to="/admin/fichajes" onClick={close}>Fichajes</Link>
+
+              {puedeGestion && (
+                <>
+                  <Link to="/admin/noticias" onClick={close}>Noticias</Link>
+                  <Link to="/admin/fichajes" onClick={close}>Fichajes</Link>
+                </>
+              )}
+
+              {isAdminArbitros && (
+                <Link to="/admin/arbitros" onClick={close}>Designaciones</Link>
+              )}
 
               {isAdminOrSuper && (
                 <>

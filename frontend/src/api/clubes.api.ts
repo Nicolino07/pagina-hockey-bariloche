@@ -51,9 +51,25 @@ export async function updateClub(
   return mapClubFromApi(res.data)
 }
 
-// 🔐 ADMIN
-export async function deleteClub(id: number): Promise<void> {
-  await api.delete(`/clubes/${id}`)
+// Dependencias que bloquean la eliminación de un club
+export interface DependenciasClub {
+  id_club: number
+  nombre: string
+  equipos: number
+  fichajes: number
+  puede_eliminar: boolean
+}
+
+// 🔐 ADMIN - Preview: ¿se puede eliminar el club?
+export async function impactoEliminacionClub(id: number): Promise<DependenciasClub> {
+  const { data } = await api.get(`/clubes/${id}/impacto-eliminacion`)
+  return data
+}
+
+// 🔐 ADMIN - Eliminación DEFINITIVA (solo si no tiene datos asociados)
+export async function deleteClub(id: number) {
+  const { data } = await api.delete(`/clubes/${id}`)
+  return data
 }
 
 // 🔐 SUPERUSUARIO

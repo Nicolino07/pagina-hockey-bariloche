@@ -4,7 +4,7 @@ Rutas para la gestión de planteles e integrantes de equipos.
 - Creación de plantel: rol ADMIN o superior.
 - Alta/baja de integrantes: rol EDITOR o superior.
 """
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from fastapi import Request, Response
 
@@ -153,27 +153,50 @@ def cerrar_plantel(
     )
 
 
+# 🔐 ADMIN / SUPERUSUARIO - Preview: ¿se puede eliminar el plantel?
+@router.get("/{id_plantel}/impacto-eliminacion")
+def impacto_eliminacion_plantel(
+    id_plantel: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    """Devuelve si el plantel puede eliminarse y cuántos integrantes lo bloquean."""
+    try:
+        return planteles_services.dependencias_plantel(db, id_plantel)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @router.delete(
     "/{id_plantel}",
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=status.HTTP_200_OK,
 )
 def eliminar_plantel(
     id_plantel: int,
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
-    """Elimina (soft delete) un plantel cerrado. Solo se puede eliminar si activo=False. Requiere rol ADMIN o superior."""
+    """Elimina DEFINITIVAMENTE un plantel cerrado y vacío (solo si activo=False).
+
+    Los planteles con integrantes son historia real: se cierran, no se borran.
+    """
     plantel = planteles_services.obtener_plantel(db, id_plantel)
 
     if plantel.activo:
         from app.core.exceptions import ValidationError
         raise ValidationError("Solo se pueden eliminar planteles cerrados")
 
-    planteles_services.soft_delete_plantel(
-        db=db,
-        id_plantel=id_plantel,
-        current_user=current_user,
-    )
+    try:
+        dep = planteles_services.eliminar_plantel(
+            db=db,
+            id_plantel=id_plantel,
+            current_user=current_user,
+        )
+        return {"detail": "Plantel eliminado definitivamente", "impacto": dep}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # 🔐 ADMIN / SUPERUSUARIO

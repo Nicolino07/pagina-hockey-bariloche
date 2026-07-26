@@ -88,7 +88,11 @@ class PartidoDesignable(BaseModel):
     id_partido: int
     id_torneo: int
     nombre_torneo: Optional[str] = None
+    categoria_torneo: Optional[str] = None
+    genero_torneo: Optional[str] = None
+    division_torneo: Optional[str] = None
     es_competitiva: bool
+    numero_fecha: Optional[int] = None
     fecha: Optional[date] = None
     horario: Optional[time] = None
     estado_partido: str

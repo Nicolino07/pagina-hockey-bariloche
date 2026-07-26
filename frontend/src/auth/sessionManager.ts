@@ -16,24 +16,20 @@
 import { getAccessToken, setAccessToken } from './TokenManager'
 
 /** Motivo por el que se cierra la sesión (para mostrar el mensaje adecuado). */
-export type ExpiryReason = 'inactivity' | 'too_long' | 'logout'
+export type ExpiryReason = 'inactivity' | 'logout'
 
 /** Segundos de margen para renovar el token antes de su expiración real. */
 const SKEW_MS = 60 * 1000
-/** Tiempo sin actividad tras el cual dejamos de renovar la sesión. */
-const INACTIVITY_LIMIT_MS = 20 * 60 * 1000
 /**
- * Tope absoluto de sesión: aun con actividad continua, pasado este tiempo desde
- * el login cortamos la sesión y pedimos la contraseña nuevamente. Debe coincidir
- * con `session_max_hours` del backend (que es quien lo hace cumplir de verdad).
+ * Tiempo sin actividad tras el cual se cierra la sesión. Es el único límite:
+ * mientras el usuario use la página la sesión se mantiene indefinidamente, y
+ * recién a los 20 min de la última actividad se corta.
  */
-const SESSION_MAX_MS = 4 * 60 * 60 * 1000
+const INACTIVITY_LIMIT_MS = 20 * 60 * 1000
 /** Frecuencia con la que evaluamos si corresponde renovar el token. */
 const CHECK_EVERY_MS = 20 * 1000
 /** Nombre del canal de coordinación entre pestañas. */
 const CHANNEL_NAME = 'hbp_auth'
-/** Clave donde persistimos el inicio de sesión (sobrevive recargas). */
-const SESSION_START_KEY = 'hbp_session_start'
 
 /** Eventos del DOM considerados como actividad del usuario. */
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click']
@@ -44,26 +40,13 @@ let intervalId: number | null = null
 let channel: BroadcastChannel | null = null
 let inFlight: Promise<string | null> | null = null
 let onExpired: ((reason: ExpiryReason) => void) | null = null
-
 /**
- * Marca el inicio de una sesión nueva (login). Reinicia el reloj del tope
- * absoluto de 4 h; persiste para que las recargas no lo reseteen.
+ * true si el último refresh fallido fue por el backend inalcanzable (red caída,
+ * timeout, container reiniciando) y no por una sesión realmente inválida.
+ * Los llamadores lo consultan tras recibir `null` para no confundir un problema
+ * de red pasajero con un cierre de sesión real.
  */
-export function beginSession() {
-  localStorage.setItem(SESSION_START_KEY, String(Date.now()))
-}
-
-/** Momento de inicio de la sesión actual; si no hay registro, asume ahora. */
-function getSessionStart(): number {
-  const raw = localStorage.getItem(SESSION_START_KEY)
-  const n = raw ? parseInt(raw, 10) : NaN
-  return Number.isFinite(n) ? n : Date.now()
-}
-
-/** Limpia el registro de inicio de sesión. */
-function clearSessionStart() {
-  localStorage.removeItem(SESSION_START_KEY)
-}
+let lastRefreshWasNetworkError = false
 
 /** Clave del motivo de cierre, para que la pantalla de login lo muestre. */
 const EXPIRED_FLAG_KEY = 'hbp_session_expired_reason'
@@ -124,9 +107,28 @@ export function applyAccessToken(token: string, broadcast = true) {
   }
 }
 
+/** Intentos totales de refresh y espera entre ellos ante un backend caído. */
+const REFRESH_MAX_ATTEMPTS = 3
+const REFRESH_RETRY_DELAY_MS = 1500
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/**
+ * true si el error es "backend momentáneamente no disponible" (sin respuesta —
+ * red caída, timeout — o gateway/proxy devolviendo 502/503/504 mientras el
+ * contenedor reinicia), a diferencia de un 401 real de sesión inválida.
+ */
+export function esErrorBackendCaido(err: any): boolean {
+  const status = err?.response?.status
+  return !err?.response || status === 502 || status === 503 || status === 504
+}
+
 /**
  * Ejecuta el refresh real contra el backend de forma serializada entre pestañas.
  * Si otra pestaña ya propagó un token fresco (vía broadcast), lo reutiliza.
+ * Ante un backend momentáneamente caído (p. ej. reconstruyendo contenedores),
+ * reintenta unas pocas veces antes de darse por vencido, para no forzar un
+ * re-login solo porque el backend tardó unos segundos en levantar.
  */
 async function doRefresh(): Promise<string | null> {
   const run = async (): Promise<string | null> => {
@@ -137,15 +139,25 @@ async function doRefresh(): Promise<string | null> {
       return current
     }
 
-    try {
-      const { refreshToken } = await import('../api/auth.api')
-      const { access_token } = await refreshToken()
-      if (!access_token) return null
-      applyAccessToken(access_token, true)
-      return access_token
-    } catch {
-      return null
+    for (let intento = 1; intento <= REFRESH_MAX_ATTEMPTS; intento++) {
+      try {
+        const { refreshToken } = await import('../api/auth.api')
+        const { access_token } = await refreshToken()
+        if (!access_token) return null
+        lastRefreshWasNetworkError = false
+        applyAccessToken(access_token, true)
+        return access_token
+      } catch (err: any) {
+        const backendCaido = esErrorBackendCaido(err)
+        lastRefreshWasNetworkError = backendCaido
+        if (backendCaido && intento < REFRESH_MAX_ATTEMPTS) {
+          await sleep(REFRESH_RETRY_DELAY_MS)
+          continue
+        }
+        return null
+      }
     }
+    return null
   }
 
   // Web Locks serializa la renovación entre todas las pestañas del navegador.
@@ -167,21 +179,23 @@ export function refreshSession(): Promise<string | null> {
   return inFlight
 }
 
+/**
+ * Indica si el último `refreshSession()` que devolvió `null` falló por el
+ * backend inalcanzable (no por una sesión inválida). Consultarlo justo
+ * después de recibir `null` para decidir si corresponde cerrar sesión.
+ */
+export function wasLastRefreshNetworkError(): boolean {
+  return lastRefreshWasNetworkError
+}
+
 /** Evalúa periódicamente si corresponde renovar el token o cerrar la sesión. */
 async function check() {
   const token = getAccessToken()
   const exp = tokenExpMs(token)
   if (!token || !exp) return
 
-  // 🔒 Tope absoluto de sesión: pasadas 4 h desde el login cerramos aunque el
-  // usuario esté activo. Pedirá la contraseña nuevamente.
-  if (Date.now() - getSessionStart() >= SESSION_MAX_MS) {
-    onExpired?.('too_long')
-    return
-  }
-
-  // ⏱️ Cierre por inactividad real: si pasaron 20 min sin actividad, cerramos
-  // ya mismo, sin esperar a que venza el token.
+  // ⏱️ Único límite: si pasaron 20 min sin actividad, cerramos la sesión sin
+  // esperar a que venza el token.
   if (Date.now() - lastActivity >= INACTIVITY_LIMIT_MS) {
     onExpired?.('inactivity')
     return
@@ -191,11 +205,16 @@ async function check() {
   if (exp - Date.now() > SKEW_MS) return
 
   // El usuario está activo y el token está por vencer → lo renovamos.
-  // (Sesión deslizante mientras trabaje, hasta el tope absoluto de 4 h.)
+  // (Sesión deslizante mientras haya actividad, sin tope absoluto.)
   const newToken = await refreshSession()
-  const stillValid = tokenExpMs(newToken ?? getAccessToken())
-  if (!newToken && (!stillValid || stillValid <= Date.now())) {
-    onExpired?.('inactivity')
+  if (!newToken) {
+    // Backend inalcanzable momentáneamente (p. ej. reconstruyendo contenedores):
+    // no cortamos la sesión, reintentamos en el próximo tick.
+    if (wasLastRefreshNetworkError()) return
+    const stillValid = tokenExpMs(getAccessToken())
+    if (!stillValid || stillValid <= Date.now()) {
+      onExpired?.('inactivity')
+    }
   }
 }
 
@@ -224,9 +243,6 @@ export function startSession(onSessionExpired: (reason: ExpiryReason) => void) {
   if (started) return
   started = true
   lastActivity = Date.now()
-  // Rehidratación tras recargar: si no hay inicio registrado, lo fijamos ahora
-  // (el login ya lo fija explícitamente vía beginSession()).
-  if (!localStorage.getItem(SESSION_START_KEY)) beginSession()
 
   ACTIVITY_EVENTS.forEach((e) =>
     window.addEventListener(e, markActivity, { passive: true })
@@ -256,5 +272,4 @@ export function stopSession(broadcast = false) {
   channel = null
   started = false
   inFlight = null
-  clearSessionStart()
 }

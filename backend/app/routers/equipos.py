@@ -5,7 +5,7 @@ Incluye operaciones CRUD y restauración de equipos eliminados.
 - Creación y actualización: rol ADMIN o superior.
 - Eliminación y restauración: rol SUPERUSUARIO.
 """
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -62,22 +62,30 @@ def actualizar_equipo(
     return equipos_services.actualizar_equipo(db, equipo_id, data, current_user)
 
 
+# 🔐 SUPERUSUARIO - Preview: ¿se puede eliminar el equipo?
+@router.get("/{equipo_id}/impacto-eliminacion")
+def impacto_eliminacion_equipo(
+    equipo_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_superuser),
+):
+    """Devuelve si el equipo puede eliminarse y qué dependencias lo bloquean."""
+    try:
+        return equipos_services.dependencias_equipo(db, equipo_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # 🔐 SUPERUSUARIO
-@router.delete("/{equipo_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{equipo_id}", status_code=status.HTTP_200_OK)
 def eliminar_equipo(
     equipo_id: int,
     db: Session = Depends(get_db),
     current_user = Depends(require_superuser),
 ):
-    """Elimina lógicamente (soft delete) un equipo. Solo accesible por SUPERUSUARIO."""
-    equipos_services.eliminar_equipo(db, equipo_id, current_user)
-
-# 🔐 SUPERUSUARIO
-@router.post("/{equipo_id}/restore", response_model=EquipoSchema)
-def restore_equipo(
-    equipo_id: int,
-    db: Session = Depends(get_db),
-    current_user = Depends(require_superuser),
-):
-    """Restaura un equipo previamente eliminado. Solo accesible por SUPERUSUARIO."""
-    return equipos_services.restaurar_equipo(db, equipo_id, current_user)
+    """Elimina un equipo de forma DEFINITIVA (solo si no tiene datos asociados)."""
+    try:
+        dep = equipos_services.eliminar_equipo(db, equipo_id, current_user)
+        return {"detail": "Equipo eliminado definitivamente", "impacto": dep}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

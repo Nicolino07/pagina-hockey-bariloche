@@ -479,7 +479,11 @@ export default function EquipoDetalle() {
       {/* ── Modal: Eliminar plantel ── */}
       <Modal open={modalType === "eliminar_plantel"} title="Eliminar Plantel" onClose={() => setModalType(null)}>
         <p>¿Eliminar el plantel <strong>{plantelSeleccionado?.nombre}</strong>?</p>
-        <p className={styles.warningText}>Esta acción es un soft-delete. Solo se puede eliminar un plantel cerrado.</p>
+        <p className={styles.warningText}>
+          Se elimina de forma <strong>definitiva</strong> y no se puede deshacer. Solo se
+          puede borrar un plantel cerrado y sin integrantes: si tuvo jugadores, no se borra
+          (es historia), quedará cerrado.
+        </p>
         <div className={styles.modalActions}>
           <Button variant="secondary" onClick={() => setModalType(null)}>Cancelar</Button>
           <Button variant="danger" onClick={handleEliminarPlantel} disabled={saving}>Eliminar</Button>

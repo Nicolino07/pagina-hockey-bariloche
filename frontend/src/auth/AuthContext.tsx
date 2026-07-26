@@ -18,8 +18,9 @@ import {
   startSession,
   stopSession,
   refreshSession,
-  beginSession,
   flagSessionExpired,
+  wasLastRefreshNetworkError,
+  esErrorBackendCaido,
 } from '../auth/sessionManager'
 import type { ExpiryReason } from '../auth/sessionManager'
 
@@ -72,6 +73,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // 🔑 Rehidratamos el access token SOLO en memoria desde la cookie httpOnly.
       const token = await refreshSession();
       if (!token) {
+        if (wasLastRefreshNetworkError()) {
+          // Backend inalcanzable (p. ej. reconstruyendo contenedores): NO
+          // destruimos el hint de sesión. El usuario puede reintentar
+          // recargando una vez que el backend vuelva a estar arriba.
+          return;
+        }
         authUtils.clearAuth();
         clearAccessToken();
         setUser(null);
@@ -92,8 +99,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // 🔄 Sesión deslizante: renueva el token mientras haya actividad.
         startSession(handleSessionExpired);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ No se pudo restaurar la sesión:', error);
+      if (esErrorBackendCaido(error)) {
+        // Backend no disponible momentáneamente (red caída, gateway 502/503,
+        // contenedor reiniciando): no borramos el hint de sesión, se puede
+        // reintentar recargando la página.
+        return;
+      }
       authUtils.clearAuth();
       clearAccessToken();
       setUser(null);
@@ -123,9 +136,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(token)
 
     setUser(userInfo)
-
-    // ⏱️ Marca el inicio de sesión (reloj del tope absoluto de 4 h).
-    beginSession()
 
     // 🔄 Iniciar la sesión deslizante tras el login.
     startSession(handleSessionExpired)

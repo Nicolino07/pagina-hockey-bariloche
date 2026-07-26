@@ -9,8 +9,6 @@ import { Link } from "react-router-dom"
 
 /** Mensaje a mostrar según el motivo por el que se cerró la sesión anterior. */
 const AVISO_SESION: Record<string, string> = {
-  too_long:
-    "Tu sesión superó el tiempo máximo (4 horas). Por seguridad, ingresá tu contraseña nuevamente.",
   inactivity:
     "Tu sesión se cerró por inactividad. Ingresá nuevamente para continuar.",
 }

@@ -99,27 +99,136 @@ def obtener_torneo_activo(db: Session, id_torneo: int) -> Torneo:
     return torneo
 
 
-def soft_delete_torneo(
-    db: Session, 
-    id_torneo: int, 
-    current_user
-) -> Torneo:
-    """Realiza soft delete de un torneo"""
+def calcular_impacto_eliminacion(db: Session, id_torneo: int) -> dict:
+    """Cuenta los datos que se borrarían junto con el torneo.
+
+    Sirve para mostrarle al usuario el "radio de impacto" antes de confirmar
+    una eliminación definitiva (que es irreversible). No borra nada.
+    """
+    from app.models.fase import Fase
+    from app.models.partido import Partido
+    from app.models.gol import Gol
+    from app.models.tarjeta import Tarjeta
+    from app.models.inscripcion_torneo import InscripcionTorneo
+
     torneo = obtener_torneo_activo(db, id_torneo)
-    
-    # Verificar si el torneo puede ser eliminado
-    if torneo.fases:
+
+    partidos_ids = [
+        pid for (pid,) in db.query(Partido.id_partido)
+        .filter(Partido.id_torneo == id_torneo)
+        .all()
+    ]
+
+    if partidos_ids:
+        goles = db.query(Gol).filter(Gol.id_partido.in_(partidos_ids)).count()
+        tarjetas = db.query(Tarjeta).filter(Tarjeta.id_partido.in_(partidos_ids)).count()
+    else:
+        goles = 0
+        tarjetas = 0
+
+    return {
+        "id_torneo": torneo.id_torneo,
+        "nombre": torneo.nombre,
+        "finalizado": not torneo.activo,
+        "fases": db.query(Fase).filter(Fase.id_torneo == id_torneo).count(),
+        "partidos": len(partidos_ids),
+        "goles": goles,
+        "tarjetas": tarjetas,
+        "inscripciones": db.query(InscripcionTorneo)
+        .filter(InscripcionTorneo.id_torneo == id_torneo)
+        .count(),
+    }
+
+
+def eliminar_torneo_definitivo(
+    db: Session,
+    id_torneo: int,
+    current_user,
+) -> dict:
+    """Elimina un torneo de forma DEFINITIVA (borrado físico con cascada).
+
+    Reservado para datos mal cargados o descartados: al borrar el torneo se
+    borran también sus partidos, goles, tarjetas, inscripciones, posiciones y
+    suspensiones, liberando los constraints (UNIQUE/RESTRICT) que el soft delete
+    dejaba trabados. Los torneos reales no se borran: se finalizan.
+
+    El borrado se hace en orden explícito dentro de una transacción para respetar
+    los FK RESTRICT/NO ACTION que la base usa como red de seguridad. Deja registro
+    en auditoria_log. Devuelve el radio de impacto de lo que se borró.
+    """
+    from sqlalchemy import or_
+    from app.models.suspension import Suspension
+    from app.models.partido import Partido
+    from app.models.posicion import Posicion
+    from app.models.inscripcion_torneo import InscripcionTorneo
+    from app.models.auditoria_log import AuditoriaLog
+
+    torneo = obtener_torneo_activo(db, id_torneo)
+
+    # Speed bump: un torneo finalizado casi siempre es historia real. Obligamos a
+    # reabrirlo primero, para que borrarlo sea una decisión consciente y no un click.
+    if not torneo.activo:
         raise ConflictError(
-            "No se puede eliminar un torneo que ya tiene fases. "
-            "Primero elimine las fases asociadas."
+            "El torneo está finalizado. Reabrilo antes de eliminarlo, "
+            "para confirmar que realmente querés borrar su historial."
         )
-    
-    # Usar el método del mixin
-    torneo.soft_delete(usuario=current_user.username)
-    
-    db.commit()
-    db.refresh(torneo)
-    return torneo
+
+    # Radio de impacto (para auditoría y respuesta) antes de tocar nada.
+    impacto = calcular_impacto_eliminacion(db, id_torneo)
+
+    partidos_ids = [
+        pid for (pid,) in db.query(Partido.id_partido)
+        .filter(Partido.id_torneo == id_torneo)
+        .all()
+    ]
+
+    try:
+        # 1) Suspensiones: referencian torneo y partido (NO ACTION), bloquean todo.
+        cond = Suspension.id_torneo == id_torneo
+        if partidos_ids:
+            cond = or_(cond, Suspension.id_partido_origen.in_(partidos_ids))
+        db.query(Suspension).filter(cond).delete(synchronize_session=False)
+
+        # 2) Partidos: goles, tarjetas y participantes caen por CASCADE en la DB.
+        #    Los borramos primero para liberar el RESTRICT partido -> inscripcion.
+        db.query(Partido).filter(
+            Partido.id_torneo == id_torneo
+        ).delete(synchronize_session=False)
+
+        # 3) Posiciones (FK a torneo sin cascada).
+        db.query(Posicion).filter(
+            Posicion.id_torneo == id_torneo
+        ).delete(synchronize_session=False)
+
+        # 4) Inscripciones (RESTRICT hacia torneo): ya sin partidos que las referencien.
+        db.query(InscripcionTorneo).filter(
+            InscripcionTorneo.id_torneo == id_torneo
+        ).delete(synchronize_session=False)
+
+        # 5) Registro de auditoría antes de borrar el torneo.
+        db.add(AuditoriaLog(
+            tabla_afectada="torneo",
+            id_registro=str(id_torneo),
+            operacion="DELETE",
+            valores_anteriores=impacto,
+            id_usuario=current_user.id_usuario,
+        ))
+
+        # 6) Torneo: usamos delete() masivo (no db.delete(objeto)) para que la
+        #    cascada la maneje la BASE. Con el borrado por ORM, SQLAlchemy no sabe
+        #    del ON DELETE CASCADE e intenta nulificar id_torneo en los hijos
+        #    (fase, fixture_fecha, fixture_playoff_ronda) -> NotNullViolation.
+        #    Fases y fixtures caen por CASCADE a nivel base.
+        db.query(Torneo).filter(
+            Torneo.id_torneo == id_torneo
+        ).delete(synchronize_session=False)
+
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return impacto
 
 
 def finalizar_torneo(
@@ -145,28 +254,6 @@ def finalizar_torneo(
         torneo.fecha_fin = fecha_fin
     elif not torneo.fecha_fin:
         torneo.fecha_fin = date.today()
-    
-    db.commit()
-    db.refresh(torneo)
-    return torneo
-
-
-def restaurar_torneo(
-    db: Session, 
-    id_torneo: int, 
-    current_user
-) -> Torneo:
-    """Restaura un torneo eliminado (soft delete)"""
-    torneo = db.query(Torneo).filter(
-        Torneo.id_torneo == id_torneo,
-        Torneo.borrado_en.is_not(None)  # Solo torneos eliminados
-    ).first()
-    
-    if not torneo:
-        raise NotFoundError("Torneo no encontrado o no está eliminado")
-    
-    # Usar el método del mixin
-    torneo.restore(usuario=current_user.username)
     
     db.commit()
     db.refresh(torneo)

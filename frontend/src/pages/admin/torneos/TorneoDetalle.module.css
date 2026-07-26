@@ -43,6 +43,198 @@
   margin-top: 20px;
 }
 
+/* --- PESTAÑAS (Resumen / Fixture) --- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #333;
+  margin-bottom: 24px;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 12px 20px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab:hover {
+  color: #e0e0e0;
+}
+
+.tabActive {
+  color: #8ab4f8;
+  border-bottom-color: #8ab4f8;
+}
+
+/* Encabezado de tarjeta con título + acción (ej. Equipos inscriptos) */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.cardHeader .statsTitle {
+  margin: 0;
+}
+
+/* --- SUB-PESTAÑAS (dentro de Configuración) --- */
+
+.subTabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.subTab {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  color: #888;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.subTab:hover {
+  color: #e0e0e0;
+}
+
+.subTabActive {
+  color: #fff;
+  background: #2a3b57;
+  border-color: #8ab4f8;
+}
+
+/* --- INFO GENERAL EN MODO LECTURA --- */
+
+.infoList {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 4px 24px;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.infoLabel {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.infoValue {
+  color: #e0e0e0;
+  font-weight: 500;
+  margin: 0;
+  text-align: right;
+}
+
+/* --- ZONA PELIGROSA --- */
+
+.dangerZone {
+  margin-top: 32px;
+  border: 1px solid #5c2a2a;
+  border-radius: 12px;
+  padding: 20px;
+  background: rgba(92, 42, 42, 0.12);
+}
+
+.dangerTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f28b82;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 16px 0;
+}
+
+.dangerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid #3a2626;
+  flex-wrap: wrap;
+}
+
+.dangerRow:first-of-type {
+  border-top: none;
+}
+
+.dangerLabel {
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.dangerDesc {
+  color: #9a8a8a;
+  font-size: 0.82rem;
+  margin: 2px 0 0 0;
+}
+
+/* --- LISTA DE PLAYOFFS --- */
+
+.playoffList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.playoffItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid #2a2a2a;
+  flex-wrap: wrap;
+}
+
+.playoffItem:first-child {
+  border-top: none;
+}
+
+/* Selector de playoff cuando la liga tiene más de uno */
+.subSelectorRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.subSelect {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  color: #e0e0e0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+
+.subSelect:focus {
+  outline: none;
+  border-color: #8ab4f8;
+}
+
 /* --- RESPONSIVIDAD --- */
 
 @media (max-width: 768px) {

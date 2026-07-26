@@ -41,7 +41,6 @@ import NoticiaDetalle from "./pages/public/noticias/NoticiaDetalle"
 import Noticias from "./pages/public/noticias/Noticias"
 import FixturePage from "./pages/public/fixture/FixturePage"
 import ResultadosPage from "./pages/public/resultados/ResultadosPage"
-import FixtureAdmin from "./pages/admin/fixture/FixtureAdmin"
 import DesignacionArbitros from "./pages/admin/arbitros/DesignacionArbitros"
 import MainLayout from "./layouts/MainLayout"
 
@@ -154,7 +153,6 @@ export default function App() {
             <ProtectedRoute allowedRoles={['ADMIN','SUPERUSUARIO']} />
           }
         >
-          <Route path="/admin/fixture" element={<FixtureAdmin />} />
           <Route path="/admin/clubes" element={<Clubes />} />
           <Route path="/admin/clubes/:id_club" element={<ClubDetalle />} />
           <Route path="/admin/equipos/:id_equipo" element={<EquipoDetalle />} />

@@ -5,7 +5,6 @@ from sqlalchemy import func
 from datetime import date
 
 from app.database import get_db
-from app.models.torneo import Torneo as TorneoModel
 from app.schemas.torneo import (
     TorneoSchema, 
     TorneoCreate, 
@@ -73,20 +72,42 @@ def actualizar_torneo(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# 🔐 SUPERUSUARIO - Soft Delete
-@router.delete("/{id_torneo}", status_code=status.HTTP_200_OK)
-def eliminar_torneo_soft(
+# 🔐 SUPERUSUARIO - Preview del radio de impacto de una eliminación
+@router.get("/{id_torneo}/impacto-eliminacion")
+def impacto_eliminacion_torneo(
     id_torneo: int,
     db: Session = Depends(get_db),
     current_user: Usuario = Depends(require_superuser)
 ):
-    """Eliminación lógica (soft delete) de un torneo"""
+    """Cuenta qué se borraría si se elimina el torneo (no borra nada).
+
+    Pensado para mostrar la confirmación antes de un borrado definitivo.
+    """
     try:
-        torneo = torneos_services.soft_delete_torneo(db, id_torneo, current_user)
+        return torneos_services.calcular_impacto_eliminacion(db, id_torneo)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# 🔐 SUPERUSUARIO - Eliminación DEFINITIVA (borrado físico con cascada)
+@router.delete("/{id_torneo}", status_code=status.HTTP_200_OK)
+def eliminar_torneo(
+    id_torneo: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_superuser)
+):
+    """Elimina el torneo de forma DEFINITIVA junto con todos sus datos.
+
+    Solo para datos mal cargados o descartados. Los torneos reales se finalizan,
+    no se borran. Un torneo finalizado debe reabrirse antes de poder eliminarse.
+    """
+    try:
+        impacto = torneos_services.eliminar_torneo_definitivo(
+            db, id_torneo, current_user
+        )
         return {
-            "detail": "Torneo eliminado correctamente",
-            "id_torneo": torneo.id_torneo,
-            "borrado_en": torneo.borrado_en
+            "detail": "Torneo eliminado definitivamente",
+            "impacto": impacto,
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -108,20 +129,6 @@ def finalizar_torneo(
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-# 🔐 SUPERUSUARIO - Restaurar torneo
-@router.post("/{id_torneo}/restaurar", response_model=TorneoSchema)
-def restaurar_torneo(
-    id_torneo: int,
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_superuser)
-):
-    """Restaura un torneo previamente eliminado"""
-    try:
-        return torneos_services.restaurar_torneo(db, id_torneo, current_user)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -152,26 +159,3 @@ def reabrir_torneo(
         return torneo
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-# 🔐 SUPERUSUARIO
-@router.delete("/{id_torneo}/fisico", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_torneo_fisico(
-    id_torneo: int,
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_superuser)
-):
-    """Eliminación física del torneo (PELIGROSO - solo para desarrollo)"""
-    torneo = db.query(TorneoModel).filter(TorneoModel.id_torneo == id_torneo).first()
-    if not torneo:
-        raise HTTPException(status_code=404, detail="Torneo no encontrado")
-    
-    # Verificar que no tenga dependencias
-    if torneo.fases:
-        raise HTTPException(
-            status_code=400, 
-            detail="No se puede eliminar físicamente un torneo con fases asociadas"
-        )
-    
-    db.delete(torneo)
-    db.commit()
-    return None

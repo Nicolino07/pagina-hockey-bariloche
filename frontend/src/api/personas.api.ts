@@ -62,6 +62,30 @@ export async function updatePersona(id: number, data: Partial<Persona>) {
 }
 
 
+// Dependencias que bloquean la eliminación de una persona
+export interface DependenciasPersona {
+  id_persona: number
+  nombre: string
+  jugo: number
+  arbitro: number
+  puede_eliminar: boolean
+}
+
+// 🔎 Preview: ¿se puede eliminar la persona? (no borra nada)
+export async function impactoEliminacionPersona(
+  id_persona: number
+): Promise<DependenciasPersona> {
+  const { data } = await api.get(`/personas/${id_persona}/impacto-eliminacion`)
+  return data
+}
+
+// 🗑 Eliminación DEFINITIVA (solo si nunca participó; irreversible)
+export async function eliminarPersona(id_persona: number) {
+  const { data } = await api.delete(`/personas/${id_persona}`)
+  return data
+}
+
+
 export const createPersonaConRol = async (personaData: any, rol: string) => {
   const payload = {
     persona: {
