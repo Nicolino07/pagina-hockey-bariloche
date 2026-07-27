@@ -484,6 +484,9 @@ CREATE TABLE IF NOT EXISTS suspension (
     -- (ej. sanción disciplinaria general de la persona, no ligada a una competencia).
     id_torneo               INT
         REFERENCES torneo(id_torneo),
+    -- Alcance por rol: solo tiene sentido cuando id_torneo es NULL (global).
+    -- NULL = todos los roles; array explícito = restringe a esos roles.
+    roles_afectados         tipo_rol_persona[],
     id_partido_origen       INT
         REFERENCES partido(id_partido),
     id_partido_a_cumplir    INT
@@ -516,7 +519,9 @@ CREATE TABLE IF NOT EXISTS suspension (
         OR
         (tipo_suspension = 'POR_FECHA' AND fecha_fin_suspension IS NOT NULL)
     ),
-    CHECK (cumplidas <= COALESCE(fechas_suspension, 0))
+    CHECK (cumplidas <= COALESCE(fechas_suspension, 0)),
+    CONSTRAINT chk_suspension_roles_solo_global
+        CHECK (roles_afectados IS NULL OR id_torneo IS NULL)
 );
 
 -- ======================

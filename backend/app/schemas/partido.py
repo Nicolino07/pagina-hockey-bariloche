@@ -70,6 +70,13 @@ class DesignarArbitrosRequest(BaseModel):
     """Payload para designar (o quitar) los árbitros de un partido."""
     id_arbitro1: Optional[int] = None
     id_arbitro2: Optional[int] = None
+    forzar: bool = Field(
+        False,
+        description=(
+            "Si es True, permite designar árbitros marcados como no "
+            "designables (el admin confirmó explícitamente el override)."
+        ),
+    )
 
 
 class ArbitroDisponible(BaseModel):
@@ -95,6 +102,7 @@ class PartidoDesignable(BaseModel):
     numero_fecha: Optional[int] = None
     fecha: Optional[date] = None
     horario: Optional[time] = None
+    ubicacion: Optional[str] = None
     estado_partido: str
     equipo_local: Optional[str] = None
     equipo_visitante: Optional[str] = None

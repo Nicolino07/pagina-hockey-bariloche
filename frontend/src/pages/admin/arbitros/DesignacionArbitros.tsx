@@ -4,7 +4,7 @@
  * y permite designar árbitro 1 y árbitro 2 sobre cada uno, respetando las reglas
  * de club propio y torneo propio (validadas en backend y DB).
  */
-import { useEffect, useMemo, useState } from "react"
+import { Fragment, useEffect, useMemo, useState } from "react"
 import {
   getPartidosDesignables,
   getArbitrosDisponibles,
@@ -12,6 +12,7 @@ import {
   type PartidoDesignable,
   type ArbitroDisponible,
 } from "../../../api/arbitros.api"
+import Modal from "../../../components/ui/modal/Modal"
 import styles from "./DesignacionArbitros.module.css"
 
 const CATEGORIA_LABEL: Record<string, string> = {
@@ -39,12 +40,96 @@ function etiquetaTorneo(p: PartidoDesignable): string {
   return partes.join(" · ")
 }
 
+const MES_LABEL = [
+  "ene", "feb", "mar", "abr", "may", "jun",
+  "jul", "ago", "sep", "oct", "nov", "dic",
+]
+
+/** Formatea "2026-07-07" como "7-jul-26". */
+function formatearFecha(fecha: string | null): string {
+  if (!fecha) return "—"
+  const [anio, mes, dia] = fecha.split("-")
+  const mesIdx = Number(mes) - 1
+  if (!anio || mesIdx < 0 || mesIdx > 11 || !dia) return fecha
+  return `${Number(dia)}-${MES_LABEL[mesIdx]}-${anio.slice(2)}`
+}
+
+/** True si el texto de búsqueda matchea alguno de los árbitros del partido. */
+function coincideArbitro(p: PartidoDesignable, busqueda: string): boolean {
+  const texto = busqueda.trim().toLowerCase()
+  if (!texto) return true
+  return [p.nombre_arbitro1, p.nombre_arbitro2].some((n) =>
+    n?.toLowerCase().includes(texto)
+  )
+}
+
+type CampoOrden = "numero_fecha" | "fecha"
+
+interface Orden {
+  campo: CampoOrden
+  direccion: "asc" | "desc"
+}
+
+/** Orden por defecto: igual al que ya trae el backend (día y horario). */
+function ordenarPartidos(
+  partidos: PartidoDesignable[],
+  orden: Orden | null
+): PartidoDesignable[] {
+  if (!orden) return partidos
+  const { campo, direccion } = orden
+  const signo = direccion === "asc" ? 1 : -1
+  return [...partidos].sort((a, b) => {
+    const va = a[campo]
+    const vb = b[campo]
+    if (va == null && vb == null) return 0
+    if (va == null) return 1
+    if (vb == null) return -1
+    if (va < vb) return -1 * signo
+    if (va > vb) return 1 * signo
+    return 0
+  })
+}
+
+/** Encabezado de columna ordenable, con flecha de dirección. */
+function EncabezadoOrden({
+  label,
+  campo,
+  orden,
+  onOrdenar,
+}: {
+  label: string
+  campo: CampoOrden
+  orden: Orden | null
+  onOrdenar: (campo: CampoOrden) => void
+}) {
+  const activo = orden?.campo === campo
+  const icono = activo ? (orden!.direccion === "asc" ? "▲" : "▼") : "⇅"
+  return (
+    <th className={styles.thOrden} onClick={() => onOrdenar(campo)}>
+      {label} <span className={styles.iconoOrden}>{icono}</span>
+    </th>
+  )
+}
+
+type Tab = "designar" | "vigentes"
+
 export default function DesignacionArbitros() {
+  const [tab, setTab] = useState<Tab>("designar")
   const [partidos, setPartidos] = useState<PartidoDesignable[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filtroTorneo, setFiltroTorneo] = useState<string>("")
+  const [filtroFecha, setFiltroFecha] = useState<string>("")
+  const [filtroArbitro, setFiltroArbitro] = useState<string>("")
   const [expandido, setExpandido] = useState<number | null>(null)
+  const [orden, setOrden] = useState<Orden | null>(null)
+
+  const ordenar = (campo: CampoOrden) => {
+    setOrden((actual) => {
+      if (actual?.campo !== campo) return { campo, direccion: "asc" }
+      return { campo, direccion: actual.direccion === "asc" ? "desc" : "asc" }
+    })
+  }
 
   const cargarPartidos = async () => {
     setCargando(true)
@@ -68,9 +153,16 @@ export default function DesignacionArbitros() {
     return Array.from(set.entries())
   }, [partidos])
 
-  const partidosFiltrados = filtroTorneo
-    ? partidos.filter((p) => String(p.id_torneo) === filtroTorneo)
-    : partidos
+  const partidosFiltrados = ordenarPartidos(
+    partidos
+      .filter((p) => !filtroTorneo || String(p.id_torneo) === filtroTorneo)
+      .filter((p) => !filtroFecha || p.fecha === filtroFecha),
+    orden
+  )
+
+  const partidosDesignados = partidosFiltrados
+    .filter((p) => p.nombre_arbitro1 || p.nombre_arbitro2)
+    .filter((p) => coincideArbitro(p, filtroArbitro))
 
   return (
     <div className={styles.container}>
@@ -80,6 +172,21 @@ export default function DesignacionArbitros() {
           Asigná los árbitros a los partidos pendientes o en borrador.
         </p>
       </header>
+
+      <div className={styles.tabs}>
+        <button
+          className={tab === "designar" ? styles.tabActiva : styles.tab}
+          onClick={() => setTab("designar")}
+        >
+          Designar
+        </button>
+        <button
+          className={tab === "vigentes" ? styles.tabActiva : styles.tab}
+          onClick={() => setTab("vigentes")}
+        >
+          Designaciones vigentes
+        </button>
+      </div>
 
       <div className={styles.selectorRow}>
         <div>
@@ -97,6 +204,39 @@ export default function DesignacionArbitros() {
             ))}
           </select>
         </div>
+        <div>
+          <label className={styles.label}>Filtrar por día</label>
+          <input
+            type="date"
+            className={styles.select}
+            value={filtroFecha}
+            onChange={(e) => setFiltroFecha(e.target.value)}
+          />
+        </div>
+        {tab === "vigentes" && (
+          <div>
+            <label className={styles.label}>Filtrar por árbitro</label>
+            <input
+              type="text"
+              className={styles.select}
+              placeholder="Nombre o apellido"
+              value={filtroArbitro}
+              onChange={(e) => setFiltroArbitro(e.target.value)}
+            />
+          </div>
+        )}
+        {(filtroTorneo || filtroFecha || filtroArbitro) && (
+          <button
+            className={styles.btnSecundario}
+            onClick={() => {
+              setFiltroTorneo("")
+              setFiltroFecha("")
+              setFiltroArbitro("")
+            }}
+          >
+            ✕ Limpiar filtros
+          </button>
+        )}
         <button className={styles.btnSecundario} onClick={cargarPartidos}>
           ↻ Recargar
         </button>
@@ -105,74 +245,201 @@ export default function DesignacionArbitros() {
       {error && <div className={styles.errorBox}>{error}</div>}
       {cargando && <p className={styles.muted}>Cargando partidos…</p>}
 
-      {!cargando && partidosFiltrados.length === 0 && (
+      {!cargando && tab === "designar" && partidosFiltrados.length === 0 && (
         <p className={styles.muted}>
           No hay partidos pendientes ni en borrador para designar.
         </p>
       )}
 
-      <div className={styles.lista}>
-        {partidosFiltrados.map((p) => (
-          <PartidoRow
-            key={p.id_partido}
-            partido={p}
-            abierto={expandido === p.id_partido}
-            onToggle={() =>
-              setExpandido(expandido === p.id_partido ? null : p.id_partido)
-            }
+      {!cargando && tab === "vigentes" && partidosDesignados.length === 0 && (
+        <p className={styles.muted}>Todavía no hay árbitros designados.</p>
+      )}
+
+      {tab === "designar" ? (
+        !cargando &&
+        partidosFiltrados.length > 0 && (
+          <CuadroDesignar
+            partidos={partidosFiltrados}
+            expandido={expandido}
+            onToggle={(id) => setExpandido(expandido === id ? null : id)}
             onGuardado={cargarPartidos}
+            orden={orden}
+            onOrdenar={ordenar}
           />
-        ))}
-      </div>
+        )
+      ) : (
+        !cargando &&
+        partidosDesignados.length > 0 && (
+          <CuadroVigentes
+            partidos={partidosDesignados}
+            orden={orden}
+            onOrdenar={ordenar}
+          />
+        )
+      )}
     </div>
   )
 }
 
-function PartidoRow({
-  partido,
-  abierto,
-  onToggle,
-  onGuardado,
+/**
+ * Cuadro de designaciones vigentes: partidos en BORRADOR/PENDIENTE (los únicos
+ * que trae `getPartidosDesignables`), ordenados por día y horario tal como
+ * llegan del backend. Deja de estar vigente en cuanto el partido se juega,
+ * se suspende o se reprograma, porque en ese momento sale de ese listado.
+ */
+function CuadroVigentes({
+  partidos,
+  orden,
+  onOrdenar,
 }: {
-  partido: PartidoDesignable
-  abierto: boolean
-  onToggle: () => void
-  onGuardado: () => void
+  partidos: PartidoDesignable[]
+  orden: Orden | null
+  onOrdenar: (campo: CampoOrden) => void
 }) {
   return (
-    <div className={styles.card}>
-      <div className={styles.cardHead} onClick={onToggle}>
-        <div className={styles.cardInfo}>
-          <span className={styles.fecha}>
-            {partido.numero_fecha != null ? `Fecha ${partido.numero_fecha} · ` : ""}
-            {partido.fecha ?? "Sin fecha"}
-            {partido.horario ? ` · ${partido.horario.slice(0, 5)}` : ""}
-          </span>
-          <span className={styles.equipos}>
-            {partido.equipo_local} <span className={styles.vs}>vs</span>{" "}
-            {partido.equipo_visitante}
-          </span>
-          <span className={styles.torneo}>
-            {etiquetaTorneo(partido)}
-            <span className={styles.badgeEstado}>{partido.estado_partido}</span>
-          </span>
-        </div>
-        <div className={styles.arbitrosActuales}>
-          {partido.nombre_arbitro1 || partido.nombre_arbitro2 ? (
-            <>
-              <span>👤 {partido.nombre_arbitro1 ?? "—"}</span>
-              <span>👤 {partido.nombre_arbitro2 ?? "—"}</span>
-            </>
-          ) : (
-            <span className={styles.sinArbitros}>Sin árbitros</span>
-          )}
-          <span className={styles.chevron}>{abierto ? "▲" : "▼"}</span>
-        </div>
-      </div>
-
-      {abierto && <EditorArbitros partido={partido} onGuardado={onGuardado} />}
+    <div className={styles.tablaWrap}>
+      <table className={styles.tabla}>
+        <thead>
+          <tr>
+            <EncabezadoOrden
+              label="N° Fecha"
+              campo="numero_fecha"
+              orden={orden}
+              onOrdenar={onOrdenar}
+            />
+            <EncabezadoOrden
+              label="Día"
+              campo="fecha"
+              orden={orden}
+              onOrdenar={onOrdenar}
+            />
+            <th>Hora</th>
+            <th>Ubicación</th>
+            <th>Árbitro 1</th>
+            <th>Árbitro 2</th>
+            <th>Torneo</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {partidos.map((p) => (
+            <tr key={p.id_partido}>
+              <td>{p.numero_fecha ?? "—"}</td>
+              <td>{formatearFecha(p.fecha)}</td>
+              <td>{p.horario ? p.horario.slice(0, 5) : "—"}</td>
+              <td>{p.ubicacion ?? "—"}</td>
+              <td className={p.nombre_arbitro1 ? undefined : styles.sinArbitros}>
+                {p.nombre_arbitro1 ?? "Sin designar"}
+              </td>
+              <td className={p.nombre_arbitro2 ? undefined : styles.sinArbitros}>
+                {p.nombre_arbitro2 ?? "Sin designar"}
+              </td>
+              <td>{etiquetaTorneo(p)}</td>
+              <td>
+                <span className={styles.badgeEstado}>{p.estado_partido}</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
+}
+
+/**
+ * Cuadro de la pestaña "Designar": mismo estilo de tabla que las
+ * designaciones vigentes, pero cada fila es clickeable y despliega el
+ * editor de árbitro 1/2 debajo.
+ */
+function CuadroDesignar({
+  partidos,
+  expandido,
+  onToggle,
+  onGuardado,
+  orden,
+  onOrdenar,
+}: {
+  partidos: PartidoDesignable[]
+  expandido: number | null
+  onToggle: (idPartido: number) => void
+  onGuardado: () => void
+  orden: Orden | null
+  onOrdenar: (campo: CampoOrden) => void
+}) {
+  return (
+    <div className={styles.tablaWrap}>
+      <table className={styles.tabla}>
+        <thead>
+          <tr>
+            <EncabezadoOrden
+              label="N° Fecha"
+              campo="numero_fecha"
+              orden={orden}
+              onOrdenar={onOrdenar}
+            />
+            <EncabezadoOrden
+              label="Día"
+              campo="fecha"
+              orden={orden}
+              onOrdenar={onOrdenar}
+            />
+            <th>Hora</th>
+            <th>Ubicación</th>
+            <th>Árbitro 1</th>
+            <th>Árbitro 2</th>
+            <th>Torneo</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {partidos.map((p) => {
+            const abierto = expandido === p.id_partido
+            return (
+              <Fragment key={p.id_partido}>
+                <tr
+                  className={styles.filaClickeable}
+                  onClick={() => onToggle(p.id_partido)}
+                >
+                  <td>{p.numero_fecha ?? "—"}</td>
+                  <td>{formatearFecha(p.fecha)}</td>
+                  <td>{p.horario ? p.horario.slice(0, 5) : "—"}</td>
+                  <td>{p.ubicacion ?? "—"}</td>
+                  <td className={p.nombre_arbitro1 ? undefined : styles.sinArbitros}>
+                    {p.nombre_arbitro1 ?? "Sin designar"}
+                  </td>
+                  <td className={p.nombre_arbitro2 ? undefined : styles.sinArbitros}>
+                    {p.nombre_arbitro2 ?? "Sin designar"}
+                  </td>
+                  <td>{etiquetaTorneo(p)}</td>
+                  <td>
+                    <span className={styles.badgeEstado}>{p.estado_partido}</span>
+                  </td>
+                  <td className={styles.chevron}>{abierto ? "▲" : "▼"}</td>
+                </tr>
+                {abierto && (
+                  <tr>
+                    <td colSpan={9} className={styles.celdaEditor}>
+                      <EditorArbitros partido={p} onGuardado={onGuardado} />
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+type Slot = 1 | 2
+
+interface PendienteConfirmacion {
+  slot: Slot
+  idPersona: number
+  nombre: string
+  motivo: string | null
 }
 
 function EditorArbitros({
@@ -185,6 +452,9 @@ function EditorArbitros({
   const [arbitros, setArbitros] = useState<ArbitroDisponible[]>([])
   const [arbitro1, setArbitro1] = useState<number | null>(partido.id_arbitro1)
   const [arbitro2, setArbitro2] = useState<number | null>(partido.id_arbitro2)
+  const [forzado1, setForzado1] = useState(false)
+  const [forzado2, setForzado2] = useState(false)
+  const [pendiente, setPendiente] = useState<PendienteConfirmacion | null>(null)
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -202,6 +472,41 @@ function EditorArbitros({
     }
   }, [partido.id_partido])
 
+  const setSlot = (slot: Slot, idPersona: number | null, forzado: boolean) => {
+    if (slot === 1) {
+      setArbitro1(idPersona)
+      setForzado1(forzado)
+    } else {
+      setArbitro2(idPersona)
+      setForzado2(forzado)
+    }
+  }
+
+  const elegir = (slot: Slot, valor: string) => {
+    if (!valor) {
+      setSlot(slot, null, false)
+      return
+    }
+    const idPersona = Number(valor)
+    const arbitro = arbitros.find((a) => a.id_persona === idPersona)
+    if (arbitro && !arbitro.disponible) {
+      setPendiente({
+        slot,
+        idPersona,
+        nombre: `${arbitro.apellido}, ${arbitro.nombre}`,
+        motivo: arbitro.motivo,
+      })
+      return
+    }
+    setSlot(slot, idPersona, false)
+  }
+
+  const confirmarPendiente = () => {
+    if (!pendiente) return
+    setSlot(pendiente.slot, pendiente.idPersona, true)
+    setPendiente(null)
+  }
+
   const opciones = (excluir: number | null) =>
     arbitros.map((a) => {
       const nombre = `${a.apellido}, ${a.nombre}`
@@ -211,7 +516,9 @@ function EditorArbitros({
         <option
           key={a.id_persona}
           value={a.id_persona}
-          disabled={noDisponible || yaElegido}
+          disabled={yaElegido}
+          className={noDisponible ? styles.optionNoDisponible : undefined}
+          style={noDisponible ? { color: "#f28b82" } : undefined}
         >
           {nombre}
           {noDisponible ? ` — ${a.motivo}` : ""}
@@ -225,7 +532,12 @@ function EditorArbitros({
     setError(null)
     setOk(false)
     try {
-      await designarArbitros(partido.id_partido, arbitro1, arbitro2)
+      await designarArbitros(
+        partido.id_partido,
+        arbitro1,
+        arbitro2,
+        forzado1 || forzado2
+      )
       setOk(true)
       onGuardado()
     } catch (e: any) {
@@ -253,6 +565,10 @@ function EditorArbitros({
             </li>
           )}
         </ul>
+        <p className={styles.muted}>
+          Los árbitros marcados en rojo no cumplen estas reglas. Se pueden
+          igual asignar, previa confirmación.
+        </p>
       </div>
 
       {cargando ? (
@@ -265,26 +581,32 @@ function EditorArbitros({
               <select
                 className={styles.select}
                 value={arbitro1 ?? ""}
-                onChange={(e) =>
-                  setArbitro1(e.target.value ? Number(e.target.value) : null)
-                }
+                onChange={(e) => elegir(1, e.target.value)}
               >
                 <option value="">— Sin designar —</option>
                 {opciones(arbitro2)}
               </select>
+              {forzado1 && (
+                <p className={styles.avisoForzado}>
+                  ⚠ Asignado de todas formas (no cumple las reglas).
+                </p>
+              )}
             </div>
             <div>
               <label className={styles.label}>Árbitro 2</label>
               <select
                 className={styles.select}
                 value={arbitro2 ?? ""}
-                onChange={(e) =>
-                  setArbitro2(e.target.value ? Number(e.target.value) : null)
-                }
+                onChange={(e) => elegir(2, e.target.value)}
               >
                 <option value="">— Sin designar —</option>
                 {opciones(arbitro1)}
               </select>
+              {forzado2 && (
+                <p className={styles.avisoForzado}>
+                  ⚠ Asignado de todas formas (no cumple las reglas).
+                </p>
+              )}
             </div>
           </div>
 
@@ -302,6 +624,34 @@ function EditorArbitros({
           </div>
         </>
       )}
+
+      <Modal
+        open={pendiente != null}
+        title="Árbitro no designable"
+        onClose={() => setPendiente(null)}
+      >
+        {pendiente && (
+          <>
+            <p>
+              <strong>{pendiente.nombre}</strong> no cumple las reglas de
+              arbitraje para este partido
+              {pendiente.motivo ? `: ${pendiente.motivo}` : "."}
+            </p>
+            <p>¿Confirmás asignarlo de todas formas?</p>
+            <div className={styles.acciones}>
+              <button className={styles.btnPrimario} onClick={confirmarPendiente}>
+                Asignar de todas formas
+              </button>{" "}
+              <button
+                className={styles.btnSecundario}
+                onClick={() => setPendiente(null)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </>
+        )}
+      </Modal>
     </div>
   )
 }

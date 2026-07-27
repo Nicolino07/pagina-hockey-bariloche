@@ -54,11 +54,7 @@ class Partido(Base, AuditFieldsMixin):
         ForeignKey("fase.id_fase", ondelete="SET NULL")
     )
 
-    fecha: Mapped[date] = mapped_column(
-        Date,
-        default=date.today,
-        nullable=False
-    )
+    fecha: Mapped[Optional[date]] = mapped_column(Date)
 
     horario: Mapped[Optional[time]] = mapped_column(Time)
 

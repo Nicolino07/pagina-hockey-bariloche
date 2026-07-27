@@ -19,6 +19,77 @@
   font-size: 1rem;
 }
 
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border-color, #3c4043);
+  margin-bottom: 20px;
+}
+
+.tab,
+.tabActiva {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted, #9aa0a6);
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--text-primary, #e8eaed);
+}
+
+.tabActiva {
+  color: var(--accent, #4285f4);
+  border-bottom-color: var(--accent, #4285f4);
+}
+
+.tablaWrap {
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tabla th,
+.tabla td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color, #3c4043);
+  white-space: nowrap;
+}
+
+.tabla th {
+  color: var(--text-muted, #9aa0a6);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.thOrden {
+  cursor: pointer;
+  user-select: none;
+}
+
+.thOrden:hover {
+  color: var(--text-primary, #e8eaed);
+}
+
+.iconoOrden {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.tabla tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .selectorRow {
   display: flex;
   align-items: flex-end;
@@ -85,47 +156,14 @@
   padding-left: 18px;
 }
 
-.lista {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.optionNoDisponible {
+  color: #f28b82;
 }
 
-.card {
-  border: 1px solid var(--border-color, #3c4043);
-  border-radius: 12px;
-  background: var(--bg-card, #202124);
-  overflow: hidden;
-}
-
-.cardHead {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  cursor: pointer;
-  flex-wrap: wrap;
-}
-
-.cardHead:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.cardInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.fecha {
+.avisoForzado {
+  color: #fdd663;
   font-size: 0.8rem;
-  color: var(--text-muted, #9aa0a6);
-}
-
-.equipos {
-  font-size: 1.05rem;
-  font-weight: 700;
+  margin-top: 4px;
 }
 
 .vs {
@@ -134,17 +172,6 @@
   margin: 0 4px;
 }
 
-.torneo {
-  font-size: 0.85rem;
-  color: var(--text-muted, #9aa0a6);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.badgeComp,
-.badgeNoComp,
 .badgeEstado {
   font-size: 0.7rem;
   font-weight: 700;
@@ -152,29 +179,7 @@
   border-radius: 999px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-}
-
-.badgeComp {
-  background: rgba(66, 133, 244, 0.15);
-  color: #8ab4f8;
-}
-
-.badgeNoComp {
-  background: rgba(251, 188, 5, 0.15);
-  color: #fdd663;
-}
-
-.badgeEstado {
   background: rgba(255, 255, 255, 0.08);
-  color: var(--text-primary, #e8eaed);
-}
-
-.arbitrosActuales {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  font-size: 0.85rem;
   color: var(--text-primary, #e8eaed);
 }
 
@@ -186,13 +191,22 @@
 .chevron {
   color: var(--text-muted, #9aa0a6);
   font-size: 0.7rem;
-  margin-top: 4px;
+  text-align: center;
+}
+
+.filaClickeable {
+  cursor: pointer;
+}
+
+.celdaEditor {
+  padding: 0 !important;
+  white-space: normal;
+  background: rgba(0, 0, 0, 0.12);
 }
 
 .editor {
   border-top: 1px solid var(--border-color, #3c4043);
   padding: 20px;
-  background: rgba(0, 0, 0, 0.12);
 }
 
 .selects {

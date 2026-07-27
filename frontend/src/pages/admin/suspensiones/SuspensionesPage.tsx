@@ -7,7 +7,7 @@ import { getPersonas } from "../../../api/personas.api"
 import { listarSuspensiones, crearSuspensionManual, anularSuspension } from "../../../api/suspensiones.api"
 import type { Persona } from "../../../types/persona"
 import type { Suspension } from "../../../types/suspension"
-import { TIPOS_SUSPENSION } from "../../../constants/enums"
+import { TIPOS_SUSPENSION, ROLES_PERSONA } from "../../../constants/enums"
 import styles from "./SuspensionesPage.module.css"
 
 const ESTADO_CLASE: Record<string, string> = {
@@ -31,6 +31,7 @@ export default function SuspensionesPage() {
   const [form, setForm] = useState({
     id_persona: "",
     id_torneo: "",
+    roles_afectados: [] as string[],
     tipo_suspension: "POR_PARTIDOS" as (typeof TIPOS_SUSPENSION)[number],
     fechas_suspension: "1",
     fecha_fin_suspension: "",
@@ -86,16 +87,18 @@ export default function SuspensionesPage() {
   const handleCrear = async () => {
     setError(null)
     try {
+      const esGlobal = !form.id_torneo
       await crearSuspensionManual({
         id_persona: Number(form.id_persona),
         id_torneo: form.id_torneo ? Number(form.id_torneo) : null,
+        roles_afectados: esGlobal && form.roles_afectados.length > 0 ? (form.roles_afectados as any) : null,
         tipo_suspension: form.tipo_suspension,
         motivo: form.motivo,
         fechas_suspension: form.tipo_suspension === "POR_PARTIDOS" ? Number(form.fechas_suspension) : null,
         fecha_fin_suspension: form.tipo_suspension === "POR_FECHA" ? form.fecha_fin_suspension : null,
       })
       setMostrarForm(false)
-      setForm({ id_persona: "", id_torneo: "", tipo_suspension: "POR_PARTIDOS", fechas_suspension: "1", fecha_fin_suspension: "", motivo: "" })
+      setForm({ id_persona: "", id_torneo: "", roles_afectados: [], tipo_suspension: "POR_PARTIDOS", fechas_suspension: "1", fecha_fin_suspension: "", motivo: "" })
       setPersonaSeleccionada(null)
       setBusquedaPersona("")
       cargar()
@@ -166,13 +169,40 @@ export default function SuspensionesPage() {
           </div>
           <label>
             Torneo de origen (opcional)
-            <select value={form.id_torneo} onChange={e => setForm({ ...form, id_torneo: e.target.value })}>
+            <select value={form.id_torneo} onChange={e => setForm({ ...form, id_torneo: e.target.value, roles_afectados: [] })}>
               <option value="">— Sin torneo (sanción general) —</option>
               {torneos.map(t => (
                 <option key={t.id_torneo} value={t.id_torneo}>{t.nombre}</option>
               ))}
             </select>
           </label>
+          {!form.id_torneo && (
+            <div className={styles.formFull}>
+              <span className={styles.fieldLabel}>
+                Roles afectados (alcance global — vacío = todos los roles)
+              </span>
+              <div className={styles.rolesCheckboxes}>
+                {ROLES_PERSONA.map(rol => (
+                  <label key={rol} className={styles.rolCheckbox}>
+                    <input
+                      type="checkbox"
+                      checked={form.roles_afectados.includes(rol)}
+                      onChange={e => {
+                        const marcado = e.target.checked
+                        setForm(f => ({
+                          ...f,
+                          roles_afectados: marcado
+                            ? [...f.roles_afectados, rol]
+                            : f.roles_afectados.filter(r => r !== rol),
+                        }))
+                      }}
+                    />
+                    {rol}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
           <label>
             Tipo
             <select value={form.tipo_suspension} onChange={e => setForm({ ...form, tipo_suspension: e.target.value as any })}>

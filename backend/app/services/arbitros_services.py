@@ -11,7 +11,14 @@ Reglas:
      activo en el club local o visitante. Se relaja si torneo.es_competitiva=FALSE.
   2. Torneo propio (absoluta): la persona no puede arbitrar en un torneo donde
      integra un plantel.
-Además, la persona designada debe tener el rol ARBITRO vigente.
+Además, la persona designada debe tener el rol ARBITRO vigente y no debe estar
+suspendida (suspensión de ese torneo, o global con rol ARBITRO afectado).
+
+Las reglas no bloquean la designación: el frontend marca a los árbitros no
+designables y, si el admin confirma igual, el request llega con `forzar=True`.
+En ese caso se salta la pre-validación de Python y se habilita el bypass del
+trigger de DB (`app.forzar_designacion_arbitro`, ver migración 0031) para esa
+transacción.
 """
 from typing import Optional
 
@@ -20,6 +27,7 @@ from sqlalchemy.orm import Session
 
 from app.core.exceptions import NotFoundError, BusinessRuleError
 from app.models.partido import Partido
+from app.models.enums import RolPersonaTipo
 
 
 ESTADOS_DESIGNABLES = ("BORRADOR", "PENDIENTE")
@@ -41,6 +49,7 @@ def listar_partidos_designables(db: Session, torneo_id: Optional[int] = None):
                 p.numero_fecha,
                 p.fecha,
                 p.horario,
+                p.ubicacion,
                 p.estado_partido::text AS estado_partido,
                 COALESCE(el.nombre, p.placeholder_local)     AS equipo_local,
                 COALESCE(ev.nombre, p.placeholder_visitante) AS equipo_visitante,
@@ -72,10 +81,13 @@ def _motivo_no_disponible(
     en_club: bool,
     es_competitiva: bool,
     nombre_completo: str,
+    motivo_suspension: Optional[str] = None,
 ) -> Optional[str]:
     """Devuelve el motivo por el que una persona no puede arbitrar, o None si puede."""
     if not tiene_rol_arbitro:
         return f"{nombre_completo} no tiene el rol ARBITRO vigente."
+    if motivo_suspension:
+        return f"{nombre_completo} está suspendido ({motivo_suspension})."
     # Regla 2 (absoluta)
     if en_torneo:
         return f"{nombre_completo} integra un plantel de este torneo."
@@ -126,15 +138,22 @@ def listar_arbitros_para_partido(db: Session, id_partido: int):
         {"id_partido": id_partido},
     ).mappings().all()
 
+    from app.services.suspensiones_services import listar_suspensiones_activas_por_personas
+    suspensiones = listar_suspensiones_activas_por_personas(
+        db, [f["id_persona"] for f in filas], id_torneo=partido.id_torneo, rol=RolPersonaTipo.ARBITRO
+    )
+
     resultado = []
     for f in filas:
         nombre_completo = f"{f['nombre']} {f['apellido']}"
+        activas = suspensiones.get(f["id_persona"])
         motivo = _motivo_no_disponible(
             tiene_rol_arbitro=True,
             en_torneo=f["en_torneo"],
             en_club=f["en_club"],
             es_competitiva=es_competitiva,
             nombre_completo=nombre_completo,
+            motivo_suspension=activas[0].motivo if activas else None,
         )
         resultado.append(
             {
@@ -173,12 +192,20 @@ def _validar_arbitro(db: Session, id_partido: int, id_persona: int, es_competiti
     if fila is None:
         raise NotFoundError(f"La persona {id_persona} no existe")
 
+    from app.services.suspensiones_services import listar_suspensiones_activas_por_personas
+    partido = db.get(Partido, id_partido)
+    suspensiones = listar_suspensiones_activas_por_personas(
+        db, [id_persona], id_torneo=partido.id_torneo, rol=RolPersonaTipo.ARBITRO
+    )
+    activas = suspensiones.get(id_persona)
+
     motivo = _motivo_no_disponible(
         tiene_rol_arbitro=fila["tiene_rol_arbitro"],
         en_torneo=fila["en_torneo"],
         en_club=fila["en_club"],
         es_competitiva=es_competitiva,
         nombre_completo=fila["nombre_completo"],
+        motivo_suspension=activas[0].motivo if activas else None,
     )
     if motivo:
         raise BusinessRuleError(f"No se puede designar: {motivo}")
@@ -201,6 +228,7 @@ def designar_arbitros(db: Session, id_partido: int, data, current_user):
 
     id_arbitro1 = data.id_arbitro1
     id_arbitro2 = data.id_arbitro2
+    forzar = getattr(data, "forzar", False)
 
     if id_arbitro1 is not None and id_arbitro1 == id_arbitro2:
         raise BusinessRuleError("Los dos árbitros deben ser personas distintas.")
@@ -210,9 +238,15 @@ def designar_arbitros(db: Session, id_partido: int, data, current_user):
         {"id_torneo": partido.id_torneo},
     ).scalar()
 
-    for id_persona in (id_arbitro1, id_arbitro2):
-        if id_persona is not None:
-            _validar_arbitro(db, id_partido, id_persona, es_competitiva)
+    if not forzar:
+        for id_persona in (id_arbitro1, id_arbitro2):
+            if id_persona is not None:
+                _validar_arbitro(db, id_partido, id_persona, es_competitiva)
+    else:
+        # El admin confirmó el override: se salta la pre-validación de Python
+        # y se levanta el bypass del trigger de DB para esta transacción,
+        # que de otro modo rechazaría igual el guardado.
+        db.execute(text("SET LOCAL app.forzar_designacion_arbitro = 'true'"))
 
     partido.id_arbitro1 = id_arbitro1
     partido.id_arbitro2 = id_arbitro2

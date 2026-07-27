@@ -1,5 +1,5 @@
 // frontend/src/types/suspension.ts
-import type { TipoSuspension, TipoEstadoSuspension, TipoOrigenSuspension } from "../constants/enums"
+import type { TipoSuspension, TipoEstadoSuspension, TipoOrigenSuspension, TipoRolPersona } from "../constants/enums"
 
 export interface Suspension {
   id_suspension: number
@@ -7,6 +7,10 @@ export interface Suspension {
   id_torneo?: number | null
   id_partido_origen?: number | null
   id_partido_a_cumplir?: number | null
+
+  // Solo aplica cuando id_torneo es null/undefined (alcance global): sin
+  // definir = todos los roles, lista explícita = restringe a esos roles.
+  roles_afectados?: TipoRolPersona[] | null
 
   origen: TipoOrigenSuspension
   tipo_suspension: TipoSuspension
@@ -33,6 +37,7 @@ export interface SuspensionCreatePayload {
   id_persona: number
   id_torneo?: number | null
   id_partido_origen?: number | null
+  roles_afectados?: TipoRolPersona[] | null
   tipo_suspension: TipoSuspension
   motivo: string
   fechas_suspension?: number | null

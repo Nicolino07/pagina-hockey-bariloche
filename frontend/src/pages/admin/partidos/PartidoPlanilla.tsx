@@ -70,10 +70,10 @@ export default function PartidoPlanilla() {
       return;
     }
 
-    obtenerSuspensionesActivasPorPersonas(idsPersona)
+    obtenerSuspensionesActivasPorPersonas(idsPersona, { idTorneo: torneoId, rol: "JUGADOR" })
       .then(mapa => setPersonasSuspendidas(new Set(Object.keys(mapa).map(Number))))
       .catch(() => setPersonasSuspendidas(new Set()));
-  }, [plantelLocal, plantelVisitante]);
+  }, [plantelLocal, plantelVisitante, torneoId]);
 
   const [arbitrosList, setArbitrosList] = useState<PersonasArbitro[]>([]);
   const [loading, setLoading] = useState(false);
@@ -289,7 +289,7 @@ export default function PartidoPlanilla() {
    * Si está en modo edición, actualiza un partido existente. Sino, crea uno nuevo.
    * Navega hacia atrás al guardar exitosamente.
    */
-  const enviarPlanilla = async () => {
+  const enviarPlanilla = async (forzar: boolean = false) => {
     if (!torneoId || !inscripcionLocal || !inscripcionVisitante) {
       alert("Faltan datos básicos del partido");
       return;
@@ -335,6 +335,7 @@ export default function PartidoPlanilla() {
         observaciones: ""
       })),
       id_fixture_partido: idFixturePartido,
+      forzar,
     };
     try {
       if (modoEdicion && partidoId) {
@@ -347,7 +348,15 @@ export default function PartidoPlanilla() {
       navigate(-1);
     } catch (error: any) {
       const msg = error?.response?.data?.detail ?? "Error al guardar la planilla."
-      alert(msg)
+      if (!forzar && typeof msg === "string" && msg.toLowerCase().includes("suspendid")) {
+        if (window.confirm(`${msg}\n\n¿Incluirlo de todas formas?`)) {
+          setLoading(false);
+          await enviarPlanilla(true);
+          return;
+        }
+      } else {
+        alert(msg)
+      }
     } finally {
       setLoading(false);
       setShowModal(false);
@@ -813,7 +822,7 @@ export default function PartidoPlanilla() {
               </Button>
               <Button
                 variant="primary"
-                onClick={enviarPlanilla}
+                onClick={() => enviarPlanilla()}
                 disabled={loading || (partidoInfo.id_arbitro1 === partidoInfo.id_arbitro2 && partidoInfo.id_arbitro1 !== "")}
               >
                 {loading ? (modoEdicion ? "Actualizando..." : "Confirmando...") : (modoEdicion ? "Actualizar y Finalizar" : "Confirmar y Finalizar")}

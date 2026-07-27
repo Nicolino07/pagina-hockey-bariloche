@@ -83,6 +83,21 @@
   grid-column: 1 / -1;
 }
 
+.rolesCheckboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 4px;
+}
+
+.rolCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  flex-direction: row;
+}
+
 .formActions {
   grid-column: 1 / -1;
   display: flex;

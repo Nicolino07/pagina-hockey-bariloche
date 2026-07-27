@@ -36,7 +36,7 @@ router = APIRouter(
 )
 def obtener_plantel_activo_por_equipo(
     id_equipo: int,
-    rol: Optional[str] = Query(None, description="Filtrar por rol (JUGADOR, ENTRENADOR, etc.)"),
+    rol: Optional[str] = Query(None, description="Filtrar por rol (JUGADOR, DT, etc.)"),
     db: Session = Depends(get_db),
 ):
     try:

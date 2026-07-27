@@ -11,6 +11,7 @@ from app.models.fichaje_rol import FichajeRol
 from app.models.plantel_integrante import PlantelIntegrante
 from app.schemas.plantel_integrante import PlantelIntegranteCreate
 from app.models.persona_rol import PersonaRol
+from app.models.enums import TipoSuspension
 from app.core.exceptions import (
     NotFoundError,
     ConflictError,
@@ -123,6 +124,20 @@ def crear_integrante(
         id_persona=data.id_persona,
         rol_en_plantel=data.rol_en_plantel,
     )
+
+    # No se puede incluir en un plantel a una persona con una suspensión
+    # global (sin torneo de origen) POR_FECHA vigente en ese rol.
+    from app.services.suspensiones_services import listar_suspensiones_activas_por_personas
+    suspensiones = listar_suspensiones_activas_por_personas(
+        db, [data.id_persona], rol=data.rol_en_plantel, tipo_suspension=TipoSuspension.POR_FECHA
+    )
+    activas = suspensiones.get(data.id_persona)
+    if activas:
+        s = activas[0]
+        raise ConflictError(
+            f"No se puede incluir en el plantel: suspensión activa hasta "
+            f"{s.fecha_fin_suspension} ({s.motivo})."
+        )
 
     # ============================================
     # 5️⃣ VERIFICAR SI YA EXISTE EL INTEGRANTE

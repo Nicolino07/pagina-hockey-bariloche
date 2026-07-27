@@ -1,9 +1,9 @@
 from datetime import datetime, date
 from typing import Optional, List
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 
-from app.models.enums import TipoSuspension, EstadoSuspension, OrigenSuspension
+from app.models.enums import TipoSuspension, EstadoSuspension, OrigenSuspension, RolPersonaTipo
 
 
 class SuspensionBase(BaseModel):
@@ -11,11 +11,24 @@ class SuspensionBase(BaseModel):
     id_torneo: Optional[int] = Field(None, gt=0)
     id_partido_origen: Optional[int] = None
 
+    # Solo tiene sentido cuando id_torneo es None (alcance global): None = todos
+    # los roles, lista explícita = restringe el bloqueo a esos roles.
+    roles_afectados: Optional[List[RolPersonaTipo]] = None
+
     tipo_suspension: TipoSuspension
     motivo: str = Field(..., min_length=1, max_length=500)
 
     fechas_suspension: Optional[int] = Field(None, gt=0)
     fecha_fin_suspension: Optional[date] = None
+
+    @model_validator(mode="after")
+    def _roles_solo_en_alcance_global(self):
+        if self.roles_afectados and self.id_torneo is not None:
+            raise ValueError(
+                "roles_afectados solo aplica a suspensiones de alcance global "
+                "(sin id_torneo)."
+            )
+        return self
 
 
 class SuspensionCreate(SuspensionBase):

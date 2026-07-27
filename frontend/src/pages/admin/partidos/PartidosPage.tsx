@@ -11,6 +11,7 @@ import { useTorneosActivos } from "../../../hooks/useTorneosActivos";
 import { useInscripcionesTorneo } from "../../../hooks/useInscripcionesTorneo";
 import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api";
 import { generarPlanillaPDF } from "../../../services/PlanillaVacia.service";
+import { marcarSuspendidos } from "../../../utils/suspensiones";
 import { useAuth } from "../../../auth/AuthContext";
 
 /**
@@ -132,9 +133,10 @@ export default function PartidosPage() {
     const data = await getPlantelActivoPorEquipo(idEquipo);
     if (!data || data.length === 0) return { jugadores: [], cuerpoTecnico: [] };
     const conPersona = data.filter((i: any) => i.id_persona !== null && i.id_persona !== undefined);
+    const marcados = await marcarSuspendidos(conPersona);
     return {
-      jugadores: conPersona.filter((i: any) => i.rol_en_plantel === "JUGADOR"),
-      cuerpoTecnico: conPersona.filter((i: any) => i.rol_en_plantel !== "JUGADOR"),
+      jugadores: marcados.filter((i: any) => i.rol_en_plantel === "JUGADOR"),
+      cuerpoTecnico: marcados.filter((i: any) => i.rol_en_plantel !== "JUGADOR"),
     };
   };
 

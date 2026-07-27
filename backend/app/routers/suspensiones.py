@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.enums import EstadoSuspension
+from app.models.enums import EstadoSuspension, RolPersonaTipo
 from app.models.suspension import Suspension as SuspensionModel
 from app.schemas.suspension import SuspensionCreate, SuspensionRead
 from app.dependencies.permissions import require_editor
@@ -45,6 +45,37 @@ def listar_suspensiones(
     return query.order_by(SuspensionModel.creado_en.desc()).all()
 
 
+@router.get("/activas-por-persona/{id_persona}", response_model=list[SuspensionRead])
+def suspensiones_activas_por_persona(
+    id_persona: int,
+    id_torneo: Optional[int] = None,
+    rol: Optional[RolPersonaTipo] = None,
+    db: Session = Depends(get_db),
+):
+    """Devuelve las suspensiones ACTIVA (vigentes) de una persona. Sin
+    `id_torneo`/`rol` trae todo (uso informativo); con ambos, aplica el
+    alcance estricto (torneo de origen o global+rol). Acceso público."""
+    mapa = listar_suspensiones_activas_por_personas(db, [id_persona], id_torneo=id_torneo, rol=rol)
+    return mapa.get(id_persona, [])
+
+
+@router.get("/activas-por-personas", response_model=dict[int, list[SuspensionRead]])
+def suspensiones_activas_por_personas(
+    ids: str,
+    id_torneo: Optional[int] = None,
+    rol: Optional[RolPersonaTipo] = None,
+    db: Session = Depends(get_db),
+):
+    """Lookup en bloque: `ids` es una lista de id_persona separados por coma.
+    Devuelve un diccionario id_persona -> suspensiones ACTIVA. Acceso público."""
+    ids_persona = [int(i) for i in ids.split(",") if i.strip()]
+    return listar_suspensiones_activas_por_personas(db, ids_persona, id_torneo=id_torneo, rol=rol)
+
+
+# Rutas con parámetro de un solo segmento: deben ir DESPUÉS de las rutas
+# literales de arriba (activas-por-persona/activas-por-personas), porque
+# FastAPI matchea por orden de declaración y "/{id_suspension}" capturaría
+# esos literales como si fueran un id.
 @router.get("/{id_suspension}", response_model=SuspensionRead)
 def obtener_suspension(id_suspension: int, db: Session = Depends(get_db)):
     """Devuelve una suspensión puntual. Acceso público."""
@@ -52,22 +83,6 @@ def obtener_suspension(id_suspension: int, db: Session = Depends(get_db)):
     if not item:
         raise NotFoundError("Suspensión no encontrada")
     return item
-
-
-@router.get("/activas-por-persona/{id_persona}", response_model=list[SuspensionRead])
-def suspensiones_activas_por_persona(id_persona: int, db: Session = Depends(get_db)):
-    """Devuelve las suspensiones ACTIVA (vigentes) de una persona, sin filtrar
-    por torneo, ya que el bloqueo aplica a cualquier competencia. Acceso público."""
-    mapa = listar_suspensiones_activas_por_personas(db, [id_persona])
-    return mapa.get(id_persona, [])
-
-
-@router.get("/activas-por-personas", response_model=dict[int, list[SuspensionRead]])
-def suspensiones_activas_por_personas(ids: str, db: Session = Depends(get_db)):
-    """Lookup en bloque: `ids` es una lista de id_persona separados por coma.
-    Devuelve un diccionario id_persona -> suspensiones ACTIVA. Acceso público."""
-    ids_persona = [int(i) for i in ids.split(",") if i.strip()]
-    return listar_suspensiones_activas_por_personas(db, ids_persona)
 
 
 # 🔐 EDITOR / ADMIN / SUPERUSUARIO

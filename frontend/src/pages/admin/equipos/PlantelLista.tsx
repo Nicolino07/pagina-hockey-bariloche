@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import type { PlantelActivoIntegrante } from "../../../types/vistas";
+import { marcarSuspendidos } from "../../../utils/suspensiones";
 import styles from "./PlantelLista.module.css";
 
 interface Props {
@@ -18,6 +20,16 @@ export default function PlantelLista({
   editable = false,
   onEliminar,
 }: Props) {
+  const [suspendidos, setSuspendidos] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    marcarSuspendidos(integrantes)
+      .then(marcados => setSuspendidos(new Set(
+        marcados.filter(m => m.suspendido && typeof m.id_persona === "number").map(m => m.id_persona as number)
+      )))
+      .catch(() => setSuspendidos(new Set()));
+  }, [integrantes]);
+
   return (
     <div className={styles.scrollList}>
       {integrantes.map((i, index) => {
@@ -27,12 +39,14 @@ export default function PlantelLista({
         const fechaAlta = i.fecha_alta ? new Date(i.fecha_alta).toLocaleDateString("es-AR") : null;
         const fechaBaja = i.fecha_baja ? new Date(i.fecha_baja).toLocaleDateString("es-AR") : null;
         const esBaja = !!i.fecha_baja;
+        const suspendido = typeof i.id_persona === "number" && suspendidos.has(i.id_persona);
 
         return (
           <div key={itemKey} className={`${styles.personaCard} ${esBaja ? styles.personaCardBaja : ""}`}>
             <div className={styles.personaInfo}>
               <span className={styles.personaName}>
                 {i.apellido_persona}, {i.nombre_persona}
+                {suspendido && <span className={styles.suspendidoBadge}>SUSPENDIDO</span>}
               </span>
               <span className={styles.personaSub}>
                 <strong>DNI:</strong> {i.documento || "---"} ·

@@ -16,6 +16,7 @@ export interface PartidoDesignable {
   numero_fecha: number | null
   fecha: string | null
   horario: string | null
+  ubicacion: string | null
   estado_partido: string
   equipo_local: string | null
   equipo_visitante: string | null
@@ -72,16 +73,21 @@ export const getArbitrosDisponibles = async (
   }
 }
 
-/** Designa (o quita, enviando null) los árbitros de un partido. */
+/**
+ * Designa (o quita, enviando null) los árbitros de un partido.
+ * `forzar` debe ser true cuando el admin confirmó asignar de todas formas
+ * a un árbitro marcado como no designable.
+ */
 export const designarArbitros = async (
   idPartido: number,
   idArbitro1: number | null,
-  idArbitro2: number | null
+  idArbitro2: number | null,
+  forzar: boolean = false
 ) => {
   try {
     const response = await api.put(
       `/arbitros/partidos/${idPartido}`,
-      { id_arbitro1: idArbitro1, id_arbitro2: idArbitro2 },
+      { id_arbitro1: idArbitro1, id_arbitro2: idArbitro2, forzar },
       {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },

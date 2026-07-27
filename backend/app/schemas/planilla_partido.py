@@ -83,6 +83,13 @@ class PlanillaPartidoCreate(BaseModel):
     goles: list[GolPlanillaCreate] = []
     tarjetas: list[TarjetaPlanillaCreate] = []
     id_fixture_partido: Optional[int] = None  # Si viene, se vincula el fixture al partido real
+    forzar: bool = Field(
+        False,
+        description=(
+            "Si es True, permite incluir en la planilla a jugadores suspendidos "
+            "(el admin confirmó explícitamente el override)."
+        ),
+    )
 
 
 # ---------------------------

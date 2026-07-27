@@ -6,7 +6,15 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import NotFoundError
-from app.models.enums import EstadoSuspension, EstadoPartido, OrigenSuspension, TipoSuspension, EstadoTarjeta, TipoTarjeta
+from app.models.enums import (
+    EstadoSuspension,
+    EstadoPartido,
+    OrigenSuspension,
+    TipoSuspension,
+    EstadoTarjeta,
+    TipoTarjeta,
+    RolPersonaTipo,
+)
 from app.models.suspension import Suspension
 from app.schemas.suspension import SuspensionCreate
 
@@ -292,34 +300,72 @@ def anular_suspension(db: Session, id_suspension: int, motivo_anulacion: str, cu
         raise
 
 
-def listar_suspensiones_activas_por_personas(db: Session, ids_persona: list[int]) -> dict[int, list[Suspension]]:
-    """Lookup en bloque de suspensiones ACTIVA (vigentes) por persona, sin
-    filtrar por torneo: el bloqueo es global aunque el cumplimiento sea solo
-    en el torneo de origen. Útil para el aviso en la planilla de partido."""
+def listar_suspensiones_activas_por_personas(
+    db: Session,
+    ids_persona: list[int],
+    id_torneo: Optional[int] = None,
+    rol: Optional[RolPersonaTipo] = None,
+    tipo_suspension: Optional[TipoSuspension] = None,
+) -> dict[int, list[Suspension]]:
+    """Lookup en bloque de suspensiones ACTIVA (vigentes) por persona, con
+    alcance consciente de torneo/rol:
+
+    - Sin `id_torneo` ni `rol`: uso informativo/bulk (listados de plantel,
+      planilla impresa). No filtra por alcance: trae toda suspensión activa
+      (de cualquier torneo o global); quien consuma la respuesta decide qué
+      mostrar usando `id_torneo`/`roles_afectados` de cada una.
+    - Con `id_torneo` + `rol`: chequeo estricto para un partido/rol concreto
+      (planilla de jugadores, designación de árbitros): matchea suspensiones
+      de ESE torneo, o globales cuyo `roles_afectados` sea NULL o incluya
+      `rol`.
+    - Con `rol` + `tipo_suspension` y sin `id_torneo`: chequeo de alta a
+      plantel (roles sin designación por partido), solo mira suspensiones
+      globales del tipo pedido (ej. POR_FECHA).
+    """
     if not ids_persona:
         return {}
 
     hoy = date.today()
-    suspensiones = (
+    vigencia = or_(
+        and_(
+            Suspension.tipo_suspension == TipoSuspension.POR_PARTIDOS,
+            Suspension.cumplidas < Suspension.fechas_suspension,
+        ),
+        and_(
+            Suspension.tipo_suspension == TipoSuspension.POR_FECHA,
+            Suspension.fecha_fin_suspension >= hoy,
+        ),
+    )
+
+    query = (
         db.query(Suspension)
         .filter(
             Suspension.id_persona.in_(ids_persona),
             Suspension.estado_suspension == EstadoSuspension.ACTIVA,
-            or_(
-                and_(
-                    Suspension.tipo_suspension == TipoSuspension.POR_PARTIDOS,
-                    Suspension.cumplidas < Suspension.fechas_suspension,
-                ),
-                and_(
-                    Suspension.tipo_suspension == TipoSuspension.POR_FECHA,
-                    Suspension.fecha_fin_suspension >= hoy,
-                ),
-            ),
+            vigencia,
         )
-        .all()
     )
 
+    if id_torneo is not None or rol is not None:
+        alcance_global = Suspension.id_torneo.is_(None)
+        if rol is not None:
+            alcance_global = and_(
+                alcance_global,
+                or_(
+                    Suspension.roles_afectados.is_(None),
+                    Suspension.roles_afectados.any(rol),
+                ),
+            )
+        if id_torneo is not None:
+            alcance = or_(Suspension.id_torneo == id_torneo, alcance_global)
+        else:
+            alcance = alcance_global
+        query = query.filter(alcance)
+
+    if tipo_suspension is not None:
+        query = query.filter(Suspension.tipo_suspension == tipo_suspension)
+
     resultado: dict[int, list[Suspension]] = {}
-    for s in suspensiones:
+    for s in query.all():
         resultado.setdefault(s.id_persona, []).append(s)
     return resultado

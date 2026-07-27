@@ -11,7 +11,24 @@ from app.models.gol import Gol
 from app.models.tarjeta import Tarjeta
 from app.models.plantel_integrante import PlantelIntegrante
 from app.models.inscripcion_torneo import InscripcionTorneo
-from app.models.enums import EstadoPartido
+from app.models.enums import EstadoPartido, RolPersonaTipo
+
+
+def _validar_jugador_no_suspendido(db: Session, integrante: PlantelIntegrante, id_torneo: int, forzar: bool) -> None:
+    if forzar:
+        return
+    from app.services.suspensiones_services import listar_suspensiones_activas_por_personas
+    suspensiones = listar_suspensiones_activas_por_personas(
+        db, [integrante.id_persona], id_torneo=id_torneo, rol=RolPersonaTipo.JUGADOR
+    )
+    activas = suspensiones.get(integrante.id_persona)
+    if activas:
+        s = activas[0]
+        raise HTTPException(
+            400,
+            f"El jugador está suspendido ({s.motivo}) y no puede participar. "
+            "Confirmá para incluirlo de todas formas.",
+        )
 
 
 def crear_planilla_partido(db: Session, data, current_user):
@@ -68,6 +85,7 @@ def crear_planilla_partido(db: Session, data, current_user):
                 raise HTTPException(
                     400, f"Plantel integrante {id_pi} inexistente"
                 )
+            _validar_jugador_no_suspendido(db, integrante, partido.id_torneo, data.forzar)
 
             pp = ParticipanPartido(
                 id_partido=partido.id_partido,
@@ -402,6 +420,7 @@ def actualizar_planilla_partido(db: Session, id_partido: int, data, current_user
             integrante = db.get(PlantelIntegrante, id_pi)
             if not integrante:
                 raise HTTPException(400, f"Plantel integrante {id_pi} inexistente")
+            _validar_jugador_no_suspendido(db, integrante, partido.id_torneo, data.forzar)
 
             pp = ParticipanPartido(
                 id_partido=id_partido,

@@ -22,7 +22,7 @@ def obtener_plantel_activo_por_equipo(
         db: Sesión de base de datos
         id_equipo: ID del equipo
         solo_activos: Si True, solo devuelve integrantes sin fecha_baja
-        rol_filtro: Filtra por rol específico (ej: "JUGADOR", "ENTRENADOR")
+        rol_filtro: Filtra por rol específico (ej: "JUGADOR", "DT")
     
     Returns:
         Lista de integrantes del plantel

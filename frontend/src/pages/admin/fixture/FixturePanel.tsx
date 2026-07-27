@@ -34,6 +34,7 @@ import type {
 import Button from "../../../components/ui/button/Button"
 import { exportarFixturePDF } from "./exportarFixturePDF"
 import { generarPlanillaPDF, generarPlanillaCompletaPDF } from "../../../services/PlanillaVacia.service"
+import { marcarSuspendidos } from "../../../utils/suspensiones"
 import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api"
 import { obtenerDetallePartido, eliminarPartido, otorgarPuntosPartido } from "../../../api/partidos.api"
 import OtorgarPuntosModal from "../../../components/admin/OtorgarPuntosModal"
@@ -525,9 +526,10 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
           const data = await getPlantelActivoPorEquipo(idEquipo)
           if (!data || data.length === 0) return { jugadores: [], cuerpoTecnico: [] }
           const conPersona = data.filter((i: any) => i.id_persona != null)
+          const marcados = await marcarSuspendidos(conPersona)
           return {
-            jugadores: conPersona.filter((i: any) => i.rol_en_plantel === 'JUGADOR'),
-            cuerpoTecnico: conPersona.filter((i: any) => i.rol_en_plantel !== 'JUGADOR'),
+            jugadores: marcados.filter((i: any) => i.rol_en_plantel === 'JUGADOR'),
+            cuerpoTecnico: marcados.filter((i: any) => i.rol_en_plantel !== 'JUGADOR'),
           }
         }
         const [datosL, datosV] = await Promise.all([

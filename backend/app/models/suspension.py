@@ -13,7 +13,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
-from app.models.enums import EstadoSuspension, TipoSuspension, OrigenSuspension
+from app.models.enums import EstadoSuspension, TipoSuspension, OrigenSuspension, RolPersonaTipo
 
 
 class Suspension(Base, AuditFieldsMixin):
@@ -29,6 +29,10 @@ class Suspension(Base, AuditFieldsMixin):
             "cumplidas <= COALESCE(fechas_suspension, 0)",
             name="chk_suspension_cumplidas_validas"
         ),
+        CheckConstraint(
+            "roles_afectados IS NULL OR id_torneo IS NULL",
+            name="chk_suspension_roles_solo_global"
+        ),
     )
 
     id_suspension: Mapped[int] = mapped_column(primary_key=True)
@@ -40,6 +44,13 @@ class Suspension(Base, AuditFieldsMixin):
 
     id_torneo: Mapped[Optional[int]] = mapped_column(
         ForeignKey("torneo.id_torneo"),
+        nullable=True
+    )
+
+    # Solo aplica cuando id_torneo es NULL (alcance global): NULL = todos los roles,
+    # array explícito = restringe el bloqueo a esos roles.
+    roles_afectados: Mapped[Optional[list[RolPersonaTipo]]] = mapped_column(
+        ARRAY(Enum(RolPersonaTipo, name="tipo_rol_persona")),
         nullable=True
     )
 

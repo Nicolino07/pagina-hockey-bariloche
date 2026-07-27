@@ -931,6 +931,13 @@ DECLARE
     v_id_arbitro     INT;
     v_nombre         TEXT;
 BEGIN
+    -- Bypass explícito: el backend lo enciende (SET LOCAL, por transacción)
+    -- solo cuando el admin confirmó designar de todas formas a un árbitro
+    -- marcado como no designable.
+    IF current_setting('app.forzar_designacion_arbitro', true) = 'true' THEN
+        RETURN NEW;
+    END IF;
+
     SELECT t.es_competitiva
     INTO v_es_competitiva
     FROM torneo t

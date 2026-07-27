@@ -49,6 +49,17 @@
   flex-wrap: wrap;
 }
 
+.suspendidoBadge {
+  background: rgba(224, 96, 96, 0.15);
+  color: #e06060;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  margin-left: 8px;
+}
+
 .roleBadge {
   background: rgba(138, 180, 248, 0.12);
   color: #8ab4f8;

@@ -27,7 +27,8 @@ const nombreCompleto = (p: any): string => {
   const apellido = p.apellido_persona || '';
   const nombre = p.nombre_persona || '';
   if (!apellido && !nombre) return '';
-  return formatearNombre(apellido, nombre);
+  const base = formatearNombre(apellido, nombre);
+  return p.suspendido ? `${base} (SUSPENDIDO)` : base;
 };
 
 export const generarPlanillaPDF = (datos: any) => {
