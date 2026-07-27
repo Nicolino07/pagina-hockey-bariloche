@@ -13,7 +13,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
-from app.models.enums import EstadoSuspension, TipoSuspension
+from app.models.enums import EstadoSuspension, TipoSuspension, OrigenSuspension
 
 
 class Suspension(Base, AuditFieldsMixin):
@@ -38,13 +38,23 @@ class Suspension(Base, AuditFieldsMixin):
         nullable=False
     )
 
-    id_torneo: Mapped[int] = mapped_column(
+    id_torneo: Mapped[Optional[int]] = mapped_column(
         ForeignKey("torneo.id_torneo"),
-        nullable=False
+        nullable=True
     )
 
     id_partido_origen: Mapped[Optional[int]] = mapped_column(
         ForeignKey("partido.id_partido")
+    )
+
+    id_partido_a_cumplir: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("partido.id_partido", ondelete="SET NULL")
+    )
+
+    origen: Mapped[OrigenSuspension] = mapped_column(
+        Enum(OrigenSuspension, name="tipo_origen_suspension"),
+        default=OrigenSuspension.MANUAL,
+        nullable=False
     )
 
     tipo_suspension: Mapped[TipoSuspension] = mapped_column(
@@ -79,5 +89,6 @@ class Suspension(Base, AuditFieldsMixin):
     # Relaciones
     persona = relationship("Persona")
     torneo = relationship("Torneo")
-    partido_origen = relationship("Partido")
+    partido_origen = relationship("Partido", foreign_keys=[id_partido_origen])
+    partido_a_cumplir = relationship("Partido", foreign_keys=[id_partido_a_cumplir])
 

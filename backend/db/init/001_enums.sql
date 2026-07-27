@@ -90,6 +90,16 @@ CREATE TYPE tipo_estado_suspension AS ENUM (
     'ANULADA'
 );
 
+-- =====================================================
+-- Origen de la suspensión
+-- =====================================================
+
+CREATE TYPE tipo_origen_suspension AS ENUM (
+    'AUTOMATICA_AMARILLAS',
+    'AUTOMATICA_ROJA',
+    'MANUAL'
+);
+
 
 -- =====================================================
 -- Tipo de gol

@@ -124,27 +124,26 @@ ORDER BY
 CREATE OR REPLACE VIEW vw_suspensiones_activas AS
 SELECT
     s.id_suspension,
-    pr.id_persona_rol,
     p.id_persona,
     p.nombre,
     p.apellido,
     s.id_torneo,
     t.nombre AS torneo,
+    s.origen,
     s.tipo_suspension,
     s.motivo,
     s.fechas_suspension,
     s.cumplidas,
     s.fecha_fin_suspension,
+    s.id_partido_a_cumplir,
 
     -- columna calculada
     TRUE AS activa
 
 FROM suspension s
-JOIN persona_rol pr
-    ON pr.id_persona_rol = s.id_persona_rol
 JOIN persona p
-    ON p.id_persona = pr.id_persona
-JOIN torneo t
+    ON p.id_persona = s.id_persona
+LEFT JOIN torneo t
     ON t.id_torneo = s.id_torneo
 
 WHERE
@@ -294,26 +293,42 @@ WHERE t.estado_tarjeta = 'VALIDA';
 -- LUEGO: Total acumuladas por torneo (depende de la vista anterior)
 CREATE OR REPLACE VIEW vw_tarjetas_acumuladas_torneo AS
 SELECT
-    id_torneo,
-    torneo,
-    id_persona,
-    nombre_persona,
-    apellido_persona,
-    id_equipo,
-    equipo,
+    v.id_torneo,
+    v.torneo,
+    v.id_persona,
+    v.nombre_persona,
+    v.apellido_persona,
+    v.id_equipo,
+    v.equipo,
     COUNT(*)                       AS total_tarjetas,
-    SUM(verdes)                    AS total_verdes,
-    SUM(amarillas)                 AS total_amarillas,
-    SUM(rojas)                     AS total_rojas
-FROM vw_tarjetas_detalle_torneo
+    SUM(v.verdes)                  AS total_verdes,
+    SUM(v.amarillas)               AS total_amarillas,
+    SUM(v.rojas)                   AS total_rojas,
+    COALESCE(sc.cumplidas_amarillas, 0) AS suspensiones_cumplidas_amarillas,
+    COALESCE(sc.cumplidas_rojas, 0)     AS suspensiones_cumplidas_rojas
+FROM vw_tarjetas_detalle_torneo v
+LEFT JOIN (
+    SELECT
+        s.id_persona,
+        s.id_torneo,
+        COUNT(*) FILTER (WHERE s.origen = 'AUTOMATICA_AMARILLAS') AS cumplidas_amarillas,
+        COUNT(*) FILTER (WHERE s.origen = 'AUTOMATICA_ROJA')      AS cumplidas_rojas
+    FROM suspension s
+    WHERE s.estado_suspension = 'CUMPLIDA'
+    GROUP BY s.id_persona, s.id_torneo
+) sc
+    ON sc.id_persona = v.id_persona
+   AND sc.id_torneo = v.id_torneo
 GROUP BY
-    id_torneo,
-    torneo,
-    id_persona,
-    nombre_persona,
-    apellido_persona,
-    id_equipo,
-    equipo;
+    v.id_torneo,
+    v.torneo,
+    v.id_persona,
+    v.nombre_persona,
+    v.apellido_persona,
+    v.id_equipo,
+    v.equipo,
+    sc.cumplidas_amarillas,
+    sc.cumplidas_rojas;
 
     
 -- =======================================================

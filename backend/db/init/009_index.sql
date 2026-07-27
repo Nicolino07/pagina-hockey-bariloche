@@ -149,14 +149,17 @@ ON tarjeta (tipo);
 -- =====================================================
 -- SUSPENSION
 -- =====================================================
-CREATE INDEX idx_suspension_persona_rol
-ON suspension (id_persona_rol);
+CREATE INDEX idx_suspension_persona
+ON suspension (id_persona);
 
 CREATE INDEX idx_suspension_torneo
 ON suspension (id_torneo);
 
 CREATE INDEX idx_suspension_estado
 ON suspension (estado_suspension);
+
+CREATE INDEX idx_suspension_partido_a_cumplir
+ON suspension (id_partido_a_cumplir);
 
 -- =====================================================
 -- POSICION

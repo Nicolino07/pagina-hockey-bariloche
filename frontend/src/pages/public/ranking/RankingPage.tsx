@@ -370,8 +370,8 @@ export default function RankingPage() {
                                           <span className={styles.playerTeam}>{t.equipo}</span>
                                         </td>
                                         <td>{t.total_verdes}</td>
-                                        <td>{t.total_amarillas}</td>
-                                        <td>{t.total_rojas}</td>
+                                        <td>{t.total_amarillas}{"*".repeat(t.suspensiones_cumplidas_amarillas || 0)}</td>
+                                        <td>{t.total_rojas}{"*".repeat(t.suspensiones_cumplidas_rojas || 0)}</td>
                                         <td className={styles.bold}>{t.total_tarjetas}</td>
                                       </tr>
                                     ))}

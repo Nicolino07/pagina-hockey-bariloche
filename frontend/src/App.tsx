@@ -42,6 +42,7 @@ import Noticias from "./pages/public/noticias/Noticias"
 import FixturePage from "./pages/public/fixture/FixturePage"
 import ResultadosPage from "./pages/public/resultados/ResultadosPage"
 import DesignacionArbitros from "./pages/admin/arbitros/DesignacionArbitros"
+import SuspensionesPage from "./pages/admin/suspensiones/SuspensionesPage"
 import MainLayout from "./layouts/MainLayout"
 
 import { useState, useEffect } from 'react';
@@ -160,6 +161,7 @@ export default function App() {
           <Route path="/admin/torneos/:idTorneo" element={<TorneoDetalle />} />
           <Route path="/admin/personas" element={<Personas />} />
           <Route path="/admin/personas/:id_persona" element={<PersonaDetalle />} />
+          <Route path="/admin/suspensiones" element={<SuspensionesPage />} />
         </Route>
 
         {/* SUPERUSUARIO */}

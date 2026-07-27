@@ -10,6 +10,7 @@ import styles from "./PartidoPlanilla.module.css";
 import { getPersonasArbitro } from "../../../api/vistas/personas.api";
 import type { PersonasArbitro, PlantelActivoIntegrante } from "../../../types/vistas";
 import { TIPOS_GOL, TIPOS_TARJETA } from "../../../constants/enums";
+import { obtenerSuspensionesActivasPorPersonas } from "../../../api/suspensiones.api";
 
 /** Representa un gol registrado en la planilla del partido. */
 interface Gol {
@@ -56,6 +57,23 @@ export default function PartidoPlanilla() {
   
   const plantelLocal = (rawLocal || []) as PlantelActivoIntegrante[];
   const plantelVisitante = (rawVisitante || []) as PlantelActivoIntegrante[];
+
+  const [personasSuspendidas, setPersonasSuspendidas] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    const idsPersona = [...plantelLocal, ...plantelVisitante]
+      .map(p => p.id_persona)
+      .filter((id): id is number => typeof id === "number");
+
+    if (idsPersona.length === 0) {
+      setPersonasSuspendidas(new Set());
+      return;
+    }
+
+    obtenerSuspensionesActivasPorPersonas(idsPersona)
+      .then(mapa => setPersonasSuspendidas(new Set(Object.keys(mapa).map(Number))))
+      .catch(() => setPersonasSuspendidas(new Set()));
+  }, [plantelLocal, plantelVisitante]);
 
   const [arbitrosList, setArbitrosList] = useState<PersonasArbitro[]>([]);
   const [loading, setLoading] = useState(false);
@@ -478,6 +496,9 @@ export default function PartidoPlanilla() {
 
                       <span className={styles.playerText}>
                         {p.apellido_persona}, {p.nombre_persona}
+                        {typeof p.id_persona === "number" && personasSuspendidas.has(p.id_persona) && (
+                          <span className={styles.playerSuspendido}>Suspendido</span>
+                        )}
                         <span className={styles.playerRole}>
                           {p.rol_en_plantel}
                         </span>
@@ -631,6 +652,7 @@ export default function PartidoPlanilla() {
                             {plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante as number)).map(p => (
                               <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
                                 {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                                {typeof p.id_persona === "number" && personasSuspendidas.has(p.id_persona) ? " (Suspendido)" : ""}
                               </option>
                             ))}
                           </optgroup>
@@ -638,6 +660,7 @@ export default function PartidoPlanilla() {
                             {plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante as number)).map(p => (
                               <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
                                 {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                                {typeof p.id_persona === "number" && personasSuspendidas.has(p.id_persona) ? " (Suspendido)" : ""}
                               </option>
                             ))}
                           </optgroup>

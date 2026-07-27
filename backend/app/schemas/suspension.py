@@ -3,12 +3,12 @@ from typing import Optional, List
 
 from pydantic import BaseModel, Field, ConfigDict
 
-from app.models.enums import TipoSuspension, EstadoSuspension
+from app.models.enums import TipoSuspension, EstadoSuspension, OrigenSuspension
 
 
 class SuspensionBase(BaseModel):
     id_persona: int = Field(..., gt=0)
-    id_torneo: int = Field(..., gt=0)
+    id_torneo: Optional[int] = Field(None, gt=0)
     id_partido_origen: Optional[int] = None
 
     tipo_suspension: TipoSuspension
@@ -45,6 +45,9 @@ class SuspensionUpdate(BaseModel):
 
 class SuspensionRead(SuspensionBase):
     id_suspension: int
+
+    origen: OrigenSuspension
+    id_partido_a_cumplir: Optional[int] = None
 
     cumplidas: int
     partidos_cumplidos: Optional[List[int]] = None

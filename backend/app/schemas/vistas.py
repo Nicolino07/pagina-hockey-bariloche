@@ -161,6 +161,8 @@ class TarjetaAcumulada(BaseModel):
     total_verdes: int
     total_amarillas: int
     total_rojas: int
+    suspensiones_cumplidas_amarillas: int
+    suspensiones_cumplidas_rojas: int
 
     class Config:
         from_attributes = True

@@ -127,9 +127,27 @@ def crear_planilla_partido(db: Session, data, current_user):
                 )
             )
 
+        # =========================
+        # 4️⃣b Recalcular suspensiones automáticas por tarjetas
+        # =========================
+        ids_pi_con_tarjeta = {t.id_plantel_integrante for t in data.tarjetas}
+        if ids_pi_con_tarjeta:
+            from app.services.suspensiones_services import recalcular_suspensiones_automaticas_persona
+            ids_persona_afectadas = {
+                row[0] for row in db.query(PlantelIntegrante.id_persona)
+                .filter(PlantelIntegrante.id_plantel_integrante.in_(ids_pi_con_tarjeta))
+                .all()
+            }
+            for id_persona in ids_persona_afectadas:
+                recalcular_suspensiones_automaticas_persona(db, id_persona, partido.id_torneo, current_user)
+
         # Disparo de triggers y fin
         partido.estado_partido = "TERMINADO"
         db.flush()
+
+        # Cumplimiento de suspensiones que apuntaban a este partido
+        from app.services.suspensiones_services import procesar_cumplimiento_suspensiones_partido
+        procesar_cumplimiento_suspensiones_partido(db, partido, current_user)
 
         # =========================
         # 5️⃣ Vincular fixture si viene
@@ -355,6 +373,15 @@ def actualizar_planilla_partido(db: Session, id_partido: int, data, current_user
         partido.goles_local_manual = data.partido.goles_local_manual
         partido.goles_visitante_manual = data.partido.goles_visitante_manual
 
+        # Personas con tarjetas antes de borrar (se pierde tras el cascade delete)
+        ids_persona_antes = {
+            row[0] for row in db.query(PlantelIntegrante.id_persona)
+            .join(ParticipanPartido, ParticipanPartido.id_plantel_integrante == PlantelIntegrante.id_plantel_integrante)
+            .join(Tarjeta, Tarjeta.id_participante_partido == ParticipanPartido.id_participante_partido)
+            .filter(ParticipanPartido.id_partido == id_partido)
+            .all()
+        }
+
         # =========================
         # 2️⃣ Eliminar participantes (cascade borra goles y tarjetas)
         # =========================
@@ -432,6 +459,27 @@ def actualizar_planilla_partido(db: Session, id_partido: int, data, current_user
                 )
             )
 
+        # =========================
+        # 5️⃣b Recalcular suspensiones automáticas por tarjetas
+        # =========================
+        ids_pi_con_tarjeta = {t.id_plantel_integrante for t in data.tarjetas}
+        ids_persona_despues = set()
+        if ids_pi_con_tarjeta:
+            ids_persona_despues = {
+                row[0] for row in db.query(PlantelIntegrante.id_persona)
+                .filter(PlantelIntegrante.id_plantel_integrante.in_(ids_pi_con_tarjeta))
+                .all()
+            }
+        ids_persona_afectadas = ids_persona_antes | ids_persona_despues
+        if ids_persona_afectadas:
+            from app.services.suspensiones_services import recalcular_suspensiones_automaticas_persona
+            for id_persona in ids_persona_afectadas:
+                recalcular_suspensiones_automaticas_persona(db, id_persona, partido.id_torneo, current_user)
+
+        if partido.estado_partido == "TERMINADO":
+            from app.services.suspensiones_services import procesar_cumplimiento_suspensiones_partido
+            procesar_cumplimiento_suspensiones_partido(db, partido, current_user)
+
         db.commit()
         return partido
 
@@ -481,6 +529,10 @@ def otorgar_puntos_partido(db: Session, id_fixture_partido: int, goles_local: in
         if partido.id_fixture_playoff_ronda:
             from app.services.playoff_services import avanzar_ganador
             avanzar_ganador(db, partido.id_partido, current_user.username)
+
+        # Cumplimiento de suspensiones que apuntaban a este partido
+        from app.services.suspensiones_services import procesar_cumplimiento_suspensiones_partido
+        procesar_cumplimiento_suspensiones_partido(db, partido, current_user)
 
         # Recalcular tabla de posiciones
         db.execute(text("SELECT recalcular_tabla_posiciones(:id_torneo)"), {"id_torneo": partido.id_torneo})

@@ -93,6 +93,14 @@ export const ESTADOS_SUSPENSION = [
 
 export type TipoEstadoSuspension = typeof ESTADOS_SUSPENSION[number]
 
+export const ORIGENES_SUSPENSION = [
+  "AUTOMATICA_AMARILLAS",
+  "AUTOMATICA_ROJA",
+  "MANUAL",
+] as const
+
+export type TipoOrigenSuspension = typeof ORIGENES_SUSPENSION[number]
+
 // =====================
 // Gol
 // =====================

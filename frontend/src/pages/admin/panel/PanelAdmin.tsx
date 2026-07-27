@@ -16,6 +16,7 @@ export default function PanelAdmin() {
   const esArbitros = rol === "ADMIN_ARBITROS"
   const puedeGestion = rol === "EDITOR" || rol === "ADMIN" || rol === "SUPERUSUARIO"
   const puedeArbitros = esArbitros || rol === "SUPERUSUARIO"
+  const puedeSuspensiones = rol === "ADMIN" || rol === "SUPERUSUARIO"
 
   return (
     <div className={styles.panel}>
@@ -56,6 +57,12 @@ export default function PanelAdmin() {
         {puedeArbitros && (
           <Link to="/admin/arbitros" className={styles.card}>
             Designación de árbitros
+          </Link>
+        )}
+
+        {puedeSuspensiones && (
+          <Link to="/admin/suspensiones" className={styles.card}>
+            Suspensiones
           </Link>
         )}
       </section>

@@ -90,6 +90,8 @@ export interface TarjetaAcumulada {
   total_verdes: number;
   total_amarillas: number;
   total_rojas: number;
+  suspensiones_cumplidas_amarillas: number;
+  suspensiones_cumplidas_rojas: number;
 
 }
 

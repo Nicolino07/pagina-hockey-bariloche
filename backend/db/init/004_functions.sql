@@ -244,7 +244,7 @@ BEGIN
         FROM suspension s
         WHERE s.id_persona = p_id_persona
           AND s.id_torneo = p_id_torneo
-          AND s.activa = TRUE
+          AND s.estado_suspension = 'ACTIVA'
           AND (
               (s.tipo_suspension = 'POR_PARTIDOS'
                AND s.cumplidas < s.fechas_suspension)

@@ -478,23 +478,28 @@ CREATE TABLE IF NOT EXISTS tarjeta (
 
 CREATE TABLE IF NOT EXISTS suspension (
     id_suspension           INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_persona_rol          INT NOT NULL
-    REFERENCES persona_rol(id_persona_rol),
-    id_torneo               INT NOT NULL 
+    id_persona              INT NOT NULL
+        REFERENCES persona(id_persona),
+    -- Opcional: una suspensión manual puede no tener torneo de origen
+    -- (ej. sanción disciplinaria general de la persona, no ligada a una competencia).
+    id_torneo               INT
         REFERENCES torneo(id_torneo),
-    id_partido_origen       INT 
+    id_partido_origen       INT
         REFERENCES partido(id_partido),
-    
+    id_partido_a_cumplir    INT
+        REFERENCES partido(id_partido) ON DELETE SET NULL,
+
+    origen                  tipo_origen_suspension NOT NULL DEFAULT 'MANUAL',
     tipo_suspension         tipo_suspension NOT NULL,
     motivo                  VARCHAR(500) NOT NULL CHECK (motivo <> ''),
-    
+
     fechas_suspension       INT CHECK (fechas_suspension > 0),
     fecha_fin_suspension    DATE,
-    
+
     cumplidas               INT NOT NULL DEFAULT 0 CHECK (cumplidas >= 0),
     -- ID de los partidos cumplidos como suspension
     partidos_cumplidos      INT[],
-    
+
     estado_suspension       tipo_estado_suspension NOT NULL DEFAULT 'ACTIVA',
     anulada_en              TIMESTAMP,
     anulada_por             VARCHAR(100),

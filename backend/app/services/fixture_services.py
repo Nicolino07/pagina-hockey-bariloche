@@ -158,6 +158,8 @@ def actualizar_fixture_partido(
         raise HTTPException(400, "No se puede editar un partido ya jugado")
 
     cambios = data.model_dump(exclude_unset=True)
+    reordena_cola = bool({"fecha_programada", "horario", "estado"} & cambios.keys())
+
     # Mapeo de campos del fixture a columnas de partido.
     if "fecha_programada" in cambios:
         p.fecha = cambios["fecha_programada"]
@@ -184,6 +186,14 @@ def actualizar_fixture_partido(
     if str(getattr(p.estado_partido, "value", p.estado_partido)) == "TERMINADO" and p.id_fixture_playoff_ronda:
         from app.services.playoff_services import avanzar_ganador
         avanzar_ganador(db, p.id_partido, username)
+
+    # Una reprogramación puede cambiar cuál es "el próximo partido real" de los
+    # equipos involucrados, así que se recalcula la cola de suspensiones.
+    if reordena_cola:
+        ids_equipo = [e for e in (p.id_equipo_local, p.id_equipo_visitante) if e is not None]
+        if ids_equipo:
+            from app.services.suspensiones_services import recalcular_cola_por_equipos_en_torneo
+            recalcular_cola_por_equipos_en_torneo(db, p.id_torneo, ids_equipo)
 
     db.commit()
     db.refresh(p)

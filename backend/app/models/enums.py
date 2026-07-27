@@ -58,6 +58,12 @@ class EstadoSuspension(str, enum.Enum):
     CUMPLIDA = 'CUMPLIDA'
     ANULADA = 'ANULADA'
 
+class OrigenSuspension(str, enum.Enum):
+    """Origen de la suspensión"""
+    AUTOMATICA_AMARILLAS = 'AUTOMATICA_AMARILLAS'
+    AUTOMATICA_ROJA = 'AUTOMATICA_ROJA'
+    MANUAL = 'MANUAL'
+
 class ReferenciaGol(str, enum.Enum):
     """Tipos de gol"""
     GJ = 'GJ'  # Gol jugada

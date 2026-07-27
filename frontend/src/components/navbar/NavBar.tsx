@@ -82,6 +82,7 @@ export default function Navbar() {
                   <Link to="/admin/clubes">Clubes</Link>
                   <Link to="/admin/torneos">Torneos</Link>
                   <Link to="/admin/personas">Personas</Link>
+                  <Link to="/admin/suspensiones">Suspensiones</Link>
                 </>
               )}
 
@@ -161,6 +162,7 @@ export default function Navbar() {
                   <Link to="/admin/clubes" onClick={close}>Clubes</Link>
                   <Link to="/admin/torneos" onClick={close}>Torneos</Link>
                   <Link to="/admin/personas" onClick={close}>Personas</Link>
+                  <Link to="/admin/suspensiones" onClick={close}>Suspensiones</Link>
                 </>
               )}
 

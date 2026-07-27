@@ -1,5 +1,17 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { WATERMARK_LOGO_BASE64 } from "./watermarkLogo";
+
+const WATERMARK_SIZE = 34;
+
+/** Dibuja el escudo de la asociación como marca de agua en la esquina superior derecha, junto al N° de fecha. */
+const agregarMarcaDeAgua = (doc: jsPDF) => {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const marginRight = 8;
+  const wmX = pageWidth - marginRight - WATERMARK_SIZE;
+  const wmY = 3;
+  doc.addImage(WATERMARK_LOGO_BASE64, "PNG", wmX, wmY, WATERMARK_SIZE, WATERMARK_SIZE);
+};
 
 const formatearNombre = (apellido: string, nombre: string): string => {
   const apellidos = apellido.trim().split(/\s+/);
@@ -22,8 +34,7 @@ export const generarPlanillaPDF = (datos: any) => {
   const { torneo, local, visitante, plantelLocal, plantelVisitante, cuerpoTecnicoLocal = [], cuerpoTecnicoVisitante = [], fecha, numero_fecha, ubicacion, arbitro1, arbitro2 } = datos;
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  
-  
+
   const marginLeft = 8;
   const marginRight = 8;
   const colWidth = (pageWidth - marginLeft - marginRight - 10) / 2;
@@ -34,9 +45,7 @@ export const generarPlanillaPDF = (datos: any) => {
   doc.text("PLANILLA - AHBLS", pageWidth / 2, 10, { align: "center" });
 
   doc.setFontSize(9);
-  // El rect mide 24 de alto (de 14 a 38), con línea extra de árbitros
-  doc.rect(marginLeft, 14, pageWidth - marginLeft - marginRight, 24);
-  
+
   // Línea 1: Torneo y N° de Fecha
   doc.setFont("helvetica", "bold");
   doc.text(`TORNEO:`, marginLeft + 2, 19);
@@ -68,15 +77,10 @@ export const generarPlanillaPDF = (datos: any) => {
   doc.setFont("helvetica", "normal");
   doc.text(ubicacion || `.......................................................`, pageWidth / 2 + 5, 31);
 
-  // Línea 4: Árbitros designados
-  doc.setFont("helvetica", "bold");
-  doc.text(`ÁRBITROS:`, marginLeft + 2, 37);
-  doc.setFont("helvetica", "normal");
-  const arbitrosTexto = [arbitro1, arbitro2].filter(Boolean).join("   -   ")
-    || ".............................................................................";
-  doc.text(arbitrosTexto, marginLeft + 22, 37);
+  // Separador entre la cabecera (títulos + escudo) y el resto de la planilla
+  doc.line(marginLeft, 35, pageWidth - marginRight, 35);
 
-  const startYJugadores = 46; // Inicio de tablas debajo del cuadro de cabecera
+  const startYJugadores = 43; // Inicio de tablas debajo del cuadro de cabecera (con espacio tras la línea separadora)
 
   // --- 2. FUNCIÓN PARA DIBUJAR PLANTEL ---
   const dibujarPlantel = (plantel: any[], nombre: string, xPos: number) => {
@@ -172,8 +176,10 @@ export const generarPlanillaPDF = (datos: any) => {
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   
-  doc.text("ÁRBITRO 1: _____________________________", marginLeft + 2, yFirmas);
-  doc.text("ÁRBITRO 2: _____________________________", pageWidth / 2 + 5, yFirmas);
+  const arb1 = arbitro1 || "_____________________________";
+  const arb2 = arbitro2 || "_____________________________";
+  doc.text(`ÁRBITRO 1: ${arb1}`, marginLeft + 2, yFirmas);
+  doc.text(`ÁRBITRO 2: ${arb2}`, pageWidth / 2 + 5, yFirmas);
 
   // --- 5. SECCIÓN DE GOLES ---
   const yGolesTitle = yFirmas + 10;
@@ -220,7 +226,8 @@ export const generarPlanillaPDF = (datos: any) => {
   doc.text("OBSERVACIONES:", marginLeft, yObs);
   doc.line(marginLeft, yObs + 1, pageWidth - marginRight, yObs + 1);
   doc.line(marginLeft, yObs + 7, pageWidth - marginRight, yObs + 7);
-  doc.line(marginLeft, yObs + 13, pageWidth - marginRight, yObs + 13);
+
+  agregarMarcaDeAgua(doc);
 
   doc.save(`Planilla_${local?.nombre_equipo}_vs_${visitante?.nombre_equipo}.pdf`);
 };
@@ -326,7 +333,6 @@ export const generarPlanillaCompletaPDF = (detalle: any) => {
   doc.text('PLANILLA - AHBLS', pageWidth / 2, 10, { align: 'center' });
 
   doc.setFontSize(9);
-  doc.rect(marginLeft, 14, pageWidth - marginLeft - marginRight, 18);
 
   doc.setFont('helvetica', 'bold');  doc.text('TORNEO:', marginLeft + 2, 19);
   doc.setFont('helvetica', 'normal'); doc.text(detalle.nombre_torneo || '', marginLeft + 20, 19);
@@ -345,7 +351,10 @@ export const generarPlanillaCompletaPDF = (detalle: any) => {
   doc.setFont('helvetica', 'bold');  doc.text('LUGAR:', pageWidth / 2 - 10, 31);
   doc.setFont('helvetica', 'normal'); doc.text(detalle.ubicacion || '........................................', pageWidth / 2 + 5, 31);
 
-  const startY = 40;
+  // Separador entre la cabecera (títulos + escudo) y el resto de la planilla
+  doc.line(marginLeft, 35, pageWidth - marginRight, 35);
+
+  const startY = 43; // con espacio tras la línea separadora
 
   // Plantel con tarjetas
   const dibujarPlantelCompleto = (jugadores: ReturnType<typeof parseJugadores>, titulo: string, xPos: number, tarjetas: ReturnType<typeof parseTarjetas>) => {
@@ -455,7 +464,8 @@ export const generarPlanillaCompletaPDF = (detalle: any) => {
   doc.text('OBSERVACIONES:', marginLeft, yObs);
   doc.line(marginLeft, yObs + 1,  pageWidth - marginRight, yObs + 1);
   doc.line(marginLeft, yObs + 7,  pageWidth - marginRight, yObs + 7);
-  doc.line(marginLeft, yObs + 13, pageWidth - marginRight, yObs + 13);
+
+  agregarMarcaDeAgua(doc);
 
   doc.save(`Planilla_${detalle.equipo_local_nombre}_vs_${detalle.equipo_visitante_nombre}_COMPLETA.pdf`);
 };
