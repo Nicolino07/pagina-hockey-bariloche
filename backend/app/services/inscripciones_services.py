@@ -77,28 +77,6 @@ def inscribir_equipo_en_torneo(
 
 
 
-def listar_inscripciones_por_torneo(
-    db: Session,
-    id_torneo: int,
-) -> list[InscripcionTorneo]:
-
-    torneo = db.get(Torneo, id_torneo)
-    if not torneo:
-        raise NotFoundError("El torneo no existe")
-
-    return (
-        db.query(InscripcionTorneo)
-        .filter(
-            InscripcionTorneo.id_torneo == id_torneo,
-            InscripcionTorneo.fecha_baja.is_(None),
-        
-        )
-        .all()
-    )
-
-
-
-
 def dar_de_baja_inscripcion(
     db: Session,
     id_torneo: int,
@@ -133,6 +111,11 @@ def dar_de_baja_inscripcion(
 
 
 def listar_inscripciones_por_torneo(db, id_torneo: int):
+    """Equipos inscriptos y vigentes de un torneo, con club y categoría.
+
+    La vista ya excluye las bajas (`WHERE it.fecha_baja IS NULL`), así que dar
+    de baja a un equipo lo saca de esta lista de inmediato.
+    """
     query = text("""
         SELECT *
         FROM vw_inscripciones_torneo_detalle

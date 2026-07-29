@@ -53,9 +53,16 @@ SELECT
     per.id_persona,
     per.nombre AS nombre_persona,
     per.apellido AS apellido_persona,
-    per.documento 
+    per.documento,
+
+    -- Torneo del plantel. NULL = plantel histórico previo a la migración 0033.
+    -- Van al final del SELECT porque CREATE OR REPLACE VIEW solo permite
+    -- agregar columnas ahí (insertarlas en el medio obliga a DROP VIEW).
+    pl.id_torneo,
+    t.nombre AS nombre_torneo
 FROM plantel pl
 JOIN equipo e ON e.id_equipo = pl.id_equipo
+LEFT JOIN torneo t ON t.id_torneo = pl.id_torneo
 LEFT JOIN plantel_integrante pi ON pi.id_plantel = pl.id_plantel AND pi.fecha_baja IS NULL
 LEFT JOIN persona per ON per.id_persona = pi.id_persona
 WHERE pl.borrado_en IS NULL;

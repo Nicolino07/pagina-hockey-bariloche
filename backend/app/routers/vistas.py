@@ -13,7 +13,8 @@ from app.schemas.vistas import (
     TarjetaDetalle,
     TarjetaAcumulada,
     GoleadorTorneo,
-    VallaMenosVencida
+    VallaMenosVencida,
+    JugadorParticipoTorneo
 )
 
 
@@ -28,50 +29,78 @@ router = APIRouter(
 )
 
 
+# Selección determinista del plantel cuando NO se especifica torneo.
+# Desde la migración 0033 un equipo puede tener varios planteles activos (uno
+# por torneo), así que filtrar solo por `plantel_activo = true` devolvería filas
+# de planteles distintos mezcladas. Se elige uno solo: el histórico si existe
+# (comportamiento previo), y si no el más reciente.
+_SQL_PLANTEL_SIN_TORNEO = """
+    SELECT id_plantel
+    FROM plantel
+    WHERE id_equipo = :id_equipo
+      AND activo = true
+      AND borrado_en IS NULL
+    ORDER BY (id_torneo IS NULL) DESC, fecha_apertura DESC, id_plantel DESC
+    LIMIT 1
+"""
+
+
 @router.get(
     "/plantel-activo/{id_equipo}",
     response_model=List[PlantelActivoIntegrante],
-    summary="Obtener plantel activo de un equipo",
-    description="Devuelve el plantel activo actual. Si el plantel existe pero no tiene jugadores, devuelve una fila con datos de persona nulos.",
+    summary="Obtener el plantel de un equipo",
+    description=(
+        "Devuelve el plantel de un equipo, siempre de UN solo plantel. "
+        "Con `id_torneo` resuelve el plantel de ese torneo (contemplando "
+        "playoffs y el fallback al plantel histórico). Sin `id_torneo` elige el "
+        "histórico si existe y, si no, el más reciente. "
+        "Si el plantel existe pero no tiene integrantes, devuelve una fila con "
+        "los datos de persona en null."
+    ),
 )
 def obtener_plantel_activo_por_equipo(
     id_equipo: int,
+    id_torneo: Optional[int] = Query(None, description="Torneo para el que se quiere la nómina"),
     rol: Optional[str] = Query(None, description="Filtrar por rol (JUGADOR, DT, etc.)"),
     db: Session = Depends(get_db),
 ):
     try:
-        # Usamos la nueva vista maestra
-        # Filtramos por plantel_activo = true y que no esté borrado
+        if id_torneo is not None:
+            # Resolución canónica (espejo de app/services/plantel_resolver.py).
+            id_plantel = db.execute(
+                text("SELECT fn_plantel_de_equipo_en_torneo(:id_equipo, :id_torneo)"),
+                {"id_equipo": id_equipo, "id_torneo": id_torneo},
+            ).scalar()
+        else:
+            id_plantel = db.execute(
+                text(_SQL_PLANTEL_SIN_TORNEO), {"id_equipo": id_equipo}
+            ).scalar()
+
+        if id_plantel is None:
+            return []
+
         query = """
             SELECT *
             FROM vw_plantel_detallado
-            WHERE id_equipo = :id_equipo 
-            AND plantel_activo = true
+            WHERE id_plantel = :id_plantel
         """
-        params = {"id_equipo": id_equipo}
+        params = {"id_plantel": id_plantel}
 
         if rol:
             query += " AND (rol_en_plantel = :rol OR rol_en_plantel IS NULL)"
             params["rol"] = rol
 
         query += " ORDER BY rol_en_plantel, apellido_persona, nombre_persona"
-        
-        result = db.execute(text(query), params)
-        resultados = result.mappings().all()
 
-        # Si no hay absolutamente nada, el equipo ni siquiera tiene un plantel creado
-        if not resultados:
-            return []
+        return db.execute(text(query), params).mappings().all()
 
-        return resultados
-        
     except Exception as e:
         print(f"Error en DB: {e}") # Debug para consola
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error al obtener el plantel detallado: {str(e)}"
         )
-    
+
 @router.get(
     "/persona-arbitro/",
     response_model=List[PersonasArbitro],
@@ -189,3 +218,37 @@ def get_valla_menos_vencida(id_torneo: int, db: Session = Depends(get_db)):
     """)
     result = db.execute(query, {"id_torneo": id_torneo}).mappings().all()
     return result
+
+
+@router.get(
+    "/jugadores-participaron/{id_torneo}",
+    response_model=List[JugadorParticipoTorneo],
+    summary="Jugadores que participaron en un torneo",
+    description=(
+        "Lista de quiénes fueron efectivamente planillados en el torneo, con "
+        "partidos jugados. Es un hecho histórico derivado de las planillas, así "
+        "que funciona igual para torneos cerrados. Los playoffs se agrupan con "
+        "su torneo base."
+    ),
+)
+def get_jugadores_participaron_torneo(
+    id_torneo: int,
+    id_equipo: Optional[int] = Query(None, description="Filtrar por equipo"),
+    rol: Optional[str] = Query(None, description="Filtrar por rol (JUGADOR, DT, etc.)"),
+    db: Session = Depends(get_db),
+):
+    query = """
+        SELECT * FROM vw_jugadores_participaron_torneo
+        WHERE id_torneo = :id_torneo
+    """
+    params = {"id_torneo": id_torneo}
+
+    if id_equipo is not None:
+        query += " AND id_equipo = :id_equipo"
+        params["id_equipo"] = id_equipo
+    if rol:
+        query += " AND rol_en_plantel = :rol"
+        params["rol"] = rol
+
+    query += " ORDER BY nombre_equipo, apellido_persona, nombre_persona"
+    return db.execute(text(query), params).mappings().all()

@@ -1,5 +1,6 @@
 // frontend/src/pages/admin/torneos/InscripcionesTorneoLista.tsx
 
+import { useState } from "react"
 import type { InscripcionTorneoDetalle } from "../../../types/inscripcion"
 import Button from "../../../components/ui/button/Button"
 
@@ -7,7 +8,7 @@ import styles from "./InscripcionesTorneoLista.module.css"
 
 type Props = {
   inscripciones: InscripcionTorneoDetalle[]
-  onBaja: (idEquipo: number) => void
+  onBaja: (idEquipo: number) => void | Promise<void>
 }
 
 /**
@@ -19,6 +20,19 @@ export default function InscripcionesTorneoLista({
   inscripciones,
   onBaja,
 }: Props) {
+  // Equipo con la baja en curso: evita el doble clic mientras se recarga.
+  const [dandoBaja, setDandoBaja] = useState<number | null>(null)
+
+  const handleBaja = async (idEquipo: number) => {
+    if (!confirm("¿Dar de baja este equipo del torneo?")) return
+    setDandoBaja(idEquipo)
+    try {
+      await onBaja(idEquipo)
+    } finally {
+      setDandoBaja(null)
+    }
+  }
+
   return (
     <ul className={styles.list}>
       {inscripciones.map((i) => (
@@ -33,13 +47,10 @@ export default function InscripcionesTorneoLista({
 
           <Button
             variant="danger"
-            onClick={() => {
-              if (confirm("¿Dar de baja este equipo del torneo?")) {
-                onBaja(i.id_equipo)
-              }
-            }}
+            disabled={dandoBaja !== null}
+            onClick={() => handleBaja(i.id_equipo)}
           >
-            Dar de baja
+            {dandoBaja === i.id_equipo ? "Dando de baja…" : "Dar de baja"}
           </Button>
         </li>
       ))}

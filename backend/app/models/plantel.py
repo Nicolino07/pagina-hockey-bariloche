@@ -24,15 +24,24 @@ class Plantel(Base, AuditFieldsMixin, SoftDeleteMixin):
         nullable=False
     )
 
+    # Torneo al que pertenece la nómina. NULL = plantel histórico anterior a la
+    # migración 0033; se sigue usando como fallback (ver plantel_resolver.py).
+    id_torneo: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("torneo.id_torneo", onupdate="CASCADE", ondelete="RESTRICT"),
+        nullable=True
+    )
+
     # Identificación
     nombre: Mapped[str] = mapped_column(
         String(100),
         nullable=False
     )
 
-    temporada: Mapped[str] = mapped_column(
+    # Se deriva del torneo cuando hay id_torneo; solo es obligatoria de hecho
+    # en los planteles históricos.
+    temporada: Mapped[Optional[str]] = mapped_column(
         String(10),
-        nullable=False
+        nullable=True
     )
 
     # Descripción
@@ -67,6 +76,8 @@ class Plantel(Base, AuditFieldsMixin, SoftDeleteMixin):
         "Equipo",
         back_populates="planteles"
     )
+
+    torneo = relationship("Torneo")
 
     integrantes = relationship(
         "PlantelIntegrante",

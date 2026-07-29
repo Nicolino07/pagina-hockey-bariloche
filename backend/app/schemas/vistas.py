@@ -97,9 +97,15 @@ class PlantelActivoIntegrante(BaseModel):
     id_plantel: int
     id_equipo: int
     nombre_plantel: str
-    temporada: str
+    # Nullable desde la migración 0033: se deriva del torneo cuando el plantel
+    # tiene uno, así que solo la llevan los planteles históricos.
+    temporada: Optional[str] = None
     plantel_activo: bool
-    
+
+    # Torneo del plantel. None = plantel histórico previo a la migración 0033.
+    id_torneo: Optional[int] = None
+    nombre_torneo: Optional[str] = None
+
     # Estos deben ser Optional (pueden ser None)
     id_plantel_integrante: Optional[int] = None
     id_persona: Optional[int] = None
@@ -195,6 +201,30 @@ class VallaMenosVencida(BaseModel):
     goles_en_contra: int
     promedio_goles_recibidos: Optional[float] = None
     ranking_en_torneo: int
+
+    class Config:
+        from_attributes = True
+
+
+class JugadorParticipoTorneo(BaseModel):
+    """Schema para la vista vw_jugadores_participaron_torneo.
+
+    Es quién efectivamente fue planillado en el torneo (hecho histórico), no la
+    nómina habilitada. Funciona igual para torneos cerrados y nuevos.
+    """
+    id_torneo: int
+    nombre_torneo: str
+    id_equipo: int
+    nombre_equipo: str
+    id_persona: int
+    nombre_persona: str
+    apellido_persona: str
+    documento: Optional[int] = None
+    rol_en_plantel: Optional[str] = None
+    numero_camiseta: Optional[int] = None
+    partidos_jugados: int
+    primer_partido: Optional[date] = None
+    ultimo_partido: Optional[date] = None
 
     class Config:
         from_attributes = True

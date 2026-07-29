@@ -3,13 +3,21 @@ import { getPlantelActivoPorEquipo } from "../api/vistas/plantel.api"
 import type { PlantelActivoIntegrante } from "../types/vistas"
 
 /**
- * Hook que carga los integrantes del plantel activo de un equipo.
- * Resetea el estado si no se provee un ID de equipo.
- * @param id_equipo - ID del equipo cuyo plantel activo se consulta (opcional).
+ * Hook que carga los integrantes del plantel de un equipo.
+ *
+ * Pasando `id_torneo` devuelve la nómina de ESE torneo (lo correcto al armar
+ * una planilla: evita ofrecer jugadores de otro torneo). Sin `id_torneo`
+ * mantiene el comportamiento anterior.
+ *
+ * El backend garantiza que todas las filas son de un único plantel, así que
+ * tomar `data[0].id_plantel` es seguro.
+ *
+ * @param id_equipo - ID del equipo cuyo plantel se consulta (opcional).
+ * @param id_torneo - Torneo para el que se quiere la nómina (opcional).
  * @returns Objeto con integrantes, ID del plantel, estado de carga, error,
  *          indicador de existencia del plantel y función de recarga.
  */
-export function usePlantelActivo(id_equipo?: number) {
+export function usePlantelActivo(id_equipo?: number, id_torneo?: number) {
   const [integrantes, setIntegrantes] = useState<PlantelActivoIntegrante[]>([]);
   const [id_plantel, setIdPlantel] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -27,7 +35,7 @@ export function usePlantelActivo(id_equipo?: number) {
     setError(null);
 
     try {
-      const data = await getPlantelActivoPorEquipo(id_equipo);
+      const data = await getPlantelActivoPorEquipo(id_equipo, id_torneo);
 
       if (data && data.length > 0) {
         setIdPlantel(data[0].id_plantel);
@@ -45,7 +53,7 @@ export function usePlantelActivo(id_equipo?: number) {
     } finally {
       setLoading(false);
     }
-  }, [id_equipo]);
+  }, [id_equipo, id_torneo]);
 
   useEffect(() => {
     fetchData();

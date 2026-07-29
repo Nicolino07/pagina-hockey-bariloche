@@ -129,8 +129,8 @@ export default function PartidosPage() {
    * @param idEquipo - ID del equipo cuyo plantel se quiere obtener.
    * @returns Array de integrantes válidos, o array vacío si no hay plantel.
    */
-  const obtenerDatosPlantel = async (idEquipo: number) => {
-    const data = await getPlantelActivoPorEquipo(idEquipo);
+  const obtenerDatosPlantel = async (idEquipo: number, idTorneo?: number) => {
+    const data = await getPlantelActivoPorEquipo(idEquipo, idTorneo);
     if (!data || data.length === 0) return { jugadores: [], cuerpoTecnico: [] };
     const conPersona = data.filter((i: any) => i.id_persona !== null && i.id_persona !== undefined);
     const marcados = await marcarSuspendidos(conPersona);
@@ -151,8 +151,8 @@ export default function PartidosPage() {
       setLoading(true);
 
       const [datosLocal, datosVisit] = await Promise.all([
-        obtenerDatosPlantel(equipoL.id_equipo),
-        obtenerDatosPlantel(equipoV.id_equipo),
+        obtenerDatosPlantel(equipoL.id_equipo, selTorneo?.id_torneo),
+        obtenerDatosPlantel(equipoV.id_equipo, selTorneo?.id_torneo),
       ]);
 
       if (datosLocal.jugadores.length === 0 && datosVisit.jugadores.length === 0) {
@@ -182,8 +182,8 @@ export default function PartidosPage() {
     try {
       setLoading(true);
       const [datosLocal, datosVisit] = await Promise.all([
-        obtenerDatosPlantel(p.id_equipo_local),
-        obtenerDatosPlantel(p.id_equipo_visitante),
+        obtenerDatosPlantel(p.id_equipo_local, p.id_torneo),
+        obtenerDatosPlantel(p.id_equipo_visitante, p.id_torneo),
       ]);
       const torneo = torneos.find(t => t.id_torneo === p.id_torneo) ?? { nombre: p.nombre_torneo ?? "" };
       generarPlanillaPDF({

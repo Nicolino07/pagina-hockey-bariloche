@@ -522,8 +522,10 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
         const detalle = await obtenerDetallePartido(p.id_partido_real)
         generarPlanillaCompletaPDF(detalle)
       } else {
+        // Se pasa el torneo del partido: la planilla debe listar la nómina de
+        // ese torneo, no la de cualquier otro que juegue el equipo.
         const obtenerDatosPlantel = async (idEquipo: number) => {
-          const data = await getPlantelActivoPorEquipo(idEquipo)
+          const data = await getPlantelActivoPorEquipo(idEquipo, p.id_torneo)
           if (!data || data.length === 0) return { jugadores: [], cuerpoTecnico: [] }
           const conPersona = data.filter((i: any) => i.id_persona != null)
           const marcados = await marcarSuspendidos(conPersona)

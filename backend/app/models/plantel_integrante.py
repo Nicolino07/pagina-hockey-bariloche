@@ -28,9 +28,11 @@ class PlantelIntegrante(Base, AuditFieldsMixin):
         nullable=False
     )
 
-    id_fichaje_rol: Mapped[int] = mapped_column(
+    # Nullable a propósito: el FK es ON DELETE SET NULL, así que al borrarse el
+    # fichaje esta columna queda en NULL (el DDL siempre la tuvo nullable).
+    id_fichaje_rol: Mapped[Optional[int]] = mapped_column(
         ForeignKey("fichaje_rol.id_fichaje_rol", onupdate="CASCADE", ondelete="SET NULL"),
-        nullable=False
+        nullable=True
     )
     
     rol_en_plantel: Mapped[RolPersonaTipo] = mapped_column(nullable=False)

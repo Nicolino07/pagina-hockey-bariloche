@@ -587,7 +587,20 @@ BEGIN
     AND pi.rol_en_plantel = p_rol                     -- Mismo rol
     AND eq.id_club != p_id_club_destino              -- Club diferente
     AND pi.fecha_baja IS NULL                        -- Solo activos
-    AND pl.activo = true                             -- Plantel activo
+    -- "Plantel vigente": activo y, si es de un torneo, que el torneo siga
+    -- activo. Sin la segunda parte, los planteles de torneos ya terminados
+    -- bloquearían fichajes en otros clubes para siempre (ver migración 0033).
+    AND pl.borrado_en IS NULL
+    AND pl.activo = true
+    AND (
+        pl.id_torneo IS NULL
+        OR EXISTS (
+            SELECT 1 FROM torneo t
+            WHERE t.id_torneo = pl.id_torneo
+              AND t.activo = TRUE
+              AND t.borrado_en IS NULL
+        )
+    )
     AND pi.id_plantel_integrante != COALESCE(p_excluir_id_plantel_integrante, -1)  -- Excluir actualización
     LIMIT 1;
 
@@ -611,6 +624,65 @@ BEGIN
 
     -- No hay conflicto
     RETURN NULL;
+END;
+$$;
+
+-- =====================================================
+-- FUNCIÓN: fn_plantel_de_equipo_en_torneo
+-- Propósito: resolución canónica del plantel de un equipo en un torneo.
+--            Espejo SQL de app/services/plantel_resolver.py — si se cambia una
+--            hay que cambiar la otra (tests/test_plantel_resolver.py verifica
+--            que ambas coincidan en todos los pares equipo/torneo inscriptos).
+-- =====================================================
+CREATE OR REPLACE FUNCTION fn_plantel_de_equipo_en_torneo(
+    p_id_equipo INT,
+    p_id_torneo INT
+)
+RETURNS INT
+LANGUAGE plpgsql
+STABLE
+AS $$
+DECLARE
+    v_id_torneo_base INT;
+    v_id_plantel     INT;
+BEGIN
+    -- Los playoffs comparten el plantel de su torneo base.
+    SELECT COALESCE(t.torneo_base_id, t.id_torneo)
+    INTO v_id_torneo_base
+    FROM torneo t
+    WHERE t.id_torneo = p_id_torneo;
+
+    IF v_id_torneo_base IS NULL THEN
+        v_id_torneo_base := p_id_torneo;
+    END IF;
+
+    -- 1) Plantel propio del torneo. Se devuelve aunque esté cerrado: un torneo
+    --    terminado tiene su plantel cerrado y las lecturas históricas deben andar.
+    SELECT pl.id_plantel
+    INTO v_id_plantel
+    FROM plantel pl
+    WHERE pl.id_equipo = p_id_equipo
+      AND pl.id_torneo = v_id_torneo_base
+      AND pl.borrado_en IS NULL
+    ORDER BY pl.activo DESC
+    LIMIT 1;
+
+    IF v_id_plantel IS NOT NULL THEN
+        RETURN v_id_plantel;
+    END IF;
+
+    -- 2) Fallback al plantel histórico (id_torneo NULL), único gracias a
+    --    uq_plantel_legacy_activo.
+    SELECT pl.id_plantel
+    INTO v_id_plantel
+    FROM plantel pl
+    WHERE pl.id_equipo = p_id_equipo
+      AND pl.id_torneo IS NULL
+      AND pl.activo = true
+      AND pl.borrado_en IS NULL
+    LIMIT 1;
+
+    RETURN v_id_plantel;
 END;
 $$;
 

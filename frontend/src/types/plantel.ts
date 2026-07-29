@@ -3,8 +3,10 @@
 export interface Plantel {
   id_plantel: number
   id_equipo: number
+  // null = plantel histórico previo a la migración 0033.
+  id_torneo?: number | null
   nombre: string
-  temporada: string
+  temporada?: string | null
   descripcion?: string | null
   fecha_apertura: string
   fecha_cierre?: string | null

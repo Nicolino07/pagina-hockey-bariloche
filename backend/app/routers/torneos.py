@@ -13,7 +13,7 @@ from app.schemas.torneo import (
 )
 from app.dependencies.permissions import require_superuser
 from app.models.usuario import Usuario
-from app.services import torneos_services
+from app.services import torneos_services, planteles_services
 
 router = APIRouter(prefix="/torneos", tags=["Torneos"])
 
@@ -153,7 +153,11 @@ def reabrir_torneo(
         torneo.activo = True
         torneo.actualizado_en = func.now()
         torneo.actualizado_por = current_user.username
-        
+
+        # Simétrico a finalizar: si el torneo vuelve a estar activo, sus
+        # nóminas vuelven a ser editables.
+        planteles_services.reabrir_planteles_de_torneo(db, id_torneo, current_user)
+
         db.commit()
         db.refresh(torneo)
         return torneo

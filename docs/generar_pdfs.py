@@ -204,6 +204,7 @@ if __name__ == "__main__":
     files = [
         ("documentacion-tecnica.md", "documentacion-tecnica.pdf"),
         ("manual-usuario.md", "manual-usuario.pdf"),
+        ("instructivo-torneos.md", "instructivo-torneos.pdf"),
     ]
     print("Generando PDFs...")
     for md_file, pdf_file in files:

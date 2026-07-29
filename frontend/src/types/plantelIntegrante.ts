@@ -11,6 +11,8 @@ export type PlantelIntegrante = {
   numero_camiseta?: number | null
   fecha_alta: string
   fecha_baja?: string | null
+  /** Calculado. Si es > 0, el integrante jugó y no se puede quitar de la nómina. */
+  partidos_jugados?: number
 
     persona?: {
     nombre: string;

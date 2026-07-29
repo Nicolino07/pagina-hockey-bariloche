@@ -6,12 +6,14 @@ import {
   createPlantel,
   getPlantelesDeEquipo,
   updatePlantel,
-  cerrarPlantel,
   deletePlantel,
 } from "../../../api/planteles.api";
+import { copiarPlantel } from "../../../api/planteles.api";
 import { agregarIntegrante } from "../../../api/plantelIntegrantes.api";
+import { useTorneosActivos } from "../../../hooks/useTorneosActivos";
 import type { TipoRolPersona } from "../../../constants/enums";
 import type { Plantel } from "../../../types/plantel";
+import type { Torneo } from "../../../types/torneo";
 import type { PlantelActivoIntegrante } from "../../../types/vistas";
 
 import PlantelLista from "./PlantelLista";
@@ -69,6 +71,12 @@ export default function EquipoDetalle() {
   };
 
 
+  // `torneos` (todos los activos) se usa solo para mostrar nombres en las
+  // tarjetas. Para el alta se usa `torneosDisponibles`, que trae únicamente los
+  // válidos para este equipo y evita ofrecer opciones que terminarían en error.
+  const { torneos } = useTorneosActivos();
+  const [torneosDisponibles, setTorneosDisponibles] = useState<Torneo[]>([]);
+
   // ── Planteles ────────────────────────────────────────��─────
   const [planteles, setPlanteles] = useState<Plantel[]>([]);
   const [plantelSeleccionado, setPlantelSeleccionado] = useState<Plantel | null>(null);
@@ -82,18 +90,18 @@ export default function EquipoDetalle() {
   type ModalType =
     | "crear_plantel"
     | "editar_plantel"
-    | "cerrar_plantel"
     | "eliminar_plantel"
     | "agregar"
     | "eliminar_integrante"
+    | "copiar_plantel"
     | null;
   const [modalType, setModalType] = useState<ModalType>(null);
 
   // ── Forms / selección ──────────────────────────────────────
-  const [nuevoPlantelData, setNuevoPlantelData] = useState({
-    nombre: `Plantel ${equipoNombre || ""} ${new Date().getFullYear()}`,
-    temporada: new Date().getFullYear().toString(),
-  });
+  // El alta solo pide el torneo: nombre y temporada los deriva el backend.
+  const [nuevoPlantelData, setNuevoPlantelData] = useState({ id_torneo: "" as string });
+  // Copia de nómina: se elige el plantel de origen; el destino es el abierto.
+  const [copiaData, setCopiaData] = useState({ id_plantel_origen: "" });
   const [editPlantelData, setEditPlantelData] = useState({
     nombre: "",
     temporada: "",
@@ -111,19 +119,44 @@ export default function EquipoDetalle() {
   const [saving, setSaving] = useState(false);
 
   // ── Carga inicial de planteles ─────────────────────────────
-  const cargarPlanteles = async () => {
+  /**
+   * Recarga los planteles del equipo.
+   *
+   * @param idSeleccionar - Plantel a dejar abierto (ej. el recién creado). Sin
+   * este dato se conserva el que ya estaba abierto; y si no había ninguno, se
+   * abre el primer activo. Elegir "el primer activo" a secas dejó de alcanzar:
+   * un equipo puede tener varios activos, uno por torneo.
+   */
+  const cargarPlanteles = async (idSeleccionar?: number) => {
     if (!equipoId) return;
     setLoadingPlanteles(true);
     try {
       const data = await getPlantelesDeEquipo(equipoId);
       setPlanteles(data);
-      // Selecciona automáticamente el activo, o el primero si no hay activo
-      const activo = data.find(p => p.activo) ?? data[0] ?? null;
-      setPlantelSeleccionado(activo);
+      setPlantelSeleccionado(prev => {
+        const buscado = idSeleccionar ?? prev?.id_plantel;
+        return (
+          data.find(p => p.id_plantel === buscado) ??
+          data.find(p => p.activo) ??
+          data[0] ??
+          null
+        );
+      });
     } catch (err) {
       console.error(err);
     } finally {
       setLoadingPlanteles(false);
+    }
+  };
+
+  /** Refresca los torneos elegibles: al crear una nómina, ese torneo sale de la lista. */
+  const refrescarTorneosDisponibles = async () => {
+    if (!equipoId) return;
+    try {
+      const m = await import("../../../api/planteles.api");
+      setTorneosDisponibles(await m.getTorneosDisponiblesParaPlantel(equipoId));
+    } catch {
+      setTorneosDisponibles([]);
     }
   };
 
@@ -189,12 +222,54 @@ export default function EquipoDetalle() {
   }, [fichajes, rolSeleccionado, genero, busqueda]);
 
   // ── Handlers planteles ─────────────────────────────────────
-  const handleCrearPlantel = async () => {
-    if (!equipoId) return;
+  const handleCopiarPlantel = async () => {
+    if (!copiaData.id_plantel_origen || !plantelSeleccionado) return;
     setSaving(true);
     try {
-      await createPlantel({ ...nuevoPlantelData, id_equipo: equipoId, activo: true });
+      // Se copia HACIA el plantel abierto: la idea es traer la nómina completa
+      // de un golpe y después ajustarla (agregar o quitar) sobre ese mismo.
+      const res = await copiarPlantel({
+        id_plantel_origen: Number(copiaData.id_plantel_origen),
+        id_plantel_destino: plantelSeleccionado.id_plantel,
+      });
       await cargarPlanteles();
+      // Recarga integrantes (mismo patrón que el alta manual)
+      const updated = await import("../../../api/planteles.api")
+        .then(m => m.getIntegrantesByPlantel(plantelSeleccionado.id_plantel));
+      setIntegrantes((updated as any[]).map(i => ({
+        ...i,
+        nombre_persona: i.persona?.nombre ?? "",
+        apellido_persona: i.persona?.apellido ?? "",
+        documento: i.persona?.documento ?? null,
+      })));
+      setModalType(null);
+      // Los omitidos no son un error: son integrantes que ya no son elegibles
+      // (fichaje vencido, suspensión, etc.) y hay que resolverlos a mano.
+      if (res.omitidos.length > 0) {
+        const detalle = res.omitidos.map(o => `• ${o.nombre}: ${o.motivo}`).join("\n");
+        alert(`Se copiaron ${res.copiados} integrantes.\n\nNo se pudieron copiar ${res.omitidos.length}:\n${detalle}`);
+      } else {
+        alert(`Se copiaron ${res.copiados} integrantes.`);
+      }
+    } catch (err: any) {
+      alert(getErrorMessage(err, "Error al copiar el plantel"));
+    } finally { setSaving(false); }
+  };
+
+  const handleCrearPlantel = async () => {
+    if (!equipoId || !nuevoPlantelData.id_torneo) return;
+    setSaving(true);
+    try {
+      // El torneo es obligatorio: la nómina existe siempre para una competencia.
+      // El backend deriva de ahí el nombre y la temporada.
+      const creado = await createPlantel({
+        id_equipo: equipoId,
+        id_torneo: Number(nuevoPlantelData.id_torneo),
+        activo: true,
+      });
+      // Se abre directo la nómina nueva, que es lo que se va a querer llenar.
+      await cargarPlanteles(creado.id_plantel);
+      await refrescarTorneosDisponibles();
       setModalType(null);
     } catch (err: any) {
       alert(getErrorMessage(err, "Error al crear plantel"));
@@ -213,24 +288,14 @@ export default function EquipoDetalle() {
     } finally { setSaving(false); }
   };
 
-  const handleCerrarPlantel = async () => {
-    if (!plantelSeleccionado) return;
-    setSaving(true);
-    try {
-      await cerrarPlantel(plantelSeleccionado.id_plantel);
-      await cargarPlanteles();
-      setModalType(null);
-    } catch (err: any) {
-      alert(getErrorMessage(err, "Error al cerrar plantel"));
-    }finally { setSaving(false); }
-      };
-
   const handleEliminarPlantel = async () => {
     if (!plantelSeleccionado) return;
     setSaving(true);
     try {
       await deletePlantel(plantelSeleccionado.id_plantel);
       await cargarPlanteles();
+      // Al borrar la nómina, ese torneo vuelve a estar disponible.
+      await refrescarTorneosDisponibles();
       setModalType(null);
     } catch (err: any) {
       alert(getErrorMessage(err, "Error al eliminar plantel"));
@@ -317,15 +382,26 @@ export default function EquipoDetalle() {
       <div className={styles.plantelesSection}>
         <div className={styles.plantelesHeader}>
           <h2 className={styles.sectionTitle}>Planteles</h2>
-          <Button onClick={() => {
-            setNuevoPlantelData({
-              nombre: `Plantel ${equipoNombre || ""} ${new Date().getFullYear()}`,
-              temporada: new Date().getFullYear().toString(),
-            });
-            setModalType("crear_plantel");
-          }}>
-            + Nuevo plantel
-          </Button>
+          <div className={styles.plantelesHeaderActions}>
+            <Button onClick={() => {
+              setNuevoPlantelData({ id_torneo: "" });
+              if (equipoId) {
+                import("../../../api/planteles.api")
+                  .then(m => m.getTorneosDisponiblesParaPlantel(equipoId))
+                  .then(ts => {
+                    setTorneosDisponibles(ts);
+                    // Con un solo torneo elegible, se preselecciona.
+                    if (ts.length === 1) {
+                      setNuevoPlantelData({ id_torneo: String(ts[0].id_torneo) });
+                    }
+                  })
+                  .catch(() => setTorneosDisponibles([]));
+              }
+              setModalType("crear_plantel");
+            }}>
+              + Nuevo plantel
+            </Button>
+          </div>
         </div>
 
         {planteles.length === 0 ? (
@@ -343,7 +419,11 @@ export default function EquipoDetalle() {
               >
                 <div className={styles.plantelCardInfo}>
                   <span className={styles.plantelCardNombre}>{p.nombre}</span>
-                  <span className={styles.plantelCardTemporada}>{p.temporada}</span>
+                  <span className={styles.plantelCardTemporada}>
+                    {p.id_torneo
+                      ? (torneos.find(t => t.id_torneo === p.id_torneo)?.nombre ?? `Torneo #${p.id_torneo}`)
+                      : `Histórico${p.temporada ? ` · ${p.temporada}` : ""}`}
+                  </span>
                   {p.descripcion && <span className={styles.plantelCardDesc}>{p.descripcion}</span>}
                 </div>
                 <div className={styles.plantelCardFooter}>
@@ -372,14 +452,7 @@ export default function EquipoDetalle() {
                         setModalType("editar_plantel");
                       }}
                     >✏</button>
-                    {p.activo && (
-                      <button
-                        className={`${styles.iconBtn} ${styles.iconBtnWarning}`}
-                        title="Cerrar plantel"
-                        onClick={e => { e.stopPropagation(); setPlantelSeleccionado(p); setModalType("cerrar_plantel"); }}
-                      >🔒</button>
-                    )}
-                    {!p.activo && (
+                    {(
                       <button
                         className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
                         title="Eliminar plantel"
@@ -397,10 +470,25 @@ export default function EquipoDetalle() {
       {/* ── Integrantes del plantel seleccionado ── */}
       {plantelSeleccionado && (
         <div className={styles.plantelSection}>
-          <h2 className={styles.sectionTitle}>
-            Integrantes — {plantelSeleccionado.nombre}
-            {!plantelActivo && <span className={styles.badgeCerrado} style={{ marginLeft: 10 }}>Cerrado</span>}
-          </h2>
+          <div className={styles.plantelesHeader}>
+            <h2 className={styles.sectionTitle}>
+              Integrantes — {plantelSeleccionado.nombre}
+              {!plantelActivo && <span className={styles.badgeCerrado} style={{ marginLeft: 10 }}>Cerrado</span>}
+            </h2>
+            {plantelActivo && (
+              <div className={styles.plantelesHeaderActions}>
+                {planteles.length > 1 && (
+                  <Button variant="secondary" onClick={() => {
+                    setCopiaData({ id_plantel_origen: "" });
+                    setModalType("copiar_plantel");
+                  }}>
+                    Traer nómina de otro torneo
+                  </Button>
+                )}
+                <Button onClick={() => setModalType("agregar")}>+ Agregar integrantes</Button>
+              </div>
+            )}
+          </div>
           {loadingIntegrantes ? (
             <p>Cargando integrantes...</p>
           ) : integrantesValidos.length > 0 ? (
@@ -420,26 +508,105 @@ export default function EquipoDetalle() {
           ) : (
             <div className={styles.emptyCard}>
               <p>Este plantel no tiene integrantes.</p>
-              {plantelActivo && <small>Usá el botón "Agregar Integrante" para comenzar.</small>}
+              {plantelActivo && (
+                <small>
+                  Agregá integrantes a mano, o traé la nómina completa de otro
+                  torneo y ajustala.
+                </small>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* ── Modal: Crear plantel ── */}
-      <Modal open={modalType === "crear_plantel"} title="Nuevo Plantel" onClose={() => setModalType(null)}>
+      {/* ── Modal: Traer nómina desde otro plantel ── */}
+      <Modal
+        open={modalType === "copiar_plantel"}
+        title={`Traer nómina a "${plantelSeleccionado?.nombre ?? ""}"`}
+        onClose={() => setModalType(null)}
+      >
         <div className={styles.formContainer}>
           <div className={styles.field}>
-            <label>Nombre</label>
-            <input type="text" value={nuevoPlantelData.nombre} onChange={e => setNuevoPlantelData({ ...nuevoPlantelData, nombre: e.target.value })} />
-          </div>
-          <div className={styles.field}>
-            <label>Temporada</label>
-            <input type="text" placeholder="2025 o 2025-2026" value={nuevoPlantelData.temporada} onChange={e => setNuevoPlantelData({ ...nuevoPlantelData, temporada: e.target.value })} />
+            <label>Copiar desde</label>
+            <select
+              value={copiaData.id_plantel_origen}
+              onChange={e => setCopiaData({ id_plantel_origen: e.target.value })}
+            >
+              <option value="">— Elegí el plantel de origen —</option>
+              {planteles
+                .filter(pl => pl.id_plantel !== plantelSeleccionado?.id_plantel)
+                .map(pl => (
+                  <option key={pl.id_plantel} value={pl.id_plantel}>
+                    {pl.nombre}
+                    {pl.id_torneo
+                      ? ` (${torneos.find(t => t.id_torneo === pl.id_torneo)?.nombre ?? `Torneo #${pl.id_torneo}`})`
+                      : " (histórico)"}
+                  </option>
+                ))}
+            </select>
+            <small>
+              Se agregan los integrantes activos del plantel elegido a esta
+              nómina. Los que ya están no se duplican, y después podés agregar o
+              quitar a mano. No se modifica el plantel de origen.
+            </small>
           </div>
           <div className={styles.modalActions}>
             <Button variant="secondary" onClick={() => setModalType(null)}>Cancelar</Button>
-            <Button onClick={handleCrearPlantel} disabled={saving}>Crear</Button>
+            <Button onClick={handleCopiarPlantel} disabled={saving || !copiaData.id_plantel_origen}>
+              Traer nómina
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── Modal: Crear plantel ── */}
+      <Modal open={modalType === "crear_plantel"} title="Nuevo Plantel" onClose={() => setModalType(null)}>
+        <div className={styles.formContainer}>
+          {torneosDisponibles.length === 0 ? (
+            // Sin torneos elegibles no hay plantel que crear: la nómina existe
+            // siempre para un torneo puntual.
+            <div className={styles.field}>
+              <p className={styles.warningText}>
+                Este equipo no está anotado en ningún torneo pendiente de nómina.
+              </p>
+              <small>
+                Inscribilo primero en un torneo desde la pantalla del torneo. Si ya
+                está inscripto, puede que ya le hayas cargado la nómina de todos sus
+                torneos activos.
+              </small>
+            </div>
+          ) : (
+            <div className={styles.field}>
+              <label>Torneo</label>
+              <select
+                value={nuevoPlantelData.id_torneo}
+                onChange={e => setNuevoPlantelData({ ...nuevoPlantelData, id_torneo: e.target.value })}
+              >
+                <option value="">— Elegí el torneo —</option>
+                {torneosDisponibles.map(t => (
+                  <option key={t.id_torneo} value={t.id_torneo}>
+                    {t.nombre} — {t.categoria} {t.genero}
+                  </option>
+                ))}
+              </select>
+              <small>
+                Solo los torneos donde el equipo está inscripto y todavía no tiene
+                nómina. El nombre y la temporada se derivan del torneo.
+              </small>
+            </div>
+          )}
+          <div className={styles.modalActions}>
+            <Button variant="secondary" onClick={() => setModalType(null)}>
+              {torneosDisponibles.length === 0 ? "Entendido" : "Cancelar"}
+            </Button>
+            {torneosDisponibles.length > 0 && (
+              <Button
+                onClick={handleCrearPlantel}
+                disabled={saving || !nuevoPlantelData.id_torneo}
+              >
+                Crear
+              </Button>
+            )}
           </div>
         </div>
       </Modal>
@@ -466,23 +633,13 @@ export default function EquipoDetalle() {
         </div>
       </Modal>
 
-      {/* ── Modal: Cerrar plantel ── */}
-      <Modal open={modalType === "cerrar_plantel"} title="Cerrar Plantel" onClose={() => setModalType(null)}>
-        <p>¿Cerrar el plantel <strong>{plantelSeleccionado?.nombre}</strong>?</p>
-        <p className={styles.warningText}>Una vez cerrado no podrás agregar más integrantes. El historial queda registrado.</p>
-        <div className={styles.modalActions}>
-          <Button variant="secondary" onClick={() => setModalType(null)}>Cancelar</Button>
-          <Button variant="danger" onClick={handleCerrarPlantel} disabled={saving}>Cerrar plantel</Button>
-        </div>
-      </Modal>
-
       {/* ── Modal: Eliminar plantel ── */}
       <Modal open={modalType === "eliminar_plantel"} title="Eliminar Plantel" onClose={() => setModalType(null)}>
         <p>¿Eliminar el plantel <strong>{plantelSeleccionado?.nombre}</strong>?</p>
         <p className={styles.warningText}>
-          Se elimina de forma <strong>definitiva</strong> y no se puede deshacer. Solo se
-          puede borrar un plantel cerrado y sin integrantes: si tuvo jugadores, no se borra
-          (es historia), quedará cerrado.
+          Se elimina de forma <strong>definitiva</strong>, junto con sus integrantes, y no
+          se puede deshacer. Solo se permite si nunca se jugó un partido con esta nómina:
+          si ya se jugó, no se borra (perdería goles y tarjetas).
         </p>
         <div className={styles.modalActions}>
           <Button variant="secondary" onClick={() => setModalType(null)}>Cancelar</Button>

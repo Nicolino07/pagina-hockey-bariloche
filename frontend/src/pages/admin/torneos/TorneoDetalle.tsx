@@ -55,9 +55,9 @@ export default function TorneoDetalle() {
     }).catch(err => console.error("Error cargando estadísticas:", err))
   }, [torneoId])
 
-  const handleInscripto = () => {
-    refetch()
-  }
+  /** Recarga las inscripciones tras inscribir. Devuelve la promesa para que el
+   *  modal pueda esperarla antes de volver a habilitar los botones. */
+  const handleInscripto = () => refetch()
 
   /** Marca el torneo como finalizado y recarga el detalle. */
   const handleFinalizar = async () => {

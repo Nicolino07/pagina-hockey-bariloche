@@ -254,7 +254,12 @@ def finalizar_torneo(
         torneo.fecha_fin = fecha_fin
     elif not torneo.fecha_fin:
         torneo.fecha_fin = date.today()
-    
+
+    # Las nóminas del torneo pasan a ser un hecho histórico: se cierran para
+    # que no puedan editarse después de haberse jugado.
+    from app.services.planteles_services import cerrar_planteles_de_torneo
+    cerrar_planteles_de_torneo(db, id_torneo, current_user)
+
     db.commit()
     db.refresh(torneo)
     return torneo

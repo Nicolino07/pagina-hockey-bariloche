@@ -153,20 +153,28 @@ COMMENT ON INDEX unq_persona_club_rol_activo IS
 
 CREATE TABLE IF NOT EXISTS plantel (
     id_plantel      INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_equipo       INT NOT NULL 
+    id_equipo       INT NOT NULL
         REFERENCES equipo(id_equipo) ON UPDATE CASCADE ON DELETE RESTRICT,
-    
-    -- IDENTIFICACIÓN (OBLIGATORIO)
+
+    -- Torneo de la nómina. NULL = plantel histórico anterior a la migración
+    -- 0033 (se sigue usando como fallback, ver app/services/plantel_resolver.py).
+    -- El FK se agrega más abajo con un ALTER, porque `torneo` se crea después
+    -- que esta tabla.
+    id_torneo       INT,
+
+    -- IDENTIFICACIÓN
     nombre          VARCHAR(100) NOT NULL CHECK (nombre <> ''),
-    temporada       VARCHAR(10) NOT NULL,  -- '2024' o '2024-2025'
-    
+    -- '2024' o '2024-2025'. Se deriva del torneo cuando hay id_torneo, así que
+    -- en la práctica solo la llevan los planteles históricos.
+    temporada       VARCHAR(10),
+
     -- DESCRIPCIÓN (OPCIONAL)
     descripcion     TEXT,
-    
+
     -- TEMPORALIDAD
     fecha_apertura  DATE DEFAULT CURRENT_DATE NOT NULL,
     fecha_cierre    DATE,
-    
+
     -- ESTADO Y JERARQUÍA
     activo          BOOLEAN DEFAULT TRUE NOT NULL,
 
@@ -177,24 +185,33 @@ CREATE TABLE IF NOT EXISTS plantel (
     actualizado_por VARCHAR(100),
 
     -- CONSTRAINTS
-    CONSTRAINT chk_plantel_temporada_formato 
-        CHECK (temporada ~ '^[0-9]{4}(-[0-9]{4})?$'),
-    
-    CONSTRAINT chk_plantel_fechas_validas 
-        CHECK (fecha_cierre IS NULL OR fecha_cierre >= fecha_apertura),
-    
-    CONSTRAINT chk_plantel_cierre_si_inactivo 
-        CHECK (activo = TRUE OR fecha_cierre IS NOT NULL),
+    CONSTRAINT chk_plantel_temporada_formato
+        CHECK (temporada IS NULL OR temporada ~ '^[0-9]{4}(-[0-9]{4})?$'),
 
-    -- Restricción para evitar duplicar la misma temporada en el mismo equipo
-    CONSTRAINT uq_equipo_temporada 
-        UNIQUE (id_equipo, temporada)
+    CONSTRAINT chk_plantel_fechas_validas
+        CHECK (fecha_cierre IS NULL OR fecha_cierre >= fecha_apertura),
+
+    CONSTRAINT chk_plantel_cierre_si_inactivo
+        CHECK (activo = TRUE OR fecha_cierre IS NOT NULL)
 );
 
--- Garantiza que solo exista UN plantel activo por equipo
-CREATE UNIQUE INDEX idx_solamente_un_plantel_activo 
-ON plantel (id_equipo) 
-WHERE (activo = true AND borrado_en IS NULL);
+CREATE INDEX ix_plantel_id_torneo ON plantel (id_torneo);
+
+-- Un plantel por (equipo, torneo). Un equipo puede tener N planteles activos
+-- simultáneos, uno por cada torneo que juega.
+CREATE UNIQUE INDEX uq_plantel_equipo_torneo
+ON plantel (id_equipo, id_torneo)
+WHERE id_torneo IS NOT NULL AND borrado_en IS NULL;
+
+-- El bucket histórico conserva las reglas viejas: una temporada por equipo...
+CREATE UNIQUE INDEX uq_plantel_legacy_equipo_temporada
+ON plantel (id_equipo, temporada)
+WHERE id_torneo IS NULL AND borrado_en IS NULL;
+
+-- ...y un solo activo por equipo, lo que hace determinista el fallback.
+CREATE UNIQUE INDEX uq_plantel_legacy_activo
+ON plantel (id_equipo)
+WHERE id_torneo IS NULL AND activo = true AND borrado_en IS NULL;
 
 -- ======================
 -- PLANTEL_INTEGRANTE
@@ -254,6 +271,13 @@ CREATE TABLE IF NOT EXISTS torneo (
 
     CONSTRAINT torneo_unq_nombre_categoria UNIQUE (nombre, categoria, genero)
 );
+
+-- FK de plantel hacia torneo. Va acá y no en la definición de `plantel` porque
+-- esa tabla se crea antes que `torneo`.
+ALTER TABLE plantel
+    ADD CONSTRAINT fk_plantel_torneo
+        FOREIGN KEY (id_torneo) REFERENCES torneo(id_torneo)
+        ON UPDATE CASCADE ON DELETE RESTRICT;
 
 -- ======================
 -- INSCRIPCION_TORNEO

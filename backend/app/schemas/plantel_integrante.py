@@ -37,6 +37,9 @@ class PlantelIntegranteUpdate(BaseModel):
 class PlantelIntegranteRead(PlantelIntegranteBase):
     id_plantel_integrante: int
     persona: Optional[PersonaRead] = None
+    # Calculado. Si es > 0 el integrante no se puede quitar de la nómina:
+    # jugó, y eso es parte del registro del torneo.
+    partidos_jugados: int = 0
 
     creado_en: datetime
     actualizado_en: Optional [datetime] = None

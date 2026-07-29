@@ -39,6 +39,9 @@ export default function PlantelLista({
         const fechaAlta = i.fecha_alta ? new Date(i.fecha_alta).toLocaleDateString("es-AR") : null;
         const fechaBaja = i.fecha_baja ? new Date(i.fecha_baja).toLocaleDateString("es-AR") : null;
         const esBaja = !!i.fecha_baja;
+        // Quien jugó forma parte del registro del torneo: se lo puede marcar
+        // de baja, pero no desaparece de la nómina.
+        const jugo = (i.partidos_jugados ?? 0) > 0;
         const suspendido = typeof i.id_persona === "number" && suspendidos.has(i.id_persona);
 
         return (
@@ -47,10 +50,12 @@ export default function PlantelLista({
               <span className={styles.personaName}>
                 {i.apellido_persona}, {i.nombre_persona}
                 {suspendido && <span className={styles.suspendidoBadge}>SUSPENDIDO</span>}
+                {esBaja && <span className={styles.bajaBadge}>DE BAJA</span>}
               </span>
               <span className={styles.personaSub}>
                 <strong>DNI:</strong> {i.documento || "---"} ·
                 <span className={styles.roleBadge}>{i.rol_en_plantel}</span>
+                {jugo && <span className={styles.jugoBadge}>{i.partidos_jugados} PJ</span>}
               </span>
               {(fechaAlta || fechaBaja) && (
                 <span className={styles.personaFechas}>
@@ -64,12 +69,15 @@ export default function PlantelLista({
               <button
                 type="button"
                 className={styles.deleteBtn}
+                title={jugo
+                  ? "Ya jugó: queda en la nómina marcado como de baja"
+                  : "Quitar del plantel"}
                 onClick={(e) => {
                   e.stopPropagation();
                   onEliminar?.(i);
                 }}
               >
-                Dar de Baja
+                {jugo ? "Dar de Baja" : "Quitar"}
               </button>
             )}
           </div>

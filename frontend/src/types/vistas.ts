@@ -8,8 +8,14 @@ export interface PlantelActivoIntegrante {
   id_plantel: number;
   id_equipo: number;
   nombre_plantel: string;
-  temporada: string;
+  // Nullable desde la migración 0033: se deriva del torneo, así que solo la
+  // llevan los planteles históricos.
+  temporada?: string | null;
   plantel_activo: boolean;
+
+  // Torneo del plantel. null = plantel histórico previo a la migración 0033.
+  id_torneo?: number | null;
+  nombre_torneo?: string | null;
 
   // Campos opcionales (vienen así de la base de datos/vista)
   id_persona?: number | null;
@@ -21,6 +27,8 @@ export interface PlantelActivoIntegrante {
   id_plantel_integrante?: number | null; // El "?" causa el rojo
   fecha_alta?: string | null; 
   fecha_baja?: string | null;
+  /** Calculado. Si es > 0, el integrante jugó y no se puede quitar de la nómina. */
+  partidos_jugados?: number;
 }
 
 // Creamos un tipo "Seguro" para la UI de la planilla

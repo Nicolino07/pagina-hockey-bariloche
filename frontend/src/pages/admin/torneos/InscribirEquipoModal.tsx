@@ -14,7 +14,7 @@ interface Props {
   torneo: Torneo
   inscripciones: InscripcionTorneoDetalle[]
   onClose: () => void
-  onInscripto: () => void
+  onInscripto: () => void | Promise<void>
 }
 
 /**
@@ -33,6 +33,10 @@ export default function InscribirEquipoModal({
   onInscripto,
 }: Props) {
   const { equipos, loading } = useEquipos()
+
+  // Equipo cuya inscripción está en curso: evita el doble clic y da feedback
+  // mientras se recarga la lista del torneo.
+  const [inscribiendo, setInscribiendo] = useState<number | null>(null)
 
   const esPostemporada = torneo.tipo === "PLAYOFF" || torneo.tipo === "COPA" || !torneo.tipo
 
@@ -63,11 +67,16 @@ export default function InscribirEquipoModal({
    * @param idEquipo - ID del equipo a inscribir.
    */
   const handleInscribir = async (idEquipo: number) => {
+    setInscribiendo(idEquipo)
     try {
       await inscribirEquipoTorneo(torneo.id_torneo, idEquipo)
-      onInscripto()
+      // Se espera la recarga: hasta que no vuelva, la prop `inscripciones`
+      // sigue vieja y el botón mostraría "Inscribir" sobre un equipo ya anotado.
+      await onInscripto()
     } catch (e: any) {
-      alert(e.response?.data?.message ?? "Error al inscribir")
+      alert(e.response?.data?.detail ?? e.response?.data?.message ?? "Error al inscribir")
+    } finally {
+      setInscribiendo(null)
     }
   }
 
@@ -98,10 +107,14 @@ export default function InscribirEquipoModal({
               <span className={styles.nombre}>{e.nombre}</span>
 
               <Button
-                disabled={yaInscripto}
+                disabled={yaInscripto || inscribiendo !== null}
                 onClick={() => handleInscribir(e.id_equipo)}
               >
-                {yaInscripto ? "Inscripto" : "Inscribir"}
+                {inscribiendo === e.id_equipo
+                  ? "Inscribiendo…"
+                  : yaInscripto
+                    ? "Inscripto"
+                    : "Inscribir"}
               </Button>
             </li>
           )

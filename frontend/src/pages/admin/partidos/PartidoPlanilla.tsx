@@ -51,9 +51,10 @@ export default function PartidoPlanilla() {
   const [inscripcionLocal, setInscripcionLocal] = useState<any>(null);
   const [inscripcionVisitante, setInscripcionVisitante] = useState<any>(null);
 
-  // Casting de los integrantes para asegurar que id_plantel_integrante sea reconocido
-  const { integrantes: rawLocal } = usePlantelActivo(inscripcionLocal?.id_equipo);
-  const { integrantes: rawVisitante } = usePlantelActivo(inscripcionVisitante?.id_equipo);
+  // Se pasa el torneo para traer la nómina de ESE torneo: sin él, la planilla
+  // podría ofrecer jugadores que el equipo tiene inscriptos en otra competencia.
+  const { integrantes: rawLocal } = usePlantelActivo(inscripcionLocal?.id_equipo, torneoId);
+  const { integrantes: rawVisitante } = usePlantelActivo(inscripcionVisitante?.id_equipo, torneoId);
   
   const plantelLocal = (rawLocal || []) as PlantelActivoIntegrante[];
   const plantelVisitante = (rawVisitante || []) as PlantelActivoIntegrante[];

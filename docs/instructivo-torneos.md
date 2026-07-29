@@ -232,6 +232,8 @@ Cuando se cargan tarjetas en la planilla de un partido (ver [sección 7](#7-carg
 
 Las amarillas y las rojas se cuentan por separado: acumular rojas no descuenta ni suma al contador de amarillas, y viceversa.
 
+Las sanciones automáticas rigen **únicamente dentro del torneo donde se originaron**. Si la persona juega otra competencia en paralelo, ahí puede jugar sin problema: la sanción no la sigue.
+
 ### ¿Qué partido tiene que cumplir?
 
 Siempre el **próximo partido que efectivamente se juegue** del equipo de esa persona en el torneo donde se originó la sanción — no importa el número de fecha del fixture, sino el orden real en que se disputan los partidos. Por ejemplo: si la sanción se originó en la fecha 5 y la fecha 6 se reprograma para más adelante, jugándose antes la fecha 7, la persona cumple en la fecha 7 (la primera que realmente se juega).
@@ -243,7 +245,9 @@ Si a la misma persona le corresponden **varias fechas de suspensión** a la vez,
 Además de las automáticas, desde **Panel admin → Suspensiones** (rol Administrador o Superusuario) se puede cargar una sanción a mano — por ejemplo, por una decisión disciplinaria que no surge de una tarjeta puntual.
 
 1. Buscar a la persona por apellido, nombre o documento (aparece una lista para elegir mientras se escribe).
-2. Elegir el **torneo de origen**, si corresponde — este campo es **opcional**: si la sanción no está ligada a una competencia en particular (por ejemplo, una sanción disciplinaria general), se puede dejar sin torneo.
+2. Definir el **alcance**, que es lo que decide dónde rige la sanción:
+   - **Con torneo de origen**: la sanción vale **solo dentro de ese torneo**. La persona puede seguir jugando otras competencias con normalidad.
+   - **Sin torneo (sanción general)**: la sanción vale en **todas las competencias**. En este caso se pueden tildar los **roles afectados** (Jugador, DT, Árbitro, etc.): si no se tilda ninguno, alcanza a todos. Sirve, por ejemplo, para inhabilitar a alguien como jugador sin impedirle dirigir como DT.
 3. Elegir el tipo:
    - **Por partidos**: una cantidad determinada de fechas a cumplir.
    - **Por fecha**: suspendido hasta una fecha del calendario, sin importar cuántos partidos dispute en el medio.
@@ -251,11 +255,15 @@ Además de las automáticas, desde **Panel admin → Suspensiones** (rol Adminis
 
 Una suspensión manual se puede **anular** en cualquier momento (queda registrada igual, solo cambia su estado).
 
-### El aviso en la planilla
+### El control en la planilla
 
-Mientras una persona tiene una suspensión vigente (sin cumplir todavía), aparece marcada como **"Suspendido"** en la planilla de carga de cualquier partido — no solo en el torneo donde se originó la sanción, sino en cualquier competencia en la que participe. Es un aviso para quien carga la planilla: el sistema no bloquea la carga, así que sigue siendo responsabilidad de quien completa la planilla no hacer jugar a esa persona.
+Mientras una persona tiene una suspensión vigente, aparece marcada como **"Suspendido"** en la planilla de carga, y al guardar **el sistema rechaza la planilla** si esa persona está incluida. El mensaje explica el motivo y ofrece **incluirla de todas formas**: es una confirmación explícita, pensada para casos excepcionales, no un paso de rutina.
 
-> La sanción se **cumple** únicamente jugándose partidos del torneo donde se originó. Si la persona juega otro torneo mientras tanto, esos partidos no descuentan fechas — solo sirve para eso el próximo partido del torneo de origen.
+El control respeta el alcance de la sanción: una automática solo bloquea en su torneo; una general bloquea en cualquier competencia, y si tiene roles tildados, solo en esos roles.
+
+> La sanción se **cumple** únicamente jugándose partidos del torneo donde se originó. Si la persona juega otro torneo mientras tanto, esos partidos no descuentan fechas.
+
+El mismo control se aplica al **designar árbitros**: un árbitro suspendido aparece como no disponible, con el motivo.
 
 ### Cómo se ve en el sitio público
 
@@ -278,7 +286,8 @@ Ambas opciones están en la pestaña Resumen, en la **Zona peligrosa**, y solo e
 ### Finalizar torneo
 - Marca el torneo como cerrado, pero **no borra ningún dato**.
 - Se usa cuando el torneo **ya terminó de jugarse** y queda como historial.
-- Se puede **reabrir** en cualquier momento con el botón **🔁 Reabrir torneo**, por si hace falta corregir algo.
+- **Cierra automáticamente las nóminas del torneo**: dejan de aceptar cambios, para que lo que efectivamente se jugó no se pueda modificar después (ver [Planteles](#planteles)).
+- Se puede **reabrir** en cualquier momento con el botón **🔁 Reabrir torneo**, por si hace falta corregir algo: al reabrirlo, sus nóminas vuelven a quedar editables.
 
 ### Eliminar torneo
 - Borra el torneo **de forma permanente y definitiva**: partidos, goles, tarjetas e inscripciones se pierden para siempre. No hay forma de deshacerlo.
@@ -344,6 +353,8 @@ Botón **Dar de baja** en la fila correspondiente → pedir fecha de baja → co
 ### Pase de un jugador entre clubes
 
 Botón **Pase**: permite mover a la persona de un club a otro sin pasos separados. Al completar el club destino, el rol y la fecha, el sistema cierra el fichaje anterior y da de alta el nuevo en un solo paso.
+
+> **No se puede pasar a alguien que ya jugó** un partido de un torneo en curso a otro club, mientras ese torneo siga activo. Tampoco alcanza con darlo de baja de la nómina para destrabarlo: haber jugado es un hecho consumado y queda ligado a ese club hasta que el torneo se finalice. La restricción aplica por rol: alguien puede pasar como DT aunque esté tomado como jugador.
 
 ---
 
@@ -470,14 +481,35 @@ Un equipo solo se puede eliminar si no tiene planteles, inscripciones a torneos 
 
 **Dónde:** dentro del detalle de un equipo.
 
-Un **plantel** es el grupo de integrantes activos de un equipo durante una temporada, armado a partir de los fichajes vigentes del club.
+Un **plantel** es la nómina de un equipo **para un torneo determinado**. Un mismo equipo puede tener varias nóminas abiertas a la vez, una por cada torneo que esté jugando, y pueden ser distintas entre sí.
 
-1. Hacer clic en **Nuevo plantel** e ingresar la temporada.
-2. Hacer clic en **Agregar integrante**: se elige entre las personas con fichaje activo en ese club y se define su rol dentro del plantel (jugador, entrenador, etc.) y, opcionalmente, su número de camiseta.
-3. Para dar de baja a alguien del plantel sin borrar su historial, usar **Dar de baja** en su fila.
-4. Cuando termina la temporada, usar **Cerrar plantel** e ingresar la fecha de cierre. Un plantel cerrado no acepta nuevos integrantes — para la temporada siguiente se crea un plantel nuevo.
+#### Crear la nómina de un torneo
 
-> Un plantel que tuvo jugadores no se puede eliminar, solo cerrar: es el que sostiene el historial deportivo de "quién jugó en qué equipo y cuándo".
+1. Hacer clic en **Nuevo plantel** y elegir el **torneo**. El desplegable muestra únicamente los torneos donde ese equipo está inscripto y todavía no tiene nómina; si hay uno solo, viene elegido. El nombre y la temporada se completan solos a partir del torneo.
+   - Si el equipo no aparece anotado en ningún torneo, el sistema lo avisa: primero hay que **inscribirlo** desde la pantalla del torneo (ver [sección 4](#4-inscribir-equipos)).
+2. Al crearla, la nómina queda abierta y lista para cargar. Hay dos formas de llenarla, y se pueden combinar:
+   - **Traer nómina de otro torneo**: copia de una sola vez a todos los integrantes activos de otra nómina del mismo equipo. Es la forma rápida de arrancar.
+   - **Agregar integrantes**: uno por uno, eligiendo entre las personas con fichaje activo en el club, su rol (jugador, DT, etc.) y su número de camiseta.
+3. Sobre esa base se ajusta: agregar a los que faltan y quitar a los que no van.
+
+> Al traer una nómina, quien ya no sea elegible (fichaje vencido, sanción vigente, género que no corresponde) **no se copia**, y el sistema lista quiénes quedaron afuera y por qué. El resto se copia igual: un caso problemático no frena toda la operación. La nómina de origen nunca se modifica.
+
+#### Quitar o dar de baja a un integrante
+
+Depende de si esa persona **ya jugó** un partido:
+
+| Situación | Qué pasa |
+|---|---|
+| **Todavía no jugó** | El botón dice **Quitar** y sale de la nómina sin dejar rastro. Sirve para corregir una carga equivocada. |
+| **Ya jugó** (se ve el indicador `N PJ`) | El botón dice **Dar de Baja**. La persona **sigue apareciendo** en la nómina, marcada como *De baja*. No se puede hacer desaparecer: jugó, y eso es parte del registro del torneo. |
+
+#### Cierre de la nómina
+
+**No hay que cerrar los planteles a mano.** La nómina vive junto a su torneo: al **finalizar el torneo** se cierra sola, y al **reabrirlo** vuelve a quedar editable (ver [sección 9](#9-finalizar-o-eliminar-un-torneo)). Una nómina cerrada no acepta cambios, pero sí se puede seguir usando como origen de **Traer nómina** para armar la de otro torneo.
+
+#### Eliminar una nómina
+
+Se puede eliminar **una nómina con la que nunca se jugó un partido**, aunque tenga jugadores cargados: es el caso de una carga de prueba o equivocada, que no es historial de nada. Si ya se disputó aunque sea un partido, el sistema lo impide, porque borrarla haría perder los goles y las tarjetas asociados.
 
 ### Noticias
 
@@ -531,6 +563,8 @@ El listado muestra las últimas noticias publicadas, con opción de **Editar** o
 | Necesito dar de alta a alguien del panel administrativo | **Usuarios → Invitar Nuevo Usuario** (solo Superusuario) |
 | Quiero ver quién va ganando el torneo de goleadores/tarjetas | Sitio público → **Ranking / Estadísticas**, elegir el torneo |
 | Necesito sancionar a alguien sin que venga de una tarjeta cargada en un partido | **Panel admin → Suspensiones** → cargar sanción manual |
+| Quiero armar la nómina de un equipo para un torneo nuevo | Detalle del equipo → **Nuevo plantel** → elegir el torneo → **Traer nómina de otro torneo** y ajustar |
+| Cargué un plantel por error y quiero borrarlo | Se puede eliminar mientras no se haya jugado ningún partido con esa nómina |
 
 ---
 
@@ -552,7 +586,9 @@ El listado muestra las últimas noticias publicadas, con opción de **Editar** o
 | **Persona** | Cualquier individuo del sistema: jugador, árbitro, entrenador, delegado, etc. |
 | **Rol habilitante** | Función que una persona puede cumplir (Jugador, DT, Árbitro, etc.). No implica pertenencia a un club: solo indica que puede cumplir esa función. |
 | **Fichaje** | Vínculo activo entre una persona, un club y un rol, con fecha de inicio y de baja. Define la pertenencia real a un club en un momento dado. |
-| **Plantel** | Conjunto de integrantes de un equipo (tomados de sus fichajes activos) durante una temporada. |
+| **Plantel** | Nómina de un equipo **para un torneo determinado**, tomada de los fichajes activos del club. Un equipo puede tener varias a la vez, una por torneo. |
+| **Plantel histórico** | Nómina anterior a la separación por torneo, sin torneo asignado. Se conserva como historial y sirve de origen para "Traer nómina", pero no se edita. |
+| **Alcance de una sanción** | Dónde rige: solo en el torneo de origen, o general (todas las competencias, opcionalmente limitada a ciertos roles). |
 | **Designación** | Asignación de uno o dos árbitros a un partido antes de que se juegue. |
 | **Ranking** | Listado de goleadores, valla menos vencida o tarjetas de un torneo, calculado en vivo a partir de las planillas cargadas. |
 | **Estadísticas globales** | Los números de "Partidos jugados" y "Goles convertidos" en la portada del sitio público: suman todos los torneos, no uno solo. |

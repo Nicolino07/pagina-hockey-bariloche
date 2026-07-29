@@ -10,12 +10,19 @@ from fastapi import Request, Response
 
 from app.database import get_db
 from app.core.exceptions import NotFoundError
-from app.schemas.plantel import PlantelCreate, PlantelRead, PlantelUpdate
+from app.schemas.plantel import (
+    PlantelCreate,
+    PlantelRead,
+    PlantelUpdate,
+    PlantelCopiar,
+    PlantelCopiaResultado,
+)
+from app.schemas.torneo import TorneoSchema
 from app.schemas.plantel_integrante import (
     PlantelIntegranteCreate,
     PlantelIntegranteRead,
 )
-from app.services import planteles_services
+from app.services import planteles_services, plantel_resolver
 from app.dependencies.permissions import require_admin, require_editor
 
 router = APIRouter(
@@ -115,6 +122,77 @@ def listar_planteles_por_equipo(
     return planteles_services.listar_planteles_por_equipo(db, id_equipo)
 
 
+@router.get(
+    "/torneos-disponibles/{id_equipo}",
+    response_model=list[TorneoSchema],
+    status_code=status.HTTP_200_OK,
+)
+def torneos_disponibles_para_plantel(
+    id_equipo: int,
+    db: Session = Depends(get_db),
+):
+    """Torneos a los que se le puede crear una nómina a este equipo.
+
+    Son los activos donde el equipo está inscripto, que no sean fase final y
+    donde todavía no tenga plantel. Alimenta el selector del alta para que no
+    ofrezca opciones inválidas. Acceso público.
+    """
+    return planteles_services.torneos_disponibles_para_plantel(db, id_equipo)
+
+
+@router.get(
+    "/resolver",
+    response_model=PlantelRead,
+    status_code=status.HTTP_200_OK,
+)
+def resolver_plantel_de_torneo(
+    id_equipo: int,
+    id_torneo: int,
+    db: Session = Depends(get_db),
+):
+    """Devuelve el plantel que corresponde usar para ese equipo en ese torneo.
+
+    Contempla los playoffs (usan el plantel del torneo base) y cae al plantel
+    histórico si el equipo todavía no tiene nómina propia en el torneo.
+    Acceso público.
+    """
+    plantel = plantel_resolver.resolver_plantel(db, id_equipo, id_torneo)
+    if plantel is None:
+        raise NotFoundError("El equipo no tiene plantel para ese torneo")
+    return plantel
+
+
+# 🔐 ADMIN
+@router.post(
+    "/copiar",
+    response_model=PlantelCopiaResultado,
+    status_code=status.HTTP_201_CREATED,
+)
+def copiar_plantel(
+    data: PlantelCopiar,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    """Copia la nómina hacia otro plantel del mismo equipo.
+
+    El destino puede ser un plantel existente (`id_plantel_destino`) o un
+    torneo (`id_torneo_destino`, crea el plantel).
+
+    Los integrantes que ya no son elegibles (fichaje vencido, suspensión, etc.)
+    se devuelven en `omitidos` con el motivo en vez de abortar toda la copia.
+    Requiere rol ADMIN o superior.
+    """
+    resultado = planteles_services.copiar_plantel(
+        db=db,
+        id_plantel_origen=data.id_plantel_origen,
+        id_plantel_destino=data.id_plantel_destino,
+        id_torneo_destino=data.id_torneo_destino,
+        current_user=current_user,
+    )
+    db.commit()
+    return resultado
+
+
 @router.put(
     "/{id_plantel}",
     response_model=PlantelRead,
@@ -131,24 +209,6 @@ def actualizar_plantel(
         db=db,
         id_plantel=id_plantel,
         data=data,
-        current_user=current_user,
-    )
-
-
-@router.patch(
-    "/{id_plantel}/cerrar",
-    response_model=PlantelRead,
-    status_code=status.HTTP_200_OK,
-)
-def cerrar_plantel(
-    id_plantel: int,
-    db: Session = Depends(get_db),
-    current_user=Depends(require_editor),
-):
-    """Cierra el plantel activo: lo marca como inactivo y registra la fecha de cierre. Requiere rol EDITOR o superior."""
-    return planteles_services.cerrar_plantel(
-        db=db,
-        id_plantel=id_plantel,
         current_user=current_user,
     )
 
@@ -176,16 +236,12 @@ def eliminar_plantel(
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
 ):
-    """Elimina DEFINITIVAMENTE un plantel cerrado y vacío (solo si activo=False).
+    """Elimina DEFINITIVAMENTE un plantel con el que nunca se jugó.
 
-    Los planteles con integrantes son historia real: se cierran, no se borran.
+    Un plantel cargado por error se borra aunque tenga jugadores. Si ya se
+    disputó algún partido con esa nómina, se rechaza: borrarlo arrastraría
+    goles y tarjetas.
     """
-    plantel = planteles_services.obtener_plantel(db, id_plantel)
-
-    if plantel.activo:
-        from app.core.exceptions import ValidationError
-        raise ValidationError("Solo se pueden eliminar planteles cerrados")
-
     try:
         dep = planteles_services.eliminar_plantel(
             db=db,
