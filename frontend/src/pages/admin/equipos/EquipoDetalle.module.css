@@ -146,8 +146,6 @@
 }
 
 .iconBtn:hover { color: #e0e0e0; background: #333; }
-.iconBtnAdd { color: #8ab4f8; border: 1px solid rgba(138,180,248,0.3); }
-.iconBtnAdd:hover { color: #fff; background: rgba(138,180,248,0.15); border-color: #8ab4f8; }
 .iconBtnWarning:hover { color: #f6c90e; background: rgba(246,201,14,0.1); }
 .iconBtnDanger:hover { color: #f87171; background: rgba(248,113,113,0.1); }
 
@@ -282,6 +280,25 @@
 .personaInfo small {
   color: #888;
   font-family: monospace;
+}
+
+.suspendidoBadge {
+  background: rgba(224, 96, 96, 0.15);
+  color: #e06060;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  margin-left: 8px;
+}
+
+.personaCardSuspendido {
+  border-color: rgba(224, 96, 96, 0.4);
+}
+
+.personaCardSuspendido .personaName {
+  color: #e06060;
 }
 
 /* Formularios */

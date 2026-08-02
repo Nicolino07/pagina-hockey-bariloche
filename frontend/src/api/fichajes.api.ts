@@ -19,10 +19,22 @@ export const crearFichaje = async (data: {
 /**
  * Obtiene todos los fichajes de un club específico.
  * @param solo_activos Si es true, solo trae los que no tienen fecha_fin.
+ * @param filtroTorneo Si se pasan `id_torneo` e `id_equipo`, el backend
+ * excluye a quien ya esté anotado en el plantel de OTRO equipo del mismo
+ * club para ese torneo (no puede jugar para dos equipos del mismo club a
+ * la vez).
  */
-export const getFichajesPorClub = async (id_club: number, solo_activos = true) => {
+export const getFichajesPorClub = async (
+  id_club: number,
+  solo_activos = true,
+  filtroTorneo?: { id_torneo: number; id_equipo: number },
+) => {
   const response = await api.get(`/fichajes/club/${id_club}`, {
-    params: { solo_activos },
+    params: {
+      solo_activos,
+      id_torneo: filtroTorneo?.id_torneo,
+      id_equipo: filtroTorneo?.id_equipo,
+    },
   });
   return response.data;
 };

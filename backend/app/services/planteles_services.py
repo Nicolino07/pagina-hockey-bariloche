@@ -280,6 +280,11 @@ def crear_integrante(
             db.rollback()
             mensaje = str(e.orig).lower() if e.orig else str(e).lower()
 
+            if "otro equipo del mismo club" in mensaje:
+                raise ConflictError(
+                    "La persona ya está en otro equipo del mismo club para este torneo"
+                )
+
             if "rol" in mensaje and "otro club" in mensaje:
                 raise ConflictError(
                     "La persona ya tiene ese rol activo en otro club"
@@ -311,6 +316,11 @@ def crear_integrante(
     except DBAPIError as e:
         db.rollback()
         mensaje = str(e.orig).lower() if e.orig else str(e).lower()
+
+        if "otro equipo del mismo club" in mensaje:
+            raise ConflictError(
+                "La persona ya está en otro equipo del mismo club para este torneo"
+            )
 
         if "rol" in mensaje and "otro club" in mensaje:
             raise ConflictError(

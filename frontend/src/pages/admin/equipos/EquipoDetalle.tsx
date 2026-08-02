@@ -5,15 +5,17 @@ import {
   bajaIntegrantePlantel,
   createPlantel,
   getPlantelesDeEquipo,
+  getIntegrantesByPlantel,
   updatePlantel,
   deletePlantel,
 } from "../../../api/planteles.api";
-import { copiarPlantel } from "../../../api/planteles.api";
 import { agregarIntegrante } from "../../../api/plantelIntegrantes.api";
 import { useTorneosActivos } from "../../../hooks/useTorneosActivos";
+import { marcarSuspendidos } from "../../../utils/suspensiones";
 import type { TipoRolPersona } from "../../../constants/enums";
 import type { Plantel } from "../../../types/plantel";
 import type { Torneo } from "../../../types/torneo";
+import type { PlantelIntegrante } from "../../../types/plantelIntegrante";
 import type { PlantelActivoIntegrante } from "../../../types/vistas";
 
 import PlantelLista from "./PlantelLista";
@@ -70,6 +72,15 @@ export default function EquipoDetalle() {
     );
   };
 
+  /** Mapea PlantelIntegrante (con persona anidada) al shape que espera PlantelLista. */
+  const mapIntegrantes = (data: any[]): PlantelActivoIntegrante[] =>
+    data.map(i => ({
+      ...i,
+      nombre_persona: i.persona?.nombre ?? "",
+      apellido_persona: i.persona?.apellido ?? "",
+      documento: i.persona?.documento ?? null,
+    }));
+
 
   // `torneos` (todos los activos) se usa solo para mostrar nombres en las
   // tarjetas. Para el alta se usa `torneosDisponibles`, que trae únicamente los
@@ -101,7 +112,16 @@ export default function EquipoDetalle() {
   // El alta solo pide el torneo: nombre y temporada los deriva el backend.
   const [nuevoPlantelData, setNuevoPlantelData] = useState({ id_torneo: "" as string });
   // Copia de nómina: se elige el plantel de origen; el destino es el abierto.
+  // La copia no inserta directo: primero se trae una vista previa editable
+  // (`copiaPreview` + `copiaSeleccionados`) y recién al confirmar se insertan
+  // los integrantes elegidos.
   const [copiaData, setCopiaData] = useState({ id_plantel_origen: "" });
+  const [copiaPreview, setCopiaPreview] = useState<PlantelIntegrante[]>([]);
+  const [copiaSeleccionados, setCopiaSeleccionados] = useState<Set<number>>(new Set());
+  // Informativo: se muestran en rojo en la vista previa, no se descartan solos
+  // (el trigger de la base los rechaza igual al confirmar si corresponde).
+  const [copiaSuspendidos, setCopiaSuspendidos] = useState<Set<number>>(new Set());
+  const [loadingCopiaPreview, setLoadingCopiaPreview] = useState(false);
   const [editPlantelData, setEditPlantelData] = useState({
     nombre: "",
     temporada: "",
@@ -142,8 +162,10 @@ export default function EquipoDetalle() {
           null
         );
       });
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      // Si esto falla en silencio, la pantalla queda con los planteles viejos
+      // sin ningún indicio de que algo salió mal (parece que "no se refrescó").
+      alert(getErrorMessage(err, "No se pudo actualizar la lista de planteles. Recargá la página."));
     } finally {
       setLoadingPlanteles(false);
     }
@@ -166,18 +188,8 @@ export default function EquipoDetalle() {
   useEffect(() => {
     if (!plantelSeleccionado) { setIntegrantes([]); return; }
     setLoadingIntegrantes(true);
-    import("../../../api/planteles.api")
-      .then(m => m.getIntegrantesByPlantel(plantelSeleccionado.id_plantel, plantelSeleccionado.activo))
-      .then(data => {
-        // Mapea PlantelIntegrante (con persona anidada) al shape que espera PlantelLista
-        const mapped = (data as any[]).map(i => ({
-          ...i,
-          nombre_persona: i.persona?.nombre ?? "",
-          apellido_persona: i.persona?.apellido ?? "",
-          documento: i.persona?.documento ?? null,
-        }));
-        setIntegrantes(mapped);
-      })
+    getIntegrantesByPlantel(plantelSeleccionado.id_plantel, plantelSeleccionado.activo)
+      .then(data => setIntegrantes(mapIntegrantes(data)))
       .catch(console.error)
       .finally(() => setLoadingIntegrantes(false));
   }, [plantelSeleccionado]);
@@ -200,13 +212,29 @@ export default function EquipoDetalle() {
   }, [modalType, generoEquipo]);
 
   useEffect(() => {
-    if (modalType !== "agregar" || !id_club) return;
+    if (modalType !== "agregar" || !id_club || !plantelSeleccionado) return;
     setLoadingFichajes(true);
-    getFichajesPorClub(Number(id_club), true)
+    // Si el plantel es de un torneo, no ofrecemos personas que ya estén
+    // anotadas en el plantel de otro equipo del mismo club para ese mismo
+    // torneo: el backend lo bloquearía igual, pero no tiene sentido mostrarlas.
+    const filtroTorneo = plantelSeleccionado.id_torneo
+      ? { id_torneo: plantelSeleccionado.id_torneo, id_equipo: plantelSeleccionado.id_equipo }
+      : undefined;
+    getFichajesPorClub(Number(id_club), true, filtroTorneo)
       .then(data => setFichajes(data))
       .catch(console.error)
       .finally(() => setLoadingFichajes(false));
-  }, [modalType, id_club]);
+  }, [modalType, id_club, plantelSeleccionado]);
+
+  // Quien ya integra el plantel activo con ese rol no debe ofrecerse de nuevo.
+  const yaEnPlantelPorRol = useMemo(
+    () => new Set(
+      integrantesValidos
+        .filter(i => i.rol_en_plantel === rolSeleccionado)
+        .map(i => i.id_persona)
+    ),
+    [integrantesValidos, rolSeleccionado]
+  );
 
   const fichajesFiltrados = useMemo(() => {
     return fichajes.filter(f => {
@@ -217,42 +245,94 @@ export default function EquipoDetalle() {
       const matchBusqueda =
         `${f.persona_nombre} ${f.persona_apellido}`.toLowerCase().includes(searchLower) ||
         f.persona_documento?.toString().includes(searchLower);
-      return matchRol && matchGenero && matchBusqueda;
+      return matchRol && matchGenero && matchBusqueda && !yaEnPlantelPorRol.has(f.id_persona);
     });
-  }, [fichajes, rolSeleccionado, genero, busqueda]);
+  }, [fichajes, rolSeleccionado, genero, busqueda, yaEnPlantelPorRol]);
 
   // ── Handlers planteles ─────────────────────────────────────
-  const handleCopiarPlantel = async () => {
-    if (!copiaData.id_plantel_origen || !plantelSeleccionado) return;
+  /**
+   * Al elegir el plantel de origen se trae su nómina activa como vista previa
+   * (sin insertar nada todavía). El admin puede destildar a quien no quiera
+   * traer y recién al confirmar (`handleConfirmarCopia`) se insertan.
+   */
+  const handleSeleccionarOrigenCopia = async (idOrigenStr: string) => {
+    setCopiaData({ id_plantel_origen: idOrigenStr });
+    setCopiaPreview([]);
+    setCopiaSeleccionados(new Set());
+    setCopiaSuspendidos(new Set());
+    if (!idOrigenStr) return;
+    setLoadingCopiaPreview(true);
+    try {
+      const data = await getIntegrantesByPlantel(Number(idOrigenStr));
+      // Los que ya están activos en el destino se omiten: no tiene sentido
+      // ofrecer duplicarlos.
+      const yaEstan = new Set(integrantesValidos.map(i => i.id_persona));
+      const preview = data.filter(i => !yaEstan.has(i.id_persona));
+      setCopiaPreview(preview);
+      setCopiaSeleccionados(new Set(preview.map(i => i.id_plantel_integrante)));
+      // Solo informativo: se marcan en rojo, no se destildan solos. El
+      // trigger de la base los rechaza igual al confirmar si corresponde.
+      marcarSuspendidos(preview)
+        .then(marcados => setCopiaSuspendidos(new Set(
+          marcados.filter(m => m.suspendido).map(m => m.id_plantel_integrante)
+        )))
+        .catch(() => setCopiaSuspendidos(new Set()));
+    } catch (err: any) {
+      alert(getErrorMessage(err, "Error al cargar la nómina de origen"));
+    } finally { setLoadingCopiaPreview(false); }
+  };
+
+  const toggleCopiaSeleccionado = (id: number) => {
+    setCopiaSeleccionados(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const handleConfirmarCopia = async () => {
+    if (!plantelSeleccionado) return;
+    const aImportar = copiaPreview.filter(i => copiaSeleccionados.has(i.id_plantel_integrante));
+    if (aImportar.length === 0) return;
     setSaving(true);
     try {
-      // Se copia HACIA el plantel abierto: la idea es traer la nómina completa
-      // de un golpe y después ajustarla (agregar o quitar) sobre ese mismo.
-      const res = await copiarPlantel({
-        id_plantel_origen: Number(copiaData.id_plantel_origen),
-        id_plantel_destino: plantelSeleccionado.id_plantel,
-      });
-      await cargarPlanteles();
-      // Recarga integrantes (mismo patrón que el alta manual)
-      const updated = await import("../../../api/planteles.api")
-        .then(m => m.getIntegrantesByPlantel(plantelSeleccionado.id_plantel));
-      setIntegrantes((updated as any[]).map(i => ({
-        ...i,
-        nombre_persona: i.persona?.nombre ?? "",
-        apellido_persona: i.persona?.apellido ?? "",
-        documento: i.persona?.documento ?? null,
-      })));
-      setModalType(null);
-      // Los omitidos no son un error: son integrantes que ya no son elegibles
-      // (fichaje vencido, suspensión, etc.) y hay que resolverlos a mano.
-      if (res.omitidos.length > 0) {
-        const detalle = res.omitidos.map(o => `• ${o.nombre}: ${o.motivo}`).join("\n");
-        alert(`Se copiaron ${res.copiados} integrantes.\n\nNo se pudieron copiar ${res.omitidos.length}:\n${detalle}`);
+      // Igual que el alta manual: se inserta uno por uno para que las
+      // validaciones de negocio (fichaje vencido, suspensión, etc.) corran por
+      // integrante sin abortar el resto.
+      const resultados = await Promise.allSettled(
+        aImportar.map(i =>
+          agregarIntegrante({
+            id_plantel: plantelSeleccionado.id_plantel,
+            id_persona: i.id_persona,
+            id_fichaje_rol: i.id_fichaje_rol,
+            rol_en_plantel: i.rol_en_plantel,
+            numero_camiseta: i.numero_camiseta ?? undefined,
+          }).then(() => `${i.persona?.apellido}, ${i.persona?.nombre}`)
+        )
+      );
+      const updated = await getIntegrantesByPlantel(plantelSeleccionado.id_plantel);
+      setIntegrantes(mapIntegrantes(updated));
+
+      const ok = resultados.filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled").map(r => r.value);
+      // OJO: filtrar y después mapear con el índice del array YA filtrado
+      // desalinea ese índice contra `aImportar` (el índice deja de ser el
+      // original apenas hay un `fulfilled` antes de un `rejected`). Por eso
+      // se guarda el índice original antes de filtrar.
+      const errores = resultados
+        .map((r, idx) => ({ r, idx }))
+        .filter((x): x is { r: PromiseRejectedResult; idx: number } => x.r.status === "rejected")
+        .map(({ r, idx }) => {
+          const nombre = `${aImportar[idx].persona?.apellido}, ${aImportar[idx].persona?.nombre}`;
+          return `${nombre}: ${getErrorMessage(r.reason, "Error desconocido")}`;
+        });
+      if (errores.length === 0) {
+        setModalType(null);
+        alert(`Se importaron ${ok.length} integrantes.`);
       } else {
-        alert(`Se copiaron ${res.copiados} integrantes.`);
+        alert(`Se importaron ${ok.length} integrantes.\n\nNo se pudieron importar ${errores.length}:\n${errores.join("\n")}`);
       }
     } catch (err: any) {
-      alert(getErrorMessage(err, "Error al copiar el plantel"));
+      alert(getErrorMessage(err, "Error al importar la nómina"));
     } finally { setSaving(false); }
   };
 
@@ -325,21 +405,20 @@ export default function EquipoDetalle() {
       )
     );
     // Recarga integrantes
-    const updated = await import("../../../api/planteles.api")
-      .then(m => m.getIntegrantesByPlantel(plantelSeleccionado.id_plantel));
-    setIntegrantes((updated as any[]).map(i => ({
-      ...i,
-      nombre_persona: i.persona?.nombre ?? "",
-      apellido_persona: i.persona?.apellido ?? "",
-      documento: i.persona?.documento ?? null,
-    })));
+    const updated = await getIntegrantesByPlantel(plantelSeleccionado.id_plantel);
+    setIntegrantes(mapIntegrantes(updated));
 
     const ok = resultados.filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled").map(r => r.value);
-    const errores = resultados.filter((r): r is PromiseRejectedResult => r.status === "rejected").map((r, i) => {
-      const nombre = `${aAgregar[i].persona_apellido}, ${aAgregar[i].persona_nombre}`;
-      const detalle = getErrorMessage(r.reason, "Error desconocido");
-      return `${nombre}: ${detalle}`;
-    });
+    // Mismo cuidado que en handleConfirmarCopia: el índice se toma ANTES de
+    // filtrar, para no desalinearlo contra `aAgregar`.
+    const errores = resultados
+      .map((r, i) => ({ r, i }))
+      .filter((x): x is { r: PromiseRejectedResult; i: number } => x.r.status === "rejected")
+      .map(({ r, i }) => {
+        const nombre = `${aAgregar[i].persona_apellido}, ${aAgregar[i].persona_nombre}`;
+        const detalle = getErrorMessage(r.reason, "Error desconocido");
+        return `${nombre}: ${detalle}`;
+      });
     if (errores.length === 0) setModalType(null);
     else setResultadoCarga({ ok, errores });
   };
@@ -348,18 +427,19 @@ export default function EquipoDetalle() {
     if (!integranteAEliminar?.id || !plantelSeleccionado) return;
     try {
       await bajaIntegrantePlantel(integranteAEliminar.id);
-      const updated = await import("../../../api/planteles.api")
-        .then(m => m.getIntegrantesByPlantel(plantelSeleccionado.id_plantel));
-      setIntegrantes((updated as any[]).map(i => ({
-        ...i,
-        nombre_persona: i.persona?.nombre ?? "",
-        apellido_persona: i.persona?.apellido ?? "",
-        documento: i.persona?.documento ?? null,
-      })));
-      setModalType(null);
-      setIntegranteAEliminar(null);
     } catch (err: any) {
       alert(`No se pudo dar de baja: ${getErrorMessage(err, "Error del servidor")}`);
+      return;
+    }
+    setModalType(null);
+    setIntegranteAEliminar(null);
+    try {
+      const updated = await getIntegrantesByPlantel(plantelSeleccionado.id_plantel);
+      setIntegrantes(mapIntegrantes(updated));
+    } catch (err: any) {
+      // La baja ya se aplicó: si esto falla, no hay que decir que falló la
+      // baja, solo que la lista quedó desactualizada.
+      alert(getErrorMessage(err, "La baja se aplicó, pero no se pudo actualizar la lista. Recargá la página."));
     }
   };
 
@@ -431,17 +511,6 @@ export default function EquipoDetalle() {
                     {p.activo ? "Activo" : "Cerrado"}
                   </span>
                   <div className={styles.plantelCardActions}>
-                    {p.activo && (
-                      <button
-                        className={`${styles.iconBtn} ${styles.iconBtnAdd}`}
-                        title="Agregar integrante"
-                        onClick={e => {
-                          e.stopPropagation();
-                          setPlantelSeleccionado(p);
-                          setModalType("agregar");
-                        }}
-                      >+ Agregar</button>
-                    )}
                     <button
                       className={styles.iconBtn}
                       title="Editar"
@@ -480,6 +549,9 @@ export default function EquipoDetalle() {
                 {planteles.length > 1 && (
                   <Button variant="secondary" onClick={() => {
                     setCopiaData({ id_plantel_origen: "" });
+                    setCopiaPreview([]);
+                    setCopiaSeleccionados(new Set());
+                    setCopiaSuspendidos(new Set());
                     setModalType("copiar_plantel");
                   }}>
                     Traer nómina de otro torneo
@@ -530,7 +602,7 @@ export default function EquipoDetalle() {
             <label>Copiar desde</label>
             <select
               value={copiaData.id_plantel_origen}
-              onChange={e => setCopiaData({ id_plantel_origen: e.target.value })}
+              onChange={e => handleSeleccionarOrigenCopia(e.target.value)}
             >
               <option value="">— Elegí el plantel de origen —</option>
               {planteles
@@ -545,15 +617,57 @@ export default function EquipoDetalle() {
                 ))}
             </select>
             <small>
-              Se agregan los integrantes activos del plantel elegido a esta
-              nómina. Los que ya están no se duplican, y después podés agregar o
-              quitar a mano. No se modifica el plantel de origen.
+              Elegí el plantel de origen para ver su nómina. Los que ya están en
+              esta nómina no se muestran (no se duplican). Podés destildar a
+              quien no quieras traer antes de confirmar. No se modifica el
+              plantel de origen.
             </small>
           </div>
+
+          {copiaData.id_plantel_origen && (
+            loadingCopiaPreview ? (
+              <p>Cargando nómina…</p>
+            ) : copiaPreview.length === 0 ? (
+              <p className={styles.warningText}>
+                No hay integrantes para traer (o ya están todos en esta nómina).
+              </p>
+            ) : (
+              <div className={styles.scrollList}>
+                {copiaPreview.map(i => {
+                  const checked = copiaSeleccionados.has(i.id_plantel_integrante);
+                  const suspendido = copiaSuspendidos.has(i.id_plantel_integrante);
+                  return (
+                    <label
+                      key={i.id_plantel_integrante}
+                      className={`${styles.personaCard} ${checked ? styles.personaCardSelected : ""} ${suspendido ? styles.personaCardSuspendido : ""}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleCopiaSeleccionado(i.id_plantel_integrante)}
+                        className={styles.checkbox}
+                      />
+                      <div className={styles.personaInfo}>
+                        <span className={styles.personaName}>
+                          {i.persona?.apellido}, {i.persona?.nombre}
+                          {suspendido && <span className={styles.suspendidoBadge}>SUSPENDIDO</span>}
+                        </span>
+                        <small>{ROL_LABELS[i.rol_en_plantel] ?? i.rol_en_plantel}</small>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            )
+          )}
+
           <div className={styles.modalActions}>
             <Button variant="secondary" onClick={() => setModalType(null)}>Cancelar</Button>
-            <Button onClick={handleCopiarPlantel} disabled={saving || !copiaData.id_plantel_origen}>
-              Traer nómina
+            <Button
+              onClick={handleConfirmarCopia}
+              disabled={saving || copiaSeleccionados.size === 0}
+            >
+              Confirmar e importar ({copiaSeleccionados.size})
             </Button>
           </div>
         </div>

@@ -6,6 +6,9 @@ Rutas para la gestión de fichajes (vinculación de personas a clubes con un rol
 """
 from app.models.fichaje_rol import FichajeRol
 from app.models.persona import Persona
+from app.models.plantel import Plantel
+from app.models.plantel_integrante import PlantelIntegrante
+from app.models.equipo import Equipo
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from datetime import date
@@ -134,11 +137,20 @@ def obtener_fichajes_activos_por_club_y_rol(
 def obtener_fichajes_por_club(
     id_club: int,
     solo_activos: bool = True,
+    id_torneo: int | None = None,
+    id_equipo: int | None = None,
     db: Session = Depends(get_db),
 ):
     """
     Devuelve todos los fichajes de un club con los datos de la persona.
     Si `solo_activos=True` (por defecto), solo devuelve fichajes vigentes (sin fecha_fin).
+
+    Si se pasan `id_torneo` e `id_equipo` juntos, se excluyen las personas que
+    ya están activas en el plantel de OTRO equipo del mismo club para ese
+    torneo: no pueden jugar para dos equipos del mismo club en el mismo
+    torneo (ver trigger `validar_equipo_unico_en_torneo_mismo_club`), así que
+    no tiene sentido ofrecerlas para agregar.
+
     Acceso público.
     """
     query = (
@@ -155,8 +167,26 @@ def obtener_fichajes_por_club(
 
     fichajes = query.all()
 
+    personas_en_otro_equipo_del_torneo: set[int] = set()
+    if id_torneo is not None and id_equipo is not None:
+        personas_en_otro_equipo_del_torneo = {
+            row[0] for row in db.query(PlantelIntegrante.id_persona)
+            .join(Plantel, PlantelIntegrante.id_plantel == Plantel.id_plantel)
+            .join(Equipo, Plantel.id_equipo == Equipo.id_equipo)
+            .filter(
+                Equipo.id_club == id_club,
+                Equipo.id_equipo != id_equipo,
+                Plantel.id_torneo == id_torneo,
+                Plantel.borrado_en.is_(None),
+                Plantel.activo.is_(True),
+                PlantelIntegrante.fecha_baja.is_(None),
+            ).all()
+        }
+
     resultado = []
     for fichaje in fichajes:
+        if fichaje.id_persona in personas_en_otro_equipo_del_torneo:
+            continue
         persona = db.get(Persona, fichaje.id_persona)
         resultado.append({
             "id_fichaje_rol": fichaje.id_fichaje_rol,
