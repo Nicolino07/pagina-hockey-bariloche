@@ -31,7 +31,8 @@
 15. [Usuarios del sistema y sus funciones](#15-usuarios-del-sistema-y-sus-funciones)
 16. [Otras secciones del panel](#16-otras-secciones-del-panel)
 17. [Resumen rápido: ¿qué opción uso?](#17-resumen-rápido-qué-opción-uso)
-18. [Glosario](#18-glosario)
+18. [Modo claro y oscuro](#18-modo-claro-y-oscuro)
+19. [Glosario](#19-glosario)
 
 # Parte 1 — Torneos
 
@@ -576,7 +577,19 @@ El listado muestra las últimas noticias publicadas, con opción de **Editar** o
 
 ---
 
-## 18. Glosario
+## 18. Modo claro y oscuro
+
+El sitio (tanto el panel administrativo como las páginas públicas) tiene dos modos de color: **oscuro** (el de siempre) y **claro** (fondo blanco/celeste muy claro).
+
+**Dónde:** botón circular ☀️/🌙 fijo en la esquina inferior derecha, visible en cualquier pantalla. Un clic alterna entre los dos modos al instante, sin recargar la página.
+
+- El navbar, el footer y los botones principales mantienen siempre el mismo azul marino, en ambos modos: lo único que cambia es el fondo de página y de las tarjetas/formularios.
+- La elección queda guardada en el navegador: la próxima vez que se entra al sitio desde el mismo dispositivo, se abre en el modo que se dejó la última vez.
+- Es una preferencia **por dispositivo/navegador**, no por usuario: no se sincroniza entre distintas computadoras ni queda ligada a la cuenta.
+
+---
+
+## 19. Glosario
 
 | Término | Definición |
 |---|---|

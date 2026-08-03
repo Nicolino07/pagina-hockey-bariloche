@@ -55,12 +55,12 @@ export default function Navbar() {
 
         {/* ---- NAV DESKTOP ---- */}
         <nav className={styles.desktopNav}>
-          <Link to="/">Inicio</Link>
           <Link to="/public/clubes">Clubes</Link>
           <Link to="/public/posiciones">Posiciones</Link>
           <Link to="/public/ranking">Estadísticas</Link>
           <Link to="/fixture">Fixture</Link>
           <Link to="/resultados">Resultados</Link>
+          <Link to="/noticias">Noticias</Link>
 
           {isAuthenticated && (
             <>
@@ -138,12 +138,12 @@ export default function Navbar() {
         <button className={styles.closeBtn} onClick={close}>✕</button>
 
         <nav className={styles.menu}>
-          <Link to="/" onClick={close}>Inicio</Link>
           <Link to="/public/clubes" onClick={close}>Clubes</Link>
           <Link to="/public/posiciones" onClick={close}>Posiciones</Link>
           <Link to="/public/ranking" onClick={close}>Estadísticas</Link>
           <Link to="/fixture" onClick={close}>Fixture</Link>
           <Link to="/resultados" onClick={close}>Resultados</Link>
+          <Link to="/noticias" onClick={close}>Noticias</Link>
 
           {isAuthenticated && (
             <>

@@ -2,8 +2,8 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
-  background-color: #121212;
-  color: #e8eaed;
+  background-color: var(--bg-main);
+  color: var(--text-main);
   min-height: 100vh;
 }
 
@@ -11,7 +11,7 @@
 .header {
   text-align: center;
   margin-bottom: 60px;
-  border-bottom: 1px solid #3c4043;
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 40px;
 }
 
@@ -24,7 +24,7 @@
 }
 
 .header p {
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-size: 1.2rem;
   font-weight: 500;
   letter-spacing: 1px;
@@ -43,15 +43,15 @@
   display: grid;
   grid-template-columns: 1.5fr 1fr;
   gap: 0;
-  background: #1e1e1e;
+  background: var(--bg-card);
 }
 
 /* Card de Noticia */
 .newsCard {
-  background-color: #202124;
+  background-color: var(--bg-card);
   border-radius: 28px;
   overflow: hidden;
-  border: 1px solid #3c4043;
+  border: 1px solid var(--border-color);
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   display: flex;
@@ -60,7 +60,7 @@
 
 .newsCard:hover {
   transform: translateY(-8px);
-  border-color: #8ab4f8;
+  border-color: var(--color-primary);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
@@ -95,7 +95,7 @@
   right: 0;
   padding: 10px 20px;
   background: linear-gradient(transparent, rgba(0,0,0,0.8));
-  color: #fff;
+  color: #ffffff;
   font-size: 0.75rem;
   font-style: italic;
 }
@@ -125,7 +125,7 @@
 }
 
 .date {
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -137,7 +137,7 @@
   font-size: 1.5rem;
   line-height: 1.2;
   margin-bottom: 15px;
-  color: #ffffff;
+  color: var(--text-heading);
 }
 
 /* Título más grande para la destacada */
@@ -146,7 +146,7 @@
 }
 
 .content p {
-  color: #9aa0a6;
+  color: var(--text-muted);
   line-height: 1.6;
   font-size: 0.95rem;
   margin-bottom: 20px;
@@ -154,7 +154,7 @@
 
 .readMore {
   margin-top: auto;
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-weight: 600;
   font-size: 0.9rem;
   transition: transform 0.2s;
@@ -169,7 +169,7 @@
   text-align: center;
   padding: 100px;
   font-size: 1.5rem;
-  color: #8ab4f8;
+  color: var(--color-primary);
 }
 
 /* Responsive */
