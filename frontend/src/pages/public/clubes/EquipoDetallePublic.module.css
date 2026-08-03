@@ -2,7 +2,7 @@
   max-width: 1000px;
   margin: 0 auto;
   padding: 40px 20px;
-  color: #e8eaed;
+  color: var(--text-main);
   font-family: 'Inter', sans-serif;
 }
 
@@ -13,8 +13,8 @@
 
 .backBtn {
   background: transparent;
-  border: 1px solid #3c4043;
-  color: #9aa0a6;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
   padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
@@ -23,9 +23,9 @@
 }
 
 .backBtn:hover {
-  background: #202124;
-  color: #fff;
-  border-color: #8ab4f8;
+  background: var(--bg-card);
+  color: var(--text-heading);
+  border-color: var(--color-primary);
 }
 
 .equipoTitleBlock {
@@ -45,19 +45,19 @@
 .equipoMeta {
   margin: 4px 0 0;
   font-size: 0.9rem;
-  color: #9aa0a6;
+  color: var(--text-muted);
   font-weight: 500;
   letter-spacing: 0.3px;
 }
 
 .badge {
-  background: rgba(138, 180, 248, 0.1);
-  color: #8ab4f8;
+  background: var(--tint-primary-medium);
+  color: var(--color-primary);
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
-  border: 1px solid rgba(138, 180, 248, 0.2);
+  border: 1px solid var(--tint-primary-strong);
 }
 
 /* Sección de Plantel */
@@ -65,8 +65,8 @@
   font-size: 1.5rem;
   margin-bottom: 24px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #3c4043;
-  color: #fff;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-heading);
 }
 
 .jugadoresGrid {
@@ -76,8 +76,8 @@
 }
 
 .playerCard {
-  background: #202124;
-  border: 1px solid #3c4043;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 16px;
   display: flex;
@@ -87,16 +87,16 @@
 }
 
 .playerCard:hover {
-  border-color: #8ab4f8;
+  border-color: var(--color-primary);
   transform: translateY(-2px);
-  background: #28292c;
+  background: var(--bg-elevated);
 }
 
 .numberBadge {
   width: 48px;
   height: 48px;
-  background: #303134;
-  color: #8ab4f8;
+  background: var(--bg-subtle);
+  color: var(--color-primary);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -113,14 +113,14 @@
 
 .playerName {
   font-weight: 600;
-  color: #fff;
+  color: var(--text-heading);
   margin: 0;
   font-size: 1.05rem;
 }
 
 .playerRole {
   font-size: 0.85rem;
-  color: #9aa0a6;
+  color: var(--text-muted);
   margin: 2px 0 0;
   text-transform: capitalize;
 }
@@ -129,16 +129,16 @@
 .emptyState {
   text-align: center;
   padding: 60px;
-  background: #1e1e1e;
+  background: var(--bg-card);
   border-radius: 20px;
-  border: 1px dashed #3c4043;
-  color: #9aa0a6;
+  border: 1px dashed var(--border-color);
+  color: var(--text-muted);
 }
 
 .loader {
   text-align: center;
   padding: 100px;
-  color: #8ab4f8;
+  color: var(--color-primary);
 }
 
 /* --- RESPONSIVIDAD --- */

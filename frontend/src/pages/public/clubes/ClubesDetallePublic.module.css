@@ -3,7 +3,7 @@
 .mainWrapper {
  /* background-color: #121212;*/
   min-height: 100vh;
-  color: #e8eaed;
+  color: var(--text-main);
   padding: 20px;
   font-family: 'Inter', sans-serif;
 }
@@ -129,7 +129,7 @@
 .header {
   margin-bottom: 32px;
   padding: 20px;
-  background: linear-gradient(180deg, #1e1e1e 0%, #121212 100%);
+  background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-main) 100%);
   border-radius: 16px;
 }
 
@@ -142,15 +142,15 @@
 .clubLogo {
   width: 70px;
   height: 70px;
-  background: #303134;
+  background: var(--bg-subtle);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.8rem;
   font-weight: 800;
-  color: #8ab4f8;
-  border: 2px solid #3c4043;
+  color: var(--color-primary);
+  border: 2px solid var(--border-color);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -171,7 +171,7 @@
 
 .headerInfo p {
   margin: 4px 0 0;
-  color: #9aa0a6;
+  color: var(--text-muted);
   font-size: 1rem;
 }
 
@@ -201,8 +201,8 @@
 
 /* MATCH CARDS */
 .matchCard {
-  background: #202124;
-  border: 1px solid #3c4043;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 20px;
   margin-bottom: 16px;
@@ -210,7 +210,7 @@
 
 .matchDate {
   font-size: 0.8rem;
-  color: #9aa0a6;
+  color: var(--text-muted);
   margin-bottom: 14px;
 }
 
@@ -221,14 +221,14 @@
   padding: 4px 0;
 }
 
-.winner { font-weight: 700; color: #fff; }
-.score { font-size: 1.2rem; font-weight: 800; color: #8ab4f8; }
+.winner { font-weight: 700; color: var(--text-heading); }
+.score { font-size: 1.2rem; font-weight: 800; color: var(--color-primary); }
 
 .goalList {
   display: flex;
   gap: 8px;
   font-size: 0.75rem;
-  color: #9aa0a6;
+  color: var(--text-muted);
   margin-bottom: 10px;
   flex-wrap: wrap;
 }
@@ -236,30 +236,30 @@
 .matchFooter {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #303134;
+  border-top: 1px solid var(--border-subtle);
   font-size: 0.8rem;
-  color: #9aa0a6;
+  color: var(--text-muted);
 }
 
 /* TABLA POSICIONES */
 .tableWrapper {
-  background: #202124;
-  border: 1px solid #3c4043;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 16px;
 }
 
 .table { width: 100%; border-collapse: collapse; }
-.table th { color: #9aa0a6; font-size: 0.75rem; padding: 10px; text-transform: uppercase; }
-.table td { padding: 14px 10px; text-align: center; border-bottom: 1px solid #303134; }
+.table th { color: var(--text-muted); font-size: 0.75rem; padding: 10px; text-transform: uppercase; }
+.table td { padding: 14px 10px; text-align: center; border-bottom: 1px solid var(--border-subtle); }
 .teamNameCell { text-align: left !important; font-weight: 500; }
-.pts { font-weight: 800; color: #fff; }
-.rowActive { background: rgba(138, 180, 248, 0.1); }
+.pts { font-weight: 800; color: var(--text-heading); }
+.rowActive { background: var(--tint-primary-medium); }
 
 /* 4. SECCIÓN PLANTEL */
 .plantelSection {
   padding-top: 32px;
-  border-top: 1px solid #303134;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .plantelGrid {
@@ -270,8 +270,8 @@
 }
 
 .playerCard {
-  background: #202124;
-  border: 1px solid #3c4043;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -282,12 +282,12 @@
 
 .playerCard:hover {
   transform: translateY(-3px);
-  border-color: #8ab4f8;
+  border-color: var(--color-primary);
 }
 
 .playerNumber {
-  background: #303134;
-  color: #8ab4f8;
+  background: var(--bg-subtle);
+  color: var(--color-primary);
   width: 40px;
   height: 40px;
   border-radius: 8px;
@@ -299,8 +299,8 @@
 }
 
 .playerInfo { display: flex; flex-direction: column; }
-.playerName { font-weight: 600; color: #fff; font-size: 1rem; }
-.playerRole { font-size: 0.8rem; color: #9aa0a6; text-transform: capitalize; }
+.playerName { font-weight: 600; color: var(--text-heading); font-size: 1rem; }
+.playerRole { font-size: 0.8rem; color: var(--text-muted); text-transform: capitalize; }
 
 /* --- RESPONSIVIDAD --- */
 
@@ -333,7 +333,7 @@
     background: var(--color-accent02);
     border: none;
     border-radius: var(--radius-md) var(--radius-md) 0 0;
-    color: #fff;
+    color: var(--text-heading);
     font-size: 0.88rem;
     font-weight: 700;
     cursor: pointer;
@@ -406,7 +406,7 @@
     font-size: 0.7rem;
     margin-bottom: 5px;
     padding-left: 5px;
-    border-left: 2px solid #303134;
+    border-left: 2px solid var(--border-subtle);
   }
 
   .playerCard {
@@ -428,8 +428,8 @@
 
 /* Efecto para resaltar la fila del equipo del club en la tabla */
 .rowActive td {
-  color: #8ab4f8;
-  border-bottom: 1px solid #8ab4f8;
+  color: var(--color-primary);
+  border-bottom: 1px solid var(--color-primary);
 }
 .backBtn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.88rem; padding: 0; margin-bottom: 20px; display: inline-block; }
 .backBtn:hover { color: var(--text-main); }
