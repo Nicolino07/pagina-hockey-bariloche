@@ -244,8 +244,11 @@
     z-index: 1000;
   }
 
-  .logoutItem {
+  .logoutItem,
+  .dropdownItem {
     width: 100%;
+    display: block;
+    box-sizing: border-box;
     background: none;
     border: none;
     color: white;
@@ -253,10 +256,12 @@
     text-align: left;
     cursor: pointer;
     font-size: 0.85rem;
+    text-decoration: none;
     transition: background 0.2s ease;
   }
 
-  .logoutItem:hover {
+  .logoutItem:hover,
+  .dropdownItem:hover {
     background: rgba(255, 255, 255, 0.12);
   }
 

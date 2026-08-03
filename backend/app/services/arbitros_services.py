@@ -32,6 +32,17 @@ from app.models.enums import RolPersonaTipo
 
 ESTADOS_DESIGNABLES = ("BORRADOR", "PENDIENTE")
 
+# Para redactar el motivo en términos de cancha, no de tablas de la base.
+ROL_EN_TORNEO_LABEL = {
+    "JUGADOR": "jugador",
+    "DT": "director técnico",
+    "ARBITRO": "árbitro",
+    "ASISTENTE": "asistente",
+    "PREPARADOR_FISICO": "preparador físico",
+    "MEDICO": "médico",
+    "DELEGADO": "delegado",
+}
+
 
 def listar_partidos_designables(db: Session, torneo_id: Optional[int] = None):
     """Devuelve los partidos en estado BORRADOR/PENDIENTE de torneos activos, candidatos a designación."""
@@ -82,18 +93,28 @@ def _motivo_no_disponible(
     es_competitiva: bool,
     nombre_completo: str,
     motivo_suspension: Optional[str] = None,
+    rol_en_torneo: Optional[str] = None,
+    club_conflicto: Optional[str] = None,
 ) -> Optional[str]:
-    """Devuelve el motivo por el que una persona no puede arbitrar, o None si puede."""
+    """Devuelve el motivo por el que una persona no puede arbitrar, o None si puede.
+
+    Redactado en términos de cancha (participa como jugador, pertenece al
+    club X) en vez de jerga de base de datos (plantel, rol activo), para que
+    lo entienda el admin de árbitros sin tener que traducirlo.
+    """
     if not tiene_rol_arbitro:
         return f"{nombre_completo} no tiene el rol ARBITRO vigente."
     if motivo_suspension:
         return f"{nombre_completo} está suspendido ({motivo_suspension})."
     # Regla 2 (absoluta)
     if en_torneo:
-        return f"{nombre_completo} integra un plantel de este torneo."
+        rol_label = ROL_EN_TORNEO_LABEL.get(rol_en_torneo or "", "integrante de un plantel")
+        return f"{nombre_completo} participa de este torneo como {rol_label}."
     # Regla 1 (solo en torneos competitivos)
     if es_competitiva and en_club:
-        return f"{nombre_completo} tiene un rol activo en uno de los clubes del partido."
+        if club_conflicto:
+            return f"{nombre_completo} pertenece al club {club_conflicto}."
+        return f"{nombre_completo} pertenece a uno de los clubes del partido."
     return None
 
 
@@ -126,7 +147,37 @@ def listar_arbitros_para_partido(db: Session, id_partido: int):
                 pe.nombre,
                 pe.apellido,
                 fn_arbitro_en_torneo_del_partido(pe.id_persona, :id_partido) AS en_torneo,
-                fn_arbitro_en_club_del_partido(pe.id_persona, :id_partido)   AS en_club
+                fn_arbitro_en_club_del_partido(pe.id_persona, :id_partido)   AS en_club,
+                (
+                    -- Con qué rol integra el plantel de este torneo, para
+                    -- poder decir "participa como jugador" en vez de jerga.
+                    SELECT pi.rol_en_plantel::text
+                    FROM plantel_integrante pi
+                    JOIN plantel pl ON pl.id_plantel = pi.id_plantel
+                    JOIN equipo e ON e.id_equipo = pl.id_equipo
+                    JOIN inscripcion_torneo it ON it.id_equipo = e.id_equipo
+                    JOIN partido p ON p.id_torneo = it.id_torneo
+                    WHERE p.id_partido = :id_partido
+                      AND pi.id_persona = pe.id_persona
+                      AND pi.fecha_baja IS NULL
+                      AND pl.activo = TRUE
+                    LIMIT 1
+                ) AS rol_en_torneo,
+                (
+                    -- A cuál de los dos clubes del partido pertenece, para
+                    -- poder decir "pertenece al club X" en vez de genérico.
+                    SELECT c.nombre
+                    FROM fichaje_rol fr
+                    JOIN club c ON c.id_club = fr.id_club
+                    JOIN partido p ON p.id_partido = :id_partido
+                    LEFT JOIN equipo el ON el.id_equipo = p.id_equipo_local
+                    LEFT JOIN equipo ev ON ev.id_equipo = p.id_equipo_visitante
+                    WHERE fr.id_persona = pe.id_persona
+                      AND fr.activo = TRUE
+                      AND fr.fecha_fin IS NULL
+                      AND fr.id_club IN (el.id_club, ev.id_club)
+                    LIMIT 1
+                ) AS club_conflicto
             FROM persona pe
             JOIN persona_rol pr ON pr.id_persona = pe.id_persona
             WHERE pr.rol = 'ARBITRO'
@@ -154,6 +205,8 @@ def listar_arbitros_para_partido(db: Session, id_partido: int):
             es_competitiva=es_competitiva,
             nombre_completo=nombre_completo,
             motivo_suspension=activas[0].motivo if activas else None,
+            rol_en_torneo=f["rol_en_torneo"],
+            club_conflicto=f["club_conflicto"],
         )
         resultado.append(
             {
@@ -181,7 +234,33 @@ def _validar_arbitro(db: Session, id_partido: int, id_persona: int, es_competiti
                       AND (pr.fecha_hasta IS NULL OR pr.fecha_hasta >= CURRENT_DATE)
                 ) AS tiene_rol_arbitro,
                 fn_arbitro_en_torneo_del_partido(p.id_persona, :id_partido) AS en_torneo,
-                fn_arbitro_en_club_del_partido(p.id_persona, :id_partido)   AS en_club
+                fn_arbitro_en_club_del_partido(p.id_persona, :id_partido)   AS en_club,
+                (
+                    SELECT pi.rol_en_plantel::text
+                    FROM plantel_integrante pi
+                    JOIN plantel pl ON pl.id_plantel = pi.id_plantel
+                    JOIN equipo e ON e.id_equipo = pl.id_equipo
+                    JOIN inscripcion_torneo it ON it.id_equipo = e.id_equipo
+                    JOIN partido pa ON pa.id_torneo = it.id_torneo
+                    WHERE pa.id_partido = :id_partido
+                      AND pi.id_persona = p.id_persona
+                      AND pi.fecha_baja IS NULL
+                      AND pl.activo = TRUE
+                    LIMIT 1
+                ) AS rol_en_torneo,
+                (
+                    SELECT c.nombre
+                    FROM fichaje_rol fr
+                    JOIN club c ON c.id_club = fr.id_club
+                    JOIN partido pa ON pa.id_partido = :id_partido
+                    LEFT JOIN equipo el ON el.id_equipo = pa.id_equipo_local
+                    LEFT JOIN equipo ev ON ev.id_equipo = pa.id_equipo_visitante
+                    WHERE fr.id_persona = p.id_persona
+                      AND fr.activo = TRUE
+                      AND fr.fecha_fin IS NULL
+                      AND fr.id_club IN (el.id_club, ev.id_club)
+                    LIMIT 1
+                ) AS club_conflicto
             FROM persona p
             WHERE p.id_persona = :id_persona
             """
@@ -206,6 +285,8 @@ def _validar_arbitro(db: Session, id_partido: int, id_persona: int, es_competiti
         es_competitiva=es_competitiva,
         nombre_completo=fila["nombre_completo"],
         motivo_suspension=activas[0].motivo if activas else None,
+        rol_en_torneo=fila["rol_en_torneo"],
+        club_conflicto=fila["club_conflicto"],
     )
     if motivo:
         raise BusinessRuleError(f"No se puede designar: {motivo}")

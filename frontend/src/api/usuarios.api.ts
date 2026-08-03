@@ -72,5 +72,26 @@ export const authApi = {
       new_password: newPassword
     });
     return res.data;
+  },
+
+  // Edición del propio perfil (Mi Perfil)
+  // Si se envía `email` y es distinto al actual, no se aplica al instante:
+  // el backend manda un link de confirmación al email nuevo (ver `email_pendiente`
+  // en la respuesta) y el login sigue funcionando con el email actual hasta confirmarlo.
+  actualizarPerfil: async (data: { nombre?: string; apellido?: string; telefono?: string; email?: string }) => {
+    const res = await axiosAdmin.patch("/auth/me", data);
+    return res.data;
+  },
+
+  // Confirma el cambio de email con el token recibido en el link (Público)
+  confirmarCambioEmail: async (token: string) => {
+    const res = await axiosPublic.post("/auth/confirmar-cambio-email", { token });
+    return res.data;
+  },
+
+  // Danger zone: cierre de la cuenta propia
+  cerrarCuenta: async () => {
+    const res = await axiosAdmin.delete("/auth/me");
+    return res.data;
   }
 };

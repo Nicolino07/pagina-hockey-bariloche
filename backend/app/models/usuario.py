@@ -66,4 +66,8 @@ class Usuario(Base, AuditFieldsMixin, SoftDeleteMixin):
     bloqueado_hasta: Mapped[Optional[datetime]]
     ultimo_login: Mapped[Optional[datetime]]
 
+    nombre: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    apellido: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    telefono: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+
 

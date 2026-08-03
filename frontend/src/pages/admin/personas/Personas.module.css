@@ -55,18 +55,56 @@
   white-space: nowrap;
 }
 
+/* Contador de resultados */
+.resultCount {
+  color: #666;
+  font-size: 0.85rem;
+  margin: 16px 0 8px 0;
+}
+
+/* Pestañas de paginación */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.tab {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  color: #888;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.tab:hover {
+  border-color: #8ab4f8;
+  color: #fff;
+}
+
+.tabActive {
+  background: #8ab4f8;
+  color: #000;
+  border-color: #8ab4f8;
+  font-weight: bold;
+}
+
 /* Lista de Personas */
 .list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
 }
 
 .personaCard {
   background: #1e1e1e;
   border: 1px solid #333;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 10px;
+  padding: 10px 12px;
   cursor: pointer;
   transition: transform 0.2s, border-color 0.2s;
 }
@@ -77,8 +115,8 @@
 }
 
 .personaMain h3 {
-  margin: 0 0 15px 0;
-  font-size: 1.2rem;
+  margin: 0 0 8px 0;
+  font-size: 0.95rem;
   color: #fff;
   text-transform: uppercase;
 }
@@ -87,30 +125,35 @@
 .rolesContainer {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
 }
 
 .rolRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   background: #252525;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 0.75rem;
 }
 
 .rolName {
   font-weight: 600;
   color: #ccc;
-  min-width: 100px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stadoBadge {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 800;
-  padding: 2px 8px;
+  padding: 1px 6px;
   border-radius: 4px;
+  white-space: nowrap;
 }
 
 .fichado {
@@ -125,8 +168,8 @@
 
 .clubName {
   color: #888;
-  font-size: 0.8rem;
-  max-width: 120px;
+  font-size: 0.7rem;
+  max-width: 90px;
   text-align: right;
   overflow: hidden;
   text-overflow: ellipsis;

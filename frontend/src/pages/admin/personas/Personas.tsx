@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./Personas.module.css";
 import { usePersonaConRoles } from "../../../hooks/usePersonaConRoles";
 import PersonaForm from "./PersonaForm"; 
@@ -32,6 +32,9 @@ export default function Personas() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRol, setFilterRol] = useState("");
+  const [pagina, setPagina] = useState(0);
+
+  const POR_PAGINA = 50;
 
   const personasFiltradas = (personas || [])
     .filter(p => {
@@ -40,6 +43,17 @@ export default function Personas() {
       return matchesName && matchesRol;
     })
     .sort((a, b) => (a.apellido || "").toLowerCase().localeCompare((b.apellido || "").toLowerCase()));
+
+  const totalPaginas = Math.max(1, Math.ceil(personasFiltradas.length / POR_PAGINA));
+  const paginaActual = Math.min(pagina, totalPaginas - 1);
+  const personasPagina = personasFiltradas.slice(
+    paginaActual * POR_PAGINA,
+    paginaActual * POR_PAGINA + POR_PAGINA
+  );
+
+  useEffect(() => {
+    setPagina(0);
+  }, [searchTerm, filterRol]);
 
   /**
    * Crea una nueva persona con el rol seleccionado y recarga el listado.
@@ -121,11 +135,35 @@ export default function Personas() {
         </div>
       )}
 
+      {personasFiltradas.length > 0 && (
+        <p className={styles.resultCount}>
+          {personasFiltradas.length} persona{personasFiltradas.length !== 1 ? "s" : ""}
+        </p>
+      )}
+
+      {totalPaginas > 1 && (
+        <div className={styles.tabs}>
+          {Array.from({ length: totalPaginas }, (_, i) => {
+            const desde = i * POR_PAGINA + 1;
+            const hasta = Math.min((i + 1) * POR_PAGINA, personasFiltradas.length);
+            return (
+              <button
+                key={i}
+                className={`${styles.tab} ${i === paginaActual ? styles.tabActive : ""}`}
+                onClick={() => setPagina(i)}
+              >
+                {desde}-{hasta}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <div className={styles.list}>
-        {personasFiltradas.length > 0 ? (
-          personasFiltradas.map(persona => (
-            <div 
-              key={persona.id_persona} 
+        {personasPagina.length > 0 ? (
+          personasPagina.map(persona => (
+            <div
+              key={persona.id_persona}
               className={styles.personaCard}
               onClick={() => navigate(`/admin/personas/${persona.id_persona}`)}
             >

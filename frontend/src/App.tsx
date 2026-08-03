@@ -35,8 +35,10 @@ import EquipoDetallePublic from "./pages/public/clubes/EquipoDetallePublic"
 import CompletarRegistro from './pages/admin/usuarios/CompletarRegistro'; 
 import Unauthorized from "./pages/error/Unauthorized"
 import GestionUsuarios from "./pages/admin/usuarios/GestionUsuarios";
+import MiPerfil from "./pages/admin/perfil/MiPerfil";
 import SolicitarRecuperacion from "./pages/login/SolicitarRecuperacion"
 import ResetPasswordForm from "./pages/login/ResetPassword";
+import ConfirmarCambioEmail from "./pages/login/ConfirmarCambioEmail";
 import NoticiaDetalle from "./pages/public/noticias/NoticiaDetalle"
 import Noticias from "./pages/public/noticias/Noticias"
 import FixturePage from "./pages/public/fixture/FixturePage"
@@ -104,6 +106,7 @@ export default function App() {
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/recuperar-password" element={<SolicitarRecuperacion />} />
         <Route path="/reset-password" element={<ResetPasswordForm />} />
+        <Route path="/confirmar-cambio-email" element={<ConfirmarCambioEmail />} />
         <Route path="/completar-registro" element={<CompletarRegistro />} />
 
         <Route path="/public/posiciones" element={<PosicionesPage />} />
@@ -125,6 +128,11 @@ export default function App() {
           }
         >
           <Route path="/admin" element={<PanelAdmin />} />
+        </Route>
+
+        {/* Mi Perfil: accesible por cualquier usuario autenticado */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/mi-perfil" element={<MiPerfil />} />
         </Route>
 
         {/* EDITOR+ */}

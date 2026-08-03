@@ -34,7 +34,7 @@ from app.database import get_db
 from app.dependencies.permissions import require_superuser
 from app.schemas.user import UserInviteRequest
 from app.auth.security import create_access_token
-from app.core.email import send_invite_email, send_reset_password_email
+from app.core.email import send_invite_email, send_reset_password_email, send_verify_email_change
 from datetime import timedelta
 from jose import jwt, JWTError
 from app.core.config import settings
@@ -47,12 +47,16 @@ from app.auth.security import hash_password, verify_password
 from app.models.usuario import Usuario as UsuarioModel  # Alias para el modelo de DB
 from app.schemas.usuario import Usuario as UsuarioSchema # Importa el Schema de Pydantic
 from app.schemas.usuario import UsuarioUpdate # Usaremos este para los PATCH
+from app.schemas.usuario import UsuarioPerfilUpdate
+from app.core.exceptions import AuthorizationError, ConflictError
+from app.models.enums import TipoUsuario
 
 from app.schemas.user import (
     UserConfirm,
     PasswordChangeRequest,
     ForgotPasswordRequest,
-    ResetPasswordConfirm
+    ResetPasswordConfirm,
+    EmailChangeConfirm
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -122,12 +126,115 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)):
 
 @router.get("/me")
 def me(user: Usuario = Depends(get_current_user)):
-    """Devuelve el ID, email y rol del usuario actualmente autenticado."""
+    """Devuelve los datos del usuario actualmente autenticado."""
     return {
         "id": user.id_usuario,
         "email": user.email,
-        "rol": user.tipo
+        "rol": user.tipo,
+        "nombre": user.nombre,
+        "apellido": user.apellido,
+        "telefono": user.telefono,
     }
+
+
+@router.patch("/me")
+def actualizar_perfil(
+    payload: UsuarioPerfilUpdate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    """Actualiza los datos del propio perfil (nombre, apellido, teléfono, email).
+
+    El email no se cambia al instante: se envía un link de confirmación a la
+    dirección nueva y el email actual sigue siendo el válido para loguearse
+    hasta que se confirme (ver `/auth/confirmar-cambio-email`).
+    """
+    email_pendiente = None
+
+    if payload.email and payload.email != current_user.email:
+        existe = db.query(UsuarioModel).filter(
+            UsuarioModel.email == payload.email,
+            UsuarioModel.id_usuario != current_user.id_usuario,
+        ).first()
+        if existe:
+            raise ConflictError("Ese email ya está en uso por otro usuario")
+
+        token = create_access_token(
+            {
+                "sub": str(current_user.id_usuario),
+                "new_email": payload.email,
+                "type": "email_change",
+            },
+            expires_delta=timedelta(minutes=30),
+        )
+        background_tasks.add_task(send_verify_email_change, payload.email, token)
+        email_pendiente = payload.email
+
+    if payload.nombre is not None:
+        current_user.nombre = payload.nombre
+    if payload.apellido is not None:
+        current_user.apellido = payload.apellido
+    if payload.telefono is not None:
+        current_user.telefono = payload.telefono
+
+    current_user.actualizado_por = current_user.username
+    db.commit()
+    db.refresh(current_user)
+
+    return {
+        "id": current_user.id_usuario,
+        "email": current_user.email,
+        "rol": current_user.tipo,
+        "nombre": current_user.nombre,
+        "apellido": current_user.apellido,
+        "telefono": current_user.telefono,
+        "email_pendiente": email_pendiente,
+    }
+
+
+@router.post("/confirmar-cambio-email")
+def confirmar_cambio_email(payload: EmailChangeConfirm, db: Session = Depends(get_db)):
+    """Confirma el cambio de email a partir del link enviado a la dirección nueva."""
+    try:
+        data = jwt.decode(payload.token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+        if data.get("type") != "email_change":
+            raise HTTPException(status_code=400, detail="Token no válido para esta operación")
+    except JWTError:
+        raise HTTPException(status_code=400, detail="El link ha expirado o es inválido")
+
+    nuevo_email = data.get("new_email")
+    id_usuario = data.get("sub")
+
+    user = db.query(UsuarioModel).filter(UsuarioModel.id_usuario == int(id_usuario)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    existe = db.query(UsuarioModel).filter(
+        UsuarioModel.email == nuevo_email,
+        UsuarioModel.id_usuario != user.id_usuario,
+    ).first()
+    if existe:
+        raise HTTPException(status_code=409, detail="Ese email ya está en uso por otro usuario")
+
+    user.email = nuevo_email
+    user.actualizado_por = user.username
+    db.commit()
+
+    return {"message": "Email actualizado correctamente. Ya podés iniciar sesión con tu nuevo email."}
+
+
+@router.delete("/me")
+def cerrar_cuenta(
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    """Danger zone: el usuario cierra su propia cuenta (desactivación + soft delete)."""
+    current_user.activo = False
+    current_user.actualizado_por = current_user.username
+    current_user.soft_delete()
+    db.commit()
+    return {"message": "Cuenta cerrada correctamente"}
 
 
 # 🔐 SUPERUSUARIO
@@ -255,7 +362,10 @@ def cambiar_estado(
     user = db.query(UsuarioModel).filter(UsuarioModel.id_usuario == id_usuario).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    
+
+    if user.tipo == TipoUsuario.SUPERUSUARIO:
+        raise AuthorizationError("No se puede modificar el estado de un SUPERUSUARIO")
+
     # Actualizamos el valor y la auditoría
     user.activo = payload.activo
     user.actualizado_por = admin.username # <-- ESTO llena la columna que te falta

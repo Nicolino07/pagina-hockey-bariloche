@@ -30,6 +30,7 @@ interface User {
   rol: string
   nombre?: string
   apellido?: string
+  telefono?: string
 }
 
 interface AuthContextType {
@@ -37,6 +38,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   login: (token: string, userData?: Partial<User>) => void
   logout: () => void
+  updateUser: (partial: Partial<User>) => void
   isLoading: boolean
 }
 
@@ -160,11 +162,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  /** Actualiza los datos del usuario en memoria y en localStorage tras editar el perfil. */
+  const updateUser = (partial: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return prev
+      const actualizado = { ...prev, ...partial }
+      authUtils.setUser(actualizado)
+      return actualizado
+    })
+  }
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
     login,
     logout,
+    updateUser,
     isLoading
   }
 

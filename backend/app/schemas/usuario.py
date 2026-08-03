@@ -12,6 +12,10 @@ class Usuario(BaseModel):
     tipo: TipoUsuario
     activo: bool
 
+    nombre: Optional[str] = None
+    apellido: Optional[str] = None
+    telefono: Optional[str] = None
+
     ultimo_login: Optional[datetime]
     creado_en: datetime
     actualizado_en: Optional [datetime] = None
@@ -30,7 +34,17 @@ class UsuarioUpdate(BaseModel):
     tipo: Optional[TipoUsuario] = None
     activo: Optional[bool] = None
     actualizado_por: Optional[str] = None
-    
+
+
+class UsuarioPerfilUpdate(BaseModel):
+    """Edición del propio perfil: no incluye `tipo` ni `activo`, exclusivos
+    de los endpoints de administración de SUPERUSUARIO."""
+    nombre: Optional[str] = Field(None, max_length=100)
+    apellido: Optional[str] = Field(None, max_length=100)
+    telefono: Optional[str] = Field(None, max_length=30)
+    email: Optional[EmailStr] = None
+
+
 ## opcional autenticacion interna
 class UsuarioAuthInterno(BaseModel):
     id_usuario: int

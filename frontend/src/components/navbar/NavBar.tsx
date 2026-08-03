@@ -109,6 +109,9 @@ export default function Navbar() {
 
               {userMenuOpen && (
                 <div className={styles.userDropdown}>
+                  <Link to="/mi-perfil" className={styles.dropdownItem} onClick={() => setUserMenuOpen(false)}>
+                    Mi Perfil
+                  </Link>
                   <button onClick={handleLogout} className={styles.logoutItem}>Salir</button>
                 </div>
               )}
@@ -177,6 +180,7 @@ export default function Navbar() {
                 <span>{user?.email}</span>
                 <span>{user?.rol}</span>
               </div>
+              <Link to="/mi-perfil" onClick={close}>Mi Perfil</Link>
               <button onClick={handleLogout} className={styles.logout}>Salir</button>
             </>
           )}

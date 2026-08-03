@@ -25,9 +25,14 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordConfirm(BaseModel):
     token: str = Field(..., description="El token JWT recibido en el link")
     new_password: str = Field(..., min_length=8)
-    
+
     @validator('new_password')
     def password_not_empty(cls, v):
         if not v.strip():
             raise ValueError('La contraseña no puede estar vacía')
         return v
+
+
+# 4. Para confirmar el cambio de email desde el link enviado al email nuevo
+class EmailChangeConfirm(BaseModel):
+    token: str = Field(..., description="El token JWT recibido en el link")

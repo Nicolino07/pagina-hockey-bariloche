@@ -130,8 +130,9 @@ export default function PersonaDetalle() {
       const imp = await impactoEliminacionPersona(Number(id_persona));
       if (!imp.puede_eliminar) {
         alert(
-          `No se puede eliminar a ${imp.nombre}: participó en ${imp.jugo} planteles y ` +
-          `arbitró ${imp.arbitro} partidos. Las personas con historial deportivo no se borran.`
+          `No se puede eliminar a ${imp.nombre}: integró ${imp.jugo} planteles, ` +
+          `jugó ${imp.partidos_jugados} partidos y arbitró ${imp.arbitro} partidos. ` +
+          `Las personas con historial deportivo no se borran.`
         );
         return;
       }

@@ -314,6 +314,7 @@ function CuadroVigentes({
               onOrdenar={onOrdenar}
             />
             <th>Hora</th>
+            <th>Partido</th>
             <th>Ubicación</th>
             <th>Árbitro 1</th>
             <th>Árbitro 2</th>
@@ -327,6 +328,7 @@ function CuadroVigentes({
               <td>{p.numero_fecha ?? "—"}</td>
               <td>{formatearFecha(p.fecha)}</td>
               <td>{p.horario ? p.horario.slice(0, 5) : "—"}</td>
+              <td>{(p.equipo_local ?? "—")} vs {(p.equipo_visitante ?? "—")}</td>
               <td>{p.ubicacion ?? "—"}</td>
               <td className={p.nombre_arbitro1 ? undefined : styles.sinArbitros}>
                 {p.nombre_arbitro1 ?? "Sin designar"}
@@ -384,6 +386,7 @@ function CuadroDesignar({
               onOrdenar={onOrdenar}
             />
             <th>Hora</th>
+            <th>Partido</th>
             <th>Ubicación</th>
             <th>Árbitro 1</th>
             <th>Árbitro 2</th>
@@ -404,6 +407,7 @@ function CuadroDesignar({
                   <td>{p.numero_fecha ?? "—"}</td>
                   <td>{formatearFecha(p.fecha)}</td>
                   <td>{p.horario ? p.horario.slice(0, 5) : "—"}</td>
+                  <td>{(p.equipo_local ?? "—")} vs {(p.equipo_visitante ?? "—")}</td>
                   <td>{p.ubicacion ?? "—"}</td>
                   <td className={p.nombre_arbitro1 ? undefined : styles.sinArbitros}>
                     {p.nombre_arbitro1 ?? "Sin designar"}
@@ -419,7 +423,7 @@ function CuadroDesignar({
                 </tr>
                 {abierto && (
                   <tr>
-                    <td colSpan={9} className={styles.celdaEditor}>
+                    <td colSpan={10} className={styles.celdaEditor}>
                       <EditorArbitros partido={p} onGuardado={onGuardado} />
                     </td>
                   </tr>

@@ -241,11 +241,18 @@ def dependencias_persona(db: Session, persona_id: int) -> dict:
     participó. No borra nada.
     """
     from app.models.partido import Partido
+    from app.models.participan_partido import ParticipanPartido
     from sqlalchemy import or_
 
     persona = _get_persona(db, persona_id)
 
     jugo = db.query(PlantelIntegrante).filter(
+        PlantelIntegrante.id_persona == persona_id
+    ).count()
+    partidos_jugados = db.query(ParticipanPartido).join(
+        PlantelIntegrante,
+        ParticipanPartido.id_plantel_integrante == PlantelIntegrante.id_plantel_integrante
+    ).filter(
         PlantelIntegrante.id_persona == persona_id
     ).count()
     arbitro = db.query(Partido).filter(
@@ -259,6 +266,7 @@ def dependencias_persona(db: Session, persona_id: int) -> dict:
         "id_persona": persona_id,
         "nombre": f"{persona.apellido}, {persona.nombre}",
         "jugo": jugo,
+        "partidos_jugados": partidos_jugados,
         "arbitro": arbitro,
         "puede_eliminar": jugo == 0 and arbitro == 0,
     }
@@ -281,8 +289,9 @@ def eliminar_persona(
     dep = dependencias_persona(db, persona_id)
     if not dep["puede_eliminar"]:
         raise ConflictError(
-            f"No se puede eliminar a '{dep['nombre']}': participó en "
-            f"{dep['jugo']} planteles y arbitró {dep['arbitro']} partidos. "
+            f"No se puede eliminar a '{dep['nombre']}': integró "
+            f"{dep['jugo']} planteles, jugó {dep['partidos_jugados']} partidos "
+            f"y arbitró {dep['arbitro']} partidos. "
             "Las personas con historial deportivo no se borran."
         )
 

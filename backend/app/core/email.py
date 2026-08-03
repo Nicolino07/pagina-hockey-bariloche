@@ -66,3 +66,37 @@ def send_reset_password_email(email_to: str, token: str):
     except Exception as e:
         print(f"Error con Resend al recuperar: {e}")
         # Aquí no hacemos raise para que el background task no rompa el flujo principal
+
+
+def send_verify_email_change(email_to: str, token: str):
+    # El link apunta al email NUEVO que el usuario quiere confirmar.
+    link = f"{settings.frontend_url}/confirmar-cambio-email?token={token}"
+
+    params = {
+        "from": "Hockey Bariloche <admin@hockeybariloche.com.ar>",
+        "to": [email_to],
+        "subject": "Confirmá tu nuevo email",
+        "html": f"""
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                <h2 style="color: #333;">Confirmar cambio de email</h2>
+                <p>Recibimos una solicitud para usar esta dirección como el nuevo email de tu cuenta en <strong>Hockey Bariloche</strong>.</p>
+                <p>Hacé clic en el botón de abajo para confirmar el cambio:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{link}" style="background-color: #2563eb; color: #fff; padding: 14px 25px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                        Confirmar nuevo email
+                    </a>
+                </div>
+                <p style="font-size: 0.8em; color: #666;">
+                    Este enlace es válido por <strong>30 minutos</strong>. Hasta que lo confirmes, tu cuenta sigue usando el email anterior para iniciar sesión. Si no solicitaste este cambio, podés ignorar este correo de forma segura.
+                </p>
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                <p style="font-size: 0.7em; color: #999; text-align: center;">Hockey Bariloche - Sistema de Gestión</p>
+            </div>
+        """,
+    }
+
+    try:
+        resend.Emails.send(params)
+        print(f"Email de verificación de cambio enviado vía Resend a {email_to}")
+    except Exception as e:
+        print(f"Error con Resend al verificar cambio de email: {e}")

@@ -136,17 +136,21 @@ export default function GestionUsuarios() {
                   </div>
                 </td>
                 <td>
-                  <select 
-                    value={user.tipo}
-                    onChange={(e) => handleCambiarRol(user.id_usuario, e.target.value)}
-                    className={styles.select}
-                    style={{ padding: '4px 8px', fontSize: '0.8rem' }}
-                  >
-                    <option value="EDITOR">EDITOR</option>
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="SUPERUSUARIO">SUPERUSUARIO</option>
-                    <option value="ADMIN_ARBITROS">ADMIN_ARBITROS</option>
-                  </select>
+                  {user.tipo === "SUPERUSUARIO" ? (
+                    <span className={styles.badge}>{user.tipo}</span>
+                  ) : (
+                    <select
+                      value={user.tipo}
+                      onChange={(e) => handleCambiarRol(user.id_usuario, e.target.value)}
+                      className={styles.select}
+                      style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+                    >
+                      <option value="EDITOR">EDITOR</option>
+                      <option value="ADMIN">ADMIN</option>
+                      <option value="SUPERUSUARIO">SUPERUSUARIO</option>
+                      <option value="ADMIN_ARBITROS">ADMIN_ARBITROS</option>
+                    </select>
+                  )}
                 </td>
                 <td>
                   <span className={`${styles.badge} ${user.activo ? styles.activeBadge : styles.inactiveBadge}`}>
@@ -154,12 +158,16 @@ export default function GestionUsuarios() {
                   </span>
                 </td>
                 <td>
-                  <button 
-                    onClick={() => handleToggleActivo(user.id_usuario, user.activo)}
-                    className={`${styles.btnToggle} ${user.activo ? styles.btnDeactivate : styles.btnActivate}`}
-                  >
-                    {user.activo ? "Dar de Baja" : "Reactivar Cuenta"}
-                  </button>
+                  {user.tipo === "SUPERUSUARIO" ? (
+                    <span className={styles.protectedLabel}>🔒 Protegido</span>
+                  ) : (
+                    <button
+                      onClick={() => handleToggleActivo(user.id_usuario, user.activo)}
+                      className={`${styles.btnToggle} ${user.activo ? styles.btnDeactivate : styles.btnActivate}`}
+                    >
+                      {user.activo ? "Dar de Baja" : "Reactivar Cuenta"}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -182,24 +190,30 @@ export default function GestionUsuarios() {
             </div>
 
             <div className={styles.cardBody}>
-              <label className={styles.label}>Rol</label>
-              <select
-                value={user.tipo}
-                onChange={(e) => handleCambiarRol(user.id_usuario, e.target.value)}
-                className={styles.select}
-              >
-                <option value="EDITOR">EDITOR</option>
-                <option value="ADMIN">ADMIN</option>
-                <option value="SUPERUSUARIO">SUPERUSUARIO</option>
-                <option value="ADMIN_ARBITROS">ADMIN_ARBITROS</option>
-              </select>
+              {user.tipo === "SUPERUSUARIO" ? (
+                <span className={styles.protectedLabel}>🔒 Usuario protegido</span>
+              ) : (
+                <>
+                  <label className={styles.label}>Rol</label>
+                  <select
+                    value={user.tipo}
+                    onChange={(e) => handleCambiarRol(user.id_usuario, e.target.value)}
+                    className={styles.select}
+                  >
+                    <option value="EDITOR">EDITOR</option>
+                    <option value="ADMIN">ADMIN</option>
+                    <option value="SUPERUSUARIO">SUPERUSUARIO</option>
+                    <option value="ADMIN_ARBITROS">ADMIN_ARBITROS</option>
+                  </select>
 
-              <button
-                onClick={() => handleToggleActivo(user.id_usuario, user.activo)}
-                className={`${styles.btnToggle} ${user.activo ? styles.btnDeactivate : styles.btnActivate}`}
-              >
-                {user.activo ? "Dar de Baja" : "Reactivar Cuenta"}
-              </button>
+                  <button
+                    onClick={() => handleToggleActivo(user.id_usuario, user.activo)}
+                    className={`${styles.btnToggle} ${user.activo ? styles.btnDeactivate : styles.btnActivate}`}
+                  >
+                    {user.activo ? "Dar de Baja" : "Reactivar Cuenta"}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ))}

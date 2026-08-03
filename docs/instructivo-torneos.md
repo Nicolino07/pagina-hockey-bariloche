@@ -364,11 +364,11 @@ Botón **Pase**: permite mover a la persona de un club a otro sin pasos separado
 
 Esta sección permite asignar quién dirige cada partido, antes de que se juegue.
 
-1. Se listan los partidos en estado **Borrador** o **Pendiente**, filtrables por torneo.
+1. Se listan los partidos en estado **Borrador** o **Pendiente**, filtrables por torneo y por día. La columna **Partido** muestra el equipo local y el visitante, para identificar el encuentro sin tener que abrirlo.
 2. Al abrir un partido, aparecen dos selectores: **Árbitro 1** y **Árbitro 2** (no se puede repetir la misma persona en ambos).
-3. El sistema marca automáticamente como **no disponibles** (con el motivo) a las personas que no pueden dirigir ese partido puntual:
+3. El sistema marca automáticamente como **no disponibles** (con el motivo, en lenguaje llano: por ejemplo "participa de este torneo como jugador" o "pertenece al club San Esteban") a las personas que no pueden dirigir ese partido puntual:
    - Nunca puede arbitrar quien integra un plantel de ese mismo torneo.
-   - Si el torneo tiene tildada la opción **"Aplicar reglas de arbitraje"** (torneos competitivos), tampoco puede arbitrar quien tenga un rol activo en el club local o visitante de ese partido.
+   - Si el torneo tiene tildada la opción **"Aplicar reglas de arbitraje"** (torneos competitivos), tampoco puede arbitrar quien pertenezca (por un fichaje activo) al club local o visitante de ese partido — y el motivo indica cuál de los dos.
    - En torneos formativos (Sub-12, Sub-14, sin esa opción tildada) esta segunda restricción no aplica.
 4. Elegidos los árbitros, hacer clic en **Guardar designación**.
 
@@ -488,11 +488,19 @@ Un **plantel** es la nómina de un equipo **para un torneo determinado**. Un mis
 1. Hacer clic en **Nuevo plantel** y elegir el **torneo**. El desplegable muestra únicamente los torneos donde ese equipo está inscripto y todavía no tiene nómina; si hay uno solo, viene elegido. El nombre y la temporada se completan solos a partir del torneo.
    - Si el equipo no aparece anotado en ningún torneo, el sistema lo avisa: primero hay que **inscribirlo** desde la pantalla del torneo (ver [sección 4](#4-inscribir-equipos)).
 2. Al crearla, la nómina queda abierta y lista para cargar. Hay dos formas de llenarla, y se pueden combinar:
-   - **Traer nómina de otro torneo**: copia de una sola vez a todos los integrantes activos de otra nómina del mismo equipo. Es la forma rápida de arrancar.
-   - **Agregar integrantes**: uno por uno, eligiendo entre las personas con fichaje activo en el club, su rol (jugador, DT, etc.) y su número de camiseta.
+   - **Traer nómina de otro torneo**: trae de una vez a los integrantes activos de otra nómina del mismo equipo, como punto de partida rápido para armar la nueva.
+   - **Agregar integrantes**: uno por uno, eligiendo entre las personas con fichaje activo en el club, su rol (jugador, DT, etc.) y su número de camiseta. Solo se ofrecen quienes todavía se pueden agregar: la lista no incluye a quien ya integra esta nómina ni a quien no sea elegible por otro motivo (ver más abajo).
 3. Sobre esa base se ajusta: agregar a los que faltan y quitar a los que no van.
 
-> Al traer una nómina, quien ya no sea elegible (fichaje vencido, sanción vigente, género que no corresponde) **no se copia**, y el sistema lista quiénes quedaron afuera y por qué. El resto se copia igual: un caso problemático no frena toda la operación. La nómina de origen nunca se modifica.
+> **Traer nómina no inserta directo.** Al elegir el plantel de origen, primero aparece una **vista previa** con todos sus integrantes activos tildados: se puede destildar a quien no se quiera traer, y recién al confirmar se agregan a la nómina nueva. Quien esté **suspendido** se marca en rojo en esa vista previa, como aviso antes de confirmar (igual se puede intentar traerlo, pero el sistema lo va a rechazar igual que a cualquier alta de un suspendido). La nómina de origen nunca se modifica.
+>
+> Al confirmar, quien ya no sea elegible (fichaje vencido, sanción vigente, género que no corresponde, o ya esté jugando para otro equipo del mismo club en este mismo torneo) **no se agrega**, y el sistema avisa quiénes quedaron afuera y por qué. El resto se agrega igual: un caso problemático no frena el resto de la importación.
+
+#### Un club, un equipo por torneo
+
+Si un club tiene más de un equipo (por ejemplo, Primera y Reserva) y ambos están inscriptos en el **mismo torneo**, una misma persona no puede integrar la nómina de los dos a la vez con el mismo rol: el sistema rechaza el alta avisando que ya está en el otro equipo del club para ese torneo, y tampoco la ofrece como candidata al agregar integrantes.
+
+Esto **no afecta** a una persona que juega en categorías distintas del mismo club (por ejemplo, Sub-19 y Mayores): al ser torneos distintos, no hay conflicto y puede integrar ambas nóminas sin problema.
 
 #### Quitar o dar de baja a un integrante
 
@@ -588,6 +596,7 @@ El listado muestra las últimas noticias publicadas, con opción de **Editar** o
 | **Fichaje** | Vínculo activo entre una persona, un club y un rol, con fecha de inicio y de baja. Define la pertenencia real a un club en un momento dado. |
 | **Plantel** | Nómina de un equipo **para un torneo determinado**, tomada de los fichajes activos del club. Un equipo puede tener varias a la vez, una por torneo. |
 | **Plantel histórico** | Nómina anterior a la separación por torneo, sin torneo asignado. Se conserva como historial y sirve de origen para "Traer nómina", pero no se edita. |
+| **Un club, un equipo por torneo** | Regla que impide anotar a la misma persona en dos equipos distintos del mismo club dentro de un mismo torneo (sí puede jugar para el mismo club en un torneo/categoría distinto, p. ej. Sub-19 y Mayores). |
 | **Alcance de una sanción** | Dónde rige: solo en el torneo de origen, o general (todas las competencias, opcionalmente limitada a ciertos roles). |
 | **Designación** | Asignación de uno o dos árbitros a un partido antes de que se juegue. |
 | **Ranking** | Listado de goleadores, valla menos vencida o tarjetas de un torneo, calculado en vivo a partir de las planillas cargadas. |

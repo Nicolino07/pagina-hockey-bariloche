@@ -67,6 +67,7 @@ export interface DependenciasPersona {
   id_persona: number
   nombre: string
   jugo: number
+  partidos_jugados: number
   arbitro: number
   puede_eliminar: boolean
 }
