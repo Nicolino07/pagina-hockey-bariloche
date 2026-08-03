@@ -1420,7 +1420,7 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
       {/* Modal exportar PDF */}
       {modalPDF && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ background: "var(--bg-card, #1e1e2e)", borderRadius: 12, padding: "28px 32px", minWidth: 320, boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}>
+          <div style={{ background: "var(--bg-card)", borderRadius: 12, padding: "28px 32px", minWidth: 320, boxShadow: "0 8px 32px var(--shadow-color)" }}>
             <h3 style={{ margin: "0 0 20px", fontSize: "1.1rem", fontWeight: 700 }}>Exportar fixture a PDF</h3>
             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
               <button

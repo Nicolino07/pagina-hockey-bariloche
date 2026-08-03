@@ -2,7 +2,7 @@
   padding: 24px;
   max-width: 1000px;
   margin: 0 auto;
-  color: #e0e0e0;
+  color: var(--text-main);
 }
 
 .header {
@@ -16,7 +16,7 @@
 
 .title {
   font-size: 2rem;
-  color: #fff;
+  color: var(--text-heading);
   margin: 0;
 }
 
@@ -35,8 +35,8 @@
 }
 
 .item {
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 20px;
   cursor: pointer;
@@ -47,15 +47,15 @@
 }
 
 .item:hover {
-  border-color: #8ab4f8;
-  background: #252525;
+  border-color: var(--color-primary);
+  background: var(--bg-elevated);
   transform: translateY(-2px);
 }
 
 .nombre {
   font-size: 1.25rem;
   font-weight: bold;
-  color: #fff;
+  color: var(--text-heading);
   margin-bottom: 4px;
 }
 
@@ -79,8 +79,8 @@
 }
 
 .tagCategoria {
-  background: #1a3a5c;
-  color: #8ab4f8;
+  background: var(--tint-primary-strong);
+  color: var(--color-primary);
 }
 
 .tagDivision {
@@ -95,17 +95,17 @@
 
 .fechaFin {
   font-size: 0.8rem;
-  color: #9aa0a6;
+  color: var(--text-muted);
   margin-top: 4px;
 }
 
 .itemFinalizado {
-  border-color: #2a2a2a;
+  border-color: var(--border-subtle);
   opacity: 0.85;
 }
 
 .itemFinalizado .nombre {
-  color: #bbb;
+  color: var(--text-muted);
 }
 
 /* Grupo de Acciones */
@@ -144,7 +144,7 @@
 
   .actions {
     width: 100%;
-    border-top: 1px solid #333;
+    border-top: 1px solid var(--border-color);
     padding-top: 15px;
   }
 

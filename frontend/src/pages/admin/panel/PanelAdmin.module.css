@@ -12,12 +12,12 @@
 
 .title {
   font-size: 2.5rem;
-  color: #fff;
+  color: var(--text-heading);
   margin-bottom: 10px;
 }
 
 .subtitle {
-  color: #888;
+  color: var(--text-muted);
   font-size: 1.1rem;
 }
 
@@ -30,12 +30,12 @@
 }
 
 .card {
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 40px 20px;
   text-decoration: none;
-  color: #fff;
+  color: var(--text-heading);
   font-size: 1.4rem;
   font-weight: 600;
   text-align: center;
@@ -50,10 +50,10 @@
 /* Efectos de Hover (solo en dispositivos con mouse) */
 @media (hover: hover) {
   .card:hover {
-    border-color: #8ab4f8;
-    background: #252525;
+    border-color: var(--color-primary);
+    background: var(--bg-elevated);
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 20px var(--shadow-color);
   }
 }
 

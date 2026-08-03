@@ -1,14 +1,14 @@
 .modalTitulo {
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-size: 1.5rem;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 15px;
   margin-bottom: 20px;
 }
 
 .nota {
   font-size: 0.85rem;
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   margin: 0 0 12px;
 }
 
@@ -26,7 +26,7 @@
   width: 6px;
 }
 .list::-webkit-scrollbar-thumb {
-  background: #444;
+  background: var(--bg-elevated);
   border-radius: 10px;
 }
 
@@ -35,27 +35,27 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: #252525;
-  border: 1px solid #333;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   margin-bottom: 10px;
   transition: background 0.2s;
 }
 
 .item:hover {
-  background: #2d2d2d;
+  background: var(--bg-elevated);
 }
 
 .nombre {
   font-weight: 600;
-  color: #fff;
+  color: var(--text-heading);
   font-size: 1rem;
 }
 
 .footer {
   margin-top: 25px;
   padding-top: 15px;
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
 }

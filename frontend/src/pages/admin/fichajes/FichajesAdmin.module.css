@@ -2,7 +2,7 @@
   padding: 24px;
   max-width: 1100px;
   margin: 0 auto;
-  color: var(--text-primary, #e0e0e0);
+  color: var(--text-main);
 }
 
 .header {
@@ -16,7 +16,7 @@
 
 .subtitle {
   margin: 0;
-  color: var(--text-secondary, #888);
+  color: var(--text-muted);
   font-size: 0.95rem;
 }
 
@@ -32,9 +32,9 @@
 .clubSelect {
   flex: 1;
   min-width: 220px;
-  background: var(--bg-card, #1e1e1e);
-  border: 1px solid var(--border-color, #333);
-  color: var(--text-primary, #e0e0e0);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 10px 14px;
   border-radius: 8px;
   font-size: 0.95rem;
@@ -43,8 +43,8 @@
 
 /* ---- Tabla ---- */
 .tableWrapper {
-  background: var(--bg-card, #1e1e1e);
-  border: 1px solid var(--border-color, #333);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -55,7 +55,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px 20px;
-  border-bottom: 1px solid var(--border-color, #333);
+  border-bottom: 1px solid var(--border-color);
   flex-wrap: wrap;
 }
 
@@ -69,9 +69,9 @@
 }
 
 .searchInput {
-  background: #252525;
-  border: 1px solid #444;
-  color: var(--text-primary, #e0e0e0);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 8px 12px;
   border-radius: 8px;
   font-size: 0.88rem;
@@ -80,21 +80,21 @@
 
 .searchInput:focus {
   outline: none;
-  border-color: #8ab4f8;
+  border-color: var(--color-primary);
 }
 
 .count {
   font-size: 0.8rem;
   font-weight: normal;
-  color: var(--text-secondary, #888);
-  background: #2a2a2a;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
   padding: 2px 10px;
   border-radius: 20px;
 }
 
 .msg {
   padding: 24px 20px;
-  color: var(--text-secondary, #888);
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -105,13 +105,13 @@
 }
 
 .table thead tr {
-  background: #252525;
+  background: var(--bg-elevated);
 }
 
 .table th {
   text-align: left;
   padding: 12px 16px;
-  color: var(--text-secondary, #888);
+  color: var(--text-muted);
   font-weight: 600;
   font-size: 0.8rem;
   text-transform: uppercase;
@@ -120,16 +120,16 @@
 
 .table td {
   padding: 12px 16px;
-  border-top: 1px solid #2a2a2a;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .table tbody tr:hover {
-  background: #252525;
+  background: var(--bg-elevated);
 }
 
 .rolBadge {
-  background: #1a3a5c;
-  color: #8ab4f8;
+  background: var(--tint-primary-strong);
+  color: var(--color-primary);
   font-size: 0.75rem;
   padding: 3px 10px;
   border-radius: 20px;
@@ -188,8 +188,8 @@
 }
 
 .modalCard {
-  background: var(--bg-card, #1e1e1e);
-  border: 1px solid var(--border-color, #444);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: 28px;
   width: 100%;
@@ -206,13 +206,13 @@
 
 .modalSub {
   margin: 0;
-  color: var(--text-secondary, #888);
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
 .label {
   font-size: 0.82rem;
-  color: var(--text-secondary, #888);
+  color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -220,9 +220,9 @@
 }
 
 .input {
-  background: #252525;
-  border: 1px solid #444;
-  color: var(--text-primary, #e0e0e0);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 10px 12px;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -232,7 +232,7 @@
 
 .input:focus {
   outline: none;
-  border-color: #8ab4f8;
+  border-color: var(--color-primary);
 }
 
 /* Autocomplete suggestions */
@@ -240,8 +240,8 @@
   list-style: none;
   margin: -10px 0 0;
   padding: 0;
-  background: #252525;
-  border: 1px solid #444;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   overflow: hidden;
   max-height: 240px;
@@ -254,7 +254,7 @@
   align-items: center;
   padding: 10px 14px;
   cursor: pointer;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
   transition: background 0.1s;
 }
 
@@ -263,7 +263,7 @@
 }
 
 .suggestions li:hover {
-  background: #1a3a5c;
+  background: var(--tint-primary-strong);
 }
 
 .suggestNombre {
@@ -273,12 +273,12 @@
 
 .suggestDoc {
   font-size: 0.8rem;
-  color: #888;
+  color: var(--text-muted);
 }
 
 /* Resumen del fichaje seleccionado (modals baja y transferir) */
 .fichajeResumen {
-  background: #252525;
+  background: var(--bg-elevated);
   border-radius: 8px;
   padding: 12px 16px;
   display: flex;
@@ -292,7 +292,7 @@
 }
 
 .fichajeDesde {
-  color: var(--text-secondary, #888);
+  color: var(--text-muted);
   font-size: 0.82rem !important;
 }
 
@@ -312,7 +312,7 @@
 
 .transferLabel {
   font-size: 0.75rem;
-  color: #888;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -332,7 +332,7 @@
 .transferNote {
   margin: 0;
   font-size: 0.8rem;
-  color: #888;
+  color: var(--text-muted);
   background: #1a2a1a;
   border: 1px solid #2d4a2d;
   border-radius: 6px;
@@ -362,37 +362,37 @@
 }
 
 .scrollList::-webkit-scrollbar { width: 5px; }
-.scrollList::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+.scrollList::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 10px; }
 
 .personaItem {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  background: #252525;
-  border: 1px solid #333;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .personaItem:hover {
-  background: #2d2d2d;
+  background: var(--bg-elevated);
 }
 
 .personaItemSelected {
-  background: #1a2a3a;
-  border-color: #4a7fb5;
+  background: var(--tint-primary-strong);
+  border-color: var(--color-primary);
 }
 
 .personaItemSelected:hover {
-  background: #1e3048;
+  background: var(--tint-primary-medium);
 }
 
 .checkbox {
   width: 16px;
   height: 16px;
-  accent-color: #8ab4f8;
+  accent-color: var(--color-primary);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -401,13 +401,13 @@
   display: block;
   font-weight: 600;
   font-size: 0.9rem;
-  color: #fff;
+  color: var(--text-heading);
 }
 
 .personaDni {
   display: block;
   font-size: 0.78rem;
-  color: #888;
+  color: var(--text-muted);
 }
 
 /* Resultado de carga masiva */

@@ -1,7 +1,7 @@
 /* NAVBAR SUPERIOR */
 .navbar {
   height: 60px;
-  background: #233c6b;
+  background: var(--color-brand);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -235,7 +235,7 @@
     position: absolute;
     top: calc(100% + 0.4rem);
     right: 0;
-    background: #233c6b;
+    background: var(--color-brand);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);

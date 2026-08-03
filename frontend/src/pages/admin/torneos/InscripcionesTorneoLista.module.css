@@ -8,8 +8,8 @@
 }
 
 .item {
-  background: #252525;
-  border: 1px solid #333;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 16px 20px;
   display: flex;
@@ -19,7 +19,7 @@
 }
 
 .item:hover {
-  border-color: #444;
+  border-color: var(--border-color);
 }
 
 .info {
@@ -31,18 +31,18 @@
 .equipo {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-heading);
 }
 
 .club {
   font-size: 0.9rem;
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-weight: 500;
 }
 
 .meta {
   font-size: 0.75rem;
-  color: #666;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 4px;
@@ -60,7 +60,7 @@
 
   .info {
     text-align: center;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 12px;
   }
 

@@ -2,7 +2,7 @@
   padding: 24px;
   max-width: 1300px;
   margin: 0 auto;
-  color: #e0e0e0;
+  color: var(--text-main);
 }
 
 .headerPage {
@@ -19,10 +19,10 @@
 
 /* Secciones de Formulario */
 .section {
-  background: #1e1e1e;
+  background: var(--bg-card);
   padding: 25px;
   border-radius: 12px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   margin-bottom: 20px;
 }
 
@@ -34,9 +34,9 @@
 }
 
 .gridForm select, .gridForm input {
-  background: #2d2d2d;
-  border: 1px solid #444;
-  color: white;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 10px;
   border-radius: 8px;
   flex: 1;
@@ -44,7 +44,7 @@
 
 .vs {
   font-weight: 900;
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-style: italic;
   padding: 0 10px;
 }
@@ -58,17 +58,17 @@
 }
 
 .column {
-  background: #1e1e1e;
+  background: var(--bg-card);
   border-radius: 12px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   padding: 20px;
 }
 
 .column h3 {
   margin-top: 0;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 10px;
-  color: #8ab4f8;
+  color: var(--color-primary);
 }
 
 .selectAllLabel {
@@ -76,10 +76,10 @@
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  color: #888;
+  color: var(--text-muted);
   font-size: 0.75rem;
   padding: 8px 0 4px 0;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .playerHeader {
@@ -89,10 +89,10 @@
   align-items: center;
   padding: 6px 12px 6px 0;
   font-size: 0.75rem;
-  color: #666;
+  color: var(--text-muted);
   font-weight: bold;
   text-transform: uppercase;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .playerList {
@@ -108,14 +108,14 @@
   gap: 12px;
   align-items: center;
   padding: 8px 12px 8px 0;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .inputCamiseta {
   width: 45px;
-  background: #2d2d2d;
-  border: 1px solid #444;
-  color: #8ab4f8;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--color-primary);
   text-align: center;
   padding: 4px;
   border-radius: 4px;
@@ -132,7 +132,7 @@
 .playerRole {
   display: block;
   font-size: 0.7rem;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .playerSuspendido {
@@ -142,7 +142,7 @@
   border-radius: 4px;
   font-size: 0.68rem;
   font-weight: bold;
-  color: #fff;
+  color: #ffffff;
   background-color: #c0392b;
 }
 
@@ -154,10 +154,10 @@
 }
 
 .eventSection {
-  background: #1a1a1a;
+  background: var(--bg-card);
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
 }
 
 .headerRow {
@@ -185,7 +185,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #666;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
@@ -196,9 +196,9 @@
 
 .eventTable select,
 .eventTable input[type="text"] {
-  background: #252525;
-  border: 1px solid #333;
-  color: white;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 6px;
   border-radius: 4px;
   font-size: 0.85rem;
@@ -223,7 +223,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .deleteBtn {
@@ -256,14 +256,14 @@
 }
 
 .modalContent {
-  background: #1e1e1e;
+  background: var(--bg-card);
   width: 90%;
   max-width: 800px;
   max-height: 90vh;
   border-radius: 16px;
   padding: 30px;
   overflow-y: auto;
-  border: 1px solid #444;
+  border: 1px solid var(--border-color);
 }
 
 .resumenGrid { display: flex; flex-direction: column; gap: 20px; }
@@ -274,15 +274,15 @@
   justify-content: center;
   gap: 16px;
   padding: 16px;
-  background: #111;
+  background: var(--bg-main);
   border-radius: 10px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
 }
 
 .resumenEquipo {
   font-size: 1rem;
   font-weight: bold;
-  color: #ccc;
+  color: var(--text-muted);
   flex: 1;
   text-align: center;
 }
@@ -290,11 +290,11 @@
 .resumenMarcador {
   font-size: 2rem;
   font-weight: bold;
-  color: #fff;
+  color: var(--text-heading);
   letter-spacing: 4px;
 }
 
-.divider { border: 0; border-top: 1px solid #333; margin: 10px 0; }
+.divider { border: 0; border-top: 1px solid var(--border-color); margin: 10px 0; }
 
 .asistenciaGrid, .autoridadesGrid {
   display: grid;
@@ -313,7 +313,7 @@
   padding: 20px;
   display: flex;
   justify-content: flex-end;
-  background: #1e1e1e;
+  background: var(--bg-card);
   border-radius: 12px;
 }
 
@@ -354,7 +354,7 @@
   /* Optimizamos la fila de incidencia (Goles/Tarjetas) */
   .eventRow {
     flex-wrap: wrap;
-    background: #252525;
+    background: var(--bg-elevated);
     padding: 12px;
     border-radius: 8px;
     position: relative;
@@ -410,7 +410,7 @@
   width: 48px !important;
   text-align: center;
   background: rgba(138, 180, 248, 0.08) !important;
-  color: #8ab4f8 !important;
+  color: var(--color-primary) !important;
   font-weight: 700;
   border-color: rgba(138, 180, 248, 0.2) !important;
   cursor: default;

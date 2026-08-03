@@ -2,7 +2,7 @@
   padding: 24px;
   max-width: 1100px;
   margin: 0 auto;
-  color: #e0e0e0;
+  color: var(--text-main);
 }
 
 .header {
@@ -10,23 +10,23 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 32px;
-  background: #1e1e1e;
+  background: var(--bg-card);
   padding: 24px;
   border-radius: 16px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   gap: 20px;
 }
 
 .title {
   font-size: 2.2rem;
-  color: #fff;
+  color: var(--text-heading);
   margin: 0 0 8px 0;
   line-height: 1.2;
 }
 
 .meta {
   font-size: 1rem;
-  color: #8ab4f8; /* Color de acento para destacar datos técnicos */
+  color: var(--color-primary); /* Color de acento para destacar datos técnicos */
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 500;
@@ -48,14 +48,14 @@
 .tabs {
   display: flex;
   gap: 4px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 24px;
 }
 
 .tab {
   background: transparent;
   border: none;
-  color: #888;
+  color: var(--text-muted);
   font-size: 1rem;
   font-weight: 500;
   padding: 12px 20px;
@@ -66,12 +66,12 @@
 }
 
 .tab:hover {
-  color: #e0e0e0;
+  color: var(--text-main);
 }
 
 .tabActive {
-  color: #8ab4f8;
-  border-bottom-color: #8ab4f8;
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }
 
 /* Encabezado de tarjeta con título + acción (ej. Equipos inscriptos) */
@@ -97,9 +97,9 @@
 }
 
 .subTab {
-  background: #1e1e1e;
-  border: 1px solid #333;
-  color: #888;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 500;
   padding: 8px 16px;
@@ -109,13 +109,13 @@
 }
 
 .subTab:hover {
-  color: #e0e0e0;
+  color: var(--text-main);
 }
 
 .subTabActive {
-  color: #fff;
-  background: #2a3b57;
-  border-color: #8ab4f8;
+  color: var(--color-primary);
+  background: var(--tint-primary-strong);
+  border-color: var(--color-primary);
 }
 
 /* --- INFO GENERAL EN MODO LECTURA --- */
@@ -132,16 +132,16 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .infoLabel {
-  color: #888;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
 .infoValue {
-  color: #e0e0e0;
+  color: var(--text-main);
   font-weight: 500;
   margin: 0;
   text-align: right;
@@ -181,7 +181,7 @@
 }
 
 .dangerLabel {
-  color: #fff;
+  color: var(--text-heading);
   font-size: 0.95rem;
 }
 
@@ -205,7 +205,7 @@
   align-items: center;
   gap: 16px;
   padding: 12px 0;
-  border-top: 1px solid #2a2a2a;
+  border-top: 1px solid var(--border-subtle);
   flex-wrap: wrap;
 }
 
@@ -222,9 +222,9 @@
 }
 
 .subSelect {
-  background: #1e1e1e;
-  border: 1px solid #333;
-  color: #e0e0e0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 0.9rem;
@@ -232,7 +232,7 @@
 
 .subSelect:focus {
   outline: none;
-  border-color: #8ab4f8;
+  border-color: var(--color-primary);
 }
 
 /* --- RESPONSIVIDAD --- */
@@ -275,8 +275,8 @@
 /* --- TABLA DE POSICIONES --- */
 
 .tableCard {
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 20px;
   margin-top: 32px;
@@ -290,22 +290,22 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
-  color: #e0e0e0;
+  color: var(--text-main);
 }
 
 .posicionesTable th {
   text-align: center;
   padding: 8px;
-  color: #888;
+  color: var(--text-muted);
   font-weight: 500;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
 }
 
 .posicionesTable td {
   text-align: center;
   padding: 8px;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .posicionesTable tr:last-child td {
@@ -327,8 +327,8 @@
 }
 
 .statsCard {
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 20px;
 }
@@ -336,7 +336,7 @@
 .statsTitle {
   font-size: 1rem;
   font-weight: 600;
-  color: #8ab4f8;
+  color: var(--color-primary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 14px 0;
@@ -346,21 +346,21 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
-  color: #e0e0e0;
+  color: var(--text-main);
 }
 
 .statsTable th {
   text-align: center;
   padding: 6px 8px;
-  color: #888;
+  color: var(--text-muted);
   font-weight: 500;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .statsTable td {
   text-align: center;
   padding: 8px;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .statsTable tr:last-child td {
@@ -369,18 +369,18 @@
 
 .bold {
   font-weight: 700;
-  color: #fff;
+  color: var(--text-heading);
 }
 
 .subText {
   font-size: 0.78rem;
-  color: #888;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
 .infoSmall {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-muted);
   text-align: center;
   padding: 12px 0;
 }

@@ -69,17 +69,17 @@
   width: 100%;
   padding: 12px;
   margin-bottom: 15px;
-  background-color: #2d2d2d;
-  border: 1px solid #444;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  color: white;
+  color: var(--text-main);
   font-size: 1rem;
 }
 
 .form label {
   display: block;
   margin-bottom: 5px;
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-size: 0.8rem;
   font-weight: bold;
 }

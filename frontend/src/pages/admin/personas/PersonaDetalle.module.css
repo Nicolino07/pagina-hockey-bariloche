@@ -2,12 +2,12 @@
   padding: 20px;
   max-width: 1000px;
   margin: 0 auto;
-  color: #e0e0e0;
+  color: var(--text-main);
 }
 
 .header {
   margin-bottom: 25px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 15px;
 }
 
@@ -19,18 +19,18 @@
 }
 
 .idBadge {
-  background: #333;
+  background: var(--border-color);
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 0.8rem;
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-family: monospace;
 }
 
 /* Cards de contenido */
 .card, .content {
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
@@ -46,25 +46,25 @@
 .cardHeader h2, .sectionHeader h2 {
   margin: 0;
   font-size: 1.3rem;
-  color: #fff;
+  color: var(--text-heading);
 }
 
 /* Barra de asignación de roles */
 .addRolBar {
   display: flex;
   gap: 12px;
-  background: #252525;
+  background: var(--bg-elevated);
   padding: 15px;
   border-radius: 8px;
   margin-bottom: 20px;
-  border: 1px solid #444;
+  border: 1px solid var(--border-color);
 }
 
 .select {
   flex: 1;
-  background: #1a1a1a;
-  color: white;
-  border: 1px solid #444;
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
   padding: 10px;
   border-radius: 6px;
 }
@@ -82,24 +82,24 @@
 .table th {
   text-align: left;
   padding: 12px;
-  border-bottom: 2px solid #333;
-  color: #888;
+  border-bottom: 2px solid var(--border-color);
+  color: var(--text-muted);
   font-size: 0.85rem;
   text-transform: uppercase;
 }
 
 .table td {
   padding: 14px 12px;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .rolCell {
-  color: #8ab4f8;
+  color: var(--color-primary);
 }
 
 /* Badges de estado */
 .statusFichado {
-  color: #4caf50;
+  color: var(--color-success);
   background: rgba(76, 175, 80, 0.1);
   padding: 4px 8px;
   border-radius: 4px;
@@ -108,7 +108,7 @@
 }
 
 .statusLibre {
-  color: #f44336;
+  color: var(--color-danger);
   background: rgba(244, 67, 54, 0.1);
   padding: 4px 8px;
   border-radius: 4px;
@@ -118,8 +118,8 @@
 
 /* Botones específicos */
 .addButton {
-  background: #8ab4f8;
-  color: #000;
+  background: var(--color-primary);
+  color: var(--bg-main);
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -128,7 +128,7 @@
 }
 
 .saveButtonSmall {
-  background: #4caf50;
+  background: var(--color-success);
   color: white;
   border: none;
   padding: 10px 16px;
@@ -170,11 +170,11 @@
 
   .table tr {
     display: block;
-    border: 1px solid #333;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     margin-bottom: 15px;
     padding: 10px;
-    background: #252525;
+    background: var(--bg-elevated);
   }
 
   .table td {
@@ -189,7 +189,7 @@
   .table td::before {
     content: attr(data-label);
     font-weight: bold;
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.75rem;
     text-transform: uppercase;
   }
@@ -203,6 +203,6 @@
 
 .empty {
   text-align: center;
-  color: #666;
+  color: var(--text-muted);
   padding: 20px;
 }

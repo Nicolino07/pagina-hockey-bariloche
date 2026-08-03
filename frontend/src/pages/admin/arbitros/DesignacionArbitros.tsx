@@ -522,7 +522,7 @@ function EditorArbitros({
           value={a.id_persona}
           disabled={yaElegido}
           className={noDisponible ? styles.optionNoDisponible : undefined}
-          style={noDisponible ? { color: "#f28b82" } : undefined}
+          style={noDisponible ? { color: "var(--color-badge-red)" } : undefined}
         >
           {nombre}
           {noDisponible ? ` — ${a.motivo}` : ""}

@@ -36,7 +36,7 @@
 
 /* --- VARIANTES CON BORDE --- */
 .primary {
-  background-color: #2563eb;
+  background-color: var(--color-brand);
   color: white;
 }
 .primary:hover:not(:disabled) {
@@ -54,20 +54,20 @@
 
 
 .outline {
-  background-color: white;
-  border-color: #e2e8f0;
-  color: #475569;
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-main);
 }
 .outline:hover:not(:disabled) {
-  background-color: #f8fafc;
-  border-color: #cbd5e1;
-  color: #1e293b;
+  background-color: var(--bg-subtle);
+  border-color: var(--border-color);
+  color: var(--text-heading);
 }
 
 
 
 .danger {
-  background-color: #b35a11;
+  background-color: var(--color-danger);
   color: white;
 }
 .danger:hover:not(:disabled) {

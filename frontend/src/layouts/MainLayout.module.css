@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color:#121212;
+  background-color: var(--bg-main);
 }
 
 /* El main ocupa todo el espacio disponible */

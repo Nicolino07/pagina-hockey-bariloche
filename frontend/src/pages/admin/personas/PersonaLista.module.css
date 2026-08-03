@@ -1,7 +1,7 @@
 .tableContainer {
-  background: #1e1e1e;
+  background: var(--bg-card);
   border-radius: 12px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   overflow: hidden;
   margin-top: 20px;
 }
@@ -9,41 +9,41 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  color: #e0e0e0;
+  color: var(--text-main);
 }
 
 .table th {
-  background: #252525;
+  background: var(--bg-elevated);
   padding: 14px;
   text-align: left;
   font-size: 0.85rem;
   text-transform: uppercase;
-  color: #888;
-  border-bottom: 2px solid #333;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border-color);
 }
 
 .table td {
   padding: 16px 14px;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border-subtle);
   vertical-align: middle;
 }
 
 /* Estilos de Contenido */
 .personaName {
   font-weight: 600;
-  color: #fff;
+  color: var(--text-heading);
 }
 
 .documento {
   display: block;
   font-size: 0.75rem;
-  color: #666;
+  color: var(--text-muted);
   margin-top: 4px;
 }
 
 .primaryRol {
   background: rgba(138, 180, 248, 0.1);
-  color: #8ab4f8;
+  color: var(--color-primary);
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 0.8rem;
@@ -55,38 +55,38 @@
   padding: 0;
   margin: 8px 0 0 0;
   font-size: 0.75rem;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .clubExtra {
   font-style: italic;
-  color: #555;
+  color: var(--text-muted);
 }
 
 /* Estados de Fichaje */
 .fichado {
-  color: #4caf50;
+  color: var(--color-success);
   font-weight: 700;
 }
 
 .libre {
-  color: #f44336;
+  color: var(--color-danger);
   font-size: 0.85rem;
   font-weight: 500;
 }
 
 .multiClub {
   font-size: 0.7rem;
-  background: #333;
+  background: var(--border-color);
   padding: 2px 6px;
   border-radius: 4px;
   margin-left: 6px;
 }
 
 .editBtn {
-  background: #333;
-  border: 1px solid #444;
-  color: #fff;
+  background: var(--border-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-heading);
   padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
@@ -94,9 +94,9 @@
 }
 
 .editBtn:hover {
-  background: #8ab4f8;
-  color: #000;
-  border-color: #8ab4f8;
+  background: var(--color-primary);
+  color: var(--bg-main);
+  border-color: var(--color-primary);
 }
 
 /* --- RESPONSIVIDAD --- */
@@ -112,7 +112,7 @@
   }
 
   .table tr {
-    border-bottom: 8px solid #111; /* Separador grueso entre "tarjetas" */
+    border-bottom: 8px solid var(--bg-main); /* Separador grueso entre "tarjetas" */
     padding: 10px 0;
   }
 
@@ -132,7 +132,7 @@
     width: 45%;
     text-align: left;
     font-weight: bold;
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.75rem;
     text-transform: uppercase;
   }
@@ -151,5 +151,5 @@
 .loading, .error, .empty {
   text-align: center;
   padding: 50px;
-  color: #888;
+  color: var(--text-muted);
 }

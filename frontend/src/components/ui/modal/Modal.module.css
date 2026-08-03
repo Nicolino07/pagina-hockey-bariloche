@@ -4,7 +4,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.8); /* Fondo oscuro transparente */
+  background-color: var(--overlay-bg);
   backdrop-filter: blur(4px);           /* Efecto desenfoque */
   display: flex;
   align-items: center;
@@ -13,15 +13,15 @@
 }
 
 .modal {
-  background-color: #1e1e1e;           /* Fondo gris oscuro sólido */
-  border: 1px solid #333;               /* Borde sutil */
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   width: 90%;
   max-width: 500px;
   padding: 0;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 30px var(--shadow-color);
   overflow: hidden;
-  color: white;                         /* Texto blanco por defecto */
+  color: var(--text-main);
 }
 
 .header {
@@ -29,20 +29,20 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .defaultTitle {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #8ab4f8;                       /* Azul claro para el título */
+  color: var(--color-primary);
 }
 
 .closeBtn {
   background: none;
   border: none;
-  color: #999;
+  color: var(--text-muted);
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0;
@@ -50,7 +50,7 @@
 }
 
 .closeBtn:hover {
-  color: #fff;
+  color: var(--text-heading);
 }
 
 .content {

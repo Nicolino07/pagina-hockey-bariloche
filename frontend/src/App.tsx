@@ -70,12 +70,20 @@ function ThemeToggle({ isDark, setIsDark }: { isDark: boolean, setIsDark: (v: bo
   );
 }
 
+function getInitialTheme(): boolean {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') return false;
+  if (saved === 'dark') return true;
+  return true; // dark por defecto para usuarios nuevos
+}
+
 export default function App() {
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(getInitialTheme);
   const { isLoading } = useAuth(); // <--- Opcional: usar el loading aquí también
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
   }, [isDark]);
 
   // Efecto del escudo HTTPS (mantenlo si lo necesitas)
@@ -95,7 +103,9 @@ export default function App() {
   }
 
   return (
-    <Routes>
+    <>
+      <ThemeToggle isDark={isDark} setIsDark={setIsDark} />
+      <Routes>
 
       {/* Layout Global */}
       <Route element={<MainLayout />}>
@@ -182,6 +192,7 @@ export default function App() {
         </Route>
 
       </Route>
-    </Routes>
+      </Routes>
+    </>
   )
 }

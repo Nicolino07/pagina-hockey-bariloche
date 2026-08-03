@@ -15,7 +15,7 @@
 }
 
 .subtitle {
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   font-size: 1rem;
 }
 
@@ -31,7 +31,7 @@
 .label {
   font-weight: 600;
   font-size: 0.9rem;
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   display: block;
   margin-bottom: 6px;
 }
@@ -39,9 +39,9 @@
 .select {
   padding: 10px 14px;
   border-radius: 8px;
-  border: 1px solid var(--border-color, #3c4043);
-  background: var(--bg-card, #202124);
-  color: var(--text-primary, #e8eaed);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
   font-size: 0.95rem;
   min-width: 280px;
 }
@@ -50,23 +50,23 @@
   display: block;
   margin-top: 6px;
   font-size: 0.8rem;
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
 }
 
 .input {
   width: 100%;
   padding: 10px 14px;
   border-radius: 8px;
-  border: 1px solid var(--border-color, #3c4043);
-  background: var(--bg-card, #202124);
-  color: var(--text-primary, #e8eaed);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
   font-size: 0.95rem;
 }
 
 /* Formulario */
 .formCard {
-  background: var(--bg-card, #202124);
-  border: 1px solid var(--border-color, #3c4043);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 28px;
   margin-bottom: 32px;
@@ -97,7 +97,7 @@
 }
 
 .errorMsg {
-  color: #f28b82;
+  color: var(--color-badge-red);
   font-size: 0.9rem;
   margin-bottom: 16px;
 }
@@ -108,7 +108,7 @@
 }
 
 .infoMsg {
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   font-size: 0.95rem;
   padding: 16px 0;
 }
@@ -126,16 +126,16 @@
 .tabla th {
   text-align: left;
   padding: 10px 12px;
-  background: var(--bg-card, #202124);
-  border-bottom: 2px solid var(--border-color, #3c4043);
-  color: var(--text-muted, #9aa0a6);
+  background: var(--bg-card);
+  border-bottom: 2px solid var(--border-color);
+  color: var(--text-muted);
   font-weight: 600;
   white-space: nowrap;
 }
 
 .tabla td {
   padding: 12px 12px;
-  border-bottom: 1px solid var(--border-color, #3c4043);
+  border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
 }
 
@@ -153,32 +153,32 @@
 
 .badgeBorrador {
   background: rgba(154, 160, 166, 0.15);
-  color: #9aa0a6;
+  color: var(--text-muted);
 }
 
 .badgePendiente {
   background: rgba(138, 180, 248, 0.15);
-  color: #8ab4f8;
+  color: var(--color-primary);
 }
 
 .badgeTerminado {
-  background: rgba(129, 201, 149, 0.15);
-  color: #81c995;
+  background: var(--tint-green-weak);
+  color: var(--color-badge-green);
 }
 
 .badgeSuspendido {
-  background: rgba(242, 139, 130, 0.15);
-  color: #f28b82;
+  background: var(--tint-red-medium);
+  color: var(--color-badge-red);
 }
 
 .badgeAnulado {
   background: rgba(154, 160, 166, 0.15);
-  color: #9aa0a6;
+  color: var(--text-muted);
 }
 
 .badgeReprogramado {
-  background: rgba(253, 214, 99, 0.15);
-  color: #fdd663;
+  background: var(--tint-amber-medium);
+  color: var(--color-badge-amber);
 }
 
 .acciones {
@@ -187,14 +187,14 @@
 }
 
 .btnPDF {
-  background: rgba(242, 139, 130, 0.1);
-  border: 1px solid rgba(242, 139, 130, 0.3);
+  background: var(--tint-red-weak);
+  border: 1px solid var(--color-badge-red);
   border-radius: 6px;
   padding: 4px 9px;
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
-  color: #f28b82;
+  color: var(--color-badge-red);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -202,7 +202,7 @@
 }
 
 .btnPDF:hover {
-  background: rgba(242, 139, 130, 0.22);
+  background: var(--tint-red-strong);
 }
 
 .btnPDF:disabled {
@@ -211,8 +211,8 @@
 }
 
 .btnCargar {
-  background: rgba(129, 201, 149, 0.15);
-  color: #81c995;
+  background: var(--tint-green-weak);
+  color: var(--color-badge-green);
   border: none;
   padding: 5px 12px;
   border-radius: 6px;
@@ -222,12 +222,12 @@
 }
 
 .btnCargar:hover {
-  background: rgba(129, 201, 149, 0.3);
+  background: var(--tint-green-strong);
 }
 
 .btnEditar {
   background: rgba(138, 180, 248, 0.15);
-  color: #8ab4f8;
+  color: var(--color-primary);
   border: none;
   padding: 5px 12px;
   border-radius: 6px;
@@ -241,8 +241,8 @@
 }
 
 .btnEliminar {
-  background: rgba(242, 139, 130, 0.15);
-  color: #f28b82;
+  background: var(--tint-red-medium);
+  color: var(--color-badge-red);
   border: none;
   padding: 5px 12px;
   border-radius: 6px;
@@ -252,12 +252,12 @@
 }
 
 .btnEliminar:hover {
-  background: rgba(242, 139, 130, 0.3);
+  background: var(--tint-red-strong);
 }
 
 .btnOtorgarPuntos {
-  background: rgba(251, 188, 4, 0.15);
-  color: #fbbc04;
+  background: var(--tint-amber-weak);
+  color: var(--color-badge-amber);
   border: none;
   padding: 5px 12px;
   border-radius: 6px;
@@ -267,13 +267,13 @@
 }
 
 .btnOtorgarPuntos:hover {
-  background: rgba(251, 188, 4, 0.3);
+  background: var(--tint-amber-strong);
 }
 
 /* Panel generación automática */
 .generarPanel {
-  background: var(--bg-card, #202124);
-  border: 1px solid var(--border-color, #3c4043);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 24px 28px;
   margin-bottom: 28px;
@@ -293,7 +293,7 @@
 }
 
 .generarSubtitle {
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   font-size: 0.88rem;
   margin-bottom: 18px;
 }
@@ -325,7 +325,7 @@
 }
 
 .radioLabel input {
-  accent-color: #8ab4f8;
+  accent-color: var(--color-primary);
 }
 
 .generarAcciones {
@@ -336,9 +336,9 @@
 }
 
 .btnEliminarFixture {
-  background: rgba(242, 139, 130, 0.12);
-  color: #f28b82;
-  border: 1px solid rgba(242, 139, 130, 0.3);
+  background: var(--tint-red-weak);
+  color: var(--color-badge-red);
+  border: 1px solid var(--color-badge-red);
   padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
@@ -347,19 +347,19 @@
 }
 
 .btnEliminarFixture:hover {
-  background: rgba(242, 139, 130, 0.25);
+  background: var(--tint-red-strong);
 }
 
 .warningMsg {
-  color: #fdd663;
+  color: var(--color-badge-amber);
   font-size: 0.88rem;
   margin-top: 12px;
 }
 
 /* Preview */
 .previewPanel {
-  background: var(--bg-card, #202124);
-  border: 1px solid #8ab4f8;
+  background: var(--bg-card);
+  border: 1px solid var(--color-primary);
   border-radius: 16px;
   padding: 24px 28px;
   margin-bottom: 28px;
@@ -381,7 +381,7 @@
 }
 
 .previewStats {
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   font-size: 0.88rem;
 }
 
@@ -394,8 +394,8 @@
 
 .btnCancelarPreview {
   background: transparent;
-  color: var(--text-muted, #9aa0a6);
-  border: 1px solid var(--border-color, #3c4043);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
   padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
@@ -404,8 +404,8 @@
 }
 
 .btnCancelarPreview:hover {
-  color: var(--text-primary, #e8eaed);
-  border-color: var(--text-muted, #9aa0a6);
+  color: var(--text-main);
+  border-color: var(--text-muted);
 }
 
 .previewFechas {
@@ -415,7 +415,7 @@
 }
 
 .previewFechaBloque {
-  border: 1px solid var(--border-color, #3c4043);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -426,7 +426,7 @@
   gap: 10px;
   padding: 10px 16px;
   background: rgba(138, 180, 248, 0.07);
-  border-bottom: 1px solid var(--border-color, #3c4043);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .previewFechaNro {
@@ -445,7 +445,7 @@
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  border-bottom: 1px solid var(--border-color, #3c4043);
+  border-bottom: 1px solid var(--border-color);
   font-size: 0.9rem;
 }
 
@@ -463,7 +463,7 @@
 }
 
 .previewVs {
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -475,7 +475,7 @@
   padding: 8px 16px;
   background: rgba(253, 214, 99, 0.06);
   font-size: 0.88rem;
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   font-style: italic;
 }
 
@@ -485,7 +485,7 @@
 
 .previewDescansoNombre {
   font-weight: 600;
-  color: #fdd663;
+  color: var(--color-badge-amber);
   font-style: normal;
 }
 
@@ -505,12 +505,12 @@
 
 .ruedaIda {
   background: rgba(138, 180, 248, 0.15);
-  color: #8ab4f8;
+  color: var(--color-primary);
 }
 
 .ruedaVuelta {
-  background: rgba(253, 214, 99, 0.15);
-  color: #fdd663;
+  background: var(--tint-amber-medium);
+  color: var(--color-badge-amber);
 }
 
 /* Agrupación por fecha en lista existente */
@@ -533,8 +533,8 @@
 .descansoChip {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #fdd663;
-  background: rgba(253, 214, 99, 0.12);
+  color: var(--color-badge-amber);
+  background: var(--tint-amber-medium);
   border: 1px solid rgba(253, 214, 99, 0.25);
   padding: 2px 10px;
   border-radius: 20px;
@@ -543,7 +543,7 @@
 /* Resultado en tabla */
 .resScore {
   background: rgba(138, 180, 248, 0.1);
-  color: #e8eaed;
+  color: var(--text-main);
   padding: 3px 10px;
   border-radius: 6px;
   font-weight: 700;
@@ -554,8 +554,8 @@
 
 /* Botón detalle */
 .btnDetalle {
-  background: rgba(253, 214, 99, 0.12);
-  color: #fdd663;
+  background: var(--tint-amber-medium);
+  color: var(--color-badge-amber);
   border: none;
   padding: 5px 12px;
   border-radius: 6px;
@@ -586,20 +586,20 @@
 }
 
 .modalContent {
-  background: #1a1a1a;
+  background: var(--bg-card);
   width: 90%;
   max-width: 900px;
   max-height: 90vh;
   border-radius: 16px;
-  border: 1px solid #444;
+  border: 1px solid var(--border-color);
   overflow-y: auto;
   position: relative;
 }
 
 .modalHeader {
   padding: 20px 25px;
-  background: #222;
-  border-bottom: 1px solid #333;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -611,7 +611,7 @@
 }
 
 .modalSubHeader {
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-size: 0.9rem;
   margin: 4px 0 0 0;
 }
@@ -619,7 +619,7 @@
 .modalCloseBtn {
   background: none;
   border: none;
-  color: #fff;
+  color: var(--text-heading);
   font-size: 2rem;
   cursor: pointer;
   line-height: 1;
@@ -632,13 +632,13 @@
   align-items: center;
   gap: 40px;
   padding: 36px 20px;
-  background: linear-gradient(180deg, #222 0%, #1a1a1a 100%);
+  background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-main) 100%);
 }
 
 .bigTeamName {
   font-size: 1.4rem;
   font-weight: bold;
-  color: #fff;
+  color: var(--text-heading);
   flex: 1;
   text-align: center;
 }
@@ -646,8 +646,8 @@
 .bigScore {
   font-size: 3rem;
   font-weight: 900;
-  color: #8ab4f8;
-  background: #000;
+  color: var(--color-primary);
+  background: var(--bg-main);
   padding: 10px 28px;
   border-radius: 12px;
   box-shadow: 0 0 20px rgba(138, 180, 248, 0.2);
@@ -657,7 +657,7 @@
   display: flex;
   justify-content: center;
   gap: 30px;
-  background: #2d2d2d;
+  background: var(--bg-elevated);
   padding: 10px;
   font-size: 0.9rem;
   flex-wrap: wrap;
@@ -695,11 +695,11 @@
 .infoCol label {
   display: block;
   margin-bottom: 10px;
-  color: #888;
+  color: var(--text-muted);
   font-weight: bold;
   font-size: 0.75rem;
   text-transform: uppercase;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 5px;
 }
 
@@ -717,7 +717,7 @@
 }
 
 .tshirt {
-  background: #333;
+  background: var(--border-color);
   width: 24px;
   height: 24px;
   display: flex;
@@ -726,19 +726,19 @@
   border-radius: 4px;
   font-size: 0.75rem;
   font-weight: bold;
-  color: #8ab4f8;
+  color: var(--color-primary);
   flex-shrink: 0;
 }
 
-.capitanTag { color: #f9a825; font-weight: 700; font-size: 0.75rem; margin-left: 4px; }
-.rolTag { color: #666; font-size: 0.7rem; }
+.capitanTag { color: var(--color-badge-amber); font-weight: 700; font-size: 0.75rem; margin-left: 4px; }
+.rolTag { color: var(--text-muted); font-size: 0.7rem; }
 
 .incidenciaItem {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding: 7px 10px;
-  background: #222;
+  background: var(--bg-elevated);
   margin-bottom: 5px;
   border-radius: 6px;
 }
@@ -753,7 +753,7 @@
 .incCount {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #8ab4f8;
+  color: var(--color-primary);
   background: rgba(138, 180, 248, 0.1);
   padding: 1px 7px;
   border-radius: 10px;
@@ -761,7 +761,7 @@
 }
 
 .incTiempos {
-  color: #9aa0a6;
+  color: var(--text-muted);
   font-size: 0.78rem;
 }
 
@@ -774,24 +774,24 @@
   vertical-align: middle;
 }
 
-.verde    { background: #4caf50; }
-.amarilla { background: #ffeb3b; }
-.roja     { background: #f44336; }
+.verde    { background: var(--color-success); }
+.amarilla { background: var(--color-card-amarilla); }
+.roja     { background: var(--color-danger); }
 
 .divider {
   border: none;
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--border-color);
   margin: 20px 0;
 }
 
 .modalFooter {
   padding: 14px 24px;
-  background: #151515;
-  border-top: 1px solid #333;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   font-size: 0.8rem;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .modalFooter p { margin: 0; }

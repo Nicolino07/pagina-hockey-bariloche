@@ -7,40 +7,108 @@
   --color-accent04: #9575cd;
   --color-accent05: #689f38;
 
+  /* 🔵 Marca: navbar, footer y botones usan siempre este azul marino */
+  --color-brand: #233c6b;
+  --text-on-brand: #ffffff;
+
+  /* 🚦 Estados (iguales en ambos modos) */
+  --color-danger: #f44336;
+  --color-warning: #f9a825;
+  --color-success: #4caf50;
+  --color-card-amarilla: #ffeb3b;
+
   /* 📏 UI Constantes */
   --radius-lg: 24px;
   --radius-md: 12px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ☀️ MODO CLARO (Default) */
+/* ☀️ MODO CLARO */
 [data-theme='light'] {
-  --bg-main: #f5f5f5;
+  --bg-main: #eef3f8;      /* blanco crema/celestito casi blanco */
   --bg-card: #ffffff;
-  --bg-header: #dcf0fa; /* Tu color light original */
-  
-  --text-main: #212121;
-  --text-muted: #757575;
-  
-  --border-color: #bdbdbd;
-  --input-bg: #0e465833;
-  
-  --color-primary: #84cdee;
+  --bg-elevated: #f4f8fc;  /* headers/banners dentro de tarjetas */
+  --bg-subtle: #e3ecf5;    /* badges, pills, filas alternadas */
+  --bg-header: #dcf0fa;
+
+  --text-main: #1c2b3a;
+  --text-muted: #5b6b7c;
+  --text-heading: #16233a;
+
+  --border-color: #cdd9e5;
+  --border-subtle: #dbe4ee;
+  --input-bg: #ffffff;
+
+  --color-primary: #233c6b;
   --color-surface: #ffffff;
+
+  --overlay-bg: rgba(15, 23, 35, 0.5);
+  --shadow-color: rgba(15, 23, 35, 0.15);
+
+  --tint-primary-weak: rgba(35, 60, 107, 0.06);
+  --tint-primary-medium: rgba(35, 60, 107, 0.1);
+  --tint-primary-strong: rgba(35, 60, 107, 0.18);
+  --tint-warning: rgba(161, 92, 0, 0.12);
+
+  /* Badges de estado (acciones de fixture/designaciones): más oscuros para contraste en claro */
+  --color-badge-red: #c0392b;
+  --color-badge-green: #1e7e34;
+  --color-badge-amber: #a15c00;
+
+  --tint-red-weak: rgba(192, 57, 43, 0.08);
+  --tint-red-medium: rgba(192, 57, 43, 0.12);
+  --tint-red-strong: rgba(192, 57, 43, 0.25);
+
+  --tint-green-weak: rgba(30, 126, 52, 0.1);
+  --tint-green-medium: rgba(30, 126, 52, 0.15);
+  --tint-green-strong: rgba(30, 126, 52, 0.28);
+
+  --tint-amber-weak: rgba(161, 92, 0, 0.1);
+  --tint-amber-medium: rgba(161, 92, 0, 0.15);
+  --tint-amber-strong: rgba(161, 92, 0, 0.28);
 }
 
-/* 🌙 MODO OSCURO (El que estuvimos haciendo) */
+/* 🌙 MODO OSCURO (el estilo actual) */
 [data-theme='dark'] {
   --bg-main: #121212;
   --bg-card: #202124;
+  --bg-elevated: #252629;
+  --bg-subtle: #303134;
   --bg-header: #1e1e1e;
-  
+
   --text-main: #e8eaed;
   --text-muted: #9aa0a6;
-  
+  --text-heading: #ffffff;
+
   --border-color: #3c4043;
+  --border-subtle: #2a2d31;
   --input-bg: #303134;
-  
-  --color-primary: #8ab4f8; /* Azul suave para modo oscuro */
+
+  --color-primary: #8ab4f8;
   --color-surface: #202124;
+
+  --overlay-bg: rgba(0, 0, 0, 0.85);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+
+  --tint-primary-weak: rgba(138, 180, 248, 0.05);
+  --tint-primary-medium: rgba(138, 180, 248, 0.1);
+  --tint-primary-strong: rgba(138, 180, 248, 0.3);
+  --tint-warning: rgba(253, 214, 99, 0.15);
+
+  /* Badges de estado (acciones de fixture/designaciones) */
+  --color-badge-red: #f28b82;
+  --color-badge-green: #81c995;
+  --color-badge-amber: #fbbc04;
+
+  --tint-red-weak: rgba(242, 139, 130, 0.1);
+  --tint-red-medium: rgba(242, 139, 130, 0.15);
+  --tint-red-strong: rgba(242, 139, 130, 0.3);
+
+  --tint-green-weak: rgba(129, 201, 149, 0.15);
+  --tint-green-medium: rgba(129, 201, 149, 0.2);
+  --tint-green-strong: rgba(129, 201, 149, 0.3);
+
+  --tint-amber-weak: rgba(251, 188, 4, 0.15);
+  --tint-amber-medium: rgba(251, 188, 4, 0.2);
+  --tint-amber-strong: rgba(251, 188, 4, 0.3);
 }

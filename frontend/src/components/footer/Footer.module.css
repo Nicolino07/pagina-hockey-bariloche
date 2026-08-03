@@ -3,10 +3,10 @@
   padding: 24px; /* Un poco más de aire */
   margin-top: auto; /* Empuja el footer al fondo si hay poco contenido */
   
-  background-color:#233c6b; 
+  background-color: var(--color-brand);
   text-align: center;
   font-size: 0.85rem;
-  color: var(--text-on-primary);
+  color: var(--text-on-brand);
   border-top: 1px solid #f9f9ff;;
   box-sizing: border-box;
 }

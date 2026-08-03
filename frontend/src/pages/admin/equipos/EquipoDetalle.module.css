@@ -2,7 +2,7 @@
   padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
-  color: #e0e0e0;
+  color: var(--text-main);
 }
 
 .header {
@@ -10,10 +10,10 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
-  background: #1e1e1e;
+  background: var(--bg-card);
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   gap: 16px;
   flex-wrap: wrap;
 }
@@ -21,18 +21,18 @@
 .titleInfo h1 {
   margin: 0;
   font-size: 1.8rem;
-  color: #ffffff;
+  color: var(--text-heading);
 }
 
 .subtext {
   font-size: 1rem;
-  color: #888;
+  color: var(--text-muted);
   font-weight: normal;
 }
 
 .titleInfo p {
   margin: 5px 0 0 0;
-  color: #8ab4f8; /* Color de realce */
+  color: var(--color-primary); /* Color de realce */
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.85rem;
@@ -40,8 +40,8 @@
 
 /* Sección de planteles */
 .plantelesSection {
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 24px;
@@ -65,7 +65,7 @@
   margin: 0 0 16px 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #aaa;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -77,8 +77,8 @@
 }
 
 .plantelCard {
-  background: #252525;
-  border: 1px solid #2e2e2e;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
   border-radius: 10px;
   padding: 14px 16px;
   cursor: pointer;
@@ -86,13 +86,13 @@
 }
 
 .plantelCard:hover {
-  border-color: #444;
-  background: #2a2a2a;
+  border-color: var(--border-color);
+  background: var(--bg-elevated);
 }
 
 .plantelCardActive {
-  border-color: #8ab4f8 !important;
-  background: #1a2535 !important;
+  border-color: var(--color-primary) !important;
+  background: var(--tint-primary-strong) !important;
 }
 
 .plantelCardInfo {
@@ -105,18 +105,18 @@
 .plantelCardNombre {
   font-weight: 600;
   font-size: 0.95rem;
-  color: #e0e0e0;
+  color: var(--text-main);
 }
 
 .plantelCardTemporada {
   font-size: 0.8rem;
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-weight: 600;
 }
 
 .plantelCardDesc {
   font-size: 0.78rem;
-  color: #777;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -126,7 +126,7 @@
   align-items: center;
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--border-color);
 }
 
 .plantelCardActions {
@@ -141,11 +141,11 @@
   font-size: 0.85rem;
   padding: 2px 5px;
   border-radius: 4px;
-  color: #888;
+  color: var(--text-muted);
   transition: color 0.15s, background 0.15s;
 }
 
-.iconBtn:hover { color: #e0e0e0; background: #333; }
+.iconBtn:hover { color: var(--text-main); background: var(--border-color); }
 .iconBtnWarning:hover { color: #f6c90e; background: rgba(246,201,14,0.1); }
 .iconBtnDanger:hover { color: #f87171; background: rgba(248,113,113,0.1); }
 
@@ -164,7 +164,7 @@
 
 .badgeCerrado {
   background: rgba(160, 160, 160, 0.1);
-  color: #888;
+  color: var(--text-muted);
   border: 1px solid rgba(160, 160, 160, 0.2);
   padding: 2px 8px;
   border-radius: 4px;
@@ -177,7 +177,7 @@
 /* Texto de advertencia en modales */
 .warningText {
   font-size: 0.85rem;
-  color: #888;
+  color: var(--text-muted);
   margin-top: 4px;
   font-style: italic;
 }
@@ -186,20 +186,20 @@
 .emptyCard {
   text-align: center;
   padding: 60px;
-  background: #1e1e1e;
-  border: 2px dashed #444;
+  background: var(--bg-card);
+  border: 2px dashed var(--border-color);
   border-radius: 15px;
   margin-top: 20px;
 }
 
 .emptyCard p {
   font-size: 1.2rem;
-  color: #ccc;
+  color: var(--text-muted);
   margin-bottom: 8px;
 }
 
 .emptyCard small {
-  color: #666;
+  color: var(--text-muted);
 }
 
 /* Filtros dentro del Modal */
@@ -208,13 +208,13 @@
   gap: 10px;
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .filters select, .searchInput {
-  background: #2d2d2d;
-  border: 1px solid #444;
-  color: white;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 10px;
   border-radius: 8px;
   outline: none;
@@ -225,7 +225,7 @@
 }
 
 .filters select:focus, .searchInput:focus {
-  border-color: #8ab4f8;
+  border-color: var(--color-primary);
 }
 
 /* Lista de Fichajes en el Modal */
@@ -239,8 +239,8 @@
 }
 
 .personaCard {
-  background: #252525;
-  border: 1px solid #333;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   padding: 12px 15px;
   border-radius: 10px;
   display: flex;
@@ -250,23 +250,23 @@
 }
 
 .personaCard:hover {
-  background: #2d2d2d;
+  background: var(--bg-elevated);
   cursor: pointer;
 }
 
 .personaCardSelected {
-  background: #1a2a3a;
-  border-color: #4a7fb5;
+  background: var(--tint-primary-strong);
+  border-color: var(--color-primary);
 }
 
 .personaCardSelected:hover {
-  background: #1e3048;
+  background: var(--tint-primary-medium);
 }
 
 .checkbox {
   width: 17px;
   height: 17px;
-  accent-color: #8ab4f8;
+  accent-color: var(--color-primary);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -274,11 +274,11 @@
 .personaName {
   display: block;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-heading);
 }
 
 .personaInfo small {
-  color: #888;
+  color: var(--text-muted);
   font-family: monospace;
 }
 
@@ -316,15 +316,15 @@
 
 .field label {
   font-size: 0.8rem;
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-weight: bold;
   text-transform: uppercase;
 }
 
 .field input {
-  background: #2d2d2d;
-  border: 1px solid #444;
-  color: white;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 12px;
   border-radius: 8px;
 }
@@ -335,7 +335,7 @@
   gap: 12px;
   margin-top: 20px;
   padding-top: 15px;
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--border-color);
 }
 
 /* Resultado de carga masiva */
@@ -385,7 +385,7 @@
 }
 
 .scrollList::-webkit-scrollbar-thumb {
-  background: #444;
+  background: var(--bg-elevated);
   border-radius: 10px;
 }
 

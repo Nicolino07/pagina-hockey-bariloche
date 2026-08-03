@@ -1,6 +1,6 @@
 .form {
-  background: #252525;
-  border: 1px solid #333;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 30px;
@@ -30,15 +30,15 @@
 .label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #8ab4f8;
+  color: var(--color-primary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .input, .select {
-  background: #1a1a1a;
-  border: 1px solid #444;
-  color: #fff;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-heading);
   padding: 12px 16px;
   border-radius: 10px;
   font-size: 1rem;
@@ -47,7 +47,7 @@
 }
 
 .input:focus, .select:focus {
-  border-color: #8ab4f8;
+  border-color: var(--color-primary);
 }
 
 /* Estilo especial para el input de fecha (calendario nativo) */
@@ -59,11 +59,11 @@
 .error {
   grid-column: span 2;
   background: rgba(244, 67, 54, 0.1);
-  color: #f44336;
+  color: var(--color-danger);
   padding: 12px;
   border-radius: 8px;
   font-size: 0.9rem;
-  border: 1px solid #f44336;
+  border: 1px solid var(--color-danger);
   text-align: center;
 }
 
@@ -74,7 +74,7 @@
   gap: 12px;
   margin-top: 10px;
   padding-top: 20px;
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--border-color);
 }
 
 /* --- RESPONSIVIDAD --- */

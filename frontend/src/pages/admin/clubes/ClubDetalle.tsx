@@ -478,7 +478,7 @@ export default function ClubDetalle() {
               {loadingPersonas ? (
                 <p style={{ padding: "10px" }}>Cargando...</p>
               ) : personasDisponibles.length === 0 ? (
-                <p style={{ padding: "10px", color: "#888" }}>Sin personas disponibles para este rol</p>
+                <p style={{ padding: "10px", color: "var(--text-muted)" }}>Sin personas disponibles para este rol</p>
               ) : personasDisponibles.map((p: any) => {
                 const checked = seleccionadosFichaje.has(p.id_persona);
                 return (

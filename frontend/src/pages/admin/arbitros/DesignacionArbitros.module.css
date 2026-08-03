@@ -15,14 +15,14 @@
 }
 
 .subtitle {
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   font-size: 1rem;
 }
 
 .tabs {
   display: flex;
   gap: 4px;
-  border-bottom: 1px solid var(--border-color, #3c4043);
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 20px;
 }
 
@@ -34,17 +34,17 @@
   padding: 10px 16px;
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   cursor: pointer;
 }
 
 .tab:hover {
-  color: var(--text-primary, #e8eaed);
+  color: var(--text-main);
 }
 
 .tabActiva {
-  color: var(--accent, #4285f4);
-  border-bottom-color: var(--accent, #4285f4);
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }
 
 .tablaWrap {
@@ -61,12 +61,12 @@
 .tabla td {
   text-align: left;
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border-color, #3c4043);
+  border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
 }
 
 .tabla th {
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -78,7 +78,7 @@
 }
 
 .thOrden:hover {
-  color: var(--text-primary, #e8eaed);
+  color: var(--text-main);
 }
 
 .iconoOrden {
@@ -101,7 +101,7 @@
 .label {
   font-weight: 600;
   font-size: 0.85rem;
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   display: block;
   margin-bottom: 6px;
 }
@@ -109,21 +109,21 @@
 .select {
   padding: 10px 14px;
   border-radius: 8px;
-  border: 1px solid var(--border-color, #3c4043);
-  background: var(--bg-card, #202124);
-  color: var(--text-primary, #e8eaed);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
   font-size: 0.95rem;
   min-width: 260px;
 }
 
 .muted {
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
 }
 
 .errorBox {
   background: rgba(217, 48, 37, 0.12);
   border: 1px solid #d93025;
-  color: #f28b82;
+  color: var(--color-badge-red);
   padding: 10px 14px;
   border-radius: 8px;
   margin: 12px 0;
@@ -133,7 +133,7 @@
 .okBox {
   background: rgba(52, 168, 83, 0.12);
   border: 1px solid #34a853;
-  color: #81c995;
+  color: var(--color-badge-green);
   padding: 10px 14px;
   border-radius: 8px;
   margin: 12px 0;
@@ -143,7 +143,7 @@
 .reglasBox {
   background: rgba(66, 133, 244, 0.1);
   border: 1px solid rgba(66, 133, 244, 0.4);
-  color: var(--text-primary, #e8eaed);
+  color: var(--text-main);
   padding: 10px 14px;
   border-radius: 8px;
   margin-bottom: 14px;
@@ -157,17 +157,17 @@
 }
 
 .optionNoDisponible {
-  color: #f28b82;
+  color: var(--color-badge-red);
 }
 
 .avisoForzado {
-  color: #fdd663;
+  color: var(--color-badge-amber);
   font-size: 0.8rem;
   margin-top: 4px;
 }
 
 .vs {
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   font-weight: 400;
   margin: 0 4px;
 }
@@ -180,16 +180,16 @@
   text-transform: uppercase;
   letter-spacing: 0.03em;
   background: rgba(255, 255, 255, 0.08);
-  color: var(--text-primary, #e8eaed);
+  color: var(--text-main);
 }
 
 .sinArbitros {
-  color: #fdd663;
+  color: var(--color-badge-amber);
   font-style: italic;
 }
 
 .chevron {
-  color: var(--text-muted, #9aa0a6);
+  color: var(--text-muted);
   font-size: 0.7rem;
   text-align: center;
 }
@@ -205,7 +205,7 @@
 }
 
 .editor {
-  border-top: 1px solid var(--border-color, #3c4043);
+  border-top: 1px solid var(--border-color);
   padding: 20px;
 }
 
@@ -220,8 +220,8 @@
 }
 
 .btnPrimario {
-  background: var(--accent, #4285f4);
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--bg-main);
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
@@ -237,8 +237,8 @@
 
 .btnSecundario {
   background: transparent;
-  color: var(--text-primary, #e8eaed);
-  border: 1px solid var(--border-color, #3c4043);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
   padding: 10px 16px;
   border-radius: 8px;
   cursor: pointer;

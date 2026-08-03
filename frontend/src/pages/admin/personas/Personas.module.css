@@ -2,7 +2,7 @@
   padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
-  color: #e0e0e0;
+  color: var(--text-main);
 }
 
 .header {
@@ -12,7 +12,7 @@
 .header h1 {
   font-size: 2rem;
   margin-bottom: 20px;
-  color: #fff;
+  color: var(--text-heading);
 }
 
 /* Toolbar Responsiva */
@@ -26,9 +26,9 @@
 .searchInput {
   flex: 2;
   min-width: 250px;
-  background: #1e1e1e;
-  border: 1px solid #333;
-  color: white;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 12px 16px;
   border-radius: 8px;
   outline: none;
@@ -37,16 +37,16 @@
 .filterSelect {
   flex: 1;
   min-width: 150px;
-  background: #1e1e1e;
-  border: 1px solid #333;
-  color: white;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 12px;
   border-radius: 8px;
 }
 
 .primaryButton {
-  background: #8ab4f8;
-  color: #000;
+  background: var(--color-primary);
+  color: var(--bg-main);
   border: none;
   padding: 12px 20px;
   border-radius: 8px;
@@ -57,7 +57,7 @@
 
 /* Contador de resultados */
 .resultCount {
-  color: #666;
+  color: var(--text-muted);
   font-size: 0.85rem;
   margin: 16px 0 8px 0;
 }
@@ -71,9 +71,9 @@
 }
 
 .tab {
-  background: #1e1e1e;
-  border: 1px solid #333;
-  color: #888;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 0.8rem;
@@ -82,14 +82,14 @@
 }
 
 .tab:hover {
-  border-color: #8ab4f8;
-  color: #fff;
+  border-color: var(--color-primary);
+  color: var(--text-heading);
 }
 
 .tabActive {
-  background: #8ab4f8;
-  color: #000;
-  border-color: #8ab4f8;
+  background: var(--color-primary);
+  color: var(--bg-main);
+  border-color: var(--color-primary);
   font-weight: bold;
 }
 
@@ -101,8 +101,8 @@
 }
 
 .personaCard {
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 10px 12px;
   cursor: pointer;
@@ -110,14 +110,14 @@
 }
 
 .personaCard:hover {
-  border-color: #8ab4f8;
+  border-color: var(--color-primary);
   transform: translateY(-2px);
 }
 
 .personaMain h3 {
   margin: 0 0 8px 0;
   font-size: 0.95rem;
-  color: #fff;
+  color: var(--text-heading);
   text-transform: uppercase;
 }
 
@@ -133,7 +133,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  background: #252525;
+  background: var(--bg-elevated);
   padding: 4px 8px;
   border-radius: 5px;
   font-size: 0.75rem;
@@ -141,7 +141,7 @@
 
 .rolName {
   font-weight: 600;
-  color: #ccc;
+  color: var(--text-muted);
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -158,16 +158,16 @@
 
 .fichado {
   background: rgba(76, 175, 80, 0.15);
-  color: #4caf50;
+  color: var(--color-success);
 }
 
 .sinfichar {
   background: rgba(244, 67, 54, 0.15);
-  color: #f44336;
+  color: var(--color-danger);
 }
 
 .clubName {
-  color: #888;
+  color: var(--text-muted);
   font-size: 0.7rem;
   max-width: 90px;
   text-align: right;
@@ -190,12 +190,12 @@
 }
 
 .modalContent {
-  background: #1a1a1a;
+  background: var(--bg-card);
   padding: 25px;
   border-radius: 16px;
   width: 100%;
   max-width: 500px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   
   /* --- SOLUCIÓN AL DESBORDE --- */
   max-height: calc(100vh - 40px); /* Ajusta el alto al 100% menos el padding del overlay */
@@ -207,7 +207,7 @@
 .modalContent h2 {
   margin-top: 0;
   padding-bottom: 15px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
   flex-shrink: 0; /* Evita que el título se comprima */
 }
 
@@ -217,13 +217,13 @@
 }
 
 .formContainer::-webkit-scrollbar-thumb {
-  background: #444;
+  background: var(--bg-elevated);
   border-radius: 10px;
 }
 
 .rolSelector {
   flex-shrink: 0; /* Evita que se oculte al scrollear */
-  background: #252525;
+  background: var(--bg-elevated);
   padding: 12px;
   border-radius: 8px;
   margin-bottom: 10px;
@@ -232,9 +232,9 @@
 
 .rolSelector select {
   padding: 10px;
-  background: #2d2d2d;
-  color: #fff;
-  border: 1px solid #444;
+  background: var(--bg-elevated);
+  color: var(--text-heading);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
 }
 
@@ -269,5 +269,5 @@
 .loading, .empty, .error {
   text-align: center;
   padding: 40px;
-  color: #888;
+  color: var(--text-muted);
 }

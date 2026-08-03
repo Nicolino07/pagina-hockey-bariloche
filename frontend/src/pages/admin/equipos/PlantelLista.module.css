@@ -6,8 +6,8 @@
 }
 
 .personaCard {
-  background: #1e1e1e;
-  border: 1px solid #2a2a2a;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
   padding: 10px 14px;
   border-radius: 8px;
   display: flex;
@@ -19,8 +19,8 @@
 }
 
 .personaCard:hover {
-  border-color: #3a3a3a;
-  background: #242424;
+  border-color: var(--border-subtle);
+  background: var(--bg-elevated);
 }
 
 .personaInfo {
@@ -33,7 +33,7 @@
 .personaName {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--text-heading);
   text-transform: capitalize;
   white-space: nowrap;
   overflow: hidden;
@@ -42,7 +42,7 @@
 
 .personaSub {
   font-size: 0.78rem;
-  color: #777;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -62,7 +62,7 @@
 
 .roleBadge {
   background: rgba(138, 180, 248, 0.12);
-  color: #8ab4f8;
+  color: var(--color-primary);
   padding: 1px 7px;
   border-radius: 4px;
   font-size: 0.7rem;
@@ -73,7 +73,7 @@
 
 .personaFechas {
   font-size: 0.73rem;
-  color: #666;
+  color: var(--text-muted);
   margin-top: 1px;
 }
 
@@ -84,13 +84,13 @@
 /* Integrante dado de baja */
 .personaCardBaja {
   opacity: 0.6;
-  border-color: #2a2a2a;
+  border-color: var(--border-subtle);
 }
 
 .personaCardBaja .personaName {
-  color: #999;
+  color: var(--text-muted);
   text-decoration: line-through;
-  text-decoration-color: #555;
+  text-decoration-color: var(--text-muted);
 }
 
 /* Botón de acción */
@@ -121,7 +121,7 @@
 }
 .bajaBadge {
   background: rgba(150, 150, 150, 0.15);
-  color: #999;
+  color: var(--text-muted);
   padding: 1px 7px;
   border-radius: 4px;
   font-size: 0.7rem;

@@ -13,12 +13,12 @@
 
 .header h1 {
   margin: 0;
-  color: #fff;
+  color: var(--text-heading);
   font-size: 2rem;
 }
 
 .header p {
-  color: #888;
+  color: var(--text-muted);
   margin: 5px 0 0 0;
 }
 
@@ -36,16 +36,16 @@
 }
 
 .statCard {
-  background: #1e1e1e;
+  background: var(--bg-card);
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
 }
 
 .statCard span {
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-size: 0.8rem;
   font-weight: bold;
   text-transform: uppercase;
@@ -53,14 +53,14 @@
 
 .statCard strong {
   font-size: 1.8rem;
-  color: #fff;
+  color: var(--text-heading);
 }
 
 /* Tabla */
 .tableContainer {
-  background: #1e1e1e;
+  background: var(--bg-card);
   border-radius: 12px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   padding: 20px;
 }
 
@@ -73,15 +73,15 @@
 .table th {
   text-align: left;
   padding: 12px;
-  color: #888;
+  color: var(--text-muted);
   font-size: 0.85rem;
-  border-bottom: 2px solid #333;
+  border-bottom: 2px solid var(--border-color);
 }
 
 .table td {
   padding: 15px 12px;
-  border-bottom: 1px solid #2a2a2a;
-  color: #ccc;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-muted);
 }
 
 .matchupRow {
@@ -91,14 +91,14 @@
 }
 
 .vsLabel {
-  color: #555;
+  color: var(--text-muted);
   font-style: italic;
   font-size: 0.8rem;
 }
 
 .resHighlight {
-  background: #2d2d2d;
-  color: #fff;
+  background: var(--bg-elevated);
+  color: var(--text-heading);
   padding: 6px 12px;
   border-radius: 6px;
   font-weight: bold;
@@ -119,27 +119,27 @@
 }
 
 .modalContent {
-  background: #1a1a1a;
+  background: var(--bg-card);
   width: 90%;
   max-width: 900px;
   max-height: 90vh;
   border-radius: 16px;
-  border: 1px solid #444;
+  border: 1px solid var(--border-color);
   overflow-y: auto;
   position: relative;
 }
 
 .modalHeader {
   padding: 20px 25px;
-  background: #222;
-  border-bottom: 1px solid #333;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .subHeader {
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-size: 0.9rem;
   margin: 4px 0 0 0;
 }
@@ -147,7 +147,7 @@
 .closeBtn {
   background: none;
   border: none;
-  color: #fff;
+  color: var(--text-heading);
   font-size: 2rem;
   cursor: pointer;
   line-height: 1;
@@ -160,13 +160,13 @@
   align-items: center;
   gap: 40px;
   padding: 40px 20px;
-  background: linear-gradient(180deg, #222 0%, #1a1a1a 100%);
+  background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-main) 100%);
 }
 
 .bigTeamName {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #fff;
+  color: var(--text-heading);
   flex: 1;
   text-align: center;
 }
@@ -174,8 +174,8 @@
 .bigScore {
   font-size: 3.5rem;
   font-weight: 900;
-  color: #8ab4f8;
-  background: #000;
+  color: var(--color-primary);
+  background: var(--bg-main);
   padding: 10px 30px;
   border-radius: 12px;
   box-shadow: 0 0 20px rgba(138, 180, 248, 0.2);
@@ -186,7 +186,7 @@
   display: flex;
   justify-content: center;
   gap: 30px;
-  background: #2d2d2d;
+  background: var(--bg-elevated);
   padding: 10px;
   font-size: 0.9rem;
 }
@@ -218,11 +218,11 @@
 .infoCol label {
   display: block;
   margin-bottom: 12px;
-  color: #888;
+  color: var(--text-muted);
   font-weight: bold;
   font-size: 0.75rem;
   text-transform: uppercase;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 5px;
 }
 
@@ -240,7 +240,7 @@
 }
 
 .tshirt {
-  background: #333;
+  background: var(--border-color);
   width: 24px;
   height: 24px;
   display: flex;
@@ -249,12 +249,12 @@
   border-radius: 4px;
   font-size: 0.75rem;
   font-weight: bold;
-  color: #8ab4f8;
+  color: var(--color-primary);
 }
 
-.staffName { color: #aaa; font-style: italic; }
-.capitanTag { color: #f9a825; font-weight: 700; font-size: 0.75rem; margin-left: 4px; }
-.rolTag { color: #666; font-size: 0.7rem; }
+.staffName { color: var(--text-muted); font-style: italic; }
+.capitanTag { color: var(--color-warning); font-weight: 700; font-size: 0.75rem; margin-left: 4px; }
+.rolTag { color: var(--text-muted); font-size: 0.7rem; }
 
 /* Incidencias (Goles/Tarjetas) */
 .incidenciaItem {
@@ -262,7 +262,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 8px 12px;
-  background: #222;
+  background: var(--bg-elevated);
   margin-bottom: 5px;
   border-radius: 6px;
 }
@@ -277,7 +277,7 @@
 .incCount {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #8ab4f8;
+  color: var(--color-primary);
   background: rgba(138, 180, 248, 0.1);
   padding: 1px 7px;
   border-radius: 10px;
@@ -285,7 +285,7 @@
 }
 
 .incTiempos {
-  color: #9aa0a6;
+  color: var(--text-muted);
   font-size: 0.78rem;
 }
 
@@ -297,17 +297,17 @@
   border-radius: 2px;
 }
 
-.verde { background: #4caf50; }
-.amarilla { background: #ffeb3b; }
-.roja { background: #f44336; }
+.verde { background: var(--color-success); }
+.amarilla { background: var(--color-card-amarilla); }
+.roja { background: var(--color-danger); }
 
 /* Modal Impresión */
 .modalContentSmall {
-  background: #1a1a1a;
+  background: var(--bg-card);
   padding: 30px;
   border-radius: 12px;
   width: 400px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
 }
 
 .filterBar {
@@ -319,9 +319,9 @@
 
 .filterBar select {
   padding: 8px 12px;
-  background: #2d2d2d;
-  border: 1px solid #444;
-  color: #fff;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-heading);
   border-radius: 8px;
   font-size: 0.9rem;
   min-width: 180px;
@@ -330,7 +330,7 @@
 
 .filterBar select:focus {
   outline: none;
-  border-color: #666;
+  border-color: var(--text-muted);
 }
 
 .printForm {
@@ -342,20 +342,20 @@
 
 .printForm select {
   padding: 12px;
-  background: #2d2d2d;
-  border: 1px solid #444;
-  color: #fff;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-heading);
   border-radius: 8px;
 }
 
 .modalFooter {
   padding: 15px 25px;
-  background: #151515;
-  border-top: 1px solid #333;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   font-size: 0.8rem;
-  color: #666;
+  color: var(--text-muted);
 }
 
 /* --- RESPONSIVIDAD GENERAL --- */
@@ -388,10 +388,10 @@
 
   .table tr {
     margin-bottom: 15px;
-    border: 1px solid #333;
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 10px;
-    background: #252525;
+    background: var(--bg-elevated);
   }
 
   .table td {
@@ -406,7 +406,7 @@
   .table td::before {
     content: attr(data-label); /* Podrías agregar data-label en el HTML o usar texto fijo */
     font-weight: bold;
-    color: #888;
+    color: var(--text-muted);
     text-transform: uppercase;
     font-size: 0.7rem;
     float: left;
@@ -468,10 +468,10 @@
 .filtroInput {
   width: 100%;
   padding: 8px 12px;
-  background: #2a2a2a;
-  border: 1px solid #444;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  color: #e0e0e0;
+  color: var(--text-main);
   font-size: 0.9rem;
   margin-bottom: 12px;
   box-sizing: border-box;
@@ -479,7 +479,7 @@
 
 .filtroInput:focus {
   outline: none;
-  border-color: #8ab4f8;
+  border-color: var(--color-primary);
 }
 
 .fixtureList {
@@ -497,13 +497,13 @@
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
-  background: #2a2a2a;
-  border: 1px solid #3c4043;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   cursor: pointer;
   text-align: left;
   transition: border-color 0.2s;
-  color: #e8eaed;
+  color: var(--text-main);
 }
 
 .fixtureItemInfo {
@@ -516,32 +516,32 @@
 .pdfBtn {
   flex-shrink: 0;
   background: none;
-  border: 1px solid #3c4043;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 4px 8px;
   font-size: 1rem;
   cursor: pointer;
-  color: #8ab4f8;
+  color: var(--color-primary);
   transition: background 0.15s;
 }
 
 .pdfBtn:hover {
-  background: #333;
-  border-color: #8ab4f8;
+  background: var(--border-color);
+  border-color: var(--color-primary);
 }
 
 .fixtureItem:hover {
-  border-color: #8ab4f8;
-  background: #333;
+  border-color: var(--color-primary);
+  background: var(--border-color);
 }
 
 .fixtureEquipos {
   font-weight: 700;
   font-size: 0.95rem;
-  color: #fff;
+  color: var(--text-heading);
 }
 
 .fixtureMeta {
   font-size: 0.8rem;
-  color: #9aa0a6;
+  color: var(--text-muted);
 }

@@ -6,7 +6,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--overlay-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15,14 +15,14 @@
 }
 
 .modalContent {
-  background: #1e1e1e;
+  background: var(--bg-elevated);
   width: 95%;
   max-width: 950px;
   max-height: 85vh;
   border-radius: 32px;
   overflow-y: auto;
-  border: 1px solid #3c4043;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 25px 50px -12px var(--shadow-color);
 }
 
 /* Header */
@@ -31,19 +31,19 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  background: #252629;
-  border-bottom: 1px solid #3c4043;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .modalHeader h2 {
   font-size: 1.2rem;
   font-weight: 800;
   margin: 0;
-  color: #ffffff;
+  color: var(--text-heading);
 }
 
 .subHeader {
-  color: #9aa0a6;
+  color: var(--text-muted);
   font-size: 0.85rem;
   margin: 4px 0 0 0;
 }
@@ -58,9 +58,9 @@
 .metaBadge {
   font-size: 0.68rem;
   font-weight: 500;
-  color: #9aa0a6;
-  background: #303134;
-  border: 1px solid #3c4043;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
   padding: 2px 6px;
   border-radius: 4px;
   white-space: nowrap;
@@ -69,7 +69,7 @@
 .closeBtn {
   background: none;
   border: none;
-  color: #fff;
+  color: var(--text-heading);
   font-size: 2rem;
   cursor: pointer;
   line-height: 1;
@@ -84,8 +84,8 @@
   align-items: center;
   gap: 60px;
   padding: 60px 40px;
-  background: #252629;
-  border-bottom: 1px solid #3c4043;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .bigTeamName {
@@ -93,24 +93,24 @@
   font-weight: 800;
   flex: 1;
   text-align: center;
-  color: #ffffff;
+  color: var(--text-heading);
   line-height: 1.2;
 }
 
 .bigScore {
   font-size: 4.5rem;
   font-weight: 900;
-  color: #8ab4f8;
-  text-shadow: 0 0 20px rgba(138, 180, 248, 0.3);
+  color: var(--color-primary);
+  text-shadow: 0 0 20px var(--tint-primary-strong);
 }
 
 /* Árbitros */
 .refereeRibbon {
-  background: #303134;
+  background: var(--bg-subtle);
   padding: 10px 20px;
   text-align: center;
   font-size: 0.85rem;
-  color: #9aa0a6;
+  color: var(--text-muted);
 }
 
 .refereeItem {
@@ -136,17 +136,17 @@
 
 .teamSection h3 {
   font-size: 1.4rem;
-  border-bottom: 2px solid #3c4043;
+  border-bottom: 2px solid var(--border-color);
   padding-bottom: 15px;
   margin-bottom: 30px;
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #ffffff;
+  color: var(--text-heading);
 }
 
-.localTitle   { color: #ffffff; }
-.visitanteTitle { color: #ffffff; }
+.localTitle   { color: var(--text-heading); }
+.visitanteTitle { color: var(--text-heading); }
 
 /* Grid plantilla + incidencias */
 .infoGrid {
@@ -157,7 +157,7 @@
 
 .infoCol label {
   display: block;
-  color: #8ab4f8;
+  color: var(--color-primary);
   text-transform: uppercase;
   font-size: 0.75rem;
   font-weight: 700;
@@ -178,7 +178,7 @@
   gap: 12px;
   font-size: 0.9rem;
   padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--bg-subtle);
 }
 
 .jugadorRow:last-child {
@@ -186,31 +186,31 @@
 }
 
 .tshirt {
-  color: #8ab4f8;
+  color: var(--color-primary);
   font-weight: 800;
   width: 25px;
   flex-shrink: 0;
 }
 
 .staffName {
-  color: #9aa0a6;
+  color: var(--text-muted);
   font-style: italic;
 }
 
 .capitanTag {
-  color: #f9a825;
+  color: var(--color-warning);
   font-weight: 700;
   font-size: 0.75rem;
   margin-left: 4px;
 }
 
 .rolTag {
-  background: #303134;
+  background: var(--bg-subtle);
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 0.65rem;
   margin-left: 8px;
-  color: #8ab4f8;
+  color: var(--color-primary);
 }
 
 /* Incidencias */
@@ -218,7 +218,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--bg-subtle);
   padding: 10px 16px;
   border-radius: 12px;
   margin-bottom: 10px;
@@ -230,27 +230,27 @@
   justify-content: space-between;
   gap: 8px;
   font-size: 0.88rem;
-  color: #e8eaed;
+  color: var(--text-main);
 }
 
 .incCount {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #8ab4f8;
-  background: rgba(138, 180, 248, 0.1);
+  color: var(--color-primary);
+  background: var(--tint-primary-medium);
   padding: 1px 7px;
   border-radius: 10px;
   flex-shrink: 0;
 }
 
 .incTiempos {
-  color: #9aa0a6;
+  color: var(--text-muted);
   font-size: 0.78rem;
   letter-spacing: 0.3px;
 }
 
 .autogol {
-  color: #f44336;
+  color: var(--color-danger);
   font-size: 0.8rem;
 }
 
@@ -270,25 +270,25 @@
   flex-shrink: 0;
 }
 
-.verde    { background-color: #4caf50; }
-.amarilla { background-color: #ffeb3b; }
-.roja     { background-color: #f44336; }
+.verde    { background-color: var(--color-success); }
+.amarilla { background-color: var(--color-card-amarilla); }
+.roja     { background-color: var(--color-danger); }
 
 /* Separador */
 .divider {
   border: 0;
   height: 1px;
-  background: linear-gradient(to right, transparent, #3c4043, transparent);
+  background: linear-gradient(to right, transparent, var(--border-color), transparent);
   margin: 10px 0;
 }
 
 /* Footer */
 .modalFooter {
   padding: 15px 30px;
-  background: #252629;
-  border-top: 1px solid #3c4043;
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-color);
   font-size: 0.85rem;
-  color: #9aa0a6;
+  color: var(--text-muted);
 }
 
 /* ── Responsive ── */
