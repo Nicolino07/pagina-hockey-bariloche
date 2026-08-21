@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { useState, useEffect, useCallback } from "react"
 import Button from "../../../components/ui/button/Button"
 import CrearTorneoForm from "./CrearTorneoForm"
+import BotonPlanillaEnBlanco from "../../../components/ui/button/BotonPlanillaEnBlanco"
 import { listarTorneos } from "../../../api/torneos.api"
 import type { Torneo } from "../../../types/torneo"
 
@@ -43,6 +44,7 @@ export default function TorneosAdmin() {
           {!verFinalizados && (
             <Button onClick={() => setMostrarForm(true)}>➕ Crear torneo</Button>
           )}
+          <BotonPlanillaEnBlanco>🖨️ Planilla en blanco</BotonPlanillaEnBlanco>
           <Button
             variant="secondary"
             onClick={() => { setVerFinalizados(v => !v); setMostrarForm(false) }}

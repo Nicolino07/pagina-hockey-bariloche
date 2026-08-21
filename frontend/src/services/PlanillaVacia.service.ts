@@ -470,3 +470,185 @@ export const generarPlanillaCompletaPDF = (detalle: any) => {
 
   doc.save(`Planilla_${detalle.equipo_local_nombre}_vs_${detalle.equipo_visitante_nombre}_COMPLETA.pdf`);
 };
+// ── Planilla totalmente en blanco (para completar a mano) ────────────────────
+
+/** Opciones de la planilla en blanco. */
+interface PlanillaEnBlancoOpciones {
+  /** Cantidad de hojas a incluir en el PDF. Por defecto 1. */
+  cantidad?: number;
+}
+
+/**
+ * Genera un PDF con planillas totalmente vacías: mismo diseño que la planilla
+ * del partido pero sin ningún dato precargado (torneo, equipos, nómina,
+ * árbitros y resultados quedan en blanco para completar a mano).
+ * @param opciones - Configuración opcional (cantidad de hojas).
+ */
+export const generarPlanillaEnBlancoPDF = (opciones: PlanillaEnBlancoOpciones = {}) => {
+  const cantidad = Math.max(1, Math.min(opciones.cantidad ?? 1, 50));
+
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const marginLeft = 8;
+  const marginRight = 8;
+  const colWidth = (pageWidth - marginLeft - marginRight - 10) / 2;
+  const puntos = (largo: number) => ".".repeat(largo);
+
+  /** Dibuja una hoja completa de planilla en blanco en la página actual. */
+  const dibujarHoja = () => {
+    // --- 1. CABECERA ---
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("PLANILLA - AHBLS", pageWidth / 2, 10, { align: "center" });
+
+    doc.setFontSize(9);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("TORNEO:", marginLeft + 2, 19);
+    doc.setFont("helvetica", "normal");
+    doc.text(puntos(45), marginLeft + 20, 19);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("N° FECHA:", pageWidth - 80, 19);
+    doc.setFont("helvetica", "normal");
+    doc.text(puntos(10), pageWidth - 60, 19);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("ENCUENTRO:", marginLeft + 2, 25);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${puntos(35)} VS ${puntos(35)}`, marginLeft + 25, 25);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("DÍA:", marginLeft + 2, 31);
+    doc.setFont("helvetica", "normal");
+    doc.text("____/____/____", marginLeft + 12, 31);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("LUGAR:", pageWidth / 2 - 10, 31);
+    doc.setFont("helvetica", "normal");
+    doc.text(puntos(45), pageWidth / 2 + 5, 31);
+
+    doc.line(marginLeft, 35, pageWidth - marginRight, 35);
+
+    // --- 2. PLANTELES VACÍOS ---
+    const startYJugadores = 43;
+
+    const dibujarPlantelVacio = (titulo: string, xPos: number) => {
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text(titulo, xPos, startYJugadores - 2);
+
+      autoTable(doc, {
+        startY: startYJugadores,
+        margin: { left: xPos, right: pageWidth - (xPos + colWidth) },
+        head: [
+          [{ content: 'OK', rowSpan: 2 }, { content: '#', rowSpan: 2 }, { content: 'JUGADOR', rowSpan: 2 }, { content: 'TARJETAS', colSpan: 4 }],
+          ['V', 'A', 'A', 'R']
+        ],
+        body: Array.from({ length: 15 }, () => ['', '', '', '', '', '', '']),
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 0.8, minCellHeight: 6.5, lineColor: [0, 0, 0], lineWidth: 0.1 },
+        headStyles: { fillColor: [40, 40, 40], halign: 'center', minCellHeight: 5 },
+        columnStyles: {
+          0: { cellWidth: 8 }, 1: { cellWidth: 8 }, 2: { cellWidth: 49 },
+          3: { cellWidth: 8 }, 4: { cellWidth: 8 }, 5: { cellWidth: 8 }, 6: { cellWidth: 8 }
+        }
+      });
+      return (doc as any).lastAutoTable.finalY;
+    };
+
+    const finalYL = dibujarPlantelVacio(`LOCAL: ${puntos(30)}`, marginLeft);
+    const finalYV = dibujarPlantelVacio(`VISITANTE: ${puntos(28)}`, pageWidth / 2 + 5);
+    const ySeccionMedia = Math.max(finalYL, finalYV) + 5;
+
+    // --- 3. CARGOS | RESULTADO POR CUARTO | CARGOS ---
+    const cargosVacios = [
+      ['CAPITÁN', ''],
+      ['DT', ''],
+      ['AUX', ''],
+      ['PREP. FÍS.', ''],
+      ['MESA', ''],
+    ];
+
+    autoTable(doc, {
+      startY: ySeccionMedia, margin: { left: marginLeft }, tableWidth: 60,
+      body: cargosVacios, theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 1, minCellHeight: 6.5 },
+      columnStyles: { 0: { cellWidth: 18, fontStyle: 'bold' } }
+    });
+
+    autoTable(doc, {
+      startY: ySeccionMedia, margin: { left: 72 }, tableWidth: 66,
+      head: [['CUARTO', 'LOCAL', 'VISITA']],
+      body: [['1C', '', ''], ['2C', '', ''], ['3C', '', ''], ['FINAL', '', '']],
+      theme: 'grid',
+      styles: { fontSize: 8, halign: 'center', cellPadding: 1, minCellHeight: 6.5 },
+      headStyles: { fillColor: [60, 60, 60] },
+      columnStyles: { 0: { cellWidth: 16, fontStyle: 'bold' } }
+    });
+
+    autoTable(doc, {
+      startY: ySeccionMedia, margin: { left: 142 }, tableWidth: 60,
+      body: cargosVacios, theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 1, minCellHeight: 6.5 },
+      columnStyles: { 0: { cellWidth: 18, fontStyle: 'bold' } }
+    });
+
+    // --- 4. FIRMAS DE ÁRBITROS ---
+    const yFirmas = (doc as any).lastAutoTable.finalY + 12;
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(`ÁRBITRO 1: _____________________________`, marginLeft + 2, yFirmas);
+    doc.text(`ÁRBITRO 2: _____________________________`, pageWidth / 2 + 5, yFirmas);
+
+    // --- 5. SECCIÓN DE GOLES ---
+    const yGolesTitle = yFirmas + 10;
+    doc.setFont("helvetica", "bold");
+    doc.text("Registro de goles - Referencia (GJ - GC - GP - DP)", pageWidth / 2, yGolesTitle, { align: "center" });
+
+    const drawTablaGolesVacia = (xPos: number) => {
+      autoTable(doc, {
+        startY: yGolesTitle + 2,
+        margin: { left: xPos, right: pageWidth - (xPos + colWidth) },
+        head: [
+          [
+            { content: 'EQUIPO', rowSpan: 2 },
+            { content: '# JUG', rowSpan: 2 },
+            { content: 'MIN', rowSpan: 2 },
+            { content: 'REF', rowSpan: 2 },
+            { content: 'PARCIAL', colSpan: 2 },
+          ],
+          ['L', 'V'],
+        ],
+        body: Array.from({ length: 8 }, () => ['', '', '', '', '', '']),
+        theme: 'grid',
+        styles: { fontSize: 8, halign: 'center', cellPadding: 1, minCellHeight: 6, lineColor: [0, 0, 0], lineWidth: 0.1 },
+        headStyles: { fillColor: [80, 80, 80], minCellHeight: 5 },
+        columnStyles: {
+          0: { cellWidth: 40, halign: 'left' }, 1: { cellWidth: 10 }, 2: { cellWidth: 10 },
+          3: { cellWidth: 10 }, 4: { cellWidth: 9 }, 5: { cellWidth: 9 },
+        }
+      });
+    };
+
+    drawTablaGolesVacia(marginLeft);
+    drawTablaGolesVacia(pageWidth / 2 + 5);
+
+    // --- 6. OBSERVACIONES ---
+    const yObs = (doc as any).lastAutoTable.finalY + 6;
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text("OBSERVACIONES:", marginLeft, yObs);
+    doc.line(marginLeft, yObs + 1, pageWidth - marginRight, yObs + 1);
+    doc.line(marginLeft, yObs + 7, pageWidth - marginRight, yObs + 7);
+
+    agregarMarcaDeAgua(doc);
+  };
+
+  for (let i = 0; i < cantidad; i++) {
+    if (i > 0) doc.addPage();
+    dibujarHoja();
+  }
+
+  doc.save(cantidad > 1 ? `Planillas_en_blanco_x${cantidad}.pdf` : `Planilla_en_blanco.pdf`);
+};
