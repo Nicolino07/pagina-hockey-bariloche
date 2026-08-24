@@ -9,6 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1rem;
   z-index: 1000;
 }
 
@@ -22,14 +23,22 @@
   box-shadow: 0 10px 30px var(--shadow-color);
   overflow: hidden;
   color: var(--text-main);
+  /* Sin tope de alto, un modal más alto que la pantalla quedaba cortado por el
+     `overflow: hidden` y sin forma de ver el resto. Ahora el alto se limita y
+     el que scrollea es el cuerpo, dejando fijos encabezado y botón de cierre. */
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .defaultTitle {
@@ -40,6 +49,7 @@
 }
 
 .closeBtn {
+  flex-shrink: 0;
   background: none;
   border: none;
   color: var(--text-muted);
@@ -55,4 +65,7 @@
 
 .content {
   padding: 1.5rem;
+  overflow-y: auto;
+  /* Palabras largas (nombres de club, motivos) no deben desbordar a lo ancho. */
+  overflow-wrap: break-word;
 }

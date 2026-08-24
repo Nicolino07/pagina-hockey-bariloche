@@ -9,6 +9,7 @@ from app.models.persona import Persona
 from app.models.plantel import Plantel
 from app.models.plantel_integrante import PlantelIntegrante
 from app.models.equipo import Equipo
+from app.models.enums import ROLES_CUERPO_TECNICO, es_rol_cuerpo_tecnico
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from datetime import date
@@ -149,7 +150,8 @@ def obtener_fichajes_por_club(
     ya están activas en el plantel de OTRO equipo del mismo club para ese
     torneo: no pueden jugar para dos equipos del mismo club en el mismo
     torneo (ver trigger `validar_equipo_unico_en_torneo_mismo_club`), así que
-    no tiene sentido ofrecerlas para agregar.
+    no tiene sentido ofrecerlas para agregar. El cuerpo técnico queda fuera de
+    esa exclusión: sí puede repetirse en varios equipos y clubes.
 
     Acceso público.
     """
@@ -180,12 +182,16 @@ def obtener_fichajes_por_club(
                 Plantel.borrado_en.is_(None),
                 Plantel.activo.is_(True),
                 PlantelIntegrante.fecha_baja.is_(None),
+                PlantelIntegrante.rol_en_plantel.not_in(ROLES_CUERPO_TECNICO),
             ).all()
         }
 
     resultado = []
     for fichaje in fichajes:
-        if fichaje.id_persona in personas_en_otro_equipo_del_torneo:
+        if (
+            fichaje.id_persona in personas_en_otro_equipo_del_torneo
+            and not es_rol_cuerpo_tecnico(fichaje.rol)
+        ):
             continue
         persona = db.get(Persona, fichaje.id_persona)
         resultado.append({

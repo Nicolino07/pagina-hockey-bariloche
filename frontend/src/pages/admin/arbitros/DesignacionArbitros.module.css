@@ -62,10 +62,13 @@
   text-align: left;
   padding: 10px 12px;
   border-bottom: 1px solid var(--border-color);
-  white-space: nowrap;
 }
 
+/* Los encabezados sí van en una línea; las celdas pueden envolver. Con nowrap
+   en todas, la tabla se hacía más ancha que el contenedor y todo lo que
+   cuelga de ella (el editor de designación) quedaba cortado a la derecha. */
 .tabla th {
+  white-space: nowrap;
   color: var(--text-muted);
   font-size: 0.8rem;
   text-transform: uppercase;
@@ -113,7 +116,10 @@
   background: var(--bg-card);
   color: var(--text-main);
   font-size: 0.95rem;
-  min-width: 260px;
+  /* Las opciones incluyen el motivo ("Fulano participa de este torneo como
+     jugador"): con un select angosto el navegador recorta ese texto. */
+  min-width: 340px;
+  max-width: 100%;
 }
 
 .muted {
@@ -121,6 +127,7 @@
 }
 
 .errorBox {
+  max-width: 70ch;
   background: rgba(217, 48, 37, 0.12);
   border: 1px solid #d93025;
   color: var(--color-badge-red);
@@ -131,6 +138,7 @@
 }
 
 .okBox {
+  max-width: 70ch;
   background: rgba(52, 168, 83, 0.12);
   border: 1px solid #34a853;
   color: var(--color-badge-green);
@@ -149,6 +157,7 @@
   margin-bottom: 14px;
   font-size: 0.85rem;
   line-height: 1.4;
+  max-width: 70ch;
 }
 
 .reglasBox ul {
@@ -164,6 +173,7 @@
   color: var(--color-badge-amber);
   font-size: 0.8rem;
   margin-top: 4px;
+  max-width: 340px;
 }
 
 .vs {
@@ -207,6 +217,11 @@
 .editor {
   border-top: 1px solid var(--border-color);
   padding: 20px;
+  /* El <td> que lo contiene abarca todo el ancho de la tabla. Si la tabla
+     llega a desbordar, `sticky` deja el editor pegado al borde izquierdo
+     visible en vez de irse fuera de pantalla con el scroll horizontal. */
+  position: sticky;
+  left: 0;
 }
 
 .selects {

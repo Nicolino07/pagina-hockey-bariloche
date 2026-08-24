@@ -25,6 +25,25 @@ class RolPersonaTipo(str, enum.Enum):
     MEDICO = 'MEDICO'
     PREPARADOR_FISICO = 'PREPARADOR_FISICO'
 
+
+#: Roles de cuerpo técnico: no son exclusivos de un club ni de un equipo.
+#: La misma persona puede cumplirlos en varios equipos y clubes dentro del
+#: mismo torneo. Espejo Python de la función SQL `es_rol_cuerpo_tecnico`
+#: (migración 0039): si cambia una, cambiar la otra.
+ROLES_CUERPO_TECNICO: frozenset[str] = frozenset({
+    RolPersonaTipo.DT.value,
+    RolPersonaTipo.ARBITRO.value,
+    RolPersonaTipo.ASISTENTE.value,
+    RolPersonaTipo.MEDICO.value,
+    RolPersonaTipo.PREPARADOR_FISICO.value,
+})
+
+
+def es_rol_cuerpo_tecnico(rol) -> bool:
+    """Indica si el rol está exento de las reglas de exclusividad por club/equipo."""
+    return getattr(rol, "value", rol) in ROLES_CUERPO_TECNICO
+
+
 class EstadoPartido(str, enum.Enum):
     """Estado en el que se encuentra un partido"""
     BORRADOR = 'BORRADOR'

@@ -144,6 +144,8 @@ def flujo_partido(client, genero: str = "MASCULINO") -> dict:
         "id_equipo_local": id_equipo_local,
         "id_integrante_local": id_integrante_local,
         "id_integrante_visitante": id_integrante_visitante,
+        "id_persona_local": id_persona_local,
+        "id_persona_visitante": id_persona_visitante,
     }
 
 
@@ -381,3 +383,182 @@ def test_partido_completo_con_goles_y_tarjetas(client_superuser):
     assert detalle["lista_goles_local"] is not None
     assert detalle["lista_goles_visitante"] is not None
     assert detalle["lista_tarjetas_local"] is not None
+
+
+# ─── Tests: suspensión automática por acumulación de amarillas ───────────────
+
+def _tarjeta(id_integrante: int, tipo: str, minuto: int) -> dict:
+    return {"id_plantel_integrante": id_integrante, "tipo": tipo, "minuto": minuto}
+
+
+def _suspensiones(client, id_persona: int, id_torneo: int) -> list[dict]:
+    resp = client.get(f"/api/suspensiones/?id_persona={id_persona}&id_torneo={id_torneo}")
+    assert resp.status_code == 200, resp.text
+    return resp.json()
+
+
+def test_tres_amarillas_generan_suspension_automatica(client_superuser):
+    """3 amarillas en el torneo = 1 fecha de suspensión, aunque caigan todas en
+    el mismo partido. La sesión es autoflush=False, así que si el recálculo
+    corre antes del flush las tarjetas recién cargadas no se cuentan."""
+    ids = flujo_partido(client_superuser)
+    payload = planilla_minima(ids)
+    payload["tarjetas"] = [
+        _tarjeta(ids["id_integrante_local"], "AMARILLA", 10),
+        _tarjeta(ids["id_integrante_local"], "AMARILLA", 20),
+        _tarjeta(ids["id_integrante_local"], "AMARILLA", 30),
+    ]
+    resp = client_superuser.post("/api/partidos/planilla", json=payload)
+    assert resp.status_code == 201, resp.text
+
+    suspensiones = _suspensiones(client_superuser, ids["id_persona_local"], ids["id_torneo"])
+    automaticas = [s for s in suspensiones if s["origen"] == "AUTOMATICA_AMARILLAS"]
+    assert len(automaticas) == 1, f"Esperaba 1 suspensión automática, hay {suspensiones}"
+    assert automaticas[0]["fechas_suspension"] == 1
+
+
+def test_dos_amarillas_no_generan_suspension(client_superuser):
+    """El umbral es 3: con 2 no se sanciona."""
+    ids = flujo_partido(client_superuser)
+    payload = planilla_minima(ids)
+    payload["tarjetas"] = [
+        _tarjeta(ids["id_integrante_local"], "AMARILLA", 10),
+        _tarjeta(ids["id_integrante_local"], "AMARILLA", 20),
+    ]
+    resp = client_superuser.post("/api/partidos/planilla", json=payload)
+    assert resp.status_code == 201, resp.text
+
+    suspensiones = _suspensiones(client_superuser, ids["id_persona_local"], ids["id_torneo"])
+    assert [s for s in suspensiones if s["origen"] == "AUTOMATICA_AMARILLAS"] == []
+
+
+def test_roja_genera_suspension_automatica(client_superuser):
+    """Cada roja son 1 fecha, sin acumular."""
+    ids = flujo_partido(client_superuser)
+    payload = planilla_minima(ids)
+    payload["tarjetas"] = [_tarjeta(ids["id_integrante_visitante"], "ROJA", 40)]
+    resp = client_superuser.post("/api/partidos/planilla", json=payload)
+    assert resp.status_code == 201, resp.text
+
+    suspensiones = _suspensiones(client_superuser, ids["id_persona_visitante"], ids["id_torneo"])
+    automaticas = [s for s in suspensiones if s["origen"] == "AUTOMATICA_ROJA"]
+    assert len(automaticas) == 1, f"Esperaba 1 suspensión por roja, hay {suspensiones}"
+
+
+def test_la_suspension_no_se_cumple_en_el_partido_que_la_origino(client_superuser):
+    """El partido de la tarjeta ya está TERMINADO cuando se arma la cola: no
+    puede ser el 'próximo partido a cumplir', o la sanción se pagaría sola."""
+    ids = flujo_partido(client_superuser)
+    payload = planilla_minima(ids)
+    payload["tarjetas"] = [_tarjeta(ids["id_integrante_local"], "ROJA", 5)]
+    resp = client_superuser.post("/api/partidos/planilla", json=payload)
+    assert resp.status_code == 201, resp.text
+
+    suspensiones = _suspensiones(client_superuser, ids["id_persona_local"], ids["id_torneo"])
+    automaticas = [s for s in suspensiones if s["origen"] == "AUTOMATICA_ROJA"]
+    assert len(automaticas) == 1
+    s = automaticas[0]
+    assert s["estado_suspension"] == "ACTIVA", "Se dio por cumplida en el mismo partido"
+    assert s["cumplidas"] == 0
+
+
+def test_la_suspension_toma_un_partido_del_fixture_sin_fecha(client_superuser, db):
+    """Si el fixture del torneo está sin programar (partidos en BORRADOR), la
+    suspensión igual tiene que engancharse a uno: si no, queda ACTIVA para
+    siempre, nunca pasa a CUMPLIDA y el asterisco público no aparece nunca."""
+    from sqlalchemy import text
+
+    ids = flujo_partido(client_superuser)
+
+    # Un partido futuro del equipo local, todavía sin fecha (BORRADOR).
+    id_borrador = db.execute(text("""
+        INSERT INTO partido (id_torneo, id_equipo_local, id_equipo_visitante, estado_partido)
+        SELECT :t, i1.id_equipo, i2.id_equipo, 'BORRADOR'
+        FROM inscripcion_torneo i1, inscripcion_torneo i2
+        WHERE i1.id_inscripcion = :il AND i2.id_inscripcion = :iv
+        RETURNING id_partido
+    """), {"t": ids["id_torneo"], "il": ids["id_inscripcion_local"],
+           "iv": ids["id_inscripcion_visitante"]}).scalar()
+    db.commit()
+
+    payload = planilla_minima(ids)
+    payload["tarjetas"] = [_tarjeta(ids["id_integrante_local"], "ROJA", 5)]
+    resp = client_superuser.post("/api/partidos/planilla", json=payload)
+    assert resp.status_code == 201, resp.text
+
+    suspensiones = _suspensiones(client_superuser, ids["id_persona_local"], ids["id_torneo"])
+    automaticas = [s for s in suspensiones if s["origen"] == "AUTOMATICA_ROJA"]
+    assert len(automaticas) == 1
+    assert automaticas[0]["id_partido_a_cumplir"] == id_borrador, (
+        "La suspensión no se enganchó al partido pendiente del fixture"
+    )
+
+
+def test_ciclo_completo_suspension_y_asterisco_publico(client_superuser, client_publico, db):
+    """Recorre el ciclo entero: 3 amarillas → suspensión ACTIVA con partido a
+    cumplir → se juega ese partido → CUMPLIDA → el asterisco aparece en la
+    tabla pública de tarjetas acumuladas."""
+    from sqlalchemy import text
+
+    ids = flujo_partido(client_superuser)
+
+    # Segundo partido del torneo, ya programado: es el que se va a cumplir.
+    id_segundo = db.execute(text("""
+        INSERT INTO partido (id_torneo, id_equipo_local, id_equipo_visitante,
+                             id_inscripcion_local, id_inscripcion_visitante,
+                             fecha, estado_partido)
+        SELECT :t, i1.id_equipo, i2.id_equipo, i1.id_inscripcion, i2.id_inscripcion,
+               DATE '2024-06-01', 'PENDIENTE'
+        FROM inscripcion_torneo i1, inscripcion_torneo i2
+        WHERE i1.id_inscripcion = :il AND i2.id_inscripcion = :iv
+        RETURNING id_partido
+    """), {"t": ids["id_torneo"], "il": ids["id_inscripcion_local"],
+           "iv": ids["id_inscripcion_visitante"]}).scalar()
+    db.commit()
+
+    # Partido 1: las 3 amarillas.
+    payload = planilla_minima(ids)
+    payload["tarjetas"] = [
+        _tarjeta(ids["id_integrante_local"], "AMARILLA", 10),
+        _tarjeta(ids["id_integrante_local"], "AMARILLA", 20),
+        _tarjeta(ids["id_integrante_local"], "AMARILLA", 30),
+    ]
+    assert client_superuser.post("/api/partidos/planilla", json=payload).status_code == 201
+
+    suspension = [s for s in _suspensiones(client_superuser, ids["id_persona_local"], ids["id_torneo"])
+                  if s["origen"] == "AUTOMATICA_AMARILLAS"]
+    assert len(suspension) == 1
+    assert suspension[0]["id_partido_a_cumplir"] == id_segundo
+    assert suspension[0]["estado_suspension"] == "ACTIVA"
+
+    # Todavía no cumplió: sin asterisco.
+    def acumuladas() -> dict:
+        resp = client_publico.get(f"/api/vistas/tarjetas-acumuladas?id_torneo={ids['id_torneo']}")
+        assert resp.status_code == 200, resp.text
+        fila = [f for f in resp.json() if f["id_persona"] == ids["id_persona_local"]]
+        assert len(fila) == 1, f"No encontré al jugador en la vista: {resp.json()}"
+        return fila[0]
+
+    assert acumuladas()["suspensiones_cumplidas_amarillas"] == 0
+
+    # Se juega el partido que tenía que cumplir: el suspendido no está en la lista.
+    db.execute(text("UPDATE partido SET estado_partido='TERMINADO' WHERE id_partido=:p"),
+               {"p": id_segundo})
+    db.commit()
+    from app.database import SessionLocal
+    from app.services.suspensiones_services import procesar_cumplimiento_suspensiones_partido
+    from app.models.partido import Partido
+
+    sesion = SessionLocal()
+    try:
+        procesar_cumplimiento_suspensiones_partido(
+            sesion, sesion.get(Partido, id_segundo), None
+        )
+        sesion.commit()
+    finally:
+        sesion.close()
+
+    cumplida = [s for s in _suspensiones(client_superuser, ids["id_persona_local"], ids["id_torneo"])
+                if s["origen"] == "AUTOMATICA_AMARILLAS"][0]
+    assert cumplida["estado_suspension"] == "CUMPLIDA", cumplida
+    assert acumuladas()["suspensiones_cumplidas_amarillas"] == 1, "Falta el asterisco público"

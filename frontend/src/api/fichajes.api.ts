@@ -22,7 +22,7 @@ export const crearFichaje = async (data: {
  * @param filtroTorneo Si se pasan `id_torneo` e `id_equipo`, el backend
  * excluye a quien ya esté anotado en el plantel de OTRO equipo del mismo
  * club para ese torneo (no puede jugar para dos equipos del mismo club a
- * la vez).
+ * la vez). El cuerpo técnico no se excluye: puede repetirse.
  */
 export const getFichajesPorClub = async (
   id_club: number,
@@ -53,7 +53,9 @@ export const getFichajesActivosPorClubYRol = async (
 
 /**
  * Devuelve personas disponibles para fichar en un club con un rol dado.
- * Filtra: tienen el rol habilitante activo y no están fichadas con ese rol en ningún club.
+ * Filtra: tienen el rol habilitante activo y no están ya fichadas con ese rol
+ * en ningún club (JUGADOR, DELEGADO) o en este club (cuerpo técnico, que puede
+ * estar fichado en varios clubes a la vez).
  */
 export const getPersonasDisponiblesParaFichar = async (
   id_club: number,

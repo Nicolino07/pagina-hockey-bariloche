@@ -310,6 +310,18 @@ def crear_planilla_partido(db: Session, data, current_user):
                 )
             )
 
+        # Disparo de triggers y fin.
+        # El estado y las tarjetas tienen que estar en la base ANTES de
+        # recalcular suspensiones:
+        #   - la sesión es autoflush=False, así que sin este flush el conteo de
+        #     tarjetas no ve las que se acaban de cargar (contaba de menos y no
+        #     llegaba a las 3 amarillas);
+        #   - si el partido sigue PENDIENTE, la cola lo elige como "próximo
+        #     partido a cumplir" y la sanción se daría por cumplida en el mismo
+        #     partido en que se sacó la tarjeta.
+        partido.estado_partido = "TERMINADO"
+        db.flush()
+
         # =========================
         # 4️⃣b Recalcular suspensiones automáticas por tarjetas
         # =========================
@@ -323,10 +335,6 @@ def crear_planilla_partido(db: Session, data, current_user):
             }
             for id_persona in ids_persona_afectadas:
                 recalcular_suspensiones_automaticas_persona(db, id_persona, partido.id_torneo, current_user)
-
-        # Disparo de triggers y fin
-        partido.estado_partido = "TERMINADO"
-        db.flush()
 
         # Cumplimiento de suspensiones que apuntaban a este partido
         from app.services.suspensiones_services import procesar_cumplimiento_suspensiones_partido
@@ -634,6 +642,12 @@ def actualizar_planilla_partido(db: Session, id_partido: int, data, current_user
         # =========================
         # 5️⃣b Recalcular suspensiones automáticas por tarjetas
         # =========================
+        # La sesión es autoflush=False: sin este flush las tarjetas recién
+        # recreadas no existen todavía para el conteo, que además ya vio
+        # borrarse las viejas por el cascade. Contaría cero y llegaría a anular
+        # suspensiones legítimas.
+        db.flush()
+
         ids_pi_con_tarjeta = {t.id_plantel_integrante for t in data.tarjetas}
         ids_persona_despues = set()
         if ids_pi_con_tarjeta:

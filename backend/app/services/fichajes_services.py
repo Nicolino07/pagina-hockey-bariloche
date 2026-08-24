@@ -7,6 +7,7 @@ from app.models.persona_rol import PersonaRol
 from app.core.exceptions  import ValidationError
 from app.models.persona import Persona
 from app.models.plantel_integrante import PlantelIntegrante
+from app.models.enums import es_rol_cuerpo_tecnico
 from fastapi import HTTPException, status
 
 
@@ -77,9 +78,13 @@ def obtener_personas_disponibles_para_fichar(
     Devuelve personas que pueden ser fichadas en el club con el rol dado.
     Condiciones:
       1. Tienen el rol habilitante activo (PersonaRol.rol == rol y fecha_hasta IS NULL).
-      2. No tienen fichaje activo con ese rol en ningún club.
+      2. No tienen fichaje activo con ese rol:
+         - en ningún club, si el rol es exclusivo (JUGADOR, DELEGADO);
+         - en ESTE club, si es un rol de cuerpo técnico (DT, ARBITRO,
+           ASISTENTE, MEDICO, PREPARADOR_FISICO), que puede estar fichado en
+           varios clubes a la vez pero no dos veces en el mismo.
     """
-    # Subquery: id_persona con fichaje activo para ese rol en cualquier club
+    # Subquery: id_persona con fichaje activo para ese rol que impide ficharla
     fichados = (
         select(FichajeRol.id_persona)
         .where(
@@ -89,6 +94,9 @@ def obtener_personas_disponibles_para_fichar(
             FichajeRol.borrado_en.is_(None),
         )
     )
+
+    if es_rol_cuerpo_tecnico(rol):
+        fichados = fichados.where(FichajeRol.id_club == id_club)
 
     stmt = (
         select(Persona)

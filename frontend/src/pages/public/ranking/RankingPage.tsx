@@ -22,6 +22,57 @@ const GENERO_ICON: Record<string, string> = {
   MASCULINO: "♂", FEMENINO: "♀", MIXTO: "⚥",
 }
 
+/**
+ * Asteriscos que acompañan al total de tarjetas de un jugador: uno por cada
+ * fecha de suspensión que ya cumplió. Solo cuentan las cumplidas, no las que
+ * todavía están pendientes de jugarse.
+ */
+function Asteriscos({ cantidad, titulo }: { cantidad?: number; titulo: string }) {
+  if (!cantidad) return null
+  return (
+    <span
+      className={styles.asterisco}
+      title={cantidad === 1 ? `1 ${titulo}` : `${cantidad} ${titulo}s`}
+    >
+      {"*".repeat(cantidad)}
+    </span>
+  )
+}
+
+/** Referencias al pie de la tabla de tarjetas: qué es cada columna y qué es el *. */
+function LeyendaTarjetas() {
+  return (
+    <div className={styles.leyenda}>
+      <p className={styles.leyendaTitulo}>Referencias</p>
+      <ul className={styles.leyendaLista}>
+        <li>
+          <span className={styles.boxVerde}>V</span> verdes ·{" "}
+          <span className={styles.boxAmarilla}>A</span> amarillas ·{" "}
+          <span className={styles.boxRoja}>R</span> rojas ·{" "}
+          <span className={styles.boxTotal}>T</span> total de tarjetas
+        </li>
+        <li>
+          <span className={styles.asterisco}>*</span> Cada asterisco es{" "}
+          <strong>una fecha de suspensión ya cumplida</strong>. En la columna{" "}
+          <span className={styles.boxAmarilla}>A</span> corresponde a una sanción por
+          acumular 3 amarillas; en la <span className={styles.boxRoja}>R</span>, a una
+          sanción por tarjeta roja.
+        </li>
+        <li>
+          Las tarjetas no se descuentan del total: el asterisco marca que esa sanción
+          ya fue cumplida. Una suspensión todavía pendiente de jugarse{" "}
+          <strong>no</strong> muestra asterisco.
+        </li>
+        <li>
+          Ejemplo: <strong>4*</strong> en amarillas son 4 amarillas en el torneo, de las
+          cuales las 3 primeras derivaron en una fecha de suspensión que el jugador ya
+          cumplió; le queda 1 amarilla acumulada.
+        </li>
+      </ul>
+    </div>
+  )
+}
+
 export default function RankingPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -370,8 +421,20 @@ export default function RankingPage() {
                                           <span className={styles.playerTeam}>{t.equipo}</span>
                                         </td>
                                         <td>{t.total_verdes}</td>
-                                        <td>{t.total_amarillas}{"*".repeat(t.suspensiones_cumplidas_amarillas || 0)}</td>
-                                        <td>{t.total_rojas}{"*".repeat(t.suspensiones_cumplidas_rojas || 0)}</td>
+                                        <td>
+                                          {t.total_amarillas}
+                                          <Asteriscos
+                                            cantidad={t.suspensiones_cumplidas_amarillas}
+                                            titulo="fecha de suspensión ya cumplida por acumulación de 3 amarillas"
+                                          />
+                                        </td>
+                                        <td>
+                                          {t.total_rojas}
+                                          <Asteriscos
+                                            cantidad={t.suspensiones_cumplidas_rojas}
+                                            titulo="fecha de suspensión ya cumplida por tarjeta roja"
+                                          />
+                                        </td>
                                         <td className={styles.bold}>{t.total_tarjetas}</td>
                                       </tr>
                                     ))}
@@ -398,6 +461,8 @@ export default function RankingPage() {
                                   >→</button>
                                 </div>
                               )}
+
+                              <LeyendaTarjetas />
                             </>
                           )}
                         </>

@@ -386,9 +386,20 @@ export default function ClubDetalle() {
       <div className={styles.equiposList}>
         {equipos.map((equipo) => (
           <div key={equipo.id_equipo} className={styles.equipoItem}>
-            <div className={styles.equipoHeader} onClick={() => setEquipoAbierto(equipoAbierto === equipo.id_equipo ? null : equipo.id_equipo)}>
-              <div>
-                <span className={styles.equipoName}>{equipo.nombre}</span>
+            <div
+              className={styles.equipoHeader}
+              onClick={() => setEquipoAbierto(equipoAbierto === equipo.id_equipo ? null : equipo.id_equipo)}
+            >
+              <div className={styles.equipoTitulo}>
+                <span className={styles.equipoName}>
+                  <span
+                    className={`${styles.chevron} ${equipoAbierto === equipo.id_equipo ? styles.chevronAbierto : ""}`}
+                    aria-hidden="true"
+                  >
+                    ▸
+                  </span>
+                  {equipo.nombre}
+                </span>
                 <span className={styles.equipoMeta}>{equipo.categoria.replace(/_/g, " ")}{equipo.division ? ` - ${equipo.division}` : ""} - {equipo.genero}</span>
               </div>
                 <div className={styles.equipoActions}>

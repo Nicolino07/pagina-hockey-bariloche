@@ -131,10 +131,14 @@ CREATE TABLE IF NOT EXISTS fichaje_rol (
 );
 
 
-    -- Una persona NO puede tener el mismo rol activo en dos clubes distintos
+    -- Una persona NO puede tener el mismo rol activo en dos clubes distintos.
+    -- Excepción: el cuerpo técnico (DT, ARBITRO, ASISTENTE, MEDICO,
+    -- PREPARADOR_FISICO) puede estar fichado en varios clubes a la vez.
 CREATE UNIQUE INDEX unq_persona_rol_activo_uniclub
 ON fichaje_rol (id_persona, rol)
-WHERE activo = TRUE AND fecha_fin IS NULL;
+WHERE activo = TRUE
+  AND fecha_fin IS NULL
+  AND rol NOT IN ('DT', 'ARBITRO', 'ASISTENTE', 'MEDICO', 'PREPARADOR_FISICO');
 
 -- Una persona NO puede repetir el mismo rol activo en el mismo club
 CREATE UNIQUE INDEX unq_persona_club_rol_activo
@@ -142,7 +146,7 @@ ON fichaje_rol (id_persona, id_club, rol)
 WHERE activo = TRUE;
 
 COMMENT ON INDEX unq_persona_rol_activo_uniclub IS
-'Evita que una persona tenga el mismo rol activo en más de un club';
+'Evita que una persona tenga el mismo rol activo en más de un club (no aplica al cuerpo técnico)';
 
 COMMENT ON INDEX unq_persona_club_rol_activo IS
 'Evita duplicar rol activo para una persona dentro del mismo club';

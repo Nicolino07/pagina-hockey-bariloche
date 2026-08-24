@@ -23,6 +23,13 @@ def listar_equipos(
     if id_club:
         query = query.filter(Equipo.id_club == id_club)
 
+    # Orden de categoría: MAYORES, SUB_19, SUB_16, SUB_14, SUB_12. Es el orden
+    # en que están declarados los valores del ENUM `tipo_categoria`
+    # (db/init/001_enums.sql) y Postgres ordena los enums por declaración, así
+    # que ordenar por la columna alcanza. Si se agrega una categoría nueva hay
+    # que insertarla en la posición correcta del ENUM.
+    query = query.order_by(Equipo.categoria, Equipo.genero, Equipo.nombre)
+
     return query.all()
 
 

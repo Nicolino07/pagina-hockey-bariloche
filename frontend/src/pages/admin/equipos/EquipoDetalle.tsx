@@ -214,9 +214,11 @@ export default function EquipoDetalle() {
   useEffect(() => {
     if (modalType !== "agregar" || !id_club || !plantelSeleccionado) return;
     setLoadingFichajes(true);
-    // Si el plantel es de un torneo, no ofrecemos personas que ya estén
-    // anotadas en el plantel de otro equipo del mismo club para ese mismo
-    // torneo: el backend lo bloquearía igual, pero no tiene sentido mostrarlas.
+    // Si el plantel es de un torneo, no ofrecemos jugadores/delegados que ya
+    // estén anotados en el plantel de otro equipo del mismo club para ese
+    // mismo torneo: el backend lo bloquearía igual, pero no tiene sentido
+    // mostrarlos. El cuerpo técnico sí se ofrece: puede repetirse en varios
+    // equipos y clubes.
     const filtroTorneo = plantelSeleccionado.id_torneo
       ? { id_torneo: plantelSeleccionado.id_torneo, id_equipo: plantelSeleccionado.id_equipo }
       : undefined;

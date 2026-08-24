@@ -1,7 +1,35 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { PlantelActivoIntegrante } from "../../../types/vistas";
 import { marcarSuspendidos } from "../../../utils/suspensiones";
 import styles from "./PlantelLista.module.css";
+
+/**
+ * Orden fijo del cuerpo técnico dentro de su bloque: DT, asistente,
+ * preparador físico y médico. Los roles que no figuran acá (delegado,
+ * árbitro) van al final del mismo bloque, en el orden en que lleguen.
+ */
+const ORDEN_CUERPO_TECNICO = [
+  "DT",
+  "ASISTENTE",
+  "PREPARADOR_FISICO",
+  "MEDICO",
+] as const;
+
+/** Etiqueta corta para el badge de rol (el enum crudo es poco legible). */
+const ROL_BADGE: Record<string, string> = {
+  JUGADOR: "Jugador",
+  DT: "DT",
+  ASISTENTE: "Asistente",
+  PREPARADOR_FISICO: "Prep. Físico",
+  MEDICO: "Médico",
+  DELEGADO: "Delegado",
+  ARBITRO: "Árbitro",
+};
+
+function ordenDeRol(rol?: string | null): number {
+  const i = ORDEN_CUERPO_TECNICO.indexOf(rol as typeof ORDEN_CUERPO_TECNICO[number]);
+  return i === -1 ? ORDEN_CUERPO_TECNICO.length : i;
+}
 
 interface Props {
   integrantes: PlantelActivoIntegrante[];
@@ -22,6 +50,20 @@ export default function PlantelLista({
 }: Props) {
   const [suspendidos, setSuspendidos] = useState<Set<number>>(new Set());
 
+  // Dos bloques: primero el cuerpo técnico (en su orden fijo) y debajo los
+  // jugadores, que conservan el orden en que llegan.
+  const { cuerpoTecnico, jugadores } = useMemo(() => {
+    const jugadores = integrantes.filter(i => i.rol_en_plantel === "JUGADOR");
+    const cuerpoTecnico = integrantes
+      .filter(i => i.rol_en_plantel !== "JUGADOR")
+      .sort((a, b) => {
+        const porRol = ordenDeRol(a.rol_en_plantel) - ordenDeRol(b.rol_en_plantel);
+        if (porRol !== 0) return porRol;
+        return (a.apellido_persona ?? "").localeCompare(b.apellido_persona ?? "", "es");
+      });
+    return { cuerpoTecnico, jugadores };
+  }, [integrantes]);
+
   useEffect(() => {
     marcarSuspendidos(integrantes)
       .then(marcados => setSuspendidos(new Set(
@@ -30,9 +72,9 @@ export default function PlantelLista({
       .catch(() => setSuspendidos(new Set()));
   }, [integrantes]);
 
-  return (
+  const renderLista = (lista: PlantelActivoIntegrante[]) => (
     <div className={styles.scrollList}>
-      {integrantes.map((i, index) => {
+      {lista.map((i, index) => {
         // Usamos una key segura: ID del integrante, o ID de persona, o índice
         const itemKey = i.id_plantel_integrante || i.id_persona || `temp-${index}`;
 
@@ -54,7 +96,9 @@ export default function PlantelLista({
               </span>
               <span className={styles.personaSub}>
                 <strong>DNI:</strong> {i.documento || "---"} ·
-                <span className={styles.roleBadge}>{i.rol_en_plantel}</span>
+                <span className={styles.roleBadge}>
+                  {ROL_BADGE[i.rol_en_plantel ?? ""] ?? i.rol_en_plantel}
+                </span>
                 {jugo && <span className={styles.jugoBadge}>{i.partidos_jugados} PJ</span>}
               </span>
               {(fechaAlta || fechaBaja) && (
@@ -83,6 +127,28 @@ export default function PlantelLista({
           </div>
         );
       })}
+    </div>
+  );
+
+  return (
+    <div className={styles.bloques}>
+      {cuerpoTecnico.length > 0 && (
+        <section>
+          <h3 className={styles.bloqueTitulo}>
+            Cuerpo técnico <span className={styles.bloqueCount}>{cuerpoTecnico.length}</span>
+          </h3>
+          {renderLista(cuerpoTecnico)}
+        </section>
+      )}
+
+      {jugadores.length > 0 && (
+        <section>
+          <h3 className={styles.bloqueTitulo}>
+            Jugadores <span className={styles.bloqueCount}>{jugadores.length}</span>
+          </h3>
+          {renderLista(jugadores)}
+        </section>
+      )}
     </div>
   );
 }

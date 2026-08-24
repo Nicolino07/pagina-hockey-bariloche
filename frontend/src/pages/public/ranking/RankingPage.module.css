@@ -405,3 +405,43 @@
   background: var(--border-color);
   border-radius: 10px;
 }
+
+/* ── Asterisco de suspensión cumplida ────────── */
+.asterisco {
+  color: var(--color-badge-amber);
+  font-weight: 800;
+  margin-left: 1px;
+  cursor: help;
+}
+
+/* ── Leyenda al pie de la tabla de tarjetas ──── */
+.leyenda {
+  padding: 14px 16px 18px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.leyendaTitulo {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.leyendaLista {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 80ch;
+}
+
+.leyendaLista strong {
+  color: var(--text-main);
+  font-weight: 600;
+}

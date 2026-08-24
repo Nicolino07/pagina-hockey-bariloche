@@ -43,7 +43,8 @@ BEGIN
     END IF;
     
     -- Verificar que no tenga el mismo rol activo en otro club
-    IF NEW.fecha_baja IS NULL THEN
+    -- (el cuerpo técnico está exento: puede estar fichado en varios clubes)
+    IF NEW.fecha_baja IS NULL AND NOT es_rol_cuerpo_tecnico(NEW.rol_en_plantel) THEN
         SELECT EXISTS (
             SELECT 1 FROM fichaje_rol
             WHERE id_persona = NEW.id_persona
@@ -548,6 +549,29 @@ $$ LANGUAGE plpgsql;
 -- =====================================================
 
 -- =====================================================
+-- FUNCIÓN: es_rol_cuerpo_tecnico
+-- Propósito: marcar los roles que NO son exclusivos de un club/equipo.
+-- El cuerpo técnico (DT, árbitros, asistentes, médicos y preparadores
+-- físicos) puede repetirse en varios equipos y clubes dentro del mismo
+-- torneo, así que las reglas de exclusividad solo aplican al resto de los
+-- roles (JUGADOR, DELEGADO). Ver migración 0039.
+-- =====================================================
+CREATE OR REPLACE FUNCTION es_rol_cuerpo_tecnico(p_rol tipo_rol_persona)
+RETURNS BOOLEAN
+LANGUAGE sql
+IMMUTABLE
+AS $$
+    SELECT p_rol IN (
+        'DT',
+        'ARBITRO',
+        'ASISTENTE',
+        'MEDICO',
+        'PREPARADOR_FISICO'
+    );
+$$;
+
+
+-- =====================================================
 -- FUNCIÓN: validar_rol_unico_por_club
 -- Propósito: Valida que una persona no tenga el mismo rol en clubes diferentes
 -- =====================================================
@@ -568,6 +592,11 @@ DECLARE
     v_fecha_alta_conflicto DATE;
     v_mensaje VARCHAR;
 BEGIN
+    -- El cuerpo técnico puede cumplir el mismo rol en varios clubes.
+    IF es_rol_cuerpo_tecnico(p_rol) THEN
+        RETURN NULL;
+    END IF;
+
     -- Buscar si ya existe el mismo rol en otro club
     SELECT 
         c.nombre,
@@ -586,7 +615,21 @@ BEGIN
     WHERE pi.id_persona = p_id_persona
     AND pi.rol_en_plantel = p_rol                     -- Mismo rol
     AND eq.id_club != p_id_club_destino              -- Club diferente
-    AND pi.fecha_baja IS NULL                        -- Solo activos
+    -- Solo activos, con una excepción: si ya jugó un partido de un torneo en
+    -- curso sigue "tomada" por ese club aunque se la haya dado de baja del
+    -- plantel (migración 0035).
+    AND (
+        pi.fecha_baja IS NULL
+        OR EXISTS (
+            SELECT 1
+            FROM participan_partido pp
+            JOIN partido p2 ON p2.id_partido = pp.id_partido
+            JOIN torneo t2  ON t2.id_torneo = p2.id_torneo
+            WHERE pp.id_plantel_integrante = pi.id_plantel_integrante
+              AND t2.activo = TRUE
+              AND t2.borrado_en IS NULL
+        )
+    )
     -- "Plantel vigente": activo y, si es de un torneo, que el torneo siga
     -- activo. Sin la segunda parte, los planteles de torneos ya terminados
     -- bloquearían fichajes en otros clubes para siempre (ver migración 0033).
@@ -832,6 +875,11 @@ DECLARE
     v_fecha_alta_conflicto DATE;
     v_mensaje VARCHAR;
 BEGIN
+    -- El cuerpo técnico puede repetirse en varios equipos del mismo torneo.
+    IF es_rol_cuerpo_tecnico(p_rol) THEN
+        RETURN NULL;
+    END IF;
+
     -- Sin torneo (plantel histórico) no hay "mismo torneo" que comparar.
     IF p_id_torneo_destino IS NULL THEN
         RETURN NULL;

@@ -451,6 +451,7 @@ def test_no_se_puede_pasar_de_club_si_ya_jugo_aunque_este_de_baja(client_superus
         JOIN plantel pl ON pl.id_plantel = pi.id_plantel AND pl.activo
         JOIN equipo eq ON eq.id_equipo = pl.id_equipo
         WHERE pi.fecha_baja IS NULL
+          AND pi.rol_en_plantel = 'JUGADOR'   -- el cuerpo técnico está exento (migración 0039)
         LIMIT 1
     """)).first()
     if fila is None:
@@ -530,3 +531,94 @@ def test_no_se_puede_borrar_un_plantel_que_ya_jugo(client_superuser, db):
 
     resp = client_superuser.delete(f"/api/planteles/{id_plantel}")
     assert resp.status_code in (400, 409), resp.text
+
+
+# ─── Tests: cuerpo técnico sin exclusividad de club/equipo (migración 0039) ──
+
+ROLES_CUERPO_TECNICO = ["DT", "ARBITRO", "ASISTENTE", "MEDICO", "PREPARADOR_FISICO"]
+
+
+def _crear_persona_con_rol(client, rol: str) -> int:
+    resp = client.post("/api/personas", json={
+        "persona": {
+            "nombre": f"Test {uid()}",
+            "apellido": f"{rol.title()} {uid()}",
+            "genero": "MASCULINO",
+        },
+        "rol": {"rol": rol, "fecha_desde": "2024-01-01"},
+    })
+    assert resp.status_code == 201, resp.text
+    return resp.json()["id_persona"]
+
+
+def _fichar(client, id_persona: int, id_club: int, rol: str):
+    """Ficha a la persona en el club con ese rol. Devuelve la respuesta cruda."""
+    return client.post("/api/fichajes", json={
+        "id_persona": id_persona,
+        "id_club": id_club,
+        "rol": rol,
+        "fecha_inicio": "2024-01-01",
+    })
+
+
+@pytest.mark.parametrize("rol", ROLES_CUERPO_TECNICO)
+def test_cuerpo_tecnico_puede_ficharse_en_dos_clubes(client_superuser, rol):
+    """Un DT (o árbitro, asistente, médico, PF) puede estar activo en varios clubes."""
+    id_persona = _crear_persona_con_rol(client_superuser, rol)
+    club_a = crear_club(client_superuser)
+    club_b = crear_club(client_superuser)
+
+    assert _fichar(client_superuser, id_persona, club_a, rol).status_code == 201
+    resp_b = _fichar(client_superuser, id_persona, club_b, rol)
+    assert resp_b.status_code == 201, resp_b.text
+
+
+@pytest.mark.parametrize("rol", ROLES_CUERPO_TECNICO)
+def test_cuerpo_tecnico_puede_estar_en_planteles_de_dos_clubes(client_superuser, rol):
+    """Y además integrar el plantel de ambos clubes al mismo tiempo."""
+    id_persona = _crear_persona_con_rol(client_superuser, rol)
+
+    for _ in range(2):
+        id_club = crear_club(client_superuser)
+        id_equipo = crear_equipo(client_superuser, id_club)
+        id_plantel = crear_plantel(client_superuser, id_equipo)
+        alta = _fichar(client_superuser, id_persona, id_club, rol)
+        assert alta.status_code == 201, alta.text
+
+        resp = client_superuser.post("/api/planteles/integrantes", json={
+            "id_plantel": id_plantel,
+            "id_persona": id_persona,
+            "id_fichaje_rol": alta.json()["id_fichaje_rol"],
+            "rol_en_plantel": rol,
+        })
+        assert resp.status_code == 201, resp.text
+
+
+@pytest.mark.parametrize("rol", ROLES_CUERPO_TECNICO)
+def test_validaciones_de_exclusividad_no_aplican_al_cuerpo_tecnico(db, rol):
+    """Las dos funciones de exclusividad salen temprano para estos roles."""
+    from sqlalchemy import text
+
+    assert db.execute(
+        text("SELECT es_rol_cuerpo_tecnico(:r)"), {"r": rol}
+    ).scalar() is True
+
+    assert db.execute(
+        text("SELECT validar_rol_unico_por_club(1, :r, 1)"), {"r": rol}
+    ).scalar() is None
+
+    assert db.execute(
+        text("SELECT validar_equipo_unico_en_torneo_mismo_club(1, :r, 1, 1)"), {"r": rol}
+    ).scalar() is None
+
+
+@pytest.mark.parametrize("rol", ["JUGADOR", "DELEGADO"])
+def test_roles_exclusivos_siguen_siendo_de_un_solo_club(client_superuser, rol):
+    """Jugadores y delegados mantienen la regla de un solo club por rol."""
+    id_persona = _crear_persona_con_rol(client_superuser, rol)
+    club_a = crear_club(client_superuser)
+    club_b = crear_club(client_superuser)
+
+    assert _fichar(client_superuser, id_persona, club_a, rol).status_code == 201
+    resp_b = _fichar(client_superuser, id_persona, club_b, rol)
+    assert resp_b.status_code in (400, 409), resp_b.text

@@ -181,8 +181,19 @@ def recalcular_cola_suspensiones(db: Session, id_persona: int, id_torneo: Option
         db.query(Partido)
         .filter(
             Partido.id_torneo == id_torneo,
+            # BORRADOR entra también: es un partido del fixture que todavía
+            # no tiene fecha asignada, pero el equipo lo va a jugar. Sin él, en
+            # un torneo cuyo fixture está sin programar la suspensión nunca
+            # consigue partido a cumplir, queda ACTIVA para siempre y nunca
+            # llega a CUMPLIDA (que es lo que dispara el asterisco público).
+            # Al no tener fecha, el orden cronológico los deja al final.
             Partido.estado_partido.in_(
-                [EstadoPartido.PENDIENTE, EstadoPartido.REPROGRAMADO, EstadoPartido.SUSPENDIDO]
+                [
+                    EstadoPartido.PENDIENTE,
+                    EstadoPartido.REPROGRAMADO,
+                    EstadoPartido.SUSPENDIDO,
+                    EstadoPartido.BORRADOR,
+                ]
             ),
             or_(Partido.id_equipo_local == id_equipo, Partido.id_equipo_visitante == id_equipo),
         )
