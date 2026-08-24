@@ -1,8 +1,15 @@
+import logging
+
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError, DataError
 from fastapi import HTTPException
 from sqlalchemy import or_, text
-from psycopg2.errors import UniqueViolation, ForeignKeyViolation
+from psycopg2.errors import (
+    UniqueViolation,
+    ForeignKeyViolation,
+    CheckViolation,
+    RaiseException,
+)
 
 
 from app.models.partido import Partido, PartidoDetallado
@@ -12,6 +19,97 @@ from app.models.tarjeta import Tarjeta
 from app.models.plantel_integrante import PlantelIntegrante
 from app.models.inscripcion_torneo import InscripcionTorneo
 from app.models.enums import EstadoPartido, RolPersonaTipo
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Traducción de errores de base de datos a mensajes claros para el usuario
+# ---------------------------------------------------------------------------
+
+# Mensajes por nombre de constraint violada (UNIQUE / CHECK / FK).
+_MENSAJES_CONSTRAINT: dict[str, str] = {
+    "partido_unq_equipo_fecha": (
+        "Ya existe un partido cargado para estos equipos en esa fecha y torneo. "
+        "Si querés cargar la planilla de un partido programado, entrá desde el fixture; "
+        "si querés corregir uno ya cargado, editalo en vez de crearlo de nuevo."
+    ),
+    "unq_jugador_partido": (
+        "Un jugador figura dos veces en la misma planilla. "
+        "Revisá que no esté repetido en la lista de participantes."
+    ),
+    "participan_partido_numero_camiseta_check": (
+        "El número de camiseta debe ser mayor que 0. "
+        "Revisá los números cargados en la lista de jugadores."
+    ),
+    "chk_arbitros_distintos": "El árbitro 1 y el árbitro 2 no pueden ser la misma persona.",
+    "chk_capitanes_distintos": "El capitán local y el capitán visitante no pueden ser la misma persona.",
+    "gol_minuto_check": "El minuto de un gol no puede ser negativo.",
+    "gol_cuarto_check": "El cuarto de un gol debe estar entre 1 y 4.",
+    "tarjeta_cuarto_check": "El cuarto de una tarjeta debe estar entre 1 y 4.",
+    "partido_goles_local_manual_check": "El resultado manual no puede ser negativo.",
+    "partido_goles_visitante_manual_check": "El resultado manual no puede ser negativo.",
+    "chk_goles_defecto_local_no_negativo": "Los goles otorgados por defecto no pueden ser negativos.",
+    "chk_goles_defecto_visitante_no_negativo": "Los goles otorgados por defecto no pueden ser negativos.",
+}
+
+
+def _traducir_error_bd(e: Exception, accion: str) -> HTTPException:
+    """
+    Convierte una excepción de base de datos en un HTTPException con un mensaje
+    entendible para quien carga la planilla.
+
+    Deja siempre el error original en el log (con traceback) para poder
+    diagnosticar los casos que no tengan una traducción específica.
+
+    Args:
+        e: excepción capturada (normalmente una SQLAlchemyError).
+        accion: descripción corta de la operación, usada en el log ("crear planilla").
+
+    Returns:
+        El HTTPException a relanzar.
+    """
+    logger.exception("Error al %s", accion)
+
+    orig = getattr(e, "orig", None)
+
+    # Los triggers de Postgres (RAISE EXCEPTION) traen el motivo real en diag.
+    if isinstance(orig, RaiseException):
+        mensaje = getattr(getattr(orig, "diag", None), "message_primary", None)
+        if mensaje:
+            return HTTPException(status_code=400, detail=mensaje)
+        return HTTPException(status_code=400, detail="La planilla no cumple una validación de la base de datos.")
+
+    nombre = getattr(getattr(orig, "diag", None), "constraint_name", None)
+    if nombre and nombre in _MENSAJES_CONSTRAINT:
+        codigo = 409 if isinstance(orig, UniqueViolation) else 400
+        return HTTPException(status_code=codigo, detail=_MENSAJES_CONSTRAINT[nombre])
+
+    if isinstance(orig, UniqueViolation):
+        return HTTPException(
+            status_code=409,
+            detail="Ya existe un registro con esos datos (partido o jugador duplicado).",
+        )
+    if isinstance(orig, ForeignKeyViolation):
+        return HTTPException(
+            status_code=400,
+            detail="Uno de los datos referenciados no existe (equipo, inscripción, árbitro, etc.).",
+        )
+    if isinstance(orig, CheckViolation):
+        return HTTPException(
+            status_code=400,
+            detail=f"Un dato de la planilla no es válido{f' ({nombre})' if nombre else ''}.",
+        )
+    if isinstance(e, DataError):
+        return HTTPException(
+            status_code=400,
+            detail="Alguno de los valores cargados tiene un formato inválido (número de camiseta, minuto u hora).",
+        )
+
+    return HTTPException(
+        status_code=500,
+        detail="Error interno al guardar la planilla. Avisá al administrador con la fecha y hora del intento.",
+    )
 
 
 def _validar_jugador_no_suspendido(db: Session, integrante: PlantelIntegrante, id_torneo: int, forzar: bool) -> None:
@@ -182,23 +280,9 @@ def crear_planilla_partido(db: Session, data, current_user):
     except HTTPException:
         db.rollback()
         raise
-    except IntegrityError as e:
-        db.rollback()
-        orig = getattr(e, "orig", None)
-        if isinstance(orig, UniqueViolation):
-            raise HTTPException(
-                status_code=409,
-                detail="Ya existe un partido cargado para estos equipos en esa fecha y torneo."
-            )
-        if isinstance(orig, ForeignKeyViolation):
-            raise HTTPException(
-                status_code=400,
-                detail="Uno de los datos referenciados no existe (equipo, inscripción, árbitro, etc.)."
-            )
-        raise HTTPException(status_code=400, detail="Error de integridad en los datos.")
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Error interno al guardar la planilla.")
+        raise _traducir_error_bd(e, "crear planilla")
     
 
 
@@ -502,11 +586,12 @@ def actualizar_planilla_partido(db: Session, id_partido: int, data, current_user
         db.commit()
         return partido
 
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
-        if isinstance(e, HTTPException):
-            raise e
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _traducir_error_bd(e, "actualizar planilla")
 
 
 def otorgar_puntos_partido(db: Session, id_fixture_partido: int, goles_local: int, goles_visitante: int, current_user):
@@ -564,4 +649,4 @@ def otorgar_puntos_partido(db: Session, id_fixture_partido: int, goles_local: in
         raise
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _traducir_error_bd(e, "otorgar puntos")

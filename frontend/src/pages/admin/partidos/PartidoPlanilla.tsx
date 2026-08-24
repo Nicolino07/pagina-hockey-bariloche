@@ -11,6 +11,7 @@ import { getPersonasArbitro } from "../../../api/vistas/personas.api";
 import type { PersonasArbitro, PlantelActivoIntegrante } from "../../../types/vistas";
 import { TIPOS_GOL, TIPOS_TARJETA } from "../../../constants/enums";
 import { obtenerSuspensionesActivasPorPersonas } from "../../../api/suspensiones.api";
+import { mensajeDeError, esErrorDeSuspension } from "../../../utils/errores";
 
 /** Representa un gol registrado en la planilla del partido. */
 interface Gol {
@@ -292,7 +293,26 @@ export default function PartidoPlanilla() {
    */
   const enviarPlanilla = async (forzar: boolean = false) => {
     if (!torneoId || !inscripcionLocal || !inscripcionVisitante) {
-      alert("Faltan datos básicos del partido");
+      alert("Faltan datos básicos del partido: torneo, equipo local y equipo visitante.");
+      return;
+    }
+    if (!partidoInfo.fecha) {
+      alert("Falta la fecha del partido.");
+      return;
+    }
+    if (!partidoInfo.horario) {
+      alert("Falta el horario del partido.");
+      return;
+    }
+    // La columna numero_camiseta es un entero > 0: avisamos acá para no
+    // depender del error de integridad de la base, que es mucho menos claro.
+    const idsSeleccionados = [...seleccionados.local, ...seleccionados.visitante];
+    const conCamisetaCero = idsSeleccionados.filter(id => camisetas[id] === "0");
+    if (conCamisetaCero.length) {
+      alert(
+        "El número de camiseta debe ser mayor que 0. Corregí a:\n\n" +
+        conCamisetaCero.map(id => `• ${getPlayerName(id)}`).join("\n")
+      );
       return;
     }
     setLoading(true);
@@ -348,8 +368,8 @@ export default function PartidoPlanilla() {
       }
       navigate(-1);
     } catch (error: any) {
-      const msg = error?.response?.data?.detail ?? "Error al guardar la planilla."
-      if (!forzar && typeof msg === "string" && msg.toLowerCase().includes("suspendid")) {
+      const msg = mensajeDeError(error, "Error al guardar la planilla.")
+      if (!forzar && esErrorDeSuspension(msg)) {
         if (window.confirm(`${msg}\n\n¿Incluirlo de todas formas?`)) {
           setLoading(false);
           await enviarPlanilla(true);
