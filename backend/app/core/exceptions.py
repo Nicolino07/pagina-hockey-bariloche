@@ -55,3 +55,17 @@ class BusinessRuleError(AppError):
     status_code = 422
     code = "BUSINESS_RULE"
     message = "Violación de regla de negocio"
+
+
+class ConfirmacionRequeridaError(AppError):
+    """
+    La operación viola una regla que es de advertencia, no de bloqueo.
+
+    El cliente puede reintentar el mismo request con `forzar=True` para
+    confirmarla. Se distingue de BusinessRuleError por el `code`, para que el
+    frontend sepa que debe ofrecer la confirmación sin tener que adivinarlo
+    a partir del texto del mensaje.
+    """
+    status_code = 409
+    code = "CONFIRMACION_REQUERIDA"
+    message = "La operación requiere confirmación explícita"

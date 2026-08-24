@@ -39,6 +39,7 @@ import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api"
 import { obtenerDetallePartido, eliminarPartido, otorgarPuntosPartido } from "../../../api/partidos.api"
 import OtorgarPuntosModal from "../../../components/admin/OtorgarPuntosModal"
 import styles from "./FixturePanel.module.css"
+import { mensajeDeError } from "../../../utils/errores";
 
 /** Valores iniciales del formulario de partido. */
 const FORM_VACIO: FixturePartidoCreate = {
@@ -295,7 +296,7 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
       }
       await eliminarPartidoFixture(p.id_fixture_partido).catch(() => {})
     } catch (e: any) {
-      alert(e?.response?.data?.detail ?? "Error al eliminar.")
+      alert(mensajeDeError(e, "Error al eliminar."))
       return
     }
     setPartidos(prev => prev.filter(x => x.id_fixture_partido !== p.id_fixture_partido))
@@ -507,7 +508,7 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
         setLoadingPartidos(false)
       }
     } catch (err: any) {
-      alert(err.message || "Error al otorgar puntos")
+      alert(mensajeDeError(err, "Error al otorgar puntos"))
     } finally {
       setOtorgandoPuntos(false)
     }

@@ -11,7 +11,7 @@ import { getPersonasArbitro } from "../../../api/vistas/personas.api";
 import type { PersonasArbitro, PlantelActivoIntegrante } from "../../../types/vistas";
 import { TIPOS_GOL, TIPOS_TARJETA } from "../../../constants/enums";
 import { obtenerSuspensionesActivasPorPersonas } from "../../../api/suspensiones.api";
-import { mensajeDeError, esErrorDeSuspension } from "../../../utils/errores";
+import { mensajeDeError, requiereConfirmacion } from "../../../utils/errores";
 
 /** Representa un gol registrado en la planilla del partido. */
 interface Gol {
@@ -369,8 +369,10 @@ export default function PartidoPlanilla() {
       navigate(-1);
     } catch (error: any) {
       const msg = mensajeDeError(error, "Error al guardar la planilla.")
-      if (!forzar && esErrorDeSuspension(msg)) {
-        if (window.confirm(`${msg}\n\n¿Incluirlo de todas formas?`)) {
+      // Advertencias confirmables (jugador suspendido, árbitro no habilitado):
+      // el backend las marca con un código propio y se reenvían con forzar=true.
+      if (!forzar && requiereConfirmacion(error)) {
+        if (window.confirm(msg)) {
           setLoading(false);
           await enviarPlanilla(true);
           return;

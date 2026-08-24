@@ -3,8 +3,8 @@ Servicios de designación de árbitros.
 
 La designación es directa: el admin de árbitros asigna id_arbitro1/id_arbitro2
 sobre partidos en estado BORRADOR o PENDIENTE. Las reglas de negocio se validan
-tanto acá (pre-validación amigable) como en la base de datos (trigger
-trg_validar_designacion_arbitros, como última barrera).
+únicamente acá: la base ya no las impone (el trigger
+trg_validar_designacion_arbitros se eliminó en la migración 0038).
 
 Reglas:
   1. Club propio (exceptuable): la persona no puede arbitrar si tiene un rol
@@ -15,10 +15,8 @@ Además, la persona designada debe tener el rol ARBITRO vigente y no debe estar
 suspendida (suspensión de ese torneo, o global con rol ARBITRO afectado).
 
 Las reglas no bloquean la designación: el frontend marca a los árbitros no
-designables y, si el admin confirma igual, el request llega con `forzar=True`.
-En ese caso se salta la pre-validación de Python y se habilita el bypass del
-trigger de DB (`app.forzar_designacion_arbitro`, ver migración 0031) para esa
-transacción.
+designables y, si el admin confirma igual, el request llega con `forzar=True`
+y se salta la pre-validación.
 """
 from typing import Optional
 
@@ -323,11 +321,8 @@ def designar_arbitros(db: Session, id_partido: int, data, current_user):
         for id_persona in (id_arbitro1, id_arbitro2):
             if id_persona is not None:
                 _validar_arbitro(db, id_partido, id_persona, es_competitiva)
-    else:
-        # El admin confirmó el override: se salta la pre-validación de Python
-        # y se levanta el bypass del trigger de DB para esta transacción,
-        # que de otro modo rechazaría igual el guardado.
-        db.execute(text("SET LOCAL app.forzar_designacion_arbitro = 'true'"))
+    # Si forzar es True el admin confirmó el override y no se valida nada: la
+    # base tampoco lo rechaza (el trigger se eliminó en la migración 0038).
 
     partido.id_arbitro1 = id_arbitro1
     partido.id_arbitro2 = id_arbitro2

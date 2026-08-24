@@ -1101,71 +1101,8 @@ END;
 $$;
 
 -- Trigger: valida la designación de árbitros al asignarlos sobre un partido.
-CREATE OR REPLACE FUNCTION fn_validar_designacion_arbitros()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    v_es_competitiva BOOLEAN;
-    v_id_arbitro     INT;
-    v_nombre         TEXT;
-BEGIN
-    -- Bypass explícito: el backend lo enciende (SET LOCAL, por transacción)
-    -- solo cuando el admin confirmó designar de todas formas a un árbitro
-    -- marcado como no designable.
-    IF current_setting('app.forzar_designacion_arbitro', true) = 'true' THEN
-        RETURN NEW;
-    END IF;
+-- (fn_validar_designacion_arbitros eliminada: las reglas de árbitros son
+-- una advertencia confirmable manejada en la aplicación. Ver migración 0038.)
 
-    SELECT t.es_competitiva
-    INTO v_es_competitiva
-    FROM torneo t
-    JOIN partido p ON p.id_torneo = t.id_torneo
-    WHERE p.id_partido = NEW.id_partido;
-
-    FOREACH v_id_arbitro IN ARRAY ARRAY[NEW.id_arbitro1, NEW.id_arbitro2]
-    LOOP
-        CONTINUE WHEN v_id_arbitro IS NULL;
-
-        SELECT nombre || ' ' || apellido
-        INTO v_nombre
-        FROM persona
-        WHERE id_persona = v_id_arbitro;
-
-        -- La persona designada debe tener el rol ARBITRO vigente.
-        IF NOT EXISTS (
-            SELECT 1 FROM persona_rol pr
-            WHERE pr.id_persona = v_id_arbitro
-              AND pr.rol = 'ARBITRO'
-              AND (pr.fecha_hasta IS NULL OR pr.fecha_hasta >= NEW.fecha)
-        ) THEN
-            RAISE EXCEPTION
-                'La persona % no tiene el rol ARBITRO vigente y no puede ser designada.',
-                v_nombre
-            USING ERRCODE = 'check_violation';
-        END IF;
-
-        -- Regla 2 (absoluta): no puede integrar un plantel del mismo torneo.
-        IF fn_arbitro_en_torneo_del_partido(v_id_arbitro, NEW.id_partido) THEN
-            RAISE EXCEPTION
-                'La persona % integra un plantel de este torneo y no puede arbitrar en él.',
-                v_nombre
-            USING ERRCODE = 'check_violation';
-        END IF;
-
-        -- Regla 1 (exceptuable): rol activo en el club local o visitante.
-        -- Solo aplica en torneos competitivos.
-        IF v_es_competitiva
-           AND fn_arbitro_en_club_del_partido(v_id_arbitro, NEW.id_partido) THEN
-            RAISE EXCEPTION
-                'La persona % tiene un rol activo en uno de los clubes del partido y no puede arbitrarlo.',
-                v_nombre
-            USING ERRCODE = 'check_violation';
-        END IF;
-    END LOOP;
-
-    RETURN NEW;
-END;
-$$;
 
 COMMIT;

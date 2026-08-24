@@ -74,7 +74,18 @@ export function mensajeDeError(error: unknown, fallback: string): string {
     return "No tenés permisos para realizar esta acción.";
   }
 
-  const detail = (respuesta.data as { detail?: unknown })?.detail;
+  const data = respuesta.data as {
+    detail?: unknown;
+    error?: { code?: string; message?: string };
+  };
+
+  // Errores de dominio (AppError) responden {error: {code, message}}.
+  const mensajeDominio = data?.error?.message;
+  if (typeof mensajeDominio === "string" && mensajeDominio.trim()) {
+    return mensajeDominio;
+  }
+
+  const detail = data?.detail;
 
   if (typeof detail === "string" && detail.trim()) {
     return detail;
@@ -95,9 +106,15 @@ export function mensajeDeError(error: unknown, fallback: string): string {
 }
 
 /**
- * Indica si el error corresponde a un jugador suspendido, caso en el que la
- * planilla puede reenviarse con `forzar = true`.
+ * Indica si el error es una advertencia que el usuario puede confirmar, en cuyo
+ * caso la operación se reenvía con `forzar = true` (jugador suspendido, árbitro
+ * no habilitado, etc.).
+ *
+ * Se apoya en el `code` que manda el backend y no en el texto del mensaje, que
+ * puede cambiar sin aviso.
  */
-export function esErrorDeSuspension(mensaje: string): boolean {
-  return mensaje.toLowerCase().includes("suspendid");
+export function requiereConfirmacion(error: unknown): boolean {
+  const data = (error as { response?: { data?: unknown } })?.response?.data;
+  const code = (data as { error?: { code?: string } })?.error?.code;
+  return code === "CONFIRMACION_REQUERIDA";
 }

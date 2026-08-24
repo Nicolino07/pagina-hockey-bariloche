@@ -13,6 +13,7 @@ import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api";
 import { generarPlanillaPDF } from "../../../services/PlanillaVacia.service";
 import { marcarSuspendidos } from "../../../utils/suspensiones";
 import { useAuth } from "../../../auth/AuthContext";
+import { mensajeDeError } from "../../../utils/errores";
 
 /**
  * Página administrativa de gestión de partidos.
@@ -108,7 +109,7 @@ export default function PartidosPage() {
       await eliminarPartido(partido.id_partido);
       setPartidos(prev => prev.filter(p => p.id_partido !== partido.id_partido));
     } catch (error: any) {
-      alert(error.message || "No se pudo eliminar el partido");
+      alert(mensajeDeError(error, "No se pudo eliminar el partido"));
     }
   };
 

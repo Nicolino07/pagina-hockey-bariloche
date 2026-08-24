@@ -19,6 +19,7 @@ from app.models.tarjeta import Tarjeta
 from app.models.plantel_integrante import PlantelIntegrante
 from app.models.inscripcion_torneo import InscripcionTorneo
 from app.models.enums import EstadoPartido, RolPersonaTipo
+from app.core.exceptions import AppError, ConfirmacionRequeridaError
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,31 @@ _MENSAJES_CONSTRAINT: dict[str, str] = {
 }
 
 
+def _mensaje_de_trigger(orig) -> str | None:
+    """
+    Devuelve el mensaje de un RAISE EXCEPTION de PL/pgSQL, o None si el error
+    no proviene de un trigger.
+
+    Los triggers del esquema levantan sus errores con
+    `USING ERRCODE = 'check_violation'`, así que psycopg2 los entrega como
+    CheckViolation y no como RaiseException. Lo que los distingue de una
+    violación de CHECK real es el `context`, que apunta a la función PL/pgSQL,
+    y la ausencia de `constraint_name`.
+    """
+    diag = getattr(orig, "diag", None)
+    if diag is None:
+        return None
+
+    es_trigger = isinstance(orig, RaiseException) or (
+        "PL/pgSQL function" in (getattr(diag, "context", None) or "")
+    )
+    if not es_trigger:
+        return None
+
+    mensaje = getattr(diag, "message_primary", None)
+    return mensaje.strip() if mensaje else None
+
+
 def _traducir_error_bd(e: Exception, accion: str) -> HTTPException:
     """
     Convierte una excepción de base de datos en un HTTPException con un mensaje
@@ -73,18 +99,19 @@ def _traducir_error_bd(e: Exception, accion: str) -> HTTPException:
 
     orig = getattr(e, "orig", None)
 
-    # Los triggers de Postgres (RAISE EXCEPTION) traen el motivo real en diag.
-    if isinstance(orig, RaiseException):
-        mensaje = getattr(getattr(orig, "diag", None), "message_primary", None)
-        if mensaje:
-            return HTTPException(status_code=400, detail=mensaje)
-        return HTTPException(status_code=400, detail="La planilla no cumple una validación de la base de datos.")
+    # 1) Validaciones de negocio escritas en triggers: su mensaje ya está
+    #    redactado en español y para el usuario final, así que se usa tal cual.
+    mensaje_trigger = _mensaje_de_trigger(orig)
+    if mensaje_trigger:
+        return HTTPException(status_code=400, detail=mensaje_trigger)
 
+    # 2) Constraints declarativas con traducción propia.
     nombre = getattr(getattr(orig, "diag", None), "constraint_name", None)
     if nombre and nombre in _MENSAJES_CONSTRAINT:
         codigo = 409 if isinstance(orig, UniqueViolation) else 400
         return HTTPException(status_code=codigo, detail=_MENSAJES_CONSTRAINT[nombre])
 
+    # 3) Fallbacks por tipo de violación.
     if isinstance(orig, UniqueViolation):
         return HTTPException(
             status_code=409,
@@ -122,11 +149,49 @@ def _validar_jugador_no_suspendido(db: Session, integrante: PlantelIntegrante, i
     activas = suspensiones.get(integrante.id_persona)
     if activas:
         s = activas[0]
-        raise HTTPException(
-            400,
+        raise ConfirmacionRequeridaError(
             f"El jugador está suspendido ({s.motivo}) y no puede participar. "
-            "Confirmá para incluirlo de todas formas.",
+            "Confirmá para incluirlo de todas formas."
         )
+
+
+def _validar_arbitros_planilla(db: Session, partido, forzar: bool) -> None:
+    """
+    Pre-valida los árbitros designados en la planilla.
+
+    Las reglas de árbitros son de advertencia, no de bloqueo: si `forzar` es
+    True el admin ya confirmó el override y no se valida nada. Si es False y
+    algún árbitro no está habilitado, se lanza ConfirmacionRequeridaError para
+    que el frontend ofrezca confirmar.
+
+    La base ya no valida esto (el trigger se eliminó en la migración 0038):
+    la regla vive acá.
+    """
+    if forzar:
+        return
+
+    ids = [a for a in (partido.id_arbitro1, partido.id_arbitro2) if a is not None]
+    if not ids:
+        return
+
+    from app.services.arbitros_services import _validar_arbitro
+
+    es_competitiva = db.execute(
+        text("SELECT es_competitiva FROM torneo WHERE id_torneo = :id_torneo"),
+        {"id_torneo": partido.id_torneo},
+    ).scalar()
+
+    for id_persona in ids:
+        try:
+            _validar_arbitro(db, partido.id_partido, id_persona, es_competitiva)
+        except AppError as exc:
+            # _validar_arbitro redacta el motivo para un flujo que bloquea
+            # ("No se puede designar: ..."). Acá es una advertencia, así que se
+            # deja solo el motivo y se ofrece confirmar.
+            motivo = exc.message.replace("No se puede designar:", "").strip()
+            raise ConfirmacionRequeridaError(
+                f"Advertencia: {motivo}\n\n¿Designarlo igual?"
+            ) from exc
 
 
 def crear_planilla_partido(db: Session, data, current_user):
@@ -163,6 +228,8 @@ def crear_planilla_partido(db: Session, data, current_user):
             partido.creado_por = current_user.username
             db.add(partido)
             db.flush()  # tenemos id_partido
+
+        _validar_arbitros_planilla(db, partido, data.forzar)
 
         # =========================
         # 2️⃣ Crear participantes
@@ -277,7 +344,7 @@ def crear_planilla_partido(db: Session, data, current_user):
         db.commit()
         return partido
 
-    except HTTPException:
+    except (HTTPException, AppError):
         db.rollback()
         raise
     except Exception as e:
@@ -475,6 +542,8 @@ def actualizar_planilla_partido(db: Session, id_partido: int, data, current_user
         partido.goles_local_manual = data.partido.goles_local_manual
         partido.goles_visitante_manual = data.partido.goles_visitante_manual
 
+        _validar_arbitros_planilla(db, partido, data.forzar)
+
         # Personas con tarjetas antes de borrar (se pierde tras el cascade delete)
         ids_persona_antes = {
             row[0] for row in db.query(PlantelIntegrante.id_persona)
@@ -586,7 +655,7 @@ def actualizar_planilla_partido(db: Session, id_partido: int, data, current_user
         db.commit()
         return partido
 
-    except HTTPException:
+    except (HTTPException, AppError):
         db.rollback()
         raise
     except Exception as e:

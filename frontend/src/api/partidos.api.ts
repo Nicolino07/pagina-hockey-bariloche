@@ -35,9 +35,10 @@ export const crearPlanillaPartido = async (data: any) => {
     return response.data;
   } catch (error: any) {
     // Capturamos el error detallado de FastAPI si existe
-    const mensaje = error.response?.data?.detail || "Error al crear la planilla";
-    console.error("Error en crearPlanillaPartido:", mensaje);
-    throw new Error(mensaje);
+    // Se re-lanza el error original: la UI necesita status y code para
+    // distinguir una advertencia confirmable de un error real.
+    console.error("Error en crearPlanillaPartido:", error);
+    throw error;
   }
 };
 
@@ -51,8 +52,8 @@ export const eliminarPartido = async (id_partido: number) => {
     });
     return response.data;
   } catch (error: any) {
-    const mensaje = error.response?.data?.detail || "No se pudo eliminar el partido";
-    throw new Error(mensaje);
+    console.error("Error en eliminarPartido:", error);
+    throw error;
   }
 };
 
@@ -67,9 +68,8 @@ export const getPartidoParaEditar = async (id_partido: number) => {
     });
     return response.data;
   } catch (error: any) {
-    const mensaje = error.response?.data?.detail || "Error al obtener partido";
-    console.error("Error en getPartidoParaEditar:", mensaje);
-    throw new Error(mensaje);
+    console.error("Error en getPartidoParaEditar:", error);
+    throw error;
   }
 };
 
@@ -87,9 +87,8 @@ export const actualizarPlanillaPartido = async (id_partido: number, data: any) =
     });
     return response.data;
   } catch (error: any) {
-    const mensaje = error.response?.data?.detail || "Error al actualizar el partido";
-    console.error("Error en actualizarPlanillaPartido:", mensaje);
-    throw new Error(mensaje);
+    console.error("Error en actualizarPlanillaPartido:", error);
+    throw error;
   }
 };
 
@@ -154,8 +153,7 @@ export const otorgarPuntosPartido = async (id_fixture_partido: number, golesLoca
     });
     return response.data;
   } catch (error: any) {
-    const mensaje = error.response?.data?.detail || "Error al otorgar puntos";
-    console.error("Error en otorgarPuntosPartido:", mensaje);
-    throw new Error(mensaje);
+    console.error("Error en otorgarPuntosPartido:", error);
+    throw error;
   }
 };
