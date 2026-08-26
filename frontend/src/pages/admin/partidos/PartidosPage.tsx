@@ -186,7 +186,15 @@ export default function PartidosPage() {
         obtenerDatosPlantel(p.id_equipo_local, p.id_torneo),
         obtenerDatosPlantel(p.id_equipo_visitante, p.id_torneo),
       ]);
-      const torneo = torneos.find(t => t.id_torneo === p.id_torneo) ?? { nombre: p.nombre_torneo ?? "" };
+      // Si el torneo no está en la lista cargada, se reconstruye con los datos
+      // que ya trae el fixture (el encabezado de la planilla necesita
+      // género/categoría/división, no sólo el nombre).
+      const torneo = torneos.find(t => t.id_torneo === p.id_torneo) ?? {
+        nombre: p.nombre_torneo ?? "",
+        genero: p.genero ?? undefined,
+        categoria: p.categoria ?? undefined,
+        division: p.division ?? undefined,
+      };
       generarPlanillaPDF({
         torneo,
         local: { nombre_equipo: p.nombre_equipo_local },

@@ -31,6 +31,50 @@ const nombreCompleto = (p: any): string => {
   return p.suspendido ? `${base} (SUSPENDIDO)` : base;
 };
 
+/** Pasa un valor de enum (MAYORES, SUB_19) al texto que se imprime (MAYORES, SUB-19). */
+const formatearValorEnum = (valor?: string | null): string =>
+  (valor || '').trim().replace(/_/g, '-').toUpperCase();
+
+/**
+ * Arma la linea CATEGORIA del encabezado: "GENERO - CATEGORIA DIVISION".
+ * Omite las partes que falten (por ejemplo los torneos que no tienen division).
+ * @returns Texto listo para imprimir, o cadena vacia si no hay ningun dato.
+ */
+const textoCategoria = (
+  genero?: string | null,
+  categoria?: string | null,
+  division?: string | null,
+): string => {
+  const gen = formatearValorEnum(genero);
+  const cat = [formatearValorEnum(categoria), formatearValorEnum(division)]
+    .filter(Boolean)
+    .join(' ');
+  return [gen, cat].filter(Boolean).join(' - ');
+};
+
+/**
+ * Escribe un texto del encabezado achicando la fuente (y truncando como ultimo
+ * recurso) para que no invada la columna siguiente ni el escudo de la esquina.
+ * @param anchoMax - Ancho disponible en mm desde `x`.
+ */
+const textoAjustado = (doc: jsPDF, texto: string, x: number, y: number, anchoMax: number) => {
+  const tamanioOriginal = doc.getFontSize();
+  let tamanio = tamanioOriginal;
+  while (tamanio > 6 && doc.getTextWidth(texto) > anchoMax) {
+    tamanio -= 0.5;
+    doc.setFontSize(tamanio);
+  }
+  let salida = texto;
+  if (doc.getTextWidth(salida) > anchoMax) {
+    while (salida.length > 3 && doc.getTextWidth(`${salida}...`) > anchoMax) {
+      salida = salida.slice(0, -1);
+    }
+    salida = `${salida}...`;
+  }
+  doc.text(salida, x, y);
+  doc.setFontSize(tamanioOriginal);
+};
+
 export const generarPlanillaPDF = (datos: any) => {
   const { torneo, local, visitante, plantelLocal, plantelVisitante, cuerpoTecnicoLocal = [], cuerpoTecnicoVisitante = [], fecha, numero_fecha, ubicacion, arbitro1, arbitro2 } = datos;
   const doc = new jsPDF();
@@ -47,36 +91,48 @@ export const generarPlanillaPDF = (datos: any) => {
 
   doc.setFontSize(9);
 
+  // Columna derecha del encabezado: tiene que terminar antes del escudo.
+  const colDerLabel = pageWidth - 88;
+  const colDerValor = pageWidth - 70;
+  const anchoColDer = pageWidth - marginRight - WATERMARK_SIZE - colDerValor - 2;
+  const anchoColIzq = colDerLabel - (marginLeft + 25) - 2;
+
   // Línea 1: Torneo y N° de Fecha
   doc.setFont("helvetica", "bold");
   doc.text(`TORNEO:`, marginLeft + 2, 19);
   doc.setFont("helvetica", "normal");
-  doc.text(`${torneo?.nombre || ""}`, marginLeft + 20, 19);
-  
-  doc.setFont("helvetica", "bold");
-  doc.text(`N° FECHA:`, pageWidth - 80, 19);
-  doc.setFont("helvetica", "normal");
-  doc.text(numero_fecha != null ? String(numero_fecha) : `.........`, pageWidth - 60, 19);
+  textoAjustado(doc, `${torneo?.nombre || ""}`, marginLeft + 20, 19, colDerLabel - (marginLeft + 20) - 2);
 
-  // Línea 2: Encuentro (Aumentamos el espacio para nombres largos)
+  doc.setFont("helvetica", "bold");
+  doc.text(`N° FECHA:`, colDerLabel, 19);
+  doc.setFont("helvetica", "normal");
+  doc.text(numero_fecha != null ? String(numero_fecha) : `.........`, colDerValor, 19);
+
+  // Línea 2: Encuentro (izquierda) y Día (derecha)
   doc.setFont("helvetica", "bold");
   doc.text(`ENCUENTRO:`, marginLeft + 2, 25);
   doc.setFont("helvetica", "normal");
-  doc.text(`${local?.nombre_equipo} VS ${visitante?.nombre_equipo}`, marginLeft + 25, 25);
+  textoAjustado(doc, `${local?.nombre_equipo} VS ${visitante?.nombre_equipo}`, marginLeft + 25, 25, anchoColIzq);
 
-  // Línea 3: Día y Lugar
   const fechaTexto = fecha
     ? new Date(fecha + "T00:00:00").toLocaleDateString("es-AR")
     : "____/____/____";
   doc.setFont("helvetica", "bold");
-  doc.text(`DÍA:`, marginLeft + 2, 31);
+  doc.text(`DÍA:`, colDerLabel, 25);
   doc.setFont("helvetica", "normal");
-  doc.text(fechaTexto, marginLeft + 12, 31);
+  textoAjustado(doc, fechaTexto, colDerValor, 25, anchoColDer);
+
+  // Línea 3: Categoría (género + categoría + división) y Lugar
+  const categoriaTexto = textoCategoria(torneo?.genero, torneo?.categoria, torneo?.division);
+  doc.setFont("helvetica", "bold");
+  doc.text(`CATEGORÍA:`, marginLeft + 2, 31);
+  doc.setFont("helvetica", "normal");
+  textoAjustado(doc, categoriaTexto || `.........................`, marginLeft + 25, 31, anchoColIzq);
 
   doc.setFont("helvetica", "bold");
-  doc.text(`LUGAR:`, pageWidth / 2 - 10, 31);
+  doc.text(`LUGAR:`, colDerLabel, 31);
   doc.setFont("helvetica", "normal");
-  doc.text(ubicacion || `.......................................................`, pageWidth / 2 + 5, 31);
+  textoAjustado(doc, ubicacion || `.....................`, colDerValor, 31, anchoColDer);
 
   // Separador entre la cabecera (títulos + escudo) y el resto de la planilla
   doc.line(marginLeft, 35, pageWidth - marginRight, 35);
@@ -335,22 +391,43 @@ export const generarPlanillaCompletaPDF = (detalle: any) => {
 
   doc.setFontSize(9);
 
-  doc.setFont('helvetica', 'bold');  doc.text('TORNEO:', marginLeft + 2, 19);
-  doc.setFont('helvetica', 'normal'); doc.text(detalle.nombre_torneo || '', marginLeft + 20, 19);
+  // Columna derecha del encabezado: tiene que terminar antes del escudo.
+  const colDerLabel = pageWidth - 88;
+  const colDerValor = pageWidth - 70;
+  const anchoColDer = pageWidth - marginRight - WATERMARK_SIZE - colDerValor - 2;
+  const anchoColIzq = colDerLabel - (marginLeft + 25) - 2;
 
-  doc.setFont('helvetica', 'bold');  doc.text('N° FECHA:', pageWidth - 80, 19);
-  doc.setFont('helvetica', 'normal'); doc.text(detalle.numero_fecha != null ? String(detalle.numero_fecha) : '—', pageWidth - 60, 19);
+  doc.setFont('helvetica', 'bold');  doc.text('TORNEO:', marginLeft + 2, 19);
+  doc.setFont('helvetica', 'normal');
+  textoAjustado(doc, detalle.nombre_torneo || '', marginLeft + 20, 19, colDerLabel - (marginLeft + 20) - 2);
+
+  doc.setFont('helvetica', 'bold');  doc.text('N° FECHA:', colDerLabel, 19);
+  doc.setFont('helvetica', 'normal'); doc.text(detalle.numero_fecha != null ? String(detalle.numero_fecha) : '—', colDerValor, 19);
 
   doc.setFont('helvetica', 'bold');  doc.text('ENCUENTRO:', marginLeft + 2, 25);
-  doc.setFont('helvetica', 'normal'); doc.text(`${detalle.equipo_local_nombre} VS ${detalle.equipo_visitante_nombre}`, marginLeft + 25, 25);
+  doc.setFont('helvetica', 'normal');
+  textoAjustado(doc, `${detalle.equipo_local_nombre} VS ${detalle.equipo_visitante_nombre}`, marginLeft + 25, 25, anchoColIzq);
 
   const fechaTexto = detalle.fecha
     ? new Date(detalle.fecha + 'T00:00:00').toLocaleDateString('es-AR')
     : '—';
-  doc.setFont('helvetica', 'bold');  doc.text('DÍA:', marginLeft + 2, 31);
-  doc.setFont('helvetica', 'normal'); doc.text(fechaTexto, marginLeft + 12, 31);
-  doc.setFont('helvetica', 'bold');  doc.text('LUGAR:', pageWidth / 2 - 10, 31);
-  doc.setFont('helvetica', 'normal'); doc.text(detalle.ubicacion || '........................................', pageWidth / 2 + 5, 31);
+  doc.setFont('helvetica', 'bold');  doc.text('DÍA:', colDerLabel, 25);
+  doc.setFont('helvetica', 'normal');
+  textoAjustado(doc, fechaTexto, colDerValor, 25, anchoColDer);
+
+  // Los nombres de columna vienen de vw_partidos_detallados (sufijo _torneo).
+  const categoriaTexto = textoCategoria(
+    detalle.genero_torneo,
+    detalle.categoria_torneo,
+    detalle.division_torneo,
+  );
+  doc.setFont('helvetica', 'bold');  doc.text('CATEGORÍA:', marginLeft + 2, 31);
+  doc.setFont('helvetica', 'normal');
+  textoAjustado(doc, categoriaTexto || '—', marginLeft + 25, 31, anchoColIzq);
+
+  doc.setFont('helvetica', 'bold');  doc.text('LUGAR:', colDerLabel, 31);
+  doc.setFont('helvetica', 'normal');
+  textoAjustado(doc, detalle.ubicacion || '.....................', colDerValor, 31, anchoColDer);
 
   // Separador entre la cabecera (títulos + escudo) y el resto de la planilla
   doc.line(marginLeft, 35, pageWidth - marginRight, 35);
@@ -503,30 +580,41 @@ export const generarPlanillaEnBlancoPDF = (opciones: PlanillaEnBlancoOpciones = 
 
     doc.setFontSize(9);
 
+    // Columna derecha del encabezado: tiene que terminar antes del escudo.
+    const colDerLabel = pageWidth - 88;
+    const colDerValor = pageWidth - 70;
+    const anchoColDer = pageWidth - marginRight - WATERMARK_SIZE - colDerValor - 2;
+    const anchoColIzq = colDerLabel - (marginLeft + 25) - 2;
+
     doc.setFont("helvetica", "bold");
     doc.text("TORNEO:", marginLeft + 2, 19);
     doc.setFont("helvetica", "normal");
-    doc.text(puntos(45), marginLeft + 20, 19);
+    textoAjustado(doc, puntos(45), marginLeft + 20, 19, colDerLabel - (marginLeft + 20) - 2);
 
     doc.setFont("helvetica", "bold");
-    doc.text("N° FECHA:", pageWidth - 80, 19);
+    doc.text("N° FECHA:", colDerLabel, 19);
     doc.setFont("helvetica", "normal");
-    doc.text(puntos(10), pageWidth - 60, 19);
+    doc.text(puntos(8), colDerValor, 19);
 
     doc.setFont("helvetica", "bold");
     doc.text("ENCUENTRO:", marginLeft + 2, 25);
     doc.setFont("helvetica", "normal");
-    doc.text(`${puntos(35)} VS ${puntos(35)}`, marginLeft + 25, 25);
+    textoAjustado(doc, `${puntos(30)} VS ${puntos(30)}`, marginLeft + 25, 25, anchoColIzq);
 
     doc.setFont("helvetica", "bold");
-    doc.text("DÍA:", marginLeft + 2, 31);
+    doc.text("DÍA:", colDerLabel, 25);
     doc.setFont("helvetica", "normal");
-    doc.text("____/____/____", marginLeft + 12, 31);
+    doc.text("__/__/____", colDerValor, 25);
 
     doc.setFont("helvetica", "bold");
-    doc.text("LUGAR:", pageWidth / 2 - 10, 31);
+    doc.text("CATEGORÍA:", marginLeft + 2, 31);
     doc.setFont("helvetica", "normal");
-    doc.text(puntos(45), pageWidth / 2 + 5, 31);
+    textoAjustado(doc, puntos(40), marginLeft + 25, 31, anchoColIzq);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("LUGAR:", colDerLabel, 31);
+    doc.setFont("helvetica", "normal");
+    textoAjustado(doc, puntos(20), colDerValor, 31, anchoColDer);
 
     doc.line(marginLeft, 35, pageWidth - marginRight, 35);
 
