@@ -15,18 +15,21 @@ CMD ["npm", "run", "dev", "--", "--host"]
 # --------------------------------------------
 FROM node:20-alpine AS builder
 
-# 🔥 Recibir argumento del build
-ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
-
 WORKDIR /app
 
+# Dependencias primero: esta capa se cachea mientras no cambien
+# package.json / package-lock.json.
 COPY package*.json ./
 RUN npm ci
 
 COPY . .
 
-# 🔥 Mostrar para debug (opcional)
+# Los ARG/ENV van DESPUES de npm ci: un valor distinto de VITE_API_URL
+# invalida solo las capas de abajo (el build), no la instalacion.
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
+# Mostrar para debug (opcional)
 RUN echo "Building with VITE_API_URL=$VITE_API_URL"
 
 RUN npm run build

@@ -283,7 +283,7 @@ export default function RankingPage() {
                     className={`${styles.tab} ${tab === t ? styles.activeTab : ""}`}
                     onClick={() => setTab(t)}
                   >
-                    {t === "goleadores" && "⚽ Goleadores"}
+                    {t === "goleadores" && "🏑 Goleadores"}
                     {t === "tarjetas" && "🟨 Tarjetas"}
                     {t === "valla" && "🧤 Valla"}
                   </button>
