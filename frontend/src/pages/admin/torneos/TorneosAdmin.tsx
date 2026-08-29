@@ -113,7 +113,15 @@ export default function TorneosAdmin() {
       .then(([sel, filas]) => { setSelector(sel); setTablaAnual(filas) })
       .catch(() => { setSelector(null); setTablaAnual([]) })
       .finally(() => setLoadingAnual(false))
-  }, [grupoActivo?.clave, anioGrupo])
+    // `id_temporada` va en las dependencias, no solo la categoría: torneos y
+    // temporadas se piden en paralelo y no hay orden garantizado. Si los
+    // torneos llegan primero, este efecto corre con `temporada` todavía en
+    // null, se salta el pedido de la tabla y la deja vacía; cuando después
+    // llegan las temporadas el grupo ya tiene la suya, pero la clave y el año
+    // no cambiaron, así que sin esta dependencia el efecto no vuelve a
+    // correr. Resultado: el encabezado dice de qué torneos suma y abajo no
+    // hay ninguna fila.
+  }, [grupoActivo?.clave, anioGrupo, grupoActivo?.temporada?.id_temporada])
 
   /** Aplica la selección y refresca tabla, selector y grupos con lo que vuelve. */
   async function regenerarTablaAnual(idTorneos: number[]) {
