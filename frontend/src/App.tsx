@@ -46,6 +46,7 @@ import ResultadosPage from "./pages/public/resultados/ResultadosPage"
 import DesignacionArbitros from "./pages/admin/arbitros/DesignacionArbitros"
 import SuspensionesPage from "./pages/admin/suspensiones/SuspensionesPage"
 import MainLayout from "./layouts/MainLayout"
+import ScrollToTop from "./components/ScrollToTop"
 
 import { useState, useEffect } from 'react';
 import { useAuth } from "./auth/AuthContext"
@@ -105,6 +106,7 @@ export default function App() {
   return (
     <>
       <ThemeToggle isDark={isDark} setIsDark={setIsDark} />
+      <ScrollToTop />
       <Routes>
 
       {/* Layout Global */}

@@ -19,8 +19,9 @@ interface Props {
 
 /**
  * Modal para inscribir equipos en un torneo.
- * Filtra los equipos disponibles por categoría y género del torneo,
+ * Filtra los equipos disponibles por categoría, división y género del torneo,
  * e indica cuáles ya están inscriptos para evitar duplicados.
+ * Si el torneo no tiene división, se listan equipos de todas las divisiones.
  * @param torneo - Torneo al que se inscribirán los equipos.
  * @param inscripciones - Inscripciones actuales para detectar duplicados.
  * @param onClose - Callback para cerrar el modal.
@@ -54,10 +55,17 @@ export default function InscribirEquipoModal({
       .catch(() => setIdsBase(new Set()))
   }, [torneo.torneo_base_id])
 
+  // Un torneo sin división es abierto: admite equipos de cualquier división
+  // (y también los que no tienen). Si el torneo define división, se exige que
+  // coincida, salvo en postemporada.
+  const torneoSinDivision = !torneo.division
+
   const equiposFiltrados = equipos.filter(
     (e: Equipo) =>
       e.categoria === torneo.categoria &&
-      (esPostemporada || (e.division ?? null) === (torneo.division ?? null)) &&
+      (esPostemporada ||
+        torneoSinDivision ||
+        (e.division ?? null) === (torneo.division ?? null)) &&
       e.genero === torneo.genero &&
       (!conBase || (idsBase?.has(e.id_equipo) ?? false))
   )
@@ -104,7 +112,10 @@ export default function InscribirEquipoModal({
 
           return (
             <li key={e.id_equipo} className={styles.item}>
-              <span className={styles.nombre}>{e.nombre}</span>
+              <span className={styles.nombre}>
+                {e.nombre}
+                {e.division ? ` · ${e.division}` : ""}
+              </span>
 
               <Button
                 disabled={yaInscripto || inscribiendo !== null}

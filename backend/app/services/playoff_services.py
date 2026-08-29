@@ -12,6 +12,8 @@ from app.models.inscripcion_torneo import InscripcionTorneo
 from app.models.equipo import Equipo
 from app.models.posicion import Posicion
 from app.models.torneo import Torneo
+from app.models.enums import RolTorneoTemporada
+from app.models.vistas import TablaPosicionesAnual
 from app.schemas.fixture_playoff import GenerarPlayoffRequest, PlayoffPreviewResponse
 
 
@@ -53,13 +55,73 @@ def _listar_equipos_inscriptos(db: Session, id_torneo: int) -> list[dict]:
     return [{"id": i.id_equipo, "nombre": i.equipo.nombre} for i in inscripciones]
 
 
+def _es_final_anual(torneo: Torneo | None) -> bool:
+    """Playoff por el campeón del año.
+
+    Se distingue del playoff normal en de dónde saca los equipos: este se
+    siembra de la tabla anual de su temporada (la suma de Apertura + Clausura),
+    no de la tabla de un único `torneo_base_id`, que justamente no tiene.
+    """
+    return bool(
+        torneo is not None
+        and torneo.id_temporada is not None
+        and torneo.rol_en_temporada == RolTorneoTemporada.FINAL_ANUAL
+    )
+
+
+def _tabla_anual(db: Session, id_temporada: int) -> list[TablaPosicionesAnual]:
+    """Filas de la tabla anual, de mejor a peor. El orden lo define la vista."""
+    return (
+        db.query(TablaPosicionesAnual)
+        .filter(TablaPosicionesAnual.id_temporada == id_temporada)
+        .order_by(TablaPosicionesAnual.puesto)
+        .all()
+    )
+
+
+def _clasificados_anual(
+    db: Session, torneo: Torneo, n_equipos: int | None
+) -> list[dict]:
+    """Los N mejores de la tabla anual de la temporada del torneo.
+
+    Con `n_equipos=None` entran todos los de la tabla. El desempate ya viene
+    resuelto por la vista (puntos → diferencia de gol → goles a favor), así que
+    acá solo se corta.
+    """
+    filas = _tabla_anual(db, torneo.id_temporada)
+
+    if n_equipos is None:
+        seleccion = filas
+    else:
+        if len(filas) < n_equipos:
+            raise HTTPException(
+                400,
+                f"La tabla anual tiene {len(filas)} equipos; "
+                f"se necesitan {n_equipos} para esa ronda inicial.",
+            )
+        seleccion = filas[:n_equipos]
+
+    if len(seleccion) < 2:
+        raise HTTPException(
+            400, "La tabla anual necesita al menos 2 equipos para armar un playoff."
+        )
+    if len(seleccion) % 2 != 0:
+        raise HTTPException(
+            400, "El número de equipos del playoff anual debe ser par."
+        )
+    return [{"id": f.id_equipo, "nombre": f.equipo} for f in seleccion]
+
+
 def _pool_equipos(db: Session, id_torneo: int) -> list[dict]:
     """
     Pool de equipos disponibles para el playoff/copa:
+    - si es el playoff anual, los equipos de la tabla anual de su temporada;
     - si el torneo tiene torneo_base, los inscriptos del torneo base;
     - si no, los inscriptos del propio torneo.
     """
     torneo = db.get(Torneo, id_torneo)
+    if _es_final_anual(torneo):
+        return [{"id": f.id_equipo, "nombre": f.equipo} for f in _tabla_anual(db, torneo.id_temporada)]
     origen = torneo.torneo_base_id if (torneo and torneo.torneo_base_id) else id_torneo
     return _listar_equipos_inscriptos(db, origen)
 
@@ -93,10 +155,15 @@ def _obtener_equipos_clasificados(
     db: Session, id_torneo: int, n_equipos: int | None = None
 ) -> list[dict]:
     """
-    Devuelve los equipos según la tabla de posiciones del torneo base, ordenados
-    de mejor a peor. Con n_equipos=None se toman todos los de la tabla.
+    Devuelve los equipos según la tabla de posiciones de referencia, ordenados
+    de mejor a peor: la tabla anual de la temporada si el torneo es el playoff
+    del campeón del año, y si no la del torneo base. Con n_equipos=None se
+    toman todos los de la tabla.
     """
     torneo = db.get(Torneo, id_torneo)
+    if _es_final_anual(torneo):
+        return _clasificados_anual(db, torneo, n_equipos)
+
     if not torneo or not torneo.torneo_base_id:
         raise HTTPException(
             400,
@@ -148,8 +215,9 @@ def _obtener_equipos_automatico(
             raise HTTPException(400, "Ronda inicial inválida.")
 
         torneo = db.get(Torneo, id_torneo)
-        if torneo and torneo.torneo_base_id:
-            # Con torneo base: clasifican los N mejores de su tabla, sembrados.
+        if _es_final_anual(torneo) or (torneo and torneo.torneo_base_id):
+            # Con tabla de referencia — la anual o la del torneo base —
+            # clasifican los N mejores, sembrados mejor contra peor.
             clasificados = _obtener_equipos_clasificados(db, id_torneo, n_equipos)
             return _ordenar_seeds(clasificados)
 
@@ -168,7 +236,7 @@ def _obtener_equipos_automatico(
     # Sin ronda_inicial: con torneo base usamos todos sus equipos sembrados por
     # posición; sin base, todos los inscriptos del propio torneo al azar.
     torneo = db.get(Torneo, id_torneo)
-    if torneo and torneo.torneo_base_id:
+    if _es_final_anual(torneo) or (torneo and torneo.torneo_base_id):
         clasificados = _obtener_equipos_clasificados(db, id_torneo, None)
         return _ordenar_seeds(clasificados)
 

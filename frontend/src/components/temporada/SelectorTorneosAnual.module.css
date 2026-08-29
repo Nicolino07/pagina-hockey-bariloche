@@ -1,0 +1,126 @@
+/* Selector de qué torneos suman a la tabla anual.
+   Colores por tokens de styles/variables.css: funciona en claro y en oscuro. */
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.titulo {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.ayuda {
+  margin: 0 0 0.9rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.lista {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.fila:hover {
+  background: var(--bg-subtle);
+}
+
+.fila input {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.nombre {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main);
+  flex: 1;
+}
+
+.tipo,
+.finalizado {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.tipo {
+  background: var(--tint-primary-medium);
+  color: var(--color-primary);
+}
+
+.finalizado {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+}
+
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.boton {
+  background: var(--color-brand);
+  color: var(--text-on-brand);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.55rem 1.1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.boton:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+
+.boton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pendiente {
+  font-size: 0.78rem;
+  color: var(--color-badge-amber);
+  font-weight: 600;
+}
+
+.error {
+  color: var(--color-badge-red);
+  font-size: 0.82rem;
+  margin: 0 0 0.7rem;
+}
+
+.vacio {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}

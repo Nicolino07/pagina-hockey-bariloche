@@ -192,5 +192,20 @@ ON refresh_token (expires_at);
 CREATE INDEX idx_fixture_fecha_torneo
 ON fixture_fecha (id_torneo);
 
-COMMIT;
+-- =====================================================
+-- TEMPORADA
+-- =====================================================
+-- division es nullable y dos NULL no colisionan en un UNIQUE plano: con
+-- COALESCE la unicidad vale tambien para las categorias sin division.
+CREATE UNIQUE INDEX uq_temporada_anio_categoria
+ON temporada (anio, categoria, genero, COALESCE(division, ''))
+WHERE borrado_en IS NULL;
 
+CREATE INDEX ix_torneo_id_temporada
+ON torneo (id_temporada);
+
+CREATE INDEX ix_torneo_temporada_rol
+ON torneo (id_temporada, rol_en_temporada)
+WHERE id_temporada IS NOT NULL;
+
+COMMIT;

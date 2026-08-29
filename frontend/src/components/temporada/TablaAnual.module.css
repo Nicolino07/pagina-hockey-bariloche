@@ -1,0 +1,107 @@
+/* Tabla de posiciones anual de una temporada (apertura + clausura).
+   Todos los colores salen de los tokens de styles/variables.css, así que la
+   tabla se ve bien en modo claro y en modo oscuro sin reglas por tema. */
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.titulo {
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.subtitulo {
+  margin: 0 0 1rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  min-width: 560px;
+  color: var(--text-main);
+}
+
+.tabla th {
+  text-align: center;
+  padding: 0.5rem 0.4rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.tabla td {
+  text-align: center;
+  padding: 0.55rem 0.4rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.alignLeft {
+  text-align: left !important;
+}
+
+.equipo {
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.puntosCol {
+  color: var(--color-primary) !important;
+}
+
+.puntos {
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+/* Marca de cuántos torneos del año jugó el equipo (ej. "1/2"): entra a la
+   tabla con lo que sumó, así que conviene que se note. */
+.parcial {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  background: var(--tint-amber-medium);
+  color: var(--color-badge-amber);
+  font-size: 0.7rem;
+  font-weight: 700;
+  vertical-align: middle;
+  cursor: help;
+}
+
+/* Zona de clasificación al playoff anual */
+.clasifica {
+  background: var(--tint-primary-weak);
+}
+
+.corte td {
+  border-bottom: 2px solid var(--color-primary) !important;
+}
+
+.info {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0.4rem 0;
+}
+
+@media (max-width: 640px) {
+  .hideMobile { display: none; }
+  .tabla { min-width: 420px; }
+}

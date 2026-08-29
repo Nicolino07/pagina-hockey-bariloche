@@ -29,6 +29,7 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
     tipo: TipoTorneo
     fecha_inicio: string
     es_competitiva: boolean
+    computa_anual: boolean
     torneo_base_id: number | null
   }>({
     nombre: torneoEditar?.nombre ?? "",
@@ -38,6 +39,7 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
     tipo: torneoEditar?.tipo ?? "LIGA",
     fecha_inicio: torneoEditar?.fecha_inicio ?? "",
     es_competitiva: torneoEditar?.es_competitiva ?? true,
+    computa_anual: torneoEditar?.computa_anual ?? true,
     torneo_base_id: torneoEditar?.torneo_base_id ?? null,
   })
 
@@ -215,6 +217,25 @@ export default function CrearTorneoForm({ onCancel, onSuccess, torneoEditar }: P
           onChange={handleChange}
           required
         />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input
+            type="checkbox"
+            name="computa_anual"
+            checked={form.computa_anual}
+            onChange={(e) =>
+              setForm(prev => ({ ...prev, computa_anual: e.target.checked }))
+            }
+          />
+          Suma a la tabla anual
+        </label>
+        <small className={styles.optional}>
+          Los puntos de este torneo se acumulan en la tabla del año junto con los
+          demás torneos de la misma categoría, género y división. Desmarcá para
+          copas, relámpagos o playoffs, que definen un campeón pero no suman.
+        </small>
       </div>
 
       <div className={styles.field}>

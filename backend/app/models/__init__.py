@@ -4,6 +4,7 @@ from .equipo import Equipo
 from .persona import Persona
 from .persona_rol import PersonaRol
 from .torneo import Torneo
+from .temporada import Temporada
 from .fase import Fase
 from .plantel import Plantel
 from .plantel_integrante import PlantelIntegrante
@@ -35,5 +36,7 @@ from .enums import (
     TipoUsuario,
     ReferenciaGol,
     EstadoGol,
-    EstadoPartido
+    EstadoPartido,
+    TipoTorneo,
+    RolTorneoTemporada
 )

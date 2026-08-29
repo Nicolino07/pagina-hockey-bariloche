@@ -222,13 +222,19 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
    * Solo envía el campo `estado` si el usuario lo modificó manualmente,
    * para respetar la transición automática BORRADOR ↔ PENDIENTE del backend. */
   async function handleGuardar() {
-    if (!form.id_equipo_local || !form.id_equipo_visitante) {
-      setError("Seleccioná ambos equipos.")
-      return
-    }
-    if (form.id_equipo_local === form.id_equipo_visitante) {
-      setError("El equipo local y visitante deben ser distintos.")
-      return
+    // Los equipos solo se piden al programar un partido nuevo. Al editar no se
+    // mandan, y un partido de playoff todavía sin resolver no los tiene: son
+    // placeholders («Ganador Semifinal 1»). Exigirlos impedía ponerle fecha a
+    // una final antes de que se jueguen las semis.
+    if (!editando) {
+      if (!form.id_equipo_local || !form.id_equipo_visitante) {
+        setError("Seleccioná ambos equipos.")
+        return
+      }
+      if (form.id_equipo_local === form.id_equipo_visitante) {
+        setError("El equipo local y visitante deben ser distintos.")
+        return
+      }
     }
 
     setGuardando(true)
@@ -1000,6 +1006,12 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
             </div>
 
             {esPlayoff ? (
+              /* Al editar un partido de playoff no se toca la ronda: el bracket
+                 ya está armado y los placeholders («Ganador Semifinal 1») apuntan
+                 a rondas concretas, así que moverlo de ronda lo rompería. Editar
+                 es solo fecha, horario, ubicación y estado. La ronda a la que
+                 pertenece se ve en el título del formulario. */
+              !editando && (
               <div className={styles.formGroup} style={{ gridColumn: "1 / -1" }}>
                 <label className={styles.label}>Ronda</label>
                 {rondasPlayoff.length > 0 && (
@@ -1044,6 +1056,7 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
                   </button>
                 </div>
               </div>
+              )
             ) : (
               <div className={styles.formGroup}>
                 <label className={styles.label}>N° de fecha</label>

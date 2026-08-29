@@ -114,3 +114,9 @@ class TipoUsuario(str, enum.Enum):
     EDITOR = 'EDITOR'
     LECTOR = 'LECTOR'
     ADMIN_ARBITROS = 'ADMIN_ARBITROS'
+
+class RolTorneoTemporada(str, enum.Enum):
+    """Papel de un torneo dentro de su temporada anual."""
+    REGULAR = 'REGULAR'          # suma a la tabla anual (Apertura, Clausura)
+    NO_COMPUTA = 'NO_COMPUTA'    # pertenece a la temporada pero no suma (copas, relámpagos)
+    FINAL_ANUAL = 'FINAL_ANUAL'  # playoff por el campeón del año, sembrado desde la anual

@@ -318,6 +318,8 @@ BEGIN
             FROM vw_resultado_partido r
             JOIN partido p ON p.id_partido = r.id_partido
             WHERE p.estado_partido = 'TERMINADO'
+              -- Las llaves no reparten puntos: reparten el pase de ronda.
+              AND p.id_fixture_playoff_ronda IS NULL
 
             UNION ALL
 
@@ -330,6 +332,7 @@ BEGIN
             FROM vw_resultado_partido r
             JOIN partido p ON p.id_partido = r.id_partido
             WHERE p.estado_partido = 'TERMINADO'
+              AND p.id_fixture_playoff_ronda IS NULL
         ) partidos
         JOIN inscripcion_torneo it
           ON it.id_inscripcion = partidos.id_inscripcion
@@ -372,6 +375,15 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    -- Un playoff no tiene tabla de posiciones: se define por llaves. Crearle
+    -- filas en cero solo servía para mostrar una tabla que no significa nada.
+    IF EXISTS (
+        SELECT 1 FROM torneo t
+        WHERE t.id_torneo = NEW.id_torneo AND t.tipo = 'PLAYOFF'
+    ) THEN
+        RETURN NEW;
+    END IF;
+
     INSERT INTO posicion (
         id_torneo,
         id_equipo,

@@ -149,4 +149,13 @@ CREATE TYPE tipo_usuario AS ENUM (
   'ADMIN_ARBITROS'
 );
 
+-- =====================================================
+-- Rol de un torneo dentro de su temporada anual
+-- =====================================================
+CREATE TYPE rol_torneo_temporada AS ENUM (
+  'REGULAR',      -- suma a la tabla anual (Apertura, Clausura)
+  'NO_COMPUTA',   -- pertenece a la temporada pero no suma (copas, relampagos)
+  'FINAL_ANUAL'   -- playoff por el campeon del anio, se siembra desde la anual
+);
+
 COMMIT;

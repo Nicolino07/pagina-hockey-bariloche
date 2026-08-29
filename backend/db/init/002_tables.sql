@@ -245,6 +245,27 @@ CREATE TABLE IF NOT EXISTS plantel_integrante (
 );
 
 -- ======================
+-- TEMPORADA
+-- ======================
+
+CREATE TABLE IF NOT EXISTS temporada (
+    id_temporada    INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre          VARCHAR(100) NOT NULL CHECK (nombre <> ''),
+    anio            INT NOT NULL CHECK (anio BETWEEN 1900 AND 2200),
+    categoria       tipo_categoria NOT NULL,
+    division        VARCHAR(30) DEFAULT NULL,
+    genero          tipo_genero NOT NULL,
+    activa          BOOLEAN NOT NULL DEFAULT TRUE,
+
+    creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en  TIMESTAMP DEFAULT NULL,
+    borrado_en      TIMESTAMP DEFAULT NULL,
+    creado_por      VARCHAR(100),
+    actualizado_por VARCHAR(100)
+);
+
+
+-- ======================
 -- TORNEO
 -- ======================
 
@@ -266,6 +287,15 @@ CREATE TABLE IF NOT EXISTS torneo (
     -- Vincula un playoff/copa con su torneo base (liga regular)
     torneo_base_id  INT DEFAULT NULL
         REFERENCES torneo(id_torneo) ON DELETE SET NULL,
+
+    -- Agrupacion anual (apertura + clausura). Eje separado de torneo_base_id:
+    -- ese vincula un playoff con la liga de la que hereda nomina; este dice a
+    -- que anio pertenece el torneo y si suma a la tabla anual.
+    id_temporada    INT DEFAULT NULL
+        REFERENCES temporada(id_temporada) ON DELETE SET NULL,
+    rol_en_temporada rol_torneo_temporada DEFAULT NULL,
+    CONSTRAINT chk_torneo_rol_requiere_temporada
+        CHECK (rol_en_temporada IS NULL OR id_temporada IS NOT NULL),
 
     creado_en       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP DEFAULT NULL,

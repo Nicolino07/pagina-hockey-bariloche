@@ -14,6 +14,7 @@ from .posiciones import router as posiciones_router
 from .fixture import router as fixture_router
 from .arbitros import router as arbitros_router
 from .suspensiones import router as suspensiones_router
+from .temporadas import router as temporadas_router
 
 __all__ = [
     "clubes_router",
@@ -32,4 +33,5 @@ __all__ = [
     "fixture_router",
     "arbitros_router",
     "suspensiones_router",
+    "temporadas_router",
 ]

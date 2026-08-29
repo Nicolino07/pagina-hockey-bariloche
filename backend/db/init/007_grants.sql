@@ -52,6 +52,7 @@ ON
     vw_persona_roles,
     vw_fixture_partidos,
     vw_tabla_posiciones,
+    vw_tabla_posiciones_anual,
     vw_suspensiones_activas
 TO hockey_app, hockey_readonly;
 

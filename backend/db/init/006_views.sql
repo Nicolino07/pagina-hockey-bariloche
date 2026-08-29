@@ -125,6 +125,71 @@ ORDER BY
 
 
 -- =====================================================
+-- 4.b TABLA DE POSICIONES ANUAL (suma de los torneos REGULAR de una temporada)
+-- =====================================================
+-- No recalcula desde partidos: `posicion` ya la mantienen los triggers y esta
+-- normalizada por id_equipo, asi que el mismo equipo en apertura y clausura
+-- agrega solo. Un equipo que jugo un solo torneo entra igual con lo que sumo
+-- (por eso es un agregado plano y no un JOIN entre torneos); `torneos_computados`
+-- deja ver de cuantos viene cada campania.
+-- Desempate: puntos -> diferencia de gol -> goles a favor.
+
+CREATE OR REPLACE VIEW vw_tabla_posiciones_anual AS
+SELECT
+    tmp.id_temporada,
+    tmp.nombre        AS temporada,
+    tmp.anio,
+    tmp.categoria,
+    tmp.division,
+    tmp.genero,
+    pos.id_equipo,
+    e.nombre          AS equipo,
+    e.id_club,
+
+    COUNT(DISTINCT pos.id_torneo)        AS torneos_computados,
+    SUM(pos.partidos_jugados)::INT       AS partidos_jugados,
+    SUM(pos.ganados)::INT                AS ganados,
+    SUM(pos.empatados)::INT              AS empatados,
+    SUM(pos.perdidos)::INT               AS perdidos,
+    SUM(pos.goles_a_favor)::INT          AS goles_a_favor,
+    SUM(pos.goles_en_contra)::INT        AS goles_en_contra,
+    (SUM(pos.goles_a_favor) - SUM(pos.goles_en_contra))::INT AS diferencia_gol,
+    SUM(pos.puntos)::INT                 AS puntos,
+
+    ROW_NUMBER() OVER (
+        PARTITION BY tmp.id_temporada
+        ORDER BY
+            SUM(pos.puntos) DESC,
+            (SUM(pos.goles_a_favor) - SUM(pos.goles_en_contra)) DESC,
+            SUM(pos.goles_a_favor) DESC,
+            e.nombre
+    )::INT AS puesto
+
+FROM posicion pos
+JOIN torneo t
+  ON t.id_torneo = pos.id_torneo
+ AND t.rol_en_temporada = 'REGULAR'
+ AND t.borrado_en IS NULL
+JOIN temporada tmp
+  ON tmp.id_temporada = t.id_temporada
+ AND tmp.borrado_en IS NULL
+JOIN equipo e
+  ON e.id_equipo = pos.id_equipo
+ AND e.borrado_en IS NULL
+
+GROUP BY
+    tmp.id_temporada,
+    tmp.nombre,
+    tmp.anio,
+    tmp.categoria,
+    tmp.division,
+    tmp.genero,
+    pos.id_equipo,
+    e.nombre,
+    e.id_club;
+
+
+-- =====================================================
 -- 5. SUSPENSIONES ACTIVAS
 -- =====================================================
 

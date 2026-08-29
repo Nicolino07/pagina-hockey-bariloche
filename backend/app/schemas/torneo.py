@@ -17,6 +17,10 @@ class TorneoBase(BaseModel):
     # con rol activo en un club del partido). En categorías formativas suele ir en FALSE.
     es_competitiva: bool = True
     torneo_base_id: Optional[int] = None
+    # Check «Suma a la tabla anual» del alta. La temporada se deriva sola de la
+    # tupla del torneo (año de fecha_inicio + categoría + género + división);
+    # no depende del nombre ni de ninguna heurística.
+    computa_anual: bool = True
 
     @validator('fecha_fin')
     def validar_fecha_fin(cls, v, values):
@@ -29,6 +33,7 @@ class TorneoCreate(TorneoBase):
 
 class TorneoSchema(TorneoBase):
     id_torneo: int
+    id_temporada: Optional[int] = None
     creado_en: datetime
     actualizado_en: Optional[datetime] = None
     borrado_en: Optional[datetime] = None

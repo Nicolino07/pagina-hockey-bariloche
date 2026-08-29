@@ -12,6 +12,9 @@ export interface Torneo {
   fecha_fin: string | null
   activo: boolean
   es_competitiva: boolean
+  /** Si los puntos de este torneo suman a la tabla anual de su temporada. */
+  computa_anual: boolean
+  id_temporada?: number | null
   torneo_base_id?: number | null
   creado_en: string
   actualizado_en: string | null
@@ -28,6 +31,7 @@ export interface TorneoCreate {
   fecha_inicio?: string | null
   fecha_fin?: string | null
   es_competitiva?: boolean
+  computa_anual?: boolean
   torneo_base_id?: number | null
 }
 
@@ -41,5 +45,6 @@ export interface TorneoUpdate {
   fecha_fin?: string | null
   activo: boolean
   es_competitiva?: boolean
+  computa_anual?: boolean
   torneo_base_id?: number | null
 }

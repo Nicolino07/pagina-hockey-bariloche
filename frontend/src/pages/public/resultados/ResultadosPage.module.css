@@ -678,11 +678,12 @@
 
 .viewTabBtn:hover {
   color: var(--text-main);
-  background: rgba(0, 0, 0, 0.02);
 }
 
+/* --primary no existe en variables.css: la pestaña activa quedaba sin resaltar.
+   --color-primary sí, y además cambia con el tema. */
 .viewTabBtn.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
   background: transparent;
 }

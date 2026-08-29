@@ -92,6 +92,7 @@ from app.routers import (
     fixture_router as fixture,
     arbitros_router as arbitros,
     suspensiones_router as suspensiones,
+    temporadas_router as temporadas,
 )
 
 @app.get(f"{API_PREFIX}/")  # 🔥 También movemos el root
@@ -117,6 +118,7 @@ app.include_router(posiciones, prefix=API_PREFIX)
 app.include_router(fixture, prefix=API_PREFIX)
 app.include_router(arbitros, prefix=API_PREFIX)
 app.include_router(suspensiones, prefix=API_PREFIX)
+app.include_router(temporadas, prefix=API_PREFIX)
 
 # =====================================================
 # Archivos estáticos (logos de clubes)

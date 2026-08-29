@@ -39,21 +39,23 @@ export default function ResultadosPage() {
   const [loadingDetalle, setLoadingDetalle] = useState(false)
   const [filtroEquipo, setFiltroEquipo] = useState("")
   const [filtroFecha, setFiltroFecha] = useState("")
-  const [torneosHistoricos, setTorneosHistoricos] = useState<Torneo[]>([])
   const [verHistoricos, setVerHistoricos] = useState(false)
-  const [loadingHistoricos, setLoadingHistoricos] = useState(false)
-  const [verPlayoff, setVerPlayoff] = useState(false)
+  // Fase final abierta como pestaña dentro del torneo elegido. null = la liga.
+  const [subTabPlayoff, setSubTabPlayoff] = useState<number | null>(null)
   const [partidosPlayoff, setPartidosPlayoff] = useState<FixturePartido[]>([])
 
+  const porCategoria = (a: Torneo, b: Torneo) => {
+    const catDiff = (ORDEN_CATEGORIA[a.categoria] ?? 99) - (ORDEN_CATEGORIA[b.categoria] ?? 99)
+    if (catDiff !== 0) return catDiff
+    return (a.division ?? "").localeCompare(b.division ?? "")
+  }
+
+  // Activos y finalizados juntos: el playoff de una liga en curso puede estar
+  // ya terminado, y aun así es una pestaña de esa liga.
   useEffect(() => {
-    Promise.all([listarTorneosPublico(), obtenerPartidosRecientes()])
+    Promise.all([listarTorneosPublico(false), obtenerPartidosRecientes()])
       .then(([t, p]) => {
-        const ordenados = [...t].sort((a, b) => {
-          const catDiff = (ORDEN_CATEGORIA[a.categoria] ?? 99) - (ORDEN_CATEGORIA[b.categoria] ?? 99)
-          if (catDiff !== 0) return catDiff
-          return (a.division ?? "").localeCompare(b.division ?? "")
-        })
-        setTorneos(ordenados)
+        setTorneos([...t].sort(porCategoria))
         setPartidos(p)
       })
       .catch(console.error)
@@ -72,46 +74,31 @@ export default function ResultadosPage() {
     }
   }
 
-  function cargarHistoricos() {
-    if (verHistoricos) return
-    setLoadingHistoricos(true)
-    listarTorneosPublico(false)
-      .then((todos: Torneo[]) => {
-        const activosIds = new Set(torneos.map(t => t.id_torneo))
-        const historicos = todos
-          .filter(t => !activosIds.has(t.id_torneo))
-          .sort((a: Torneo, b: Torneo) => {
-            const catDiff = (ORDEN_CATEGORIA[a.categoria] ?? 99) - (ORDEN_CATEGORIA[b.categoria] ?? 99)
-            if (catDiff !== 0) return catDiff
-            return (a.division ?? "").localeCompare(b.division ?? "")
-          })
-        setTorneosHistoricos(historicos)
-        setVerHistoricos(true)
-      })
-      .catch(console.error)
-      .finally(() => setLoadingHistoricos(false))
-  }
+  // Los playoffs no se listan sueltos: se abren como pestaña dentro del torneo
+  // que los originó. Uno sin torneo base sí aparece — no hay otro lado desde
+  // donde llegar a él.
+  const enSelector = torneos.filter(t => !t.torneo_base_id)
+  const torneosEnSelector = enSelector.filter(t => t.activo)
+  const torneosHistoricosFiltrados = enSelector.filter(t => !t.activo)
 
-  // Filtrar torneos: ocultar los que tienen torneo_base_id (son playoffs/copas)
-  const torneosEnSelector = torneos.filter(t => !t.torneo_base_id)
-  const torneosHistoricosFiltrados = torneosHistoricos.filter(t => !t.torneo_base_id)
+  const torneoActual = enSelector.find(t => t.id_torneo === torneoSeleccionado)
 
-  const torneoActual = (torneosEnSelector.find(t => t.id_torneo === torneoSeleccionado)
-    ?? torneosHistoricosFiltrados.find(t => t.id_torneo === torneoSeleccionado))
+  /** Fases finales colgadas del torneo elegido, en orden cronológico. */
+  const playoffsDelBase = torneoActual
+    ? torneos
+        .filter(t => t.torneo_base_id === torneoActual.id_torneo)
+        .sort((a, b) => (a.fecha_inicio ?? "").localeCompare(b.fecha_inicio ?? ""))
+    : []
 
-  // Si torneoSeleccionado es un torneo base, buscar si existe un playoff/copa vinculado
-  const playoffDelBase = torneoSeleccionado && torneosEnSelector.find(t => t.id_torneo === torneoSeleccionado)
-    ? torneos.find(t => t.torneo_base_id === torneoSeleccionado && (t.tipo === "PLAYOFF" || t.tipo === "COPA"))
-    : undefined
+  const playoffAbierto = playoffsDelBase.find(t => t.id_torneo === subTabPlayoff)
 
-  // Cargar partidos del playoff cuando sea necesario
   useEffect(() => {
-    if (verPlayoff && playoffDelBase) {
-      listarFixturePorTorneo(playoffDelBase.id_torneo)
-        .then(setPartidosPlayoff)
-        .catch(() => setPartidosPlayoff([]))
-    }
-  }, [verPlayoff, playoffDelBase])
+    if (!playoffAbierto) return
+    setPartidosPlayoff([])
+    listarFixturePorTorneo(playoffAbierto.id_torneo)
+      .then(setPartidosPlayoff)
+      .catch(() => setPartidosPlayoff([]))
+  }, [playoffAbierto?.id_torneo])
 
   // Partidos del torneo seleccionado con filtros aplicados
   const partidosFiltrados = partidos
@@ -188,7 +175,7 @@ export default function ResultadosPage() {
                   <button
                     key={t.id_torneo}
                     className={`${styles.torneoFila} ${activo ? styles.torneoFilaActiva : ""}`}
-                    onClick={() => { setTorneoSeleccionado(t.id_torneo); setSelectorAbierto(false); setFiltroEquipo(""); setFiltroFecha("") }}
+                    onClick={() => { setTorneoSeleccionado(t.id_torneo); setSubTabPlayoff(null); setSelectorAbierto(false); setFiltroEquipo(""); setFiltroFecha("") }}
                   >
                     <div className={styles.torneoFilaInfo}>
                       <span className={styles.torneoFilaNombre}>{t.nombre}</span>
@@ -220,7 +207,7 @@ export default function ResultadosPage() {
                       <button
                         key={t.id_torneo}
                         className={`${styles.torneoFila} ${activo ? styles.torneoFilaActiva : ""}`}
-                        onClick={() => { setTorneoSeleccionado(t.id_torneo); setSelectorAbierto(false); setFiltroEquipo(""); setFiltroFecha("") }}
+                        onClick={() => { setTorneoSeleccionado(t.id_torneo); setSubTabPlayoff(null); setSelectorAbierto(false); setFiltroEquipo(""); setFiltroFecha("") }}
                       >
                         <div className={styles.torneoFilaInfo}>
                           <span className={styles.torneoFilaNombre}>{t.nombre}</span>
@@ -241,10 +228,9 @@ export default function ResultadosPage() {
               {!verHistoricos && (
                 <button
                   className={styles.historicosBtn}
-                  onClick={cargarHistoricos}
-                  disabled={loadingHistoricos}
+                  onClick={() => setVerHistoricos(true)}
                 >
-                  {loadingHistoricos ? "Cargando..." : "Ver torneos históricos"}
+                  Ver torneos históricos
                 </button>
               )}
             </div>
@@ -268,27 +254,32 @@ export default function ResultadosPage() {
                   </span>
                 </div>
 
-                {/* Pestañas Liga/Playoff */}
-                {torneoSeleccionado && playoffDelBase && (
+                {/* Pestañas inline: la liga y sus fases finales. Un playoff no
+                    es un torneo aparte en la navegación, es una pestaña de la
+                    liga que lo originó. */}
+                {playoffsDelBase.length > 0 && (
                   <div className={styles.viewTabsContainer}>
                     <div className={styles.viewTabs}>
                       <button
-                        onClick={() => setVerPlayoff(false)}
-                        className={`${styles.viewTabBtn} ${!verPlayoff ? styles.active : ""}`}
+                        onClick={() => setSubTabPlayoff(null)}
+                        className={`${styles.viewTabBtn} ${subTabPlayoff === null ? styles.active : ""}`}
                       >
                         Liga
                       </button>
-                      <button
-                        onClick={() => setVerPlayoff(true)}
-                        className={`${styles.viewTabBtn} ${verPlayoff ? styles.active : ""}`}
-                      >
-                        {playoffDelBase.tipo === "PLAYOFF" ? "Playoff" : "Copa"}
-                      </button>
+                      {playoffsDelBase.map(pl => (
+                        <button
+                          key={pl.id_torneo}
+                          onClick={() => setSubTabPlayoff(pl.id_torneo)}
+                          className={`${styles.viewTabBtn} ${subTabPlayoff === pl.id_torneo ? styles.active : ""}`}
+                        >
+                          {pl.tipo === "COPA" ? "🏆" : "🥇"} {pl.nombre}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
 
-                {verPlayoff && playoffDelBase && partidosPlayoff.length > 0 ? (
+                {playoffAbierto && partidosPlayoff.length > 0 ? (
                   // Vista del bracket de playoff
                   <div style={{ padding: "20px" }}>
                     <BracketPlayoff
@@ -300,7 +291,7 @@ export default function ResultadosPage() {
                       }}
                     />
                   </div>
-                ) : verPlayoff && playoffDelBase ? (
+                ) : playoffAbierto ? (
                   <div className={styles.placeholder}>Cargando playoff...</div>
                 ) : (
                   <>

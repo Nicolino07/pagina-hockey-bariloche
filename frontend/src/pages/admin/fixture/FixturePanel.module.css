@@ -88,6 +88,20 @@
 .formGroup {
   display: flex;
   flex-direction: column;
+  /* Sin esto una celda de grilla no baja de su contenido y se desborda. */
+  min-width: 0;
+}
+
+/* El min-width de 280px de .select es para el selector de torneo de arriba,
+   que vive suelto en una fila. Acá las columnas son de 220px, así que el
+   recuadro de Estado se salía de su caja: dentro del formulario el select
+   ocupa el ancho de su columna, como los inputs. */
+.formGrid .select,
+.formGrid .input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .formActions {

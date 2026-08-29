@@ -1,0 +1,247 @@
+/* Lanzador del playoff por el campeón del año.
+   Colores por tokens de styles/variables.css: funciona en claro y en oscuro. */
+
+.lanzador {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-top: 1.2rem;
+}
+
+.lanzadorAyuda {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.2rem;
+  margin-top: 1.2rem;
+}
+
+.titulo {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.ayuda {
+  margin: 0 0 0.9rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.input {
+  background: var(--input-bg);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.88rem;
+  font-family: inherit;
+  width: 100%;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.bloque {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.8rem 0.9rem;
+  margin-bottom: 1rem;
+  background: var(--tint-primary-weak);
+}
+
+.bloqueTitulo {
+  margin: 0 0 0.5rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.clasificados {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.clasificados li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.87rem;
+  color: var(--text-main);
+  padding: 0.2rem 0;
+}
+
+.puesto {
+  font-weight: 700;
+  color: var(--color-primary);
+  min-width: 1.9rem;
+}
+
+.pts {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.duelo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.duelo .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.dueloNum {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  min-width: 1.2rem;
+}
+
+.vs {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.86rem;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.check input {
+  cursor: pointer;
+}
+
+.check input:disabled {
+  cursor: not-allowed;
+}
+
+.notaCheck {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.avisoTitulo {
+  margin: 0.6rem 0 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-badge-amber);
+}
+
+.avisos {
+  list-style: disc;
+  margin: 0 0 0.9rem;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.avisos li {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.boton {
+  background: var(--color-brand);
+  color: var(--text-on-brand);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.55rem 1.1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.boton:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+
+.boton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.botonSecundario {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.55rem 1.1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.botonSecundario:hover:not(:disabled) {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+}
+
+.error {
+  color: var(--color-badge-red);
+  font-size: 0.82rem;
+  margin: 0 0 0.7rem;
+}

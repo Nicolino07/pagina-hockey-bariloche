@@ -83,14 +83,17 @@
   color: var(--color-primary);
 }
 
+/* Estos dos tenían colores fijos pensados para el modo oscuro (verde y violeta
+   sobre fondos casi negros), que en modo claro quedaban ilegibles. Pasan a los
+   tokens de estado, que ya vienen resueltos para ambos temas. */
 .tagDivision {
-  background: #2a3a1a;
-  color: #81c784;
+  background: var(--tint-green-medium);
+  color: var(--color-badge-green);
 }
 
 .tagGenero {
-  background: #3a1a3a;
-  color: #ce93d8;
+  background: var(--tint-amber-medium);
+  color: var(--color-badge-amber);
 }
 
 .fechaFin {
@@ -160,4 +163,148 @@
   .list {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+
+/* ── Selector de categorías (paso 1) ──────────────────────────────────────
+   Lista vertical: una liga por fila, separadas por una línea fina. Ordenadas
+   por categoría, después femenino antes que masculino, después por división.
+   Colores por tokens de styles/variables.css: anda en claro y en oscuro. */
+.categorias {
+  display: flex;
+  flex-direction: column;
+  max-width: 520px;
+  margin-bottom: 1.6rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.categoria {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  background: var(--bg-card);
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  border-left: 3px solid transparent;
+  border-radius: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.categoria:last-child {
+  border-bottom: none;
+}
+
+.categoria:hover {
+  background: var(--bg-subtle);
+}
+
+.categoriaActiva {
+  background: var(--tint-primary-medium);
+  border-left-color: var(--color-primary);
+}
+
+.categoriaNombre {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-heading);
+}
+
+.categoriaGenero {
+  margin-right: 0.4rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.categoriaMeta {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Versión comprimida: una sola línea con la categoría elegida, que al tocarla
+   vuelve a desplegar la lista completa. */
+.categoriaResumen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  width: 100%;
+  max-width: 520px;
+  padding: 0.65rem 0.9rem;
+  margin-bottom: 1.6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.categoriaResumen:hover {
+  background: var(--bg-subtle);
+}
+
+.categoriaCambiar {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Pestañas dentro de la categoría (paso 2) ─────────────────────────────
+   Mismo patrón de subrayado que las solapas de TorneoDetalle: además de ser
+   consistente, evita el problema de contraste de un fondo sólido, porque
+   --color-primary es azul marino en claro y celeste en oscuro. */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 12px 20px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  color: var(--text-main);
+}
+
+.tabActivo {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  font-weight: 600;
+  cursor: default;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.categoriaGenero {
+  margin-right: 0.35rem;
+  color: var(--text-muted);
+  font-weight: 400;
 }

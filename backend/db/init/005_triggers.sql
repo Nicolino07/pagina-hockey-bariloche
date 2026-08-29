@@ -217,6 +217,12 @@ FOR EACH ROW
 EXECUTE FUNCTION fn_auditoria_generica();
 
 -- TORNEOS / COMPETENCIAS
+CREATE TRIGGER trg_audit_temporada
+AFTER INSERT OR UPDATE OR DELETE
+ON temporada
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_generica();
+
 CREATE TRIGGER trg_audit_torneo
 AFTER INSERT OR UPDATE OR DELETE
 ON torneo

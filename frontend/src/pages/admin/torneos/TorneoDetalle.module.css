@@ -384,3 +384,12 @@
   text-align: center;
   padding: 12px 0;
 }
+/* Placeholder de carga: mantiene alto para que la página no colapse y después
+   crezca de golpe al llegar los datos. */
+.cargando {
+  min-height: 60vh;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2rem;
+  color: var(--text-muted);
+}

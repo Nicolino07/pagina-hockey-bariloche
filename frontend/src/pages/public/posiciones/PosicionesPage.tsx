@@ -40,58 +40,57 @@ export default function PosicionesPage() {
   const [valla, setValla] = useState<VallaMenosVencida[]>([])
   const [equipos, setEquipos] = useState<InscripcionTorneoDetalle[]>([])
   const [loadingDatos, setLoadingDatos] = useState(false)
-  const [torneosHistoricos, setTorneosHistoricos] = useState<Torneo[]>([])
   const [verHistoricos, setVerHistoricos] = useState(false)
-  const [loadingHistoricos, setLoadingHistoricos] = useState(false)
   const [bracket, setBracket] = useState<FixturePartido[]>([])
+  // Playoff abierto como pestaña dentro del torneo elegido. null = la liga.
+  const [subTabPlayoff, setSubTabPlayoff] = useState<number | null>(null)
 
+  const porCategoria = (a: Torneo, b: Torneo) => {
+    const catDiff = (ORDEN_CATEGORIA[a.categoria] ?? 99) - (ORDEN_CATEGORIA[b.categoria] ?? 99)
+    if (catDiff !== 0) return catDiff
+    return (a.division ?? "").localeCompare(b.division ?? "")
+  }
+
+  // Se traen activos y finalizados juntos. Hace falta: el playoff de una liga en
+  // curso puede estar ya terminado, y aun así es una pestaña de esa liga.
   useEffect(() => {
-    listarTorneosPublico()
-      .then((data: Torneo[]) => {
-        const ordenados = [...data].sort((a, b) => {
-          const catDiff = (ORDEN_CATEGORIA[a.categoria] ?? 99) - (ORDEN_CATEGORIA[b.categoria] ?? 99)
-          if (catDiff !== 0) return catDiff
-          return (a.division ?? "").localeCompare(b.division ?? "")
-        })
-        setTorneos(ordenados)
-      })
+    listarTorneosPublico(false)
+      .then((data: Torneo[]) => setTorneos([...data].sort(porCategoria)))
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
 
-  function cargarHistoricos() {
-    if (verHistoricos) return
-    setLoadingHistoricos(true)
-    listarTorneosPublico(false)
-      .then((todos: Torneo[]) => {
-        const activosIds = new Set(torneos.map(t => t.id_torneo))
-        const historicos = todos
-          .filter(t => !activosIds.has(t.id_torneo))
-          .sort((a: Torneo, b: Torneo) => {
-            const catDiff = (ORDEN_CATEGORIA[a.categoria] ?? 99) - (ORDEN_CATEGORIA[b.categoria] ?? 99)
-            if (catDiff !== 0) return catDiff
-            return (a.division ?? "").localeCompare(b.division ?? "")
-          })
-        setTorneosHistoricos(historicos)
-        setVerHistoricos(true)
-      })
-      .catch(console.error)
-      .finally(() => setLoadingHistoricos(false))
-  }
+  // Los playoffs no se listan sueltos: se abren como pestaña dentro del torneo
+  // que los originó. Uno sin torneo base sí aparece — no hay otro lado desde
+  // donde llegar a él.
+  const enSelector = torneos.filter(t => !t.torneo_base_id)
+  const torneosActivos = enSelector.filter(t => t.activo)
+  const torneosHistoricos = enSelector.filter(t => !t.activo)
 
-  const esPlayoff = torneoSeleccionado?.tipo === "PLAYOFF" || torneoSeleccionado?.tipo === "COPA"
+  /** Fases finales colgadas del torneo elegido, en orden cronológico. */
+  const playoffsDelTorneo = torneoSeleccionado
+    ? torneos
+        .filter(t => t.torneo_base_id === torneoSeleccionado.id_torneo)
+        .sort((a, b) => (a.fecha_inicio ?? "").localeCompare(b.fecha_inicio ?? ""))
+    : []
+
+  /** Lo que se está mirando: la liga, o el playoff abierto en su pestaña. */
+  const torneoVista =
+    playoffsDelTorneo.find(t => t.id_torneo === subTabPlayoff) ?? torneoSeleccionado
+
+  const esPlayoff = torneoVista?.tipo === "PLAYOFF" || torneoVista?.tipo === "COPA"
 
   useEffect(() => {
-    if (!torneoSeleccionado) return
+    if (!torneoVista) return
     setLoadingDatos(true)
     setBracket([])
 
     if (esPlayoff) {
       Promise.all([
-        listarFixturePorTorneo(torneoSeleccionado.id_torneo),
-        listarInscripcionesTorneo(torneoSeleccionado.id_torneo),
-        obtenerGoleadoresTorneo(torneoSeleccionado.id_torneo),
-        obtenerTarjetasAcumuladas(torneoSeleccionado.id_torneo),
+        listarFixturePorTorneo(torneoVista.id_torneo),
+        listarInscripcionesTorneo(torneoVista.id_torneo),
+        obtenerGoleadoresTorneo(torneoVista.id_torneo),
+        obtenerTarjetasAcumuladas(torneoVista.id_torneo),
       ])
         .then(([dataFixture, dataEq, dataGol, dataTar]) => {
           setBracket(dataFixture.filter(p => p.id_fixture_playoff_ronda !== null))
@@ -103,11 +102,11 @@ export default function PosicionesPage() {
         .finally(() => setLoadingDatos(false))
     } else {
       Promise.all([
-        obtenerPosiciones(torneoSeleccionado.id_torneo),
-        obtenerTarjetasAcumuladas(torneoSeleccionado.id_torneo),
-        obtenerGoleadoresTorneo(torneoSeleccionado.id_torneo),
-        listarInscripcionesTorneo(torneoSeleccionado.id_torneo),
-        obtenerVallaMenosVencida(torneoSeleccionado.id_torneo),
+        obtenerPosiciones(torneoVista.id_torneo),
+        obtenerTarjetasAcumuladas(torneoVista.id_torneo),
+        obtenerGoleadoresTorneo(torneoVista.id_torneo),
+        listarInscripcionesTorneo(torneoVista.id_torneo),
+        obtenerVallaMenosVencida(torneoVista.id_torneo),
       ])
         .then(([dataPos, dataTar, dataGol, dataEq, dataValla]) => {
           setTabla(dataPos)
@@ -119,10 +118,11 @@ export default function PosicionesPage() {
         .catch(console.error)
         .finally(() => setLoadingDatos(false))
     }
-  }, [torneoSeleccionado])
+  }, [torneoVista?.id_torneo])
 
   function seleccionar(torneo: Torneo) {
     setTorneoSeleccionado(torneo)
+    setSubTabPlayoff(null)
     setSelectorAbierto(false)
   }
 
@@ -159,7 +159,7 @@ export default function PosicionesPage() {
               <span>🏆</span>
               <span>TORNEOS ACTIVOS</span>
             </div>
-            {torneos.map(t => {
+            {torneosActivos.map(t => {
               const activo = torneoSeleccionado?.id_torneo === t.id_torneo
               return (
                 <button
@@ -183,7 +183,7 @@ export default function PosicionesPage() {
                 </button>
               )
             })}
-            {torneos.length === 0 && (
+            {torneosActivos.length === 0 && (
               <p className={styles.infoSmall}>Sin torneos activos</p>
             )}
 
@@ -213,13 +213,12 @@ export default function PosicionesPage() {
               </>
             )}
 
-            {!verHistoricos && (
+            {!verHistoricos && torneosHistoricos.length > 0 && (
               <button
                 className={styles.historicosBtn}
-                onClick={cargarHistoricos}
-                disabled={loadingHistoricos}
+                onClick={() => setVerHistoricos(true)}
               >
-                {loadingHistoricos ? "Cargando..." : "Ver torneos históricos"}
+                Ver torneos históricos
               </button>
             )}
           </div>
@@ -227,13 +226,35 @@ export default function PosicionesPage() {
 
         {/* ── Columna derecha: contenido ── */}
         <div className={styles.colContenido}>
-          {!torneoSeleccionado ? (
+          {/* Pestañas inline: la liga y sus fases finales. El playoff no es un
+              torneo aparte en la navegación, es una pestaña de su liga. */}
+          {torneoSeleccionado && playoffsDelTorneo.length > 0 && (
+            <div className={styles.viewTabs}>
+              <button
+                className={`${styles.viewTabBtn} ${subTabPlayoff === null ? styles.viewTabBtnActivo : ""}`}
+                onClick={() => setSubTabPlayoff(null)}
+              >
+                Tabla de posiciones
+              </button>
+              {playoffsDelTorneo.map(p => (
+                <button
+                  key={p.id_torneo}
+                  className={`${styles.viewTabBtn} ${subTabPlayoff === p.id_torneo ? styles.viewTabBtnActivo : ""}`}
+                  onClick={() => setSubTabPlayoff(p.id_torneo)}
+                >
+                  {p.tipo === "COPA" ? "🏆" : "🥇"} {p.nombre}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {!torneoVista ? (
             <div className={styles.placeholder}>
               <p>Seleccioná un torneo para ver sus estadísticas</p>
             </div>
           ) : loadingDatos ? (
             <p className={styles.infoMsg}>Cargando datos del torneo...</p>
-          ) : torneoSeleccionado.categoria === "SUB_12" ? (
+          ) : torneoVista.categoria === "SUB_12" ? (
             <>
               <p className={styles.infoMsg}>Esta categoría no tiene tabla de posiciones ni estadísticas individuales.</p>
               <div className={styles.equiposDivider}>
@@ -257,14 +278,14 @@ export default function PosicionesPage() {
           ) : esPlayoff ? (
             <>
               <div className={styles.sectionTitle}>
-                {torneoSeleccionado.nombre}
+                {torneoVista.nombre}
                 <span className={styles.sectionTitleMeta}>
-                  {CATEGORIA_LABEL[torneoSeleccionado.categoria]}
-                  {torneoSeleccionado.division ? ` ${torneoSeleccionado.division}` : ""}
+                  {CATEGORIA_LABEL[torneoVista.categoria]}
+                  {torneoVista.division ? ` ${torneoVista.division}` : ""}
                   {" · "}
-                  {torneoSeleccionado.genero === "MASCULINO" ? "Masculino" : torneoSeleccionado.genero === "FEMENINO" ? "Femenino" : "Mixto"}
+                  {torneoVista.genero === "MASCULINO" ? "Masculino" : torneoVista.genero === "FEMENINO" ? "Femenino" : "Mixto"}
                   {" · "}
-                  <span>{torneoSeleccionado.tipo === "COPA" ? "Copa" : "Playoff"}</span>
+                  <span>{torneoVista.tipo === "COPA" ? "Copa" : "Playoff"}</span>
                 </span>
               </div>
 
@@ -299,7 +320,7 @@ export default function PosicionesPage() {
                       </tbody>
                     </table>
                   ) : <p className={styles.infoSmall}>Sin goles.</p>}
-                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=goleadores`}>
+                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoVista.id_torneo}&tab=goleadores`}>
                     Ver ranking completo →
                   </Link>
                 </div>
@@ -331,7 +352,7 @@ export default function PosicionesPage() {
                       </tbody>
                     </table>
                   ) : <p className={styles.infoSmall}>Sin tarjetas.</p>}
-                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=tarjetas`}>
+                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoVista.id_torneo}&tab=tarjetas`}>
                     Ver ranking completo →
                   </Link>
                 </div>
@@ -355,12 +376,12 @@ export default function PosicionesPage() {
             <>
               {/* Título del torneo seleccionado */}
               <div className={styles.sectionTitle}>
-                {torneoSeleccionado.nombre}
+                {torneoVista.nombre}
                 <span className={styles.sectionTitleMeta}>
-                  {CATEGORIA_LABEL[torneoSeleccionado.categoria]}
-                  {torneoSeleccionado.division ? ` ${torneoSeleccionado.division}` : ""}
+                  {CATEGORIA_LABEL[torneoVista.categoria]}
+                  {torneoVista.division ? ` ${torneoVista.division}` : ""}
                   {" · "}
-                  {torneoSeleccionado.genero === "MASCULINO" ? "Masculino" : torneoSeleccionado.genero === "FEMENINO" ? "Femenino" : "Mixto"}
+                  {torneoVista.genero === "MASCULINO" ? "Masculino" : torneoVista.genero === "FEMENINO" ? "Femenino" : "Mixto"}
                 </span>
               </div>
 
@@ -430,7 +451,7 @@ export default function PosicionesPage() {
                       </tbody>
                     </table>
                   ) : <p className={styles.infoSmall}>Sin goles.</p>}
-                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=goleadores`}>
+                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoVista.id_torneo}&tab=goleadores`}>
                     Ver ranking completo →
                   </Link>
                 </div>
@@ -462,7 +483,7 @@ export default function PosicionesPage() {
                       </tbody>
                     </table>
                   ) : <p className={styles.infoSmall}>Sin datos.</p>}
-                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=valla`}>
+                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoVista.id_torneo}&tab=valla`}>
                     Ver ranking completo →
                   </Link>
                 </div>
@@ -498,7 +519,7 @@ export default function PosicionesPage() {
                       </tbody>
                     </table>
                   ) : <p className={styles.infoSmall}>Sin tarjetas.</p>}
-                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoSeleccionado.id_torneo}&tab=tarjetas`}>
+                  <Link className={styles.verRankingBtn} to={`/public/ranking?torneo=${torneoVista.id_torneo}&tab=tarjetas`}>
                     Ver ranking completo →
                   </Link>
                 </div>

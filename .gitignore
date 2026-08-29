@@ -63,6 +63,12 @@ Thumbs.db
 *.tmp
 
 # Backups (no versionar dumps ni logs)
+# Los dumps traen datos personales de jugadores y pesan decenas de MB.
+# Se ignora por extension y no por nombre porque pg_dump escribe .sql en
+# formato plano y .dump en formato custom, segun como se lo invoque.
 backups/*.dump
+backups/*.sql
+backups/*.sql.gz
+backups/*.tar
 backups/*.log
 backups/.env.*

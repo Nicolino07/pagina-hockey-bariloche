@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom"
+import { claveCategoria } from "../../../utils/categorias"
 import { useState, useEffect } from "react"
 import { useInscripcionesTorneo } from "../../../hooks/useInscripcionesTorneo"
 import InscripcionesTorneoLista from "./InscripcionesTorneoLista"
@@ -7,6 +8,7 @@ import Button from "../../../components/ui/button/Button"
 import InscribirEquipoModal from "./InscribirEquipoModal"
 import CrearTorneoForm from "./CrearTorneoForm"
 import PlayoffLauncher from "./PlayoffLauncher"
+import PlayoffResumen from "./PlayoffResumen"
 import FixtureTab from "../fixture/FixtureTab"
 import { finalizarTorneo, reabrirTorneo, eliminarTorneo, impactoEliminacionTorneo } from "../../../api/torneos.api"
 import { obtenerGoleadoresTorneo } from "../../../api/vistas/goleadores.api"
@@ -120,8 +122,13 @@ export default function TorneoDetalle() {
     }
   }
 
-  if (loadingTorneo || loadingInscripciones) return <p>Cargando…</p>
-  if (error || !torneo) return <p>Error</p>
+  // Se reserva el alto de la página mientras carga: con un <p> suelto la vista
+  // colapsaba a una línea y después crecía de golpe, lo que se veía como un
+  // salto al entrar desde el listado de torneos.
+  if (loadingTorneo || loadingInscripciones)
+    return <section className={styles.section}><p className={styles.cargando}>Cargando…</p></section>
+  if (error || !torneo)
+    return <section className={styles.section}><p className={styles.cargando}>Error</p></section>
 
   return (
     <section className={styles.section}>
@@ -135,7 +142,15 @@ export default function TorneoDetalle() {
           </p>
         </div>
         <div className={styles.botones}>
-          <Button onClick={() => navigate("/admin/torneos")}>← Volver</Button>
+          {/* Vuelve a la categoría de este torneo, no al listado general: es
+              de donde se entró, con su tabla anual ya cargada. */}
+          <Button
+            onClick={() =>
+              navigate(`/admin/torneos?cat=${encodeURIComponent(claveCategoria(torneo))}`)
+            }
+          >
+            ← Volver
+          </Button>
         </div>
       </header>
 
@@ -301,6 +316,9 @@ export default function TorneoDetalle() {
           </div>
         ) : <p className={styles.infoSmall}>Sin posiciones registradas.</p>}
       </div>
+
+      {/* PLAYOFF (si el torneo tiene uno asociado) */}
+      <PlayoffResumen torneo={torneo} />
 
       {/* ESTADÍSTICAS */}
       <div className={styles.statsGrid}>

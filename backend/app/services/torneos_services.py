@@ -62,6 +62,12 @@ def crear_torneo(
     db.add(torneo)
     db.flush()  # necesitamos id_torneo para las inscripciones
 
+    # Check «Suma a la tabla anual»: resuelve (o crea) la temporada de la liga.
+    from app.services import temporadas_services
+    temporadas_services.aplicar_computa_anual(
+        db, torneo, getattr(data, "computa_anual", True), current_user
+    )
+
     # Con torneo base: inscribir automáticamente todos sus equipos activos.
     if base is not None:
         from app.models.inscripcion_torneo import InscripcionTorneo
@@ -307,7 +313,13 @@ def actualizar_torneo(
     if hasattr(data, 'es_competitiva'):
         torneo.es_competitiva = data.es_competitiva
     torneo.actualizado_por = current_user.username
-    
+
+    if hasattr(data, 'computa_anual'):
+        from app.services import temporadas_services
+        temporadas_services.aplicar_computa_anual(
+            db, torneo, data.computa_anual, current_user
+        )
+
     # Si se marca como inactivo y no tiene fecha_fin, establecerla
     if hasattr(data, 'activo') and not data.activo and not torneo.fecha_fin:
         torneo.fecha_fin = date.today()
