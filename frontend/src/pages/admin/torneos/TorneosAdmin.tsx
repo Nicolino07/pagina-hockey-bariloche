@@ -38,6 +38,27 @@ import styles from "./TorneosAdmin.module.css"
  *
  * Los torneos finalizados siguen en la vista aparte del botón «Ver finalizados».
  */
+/**
+ * Resumen de una liga para el selector de categorías.
+ *
+ * Cuenta las dos cosas, no solo los torneos en curso: una liga cuya temporada
+ * ya terminó tiene 0 activos, y mostrar «0 torneos» a secas la hacía parecer
+ * vacía cuando en realidad tiene todo su historial adentro.
+ */
+function resumenGrupo(g: GrupoCategoria): string {
+  const partes: string[] = []
+  if (g.torneos.length > 0) {
+    partes.push(`${g.torneos.length} en curso`)
+  }
+  if (g.historicos.length > 0) {
+    partes.push(`${g.historicos.length} finalizado${g.historicos.length === 1 ? "" : "s"}`)
+  }
+  if (g.temporada) {
+    partes.push("con tabla anual")
+  }
+  return partes.join(" · ")
+}
+
 export default function TorneosAdmin() {
   const navigate = useNavigate()
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -259,11 +280,7 @@ export default function TorneosAdmin() {
                     </span>
                     {g.etiqueta}
                   </span>
-                  <span className={styles.categoriaMeta}>
-                    {g.torneos.length}{" "}
-                    {g.torneos.length === 1 ? "torneo" : "torneos"}
-                    {g.temporada ? " · con tabla anual" : ""}
-                  </span>
+                  <span className={styles.categoriaMeta}>{resumenGrupo(g)}</span>
                 </button>
               ))}
             </div>
