@@ -1,8 +1,9 @@
 // pages/noticias/NoticiaDetalle.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { obtenerNoticiaPorId } from "../../../api/noticias.api"; // ✅ Usamos la API
 import Button from "../../../components/ui/button/Button";
+import { useSeo } from "../../../hooks/useSeo";
 import styles from "./NoticiaDetalle.module.css";
 
 /**
@@ -36,6 +37,45 @@ export default function NoticiaDetalle() {
 
     cargarData();
   }, [id]);
+
+  // Resumen corto para la meta description y las previsualizaciones en redes.
+  const resumen: string = noticia
+    ? (noticia.epigrafe || String(noticia.texto || "").replace(/\s+/g, " ").trim()).slice(0, 160)
+    : "Noticias del hockey sobre pista de Bariloche y Lagos del Sur.";
+
+  const jsonLd = useMemo(
+    () =>
+      noticia
+        ? {
+            "@context": "https://schema.org",
+            "@type": "NewsArticle",
+            headline: noticia.titulo,
+            description: resumen,
+            image: noticia.imagen_url ? [noticia.imagen_url] : undefined,
+            datePublished: noticia.creado_en,
+            dateModified: noticia.actualizado_en || noticia.creado_en,
+            publisher: {
+              "@type": "Organization",
+              name: "Asociación de Hockey Bariloche y Lagos del Sur",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://hockeybariloche.com.ar/logoAHBLS.png",
+              },
+            },
+          }
+        : null,
+    [noticia, resumen]
+  );
+
+  useSeo({
+    title: noticia ? noticia.titulo : "Noticia",
+    description: resumen,
+    image: noticia?.imagen_url || undefined,
+    type: "article",
+    // Sin noticia cargada (o mientras redirige a una fuente externa) no hay nada que indexar.
+    noIndex: !noticia,
+    jsonLd,
+  });
 
   if (loading) return <div className={styles.loading}>Cargando...</div>;
   if (!noticia) return <div>Noticia no encontrada</div>;

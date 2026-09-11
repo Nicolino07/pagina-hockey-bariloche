@@ -6,6 +6,7 @@ import type { Torneo } from "../../../types/torneo"
 import type { FixturePartido } from "../../../types/fixture"
 import BracketPlayoff from "../posiciones/BracketPlayoff"
 import styles from "./FixturePage.module.css"
+import { useSeo } from "../../../hooks/useSeo"
 
 function formatHorario(horario: string | null): string {
   if (!horario) return "—"
@@ -111,6 +112,12 @@ const GENERO_ICON: Record<string, string> = {
 }
 
 export default function FixturePage() {
+  useSeo({
+    title: "Fixture",
+    description:
+      "Fixture completo de los torneos de hockey sobre pista de Bariloche: fechas, horarios y sedes de cada partido por categoría.",
+  })
+
   const navigate = useNavigate()
   const [torneos, setTorneos] = useState<Torneo[]>([])
   const [torneoId, setTorneoId] = useState<number | null>(null)

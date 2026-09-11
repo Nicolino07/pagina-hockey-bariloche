@@ -10,6 +10,7 @@ import type { FilaPosiciones } from "../../../types/vistas";
 import { getPlantelActivoByEquipo, getIntegrantesByPlantel } from "../../../api/planteles.api";
 import type { PlantelIntegrante } from "../../../types/plantelIntegrante";
 
+import { useSeo } from "../../../hooks/useSeo";
 import styles from "./ClubesDetallePublic.module.css";
 
 
@@ -30,6 +31,13 @@ export default function ClubesDetallePublic() {
   const [loading, setLoading] = useState(true);
   const [integrantes, setIntegrantes] = useState<PlantelIntegrante[]>([]);
   const [selectorAbierto, setSelectorAbierto] = useState(false);
+
+  useSeo({
+    title: club ? `${club.nombre}` : "Club",
+    description: club
+      ? `Equipos, planteles, resultados y posiciones de ${club.nombre} en los torneos de hockey sobre pista de Bariloche.`
+      : "Equipos, planteles, resultados y posiciones de los clubes de hockey sobre pista de Bariloche.",
+  });
 
   // Recarga partidos e integrantes del plantel al cambiar el equipo seleccionado.
   useEffect(() => {

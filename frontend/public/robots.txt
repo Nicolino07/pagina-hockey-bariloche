@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Secciones privadas / sin valor para buscadores
+Disallow: /admin
+Disallow: /login
+Disallow: /mi-perfil
+Disallow: /unauthorized
+Disallow: /recuperar-password
+Disallow: /reset-password
+Disallow: /confirmar-cambio-email
+Disallow: /completar-registro
+
+Sitemap: https://hockeybariloche.com.ar/sitemap.xml

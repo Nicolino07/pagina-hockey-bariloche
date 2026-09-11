@@ -6,6 +6,7 @@ import { decodeJwt } from "../../utils/jwt"
 import { takeSessionExpiredReason } from "../../auth/sessionManager"
 import styles from "./Login.module.css"
 import { Link } from "react-router-dom"
+import { useSeo } from "../../hooks/useSeo"
 
 /** Mensaje a mostrar según el motivo por el que se cerró la sesión anterior. */
 const AVISO_SESION: Record<string, string> = {
@@ -19,6 +20,12 @@ const AVISO_SESION: Record<string, string> = {
  * y guarda los datos de sesión en el contexto de autenticación.
  */
 export default function Login() {
+  useSeo({
+    title: "Ingresar",
+    description: "Acceso al panel de administración de Hockey Bariloche.",
+    noIndex: true,
+  })
+
   const navigate = useNavigate()
   const { login } = useAuth()
 

@@ -3,8 +3,15 @@ import { useNavigate } from "react-router-dom"
 import { getClubes } from "../../../api/clubes.api"
 import type { Club } from "../../../types/club"
 import styles from "./ClubesPage.module.css"
+import { useSeo } from "../../../hooks/useSeo"
 
 export default function ClubesPage() {
+  useSeo({
+    title: "Clubes",
+    description:
+      "Clubes de hockey sobre pista afiliados a la Asociación de Hockey Bariloche y Lagos del Sur, con sus equipos y planteles.",
+  })
+
   const [clubes, setClubes] = useState<Club[]>([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState("")

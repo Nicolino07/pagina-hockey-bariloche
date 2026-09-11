@@ -15,6 +15,7 @@ import type { InscripcionTorneoDetalle } from "../../../types/inscripcion"
 import type { FixturePartido } from "../../../types/fixture"
 
 import styles from "./PosicionesPage.module.css"
+import { useSeo } from "../../../hooks/useSeo"
 
 const ORDEN_CATEGORIA: Record<string, number> = {
   MAYORES: 0, SUB_19: 1, SUB_16: 2, SUB_14: 3, SUB_12: 4,
@@ -29,6 +30,12 @@ const GENERO_ICON: Record<string, string> = {
 }
 
 export default function PosicionesPage() {
+  useSeo({
+    title: "Tabla de posiciones",
+    description:
+      "Tabla de posiciones actualizada de los torneos de hockey sobre pista de Bariloche, por categoría, zona y fase de playoff.",
+  })
+
   const navigate = useNavigate()
   const [torneos, setTorneos] = useState<Torneo[]>([])
   const [loading, setLoading] = useState(true)

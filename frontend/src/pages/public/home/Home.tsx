@@ -9,12 +9,19 @@ import { obtenerStatsGlobales } from "../../../api/estadisticas.api";
 import { listarProximosPartidos } from "../../../api/fixture.api";
 import type { FixturePartido } from "../../../types/fixture";
 
+import { useSeo } from "../../../hooks/useSeo";
 /**
  * Página de inicio pública.
  * Muestra estadísticas globales (partidos y goles), las últimas noticias
  * y los últimos encuentros jugados con detalle en modal al hacer clic.
  */
 export default function Home() {
+  useSeo({
+    title: "Hockey Bariloche | Asociación de Hockey Bariloche y Lagos del Sur",
+    description:
+      "Toda la información del hockey sobre pista en Bariloche: últimos resultados, próximos partidos, noticias y estadísticas de la temporada.",
+  });
+
 
   const [noticias, setNoticias] = useState<any[]>([]);
   const [partidos, setPartidos] = useState<any[]>([]);

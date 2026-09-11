@@ -93,6 +93,7 @@ from app.routers import (
     arbitros_router as arbitros,
     suspensiones_router as suspensiones,
     temporadas_router as temporadas,
+    sitemap_router as sitemap,
 )
 
 @app.get(f"{API_PREFIX}/")  # 🔥 También movemos el root
@@ -119,6 +120,9 @@ app.include_router(fixture, prefix=API_PREFIX)
 app.include_router(arbitros, prefix=API_PREFIX)
 app.include_router(suspensiones, prefix=API_PREFIX)
 app.include_router(temporadas, prefix=API_PREFIX)
+
+# SEO: sitemap.xml se sirve en la raíz (sin prefijo /api)
+app.include_router(sitemap)
 
 # =====================================================
 # Archivos estáticos (logos de clubes)

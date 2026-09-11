@@ -4,12 +4,19 @@ import { useNavigate } from "react-router-dom";
 import { obtenerNoticiasRecientes } from "../../../api/noticias.api";
 import styles from "./Noticias.module.css";
 
+import { useSeo } from "../../../hooks/useSeo";
 /**
  * Página pública de noticias.
  * Lista todas las novedades de la asociación en formato grilla.
  * Al hacer clic en una noticia navega al detalle de la misma.
  */
 export default function Noticias() {
+  useSeo({
+    title: "Noticias",
+    description:
+      "Noticias del hockey sobre pista de Bariloche y Lagos del Sur: torneos, clubes, jugadores y novedades de la asociación.",
+  });
+
   const [noticias, setNoticias] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();

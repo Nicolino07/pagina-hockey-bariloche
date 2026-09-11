@@ -8,6 +8,7 @@ import BracketPlayoff from "../../../pages/public/posiciones/BracketPlayoff"
 import type { Torneo } from "../../../types/torneo"
 import type { FixturePartido } from "../../../types/fixture"
 import styles from "./ResultadosPage.module.css"
+import { useSeo } from "../../../hooks/useSeo"
 
 const ORDEN_CATEGORIA: Record<string, number> = {
   MAYORES: 0, SUB_19: 1, SUB_16: 2, SUB_14: 3, SUB_12: 4,
@@ -29,6 +30,12 @@ function labelDia(fechaStr: string): string {
 }
 
 export default function ResultadosPage() {
+  useSeo({
+    title: "Resultados",
+    description:
+      "Resultados de todos los partidos de hockey sobre pista en Bariloche: marcadores, goleadores y tarjetas fecha por fecha.",
+  })
+
   const navigate = useNavigate()
   const [torneos, setTorneos] = useState<Torneo[]>([])
   const [partidos, setPartidos] = useState<any[]>([])

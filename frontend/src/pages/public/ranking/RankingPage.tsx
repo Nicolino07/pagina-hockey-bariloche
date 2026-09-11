@@ -9,6 +9,7 @@ import type { Torneo } from "../../../types/torneo"
 import type { GoleadorTorneo, TarjetaAcumulada, VallaMenosVencida } from "../../../types/vistas"
 
 import styles from "./RankingPage.module.css"
+import { useSeo } from "../../../hooks/useSeo"
 
 type Tab = "goleadores" | "tarjetas" | "valla"
 
@@ -74,6 +75,12 @@ function LeyendaTarjetas() {
 }
 
 export default function RankingPage() {
+  useSeo({
+    title: "Ranking de goleadores",
+    description:
+      "Ranking de goleadoras y goleadores del hockey sobre pista de Bariloche, con estadísticas por torneo y categoría.",
+  })
+
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
 

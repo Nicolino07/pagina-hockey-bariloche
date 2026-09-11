@@ -3,6 +3,7 @@ import { usePlantelActivo } from "../../../hooks/usePlantelActivo" // Ajusta la 
 import { useState, useEffect } from "react"
 import { getEquipoById } from "../../../api/equipos.api"
 import type { Equipo } from "../../../types/equipo"
+import { useSeo } from "../../../hooks/useSeo"
 import styles from "./EquipoDetallePublic.module.css"
 
 /**
@@ -25,6 +26,13 @@ export default function EquipoDetallePublic() {
         .catch(console.error)
     }
   }, [id_equipo])
+
+  useSeo({
+    title: equipo ? equipo.nombre : "Equipo",
+    description: equipo
+      ? `Plantel de ${equipo.nombre} (${equipo.categoria}${equipo.division ? " " + equipo.division : ""}, ${equipo.genero}) en el hockey sobre pista de Bariloche.`
+      : "Planteles de los equipos de hockey sobre pista de Bariloche.",
+  })
 
   if (loading) return <div className={styles.loader}>Cargando plantel...</div>
   if (error) return <div className={styles.error}>{error}</div>
