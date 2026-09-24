@@ -113,6 +113,31 @@
   border-color: #e06060;
 }
 
+/* Deshacer la baja: acción restitutiva, en verde y no en rojo. */
+.undoBtn {
+  background: transparent;
+  color: var(--color-success);
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.undoBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  border-color: var(--color-success);
+}
+
+.undoBtn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
 /* Móvil: columna única */
 @media (max-width: 600px) {
   .scrollList {

@@ -241,7 +241,7 @@ export const generarPlanillaPDF = (datos: any) => {
   // --- 5. SECCIÓN DE GOLES ---
   const yGolesTitle = yFirmas + 10;
   doc.setFont("helvetica", "bold");
-  doc.text("Registro de goles - Referencia (GJ - GC - GP - DP)", pageWidth / 2, yGolesTitle, { align: "center" });
+  doc.text("Registro de goles - Referencia (GJ - GC - GP)", pageWidth / 2, yGolesTitle, { align: "center" });
 
   const drawTablaGoles = (xPos: number, yPos: number) => {
     autoTable(doc, {
@@ -509,7 +509,7 @@ export const generarPlanillaCompletaPDF = (detalle: any) => {
   // Sección de goles
   const yGolesTitle = yFirmas + 10;
   doc.setFont('helvetica', 'bold');
-  doc.text('Registro de goles - Referencia (GJ - GC - GP - DP)', pageWidth / 2, yGolesTitle, { align: 'center' });
+  doc.text('Registro de goles - Referencia (GJ - GC - GP)', pageWidth / 2, yGolesTitle, { align: 'center' });
 
   const MIN_FILAS = 8;
   const mitad = Math.max(Math.ceil(golesOrdenados.length / 2), MIN_FILAS);
@@ -692,7 +692,7 @@ export const generarPlanillaEnBlancoPDF = (opciones: PlanillaEnBlancoOpciones = 
     // --- 5. SECCIÓN DE GOLES ---
     const yGolesTitle = yFirmas + 10;
     doc.setFont("helvetica", "bold");
-    doc.text("Registro de goles - Referencia (GJ - GC - GP - DP)", pageWidth / 2, yGolesTitle, { align: "center" });
+    doc.text("Registro de goles - Referencia (GJ - GC - GP)", pageWidth / 2, yGolesTitle, { align: "center" });
 
     const drawTablaGolesVacia = (xPos: number) => {
       autoTable(doc, {

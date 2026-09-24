@@ -113,3 +113,15 @@ export async function agregarIntegrante(payload: {
 export async function bajaIntegrantePlantel(id_integrante: number): Promise<void> {
   await axiosAdmin.delete(`/planteles/integrantes/${id_integrante}`)
 }
+
+/**
+ * Deshace la baja de un integrante, devolviéndolo a la nómina con su fecha de
+ * alta original. Falla si el plantel está cerrado o si la persona perdió el
+ * fichaje vigente en el club para ese rol.
+ */
+export async function reactivarIntegrantePlantel(id_integrante: number): Promise<PlantelIntegrante> {
+  const { data } = await axiosAdmin.patch<PlantelIntegrante>(
+    `/planteles/integrantes/${id_integrante}/reactivar`,
+  )
+  return data
+}

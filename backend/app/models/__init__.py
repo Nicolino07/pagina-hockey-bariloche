@@ -11,6 +11,7 @@ from .plantel_integrante import PlantelIntegrante
 from .partido import Partido
 from .participan_partido import ParticipanPartido
 from .gol import Gol
+from .penal_definicion import PenalDefinicion
 from .tarjeta import Tarjeta
 from .suspension import Suspension
 from .posicion import Posicion
@@ -21,6 +22,9 @@ from .auditoria_log import AuditoriaLog
 from .mixins import AuditFieldsMixin, SoftDeleteMixin
 from .fichaje_rol import FichajeRol
 from .fixture_fecha import FixtureFecha
+# Faltaba en el registro: sin él, cualquier configuración de mappers que
+# resuelva las FK de `partido` falla con NoReferencedTableError.
+from .fixture_playoff_ronda import FixturePlayoffRonda
 from .base import Base
 
 # Exportar todos los ENUMs 

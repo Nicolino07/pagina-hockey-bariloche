@@ -1,0 +1,156 @@
+.contenedor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.cargando,
+.error,
+.vacio {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+
+.error {
+  color: var(--color-danger);
+}
+
+/* ---------- Encabezado ---------- */
+.encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.meta {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.rolBadge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+/* ---------- Aviso principal ---------- */
+.aviso {
+  border: 1px solid var(--color-warning);
+  background: var(--tint-warning);
+  /* Color explícito: heredarlo puede dejar texto claro sobre el tinte. */
+  color: var(--text-main);
+  border-radius: 8px;
+  padding: 0.75rem 0.85rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.aviso p {
+  margin: 0 0 0.45rem;
+}
+
+.aviso p:last-child {
+  margin-bottom: 0;
+}
+
+.avisoTitulo {
+  font-weight: 700;
+}
+
+.avisoHistorial {
+  color: var(--text-muted);
+}
+
+.avisoAlternativa {
+  border-top: 1px dashed var(--color-warning);
+  padding-top: 0.45rem;
+}
+
+/* Los planteles cerrados se listan al margen: informan, no se tocan. */
+.historialTitulo {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.itemHistorial {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px dashed var(--border-color);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+/* ---------- Bloques de listado ---------- */
+.bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.bloqueTitulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.bloqueResumen {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  font-size: 0.85rem;
+}
+
+.item {
+  border-left: 3px solid var(--color-danger);
+}
+
+.itemEquipo {
+  font-weight: 600;
+}
+
+.itemDetalle {
+  color: var(--text-muted);
+}
+
+.itemDesde {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}

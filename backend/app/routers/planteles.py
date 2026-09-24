@@ -271,3 +271,28 @@ def baja_integrante(
         id_integrante=id_integrante,
         current_user=current_user,
     )
+
+
+# 🔐 ADMIN / SUPERUSUARIO
+@router.patch(
+    "/integrantes/{id_integrante}/reactivar",
+    response_model=PlantelIntegranteRead,
+    summary="Deshacer la baja de un integrante",
+)
+def reactivar_integrante(
+    id_integrante: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    """
+    Devuelve a la nómina a un integrante dado de baja, conservando su fecha de
+    alta original. Pensado para revertir una baja hecha por error.
+
+    Falla si el plantel ya está cerrado o si la persona perdió su fichaje
+    vigente en el club para ese rol. Requiere rol ADMIN o superior.
+    """
+    return planteles_services.reactivar_integrante(
+        db=db,
+        id_integrante=id_integrante,
+        current_user=current_user,
+    )

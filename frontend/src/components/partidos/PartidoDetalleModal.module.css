@@ -347,3 +347,120 @@
     font-size: 2.8rem;
   }
 }
+
+/* ===== Definición por penales =====
+   Siempre separada del marcador: la tanda no es un gol. */
+.scoreCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.penalesScore {
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+
+.penalesSection {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border-color);
+}
+
+.penalesTitulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 2px;
+  font-size: 1rem;
+}
+
+.penalesResultado {
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+}
+
+.penalesNota {
+  margin: 0 0 10px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.penalesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.penalesCol label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.penalRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 0;
+  font-size: 0.87rem;
+}
+
+.penalOk {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.penalFail {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.penalesVacio {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 560px) {
+  .penalesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Entrega de puntos (walkover): explica por qué el marcador no tiene goleadores.
+   Se muestra el motivo; la descripción es interna y nunca se publica. */
+.walkoverRibbon {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 18px;
+  background: var(--tint-warning);
+  /* Color explícito: heredarlo puede dejar texto claro sobre el tinte. */
+  color: var(--text-main);
+  border-top: 1px solid var(--color-warning);
+  border-bottom: 1px solid var(--color-warning);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.walkoverIcon {
+  flex-shrink: 0;
+}
+
+.walkoverExtra {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.76rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}

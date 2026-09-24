@@ -82,6 +82,19 @@ class OrigenSuspension(str, enum.Enum):
     AUTOMATICA_ROJA = 'AUTOMATICA_ROJA'
     MANUAL = 'MANUAL'
 
+class MotivoPuntos(str, enum.Enum):
+    """
+    Por qué se otorgaron puntos por defecto (walkover) en un partido.
+    Es obligatorio al otorgar puntos y es lo que se muestra en el detalle.
+    """
+    NO_PRESENTO_LOCAL = 'NO_PRESENTO_LOCAL'
+    NO_PRESENTO_VISITANTE = 'NO_PRESENTO_VISITANTE'
+    NO_PRESENTARON_AMBOS = 'NO_PRESENTARON_AMBOS'
+    DESCALIFICADO_LOCAL = 'DESCALIFICADO_LOCAL'
+    DESCALIFICADO_VISITANTE = 'DESCALIFICADO_VISITANTE'
+    OTRO = 'OTRO'
+
+
 class ReferenciaGol(str, enum.Enum):
     """Tipos de gol"""
     GJ = 'GJ'  # Gol jugada

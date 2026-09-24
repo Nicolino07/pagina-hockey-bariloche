@@ -37,6 +37,13 @@ interface Props {
   editable?: boolean;
   /** Callback invocado al hacer clic en "Dar de Baja" de un integrante. */
   onEliminar?: (integrante: PlantelActivoIntegrante) => void;
+  /**
+   * Callback invocado al hacer clic en "Deshacer baja". Si no se pasa, los
+   * integrantes de baja quedan solo informativos.
+   */
+  onReactivar?: (integrante: PlantelActivoIntegrante) => void;
+  /** IDs de integrantes cuya reactivación está en curso (deshabilita el botón). */
+  reactivando?: Set<number>;
 }
 
 /**
@@ -47,6 +54,8 @@ export default function PlantelLista({
   integrantes,
   editable = false,
   onEliminar,
+  onReactivar,
+  reactivando,
 }: Props) {
   const [suspendidos, setSuspendidos] = useState<Set<number>>(new Set());
 
@@ -122,6 +131,21 @@ export default function PlantelLista({
                 }}
               >
                 {jugo ? "Dar de Baja" : "Quitar"}
+              </button>
+            )}
+
+            {editable && esBaja && onReactivar && i.id_plantel_integrante && (
+              <button
+                type="button"
+                className={styles.undoBtn}
+                disabled={reactivando?.has(i.id_plantel_integrante)}
+                title="Volver a incorporarlo al plantel, conservando su fecha de alta"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReactivar(i);
+                }}
+              >
+                {reactivando?.has(i.id_plantel_integrante) ? "Deshaciendo…" : "↩ Deshacer baja"}
               </button>
             )}
           </div>

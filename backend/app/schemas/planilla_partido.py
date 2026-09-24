@@ -75,6 +75,19 @@ class TarjetaPlanillaCreate(BaseModel):
 
 
 # ---------------------------
+# Penales de la tanda
+# ---------------------------
+class PenalPlanillaCreate(BaseModel):
+    """
+    Un penal de la definición. NO es un gol: no suma al marcador, ni al ranking
+    de goleadores, ni a la diferencia de gol.
+    """
+    id_plantel_integrante: int
+    convertido: bool = False
+    orden: Optional[int] = Field(None, ge=1)
+
+
+# ---------------------------
 # PLANILLA COMPLETA
 # ---------------------------
 class PlanillaPartidoCreate(BaseModel):
@@ -82,6 +95,7 @@ class PlanillaPartidoCreate(BaseModel):
     participantes: ParticipantesPlanilla
     goles: list[GolPlanillaCreate] = []
     tarjetas: list[TarjetaPlanillaCreate] = []
+    penales: list[PenalPlanillaCreate] = []
     id_fixture_partido: Optional[int] = None  # Si viene, se vincula el fixture al partido real
     forzar: bool = Field(
         False,
@@ -125,6 +139,15 @@ class TarjetaEdicion(BaseModel):
         from_attributes = True
 
 
+class PenalEdicion(BaseModel):
+    id_plantel_integrante: int
+    convertido: bool
+    orden: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
 class PartidoEdicionResponse(BaseModel):
     id_partido: int
     id_torneo: int
@@ -148,6 +171,7 @@ class PartidoEdicionResponse(BaseModel):
     participantes_visitante: list[ParticipanteEdicion] = []
     goles: list[GolEdicion] = []
     tarjetas: list[TarjetaEdicion] = []
+    penales: list[PenalEdicion] = []
     id_fixture_partido: Optional[int] = None
 
     class Config:

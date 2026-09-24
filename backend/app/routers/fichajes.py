@@ -17,6 +17,9 @@ from typing import List
 
 from app.database import get_db
 from app.schemas.fichaje_rol import (
+    BajaClubPreview,
+    BajaClubRequest,
+    BajaClubResultado,
     FichajeConPersona,
     FichajeRolCreate,
     FichajeRolRead,
@@ -56,6 +59,61 @@ def crear_fichaje(
         rol=data.rol,
         fecha_inicio=data.fecha_inicio or date.today(),
         creado_por=data.creado_por,
+    )
+
+
+# 🔐 ADMIN / SUPERUSUARIO
+@router.get(
+    "/club/{id_club}/persona/{id_persona}/baja/preview",
+    response_model=BajaClubPreview,
+    summary="Previsualizar la baja general de una persona en un club",
+)
+def preview_baja_club(
+    id_club: int,
+    id_persona: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    """
+    Devuelve, sin modificar nada, todo lo que se vería afectado por la baja
+    general: los roles vigentes de la persona en el club y, por cada uno, los
+    planteles de los que saldría (con su equipo y torneo).
+
+    Sirve para advertir al usuario de que la baja es **de todo el club**: si
+    sólo quiere sacarla de un equipo puntual, debe usar la baja del integrante
+    en ese plantel, no esta.
+    """
+    return fichajes_services.preview_baja_club(
+        db=db,
+        id_persona=id_persona,
+        id_club=id_club,
+    )
+
+
+# 🔐 ADMIN / SUPERUSUARIO
+@router.patch(
+    "/club/{id_club}/persona/{id_persona}/baja",
+    response_model=BajaClubResultado,
+    summary="Baja general de una persona en un club",
+)
+def dar_baja_club(
+    id_club: int,
+    id_persona: int,
+    data: BajaClubRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    """
+    Cierra **todos** los roles vigentes de la persona en el club y la saca en
+    cascada de todos los planteles que dependían de ellos.
+    Requiere rol ADMIN o superior.
+    """
+    return fichajes_services.dar_baja_club(
+        db=db,
+        id_persona=id_persona,
+        id_club=id_club,
+        fecha_fin=data.fecha_fin,
+        actualizado_por=data.actualizado_por,
     )
 
 

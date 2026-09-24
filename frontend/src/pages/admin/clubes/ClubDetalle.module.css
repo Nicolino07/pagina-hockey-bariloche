@@ -81,52 +81,154 @@
   margin-bottom: 20px;
 }
 
-/* Grid de Fichados */
-.fichadosGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 15px;
-  margin-bottom: 30px;
+/* --- Barra superior: buscador + contador --- */
+.fichadosHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
-.fichadoCard {
+.fichadosSearch {
+  flex: 1;
+  min-width: 0;
   background: var(--bg-elevated);
   border: 1px solid var(--border-color);
-  padding: 15px;
+  color: var(--text-main);
+  padding: 7px 11px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+
+.fichadosSearch:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.fichadosCount {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.fichadosVacio {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 14px 2px;
+}
+
+/* --- Lista compacta: una fila por persona --- */
+.fichadosLista {
+  list-style: none;
+  margin: 0 0 30px;
+  padding: 0;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.fichadoFila {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 13px;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.15s;
+}
+
+.fichadoFila:last-child {
+  border-bottom: none;
+}
+
+.fichadoFila:hover {
+  background: var(--tint-primary-strong);
+}
+
+.fichadoIdentidad {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .fichadoName {
-  display: block;
-  font-weight: bold;
-  font-size: 1.1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-main);
 }
 
-.rolTag {
+.fichadoDni {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Chips de rol: uno por fichaje, con su propia baja --- */
+.fichadoRoles {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.rolChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   background: var(--tint-primary-strong);
   color: var(--color-primary);
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  margin-right: 8px;
+  border: 1px solid transparent;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
-.btnBaja {
+/* Un solo botón por persona: la baja es del club entero, no de un rol. */
+.btnBajaFila {
+  margin-left: 4px;
+  padding: 3px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
   background: transparent;
-  color: #ff6b6b;
-  border: 1px solid #ff6b6b;
-  padding: 5px 10px;
-  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
-  transition: 0.2s;
+  transition: 0.15s;
 }
 
-.btnBaja:hover {
-  background: #ff6b6b;
-  color: white;
+.fichadoFila:hover .btnBajaFila {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.btnBajaFila:hover,
+.btnBajaFila:focus-visible {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: var(--text-on-brand);
+  outline: none;
+}
+
+@media (max-width: 560px) {
+  .fichadoFila {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 7px;
+  }
+
+  .fichadoRoles {
+    justify-content: flex-start;
+  }
 }
 
 /* Lista de Equipos */

@@ -687,3 +687,27 @@
   border-bottom-color: var(--color-primary);
   background: transparent;
 }
+
+/* Definición por penales al lado del marcador: informa quién pasó, pero
+   nunca se suma al resultado del partido. */
+.marcadorPenales {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Marca de walkover junto al marcador: el resultado no se jugó. */
+.marcadorWalkover {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--color-warning);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}

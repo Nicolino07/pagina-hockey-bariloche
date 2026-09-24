@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { getClubes } from "../../../api/clubes.api"
-import { getFichajesPorClub, crearFichaje, darBajaFichaje, getPersonasDisponiblesParaFichar } from "../../../api/fichajes.api"
+import { getFichajesPorClub, crearFichaje, darBajaFichaje, darBajaDelClub, getPersonasDisponiblesParaFichar } from "../../../api/fichajes.api"
+import ImpactoBajaClub from "../../../components/fichajes/ImpactoBajaClub"
 import type { Club } from "../../../types/club"
 import Button from "../../../components/ui/button/Button"
 import styles from "./FichajesAdmin.module.css"
@@ -41,6 +42,8 @@ export default function FichajesAdmin() {
 
   const [modal, setModal] = useState<ModalTipo>(null)
   const [fichajeSeleccionado, setFichajeSeleccionado] = useState<FichajeActivo | null>(null)
+  // El botón de confirmar baja se habilita recién cuando el impacto está a la vista.
+  const [impactoListo, setImpactoListo] = useState(false)
 
   // --- Estado modal Nuevo Fichaje (multi-select) ---
   const [rolNuevo, setRolNuevo] = useState("JUGADOR")
@@ -174,6 +177,7 @@ export default function FichajesAdmin() {
 
   const abrirBaja = (f: FichajeActivo) => {
     setFichajeSeleccionado(f)
+    setImpactoListo(false)
     setModal('baja')
   }
 
@@ -181,9 +185,8 @@ export default function FichajesAdmin() {
     if (!fichajeSeleccionado) return
     setSaving(true)
     try {
-      await darBajaFichaje(fichajeSeleccionado.id_fichaje_rol, {
+      await darBajaDelClub(fichajeSeleccionado.id_club, fichajeSeleccionado.id_persona, {
         fecha_fin: fechaBaja,
-        actualizado_por: "admin",
       })
       recargarFichajes()
       cerrarModal()
@@ -394,12 +397,12 @@ export default function FichajesAdmin() {
       {modal === 'baja' && fichajeSeleccionado && (
         <div className={styles.overlay} onClick={cerrarModal}>
           <div className={styles.modalCard} onClick={e => e.stopPropagation()}>
-            <h2 className={styles.modalTitle}>Dar de Baja</h2>
-            <div className={styles.fichajeResumen}>
-              <p><strong>{fichajeSeleccionado.persona_apellido}, {fichajeSeleccionado.persona_nombre}</strong></p>
-              <p>DNI {fichajeSeleccionado.persona_documento} — <span className={styles.rolBadge}>{fichajeSeleccionado.rol}</span></p>
-              <p className={styles.fichajeDesde}>Fichado desde: {fichajeSeleccionado.fecha_inicio}</p>
-            </div>
+            <h2 className={styles.modalTitle}>Baja general del club</h2>
+            <ImpactoBajaClub
+              idClub={fichajeSeleccionado.id_club}
+              idPersona={fichajeSeleccionado.id_persona}
+              onCargado={preview => setImpactoListo(preview !== null)}
+            />
 
             <label className={styles.label}>Fecha de baja</label>
             <input
@@ -411,8 +414,8 @@ export default function FichajesAdmin() {
 
             <div className={styles.modalFooter}>
               <Button variant="outline" onClick={cerrarModal}>Cancelar</Button>
-              <Button variant="primary" onClick={handleDarDeBaja} disabled={saving}>
-                {saving ? "Procesando..." : "Confirmar Baja"}
+              <Button variant="primary" onClick={handleDarDeBaja} disabled={saving || !impactoListo}>
+                {saving ? "Procesando..." : "Confirmar baja general"}
               </Button>
             </div>
           </div>

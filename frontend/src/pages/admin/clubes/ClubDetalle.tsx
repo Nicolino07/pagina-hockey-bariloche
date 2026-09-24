@@ -1,15 +1,16 @@
 // ClubDetalle.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./ClubDetalle.module.css";
 
 import Modal from "../../../components/ui/modal/Modal";
 import Button from "../../../components/ui/button/Button";
 import PlantelEquipo from "../equipos/PlantelEquipo";
+import ImpactoBajaClub from "../../../components/fichajes/ImpactoBajaClub";
 
 import { crearEquipo, getEquiposByClub, updateEquipo, deleteEquipo } from "../../../api/equipos.api";
 import { getClubById, updateClub, subirLogoClub } from "../../../api/clubes.api";
-import { crearFichaje, getFichajesPorClub, darBajaFichaje, getPersonasDisponiblesParaFichar } from "../../../api/fichajes.api";
+import { crearFichaje, getFichajesPorClub, darBajaDelClub, getPersonasDisponiblesParaFichar } from "../../../api/fichajes.api";
 
 import type { Club } from "../../../types/club";
 import type { Equipo, EquipoCreate, EquipoUpdate } from "../../../types/equipo";
@@ -52,6 +53,54 @@ export default function ClubDetalle() {
   const [savingClub, setSavingClub] = useState(false);
   const [logoKey, setLogoKey] = useState(0);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  // Baja general: se confirma en un modal que muestra el impacto real, porque
+  // cierra TODOS los roles de la persona en el club y arrastra sus planteles.
+  const [personaABajar, setPersonaABajar] = useState<any | null>(null);
+  const [impactoBajaListo, setImpactoBajaListo] = useState(false);
+  const [bajandoPersona, setBajandoPersona] = useState(false);
+  const [busquedaFichados, setBusquedaFichados] = useState("");
+
+  /**
+   * Agrupa los fichajes por persona: una persona puede tener varios fichajes en
+   * el mismo club (uno por rol) y mostrarlos como tarjetas sueltas hacía que
+   * pareciera gente distinta, o que una baja no había funcionado.
+   * Acá queda una sola fila por persona con todos sus roles a la vista.
+   */
+  const fichadosAgrupados = useMemo(() => {
+    const porPersona = new Map<number, { persona: any; roles: any[] }>();
+
+    for (const f of fichajes) {
+      const actual = porPersona.get(f.id_persona);
+      if (actual) {
+        actual.roles.push(f);
+      } else {
+        porPersona.set(f.id_persona, { persona: f, roles: [f] });
+      }
+    }
+
+    const termino = busquedaFichados.trim().toLowerCase();
+    const filas = [...porPersona.values()].filter(({ persona }) => {
+      if (!termino) return true;
+      return (
+        `${persona.persona_apellido} ${persona.persona_nombre}`.toLowerCase().includes(termino) ||
+        String(persona.persona_documento).includes(termino)
+      );
+    });
+
+    filas.sort((a, b) =>
+      `${a.persona.persona_apellido} ${a.persona.persona_nombre}`.localeCompare(
+        `${b.persona.persona_apellido} ${b.persona.persona_nombre}`,
+        "es",
+      ),
+    );
+
+    for (const fila of filas) {
+      fila.roles.sort((x, y) => String(x.rol).localeCompare(String(y.rol), "es"));
+    }
+
+    return filas;
+  }, [fichajes, busquedaFichados]);
 
   const [form, setForm] = useState<EquipoCreate>({
     nombre: "", categoria: "MAYORES", division: null, genero: "FEMENINO", id_club: Number(id_club),
@@ -355,31 +404,56 @@ export default function ClubDetalle() {
 
       {showFichados && (
         <div className={styles.fichadosSection}>
-          <div className={styles.fichadosGrid}>
-            {fichajes.map((f) => (
-              <div key={f.id_fichaje_rol} className={styles.fichadoCard}>
-                <div>
-                  <span className={styles.fichadoName}>{f.persona_apellido}, {f.persona_nombre}</span>
-                  <div className={styles.fichadoTags}>
-                    <span className={`${styles.rolTag} ${styles[f.rol] || ''}`}>{f.rol}</span>
-                    <span className={styles.dateTag}>DNI: {f.persona_documento}</span>
-                  </div>
-                </div>
-                <button 
-                  className={styles.btnBaja} 
-                  onClick={async () => {
-                    if(confirm("¿Baja?")) {
-                      await darBajaFichaje(f.id_fichaje_rol, {
-                        fecha_fin: new Date().toISOString().split('T')[0],
-                        actualizado_por: ""
-                      });
-                      cargarFichajes();
-                    }
-                  }}
-                >Baja</button>
-              </div>
-            ))}
+          <div className={styles.fichadosHeader}>
+            <input
+              className={styles.fichadosSearch}
+              type="search"
+              placeholder="Buscar por apellido, nombre o DNI…"
+              value={busquedaFichados}
+              onChange={(e) => setBusquedaFichados(e.target.value)}
+            />
+            <span className={styles.fichadosCount}>
+              {fichadosAgrupados.length} {fichadosAgrupados.length === 1 ? "persona" : "personas"}
+            </span>
           </div>
+
+          {fichadosAgrupados.length === 0 ? (
+            <p className={styles.fichadosVacio}>
+              {busquedaFichados ? "Sin resultados para esa búsqueda." : "El club no tiene personas fichadas."}
+            </p>
+          ) : (
+            <ul className={styles.fichadosLista}>
+              {fichadosAgrupados.map(({ persona, roles }) => (
+                <li key={persona.id_persona} className={styles.fichadoFila}>
+                  <div className={styles.fichadoIdentidad}>
+                    <span className={styles.fichadoName}>
+                      {persona.persona_apellido}, {persona.persona_nombre}
+                    </span>
+                    <span className={styles.fichadoDni}>DNI {persona.persona_documento}</span>
+                  </div>
+
+                  <div className={styles.fichadoRoles}>
+                    {roles.map((f) => (
+                      <span key={f.id_fichaje_rol} className={styles.rolChip}>
+                        {ROL_LABELS[f.rol] ?? f.rol}
+                      </span>
+                    ))}
+                    <button
+                      type="button"
+                      className={styles.btnBajaFila}
+                      title={`Dar de baja a ${persona.persona_apellido}, ${persona.persona_nombre} de todo el club`}
+                      onClick={() => {
+                        setPersonaABajar(persona);
+                        setImpactoBajaListo(false);
+                      }}
+                    >
+                      Baja del club
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
@@ -608,6 +682,46 @@ export default function ClubDetalle() {
             <Button onClick={handleCreateEquipo} disabled={saving}>Crear</Button>
           </div>
         </div>
+      </Modal>
+
+      {/* MODAL BAJA GENERAL DEL CLUB */}
+      <Modal
+        open={personaABajar !== null}
+        title="Baja general del club"
+        onClose={() => setPersonaABajar(null)}
+      >
+        {personaABajar && (
+          <>
+            <ImpactoBajaClub
+              idClub={Number(id_club)}
+              idPersona={personaABajar.id_persona}
+              onCargado={(preview) => setImpactoBajaListo(preview !== null)}
+            />
+            <div className={styles.modalActions}>
+              <Button variant="secondary" onClick={() => setPersonaABajar(null)}>Cancelar</Button>
+              <Button
+                variant="danger"
+                disabled={bajandoPersona || !impactoBajaListo}
+                onClick={async () => {
+                  setBajandoPersona(true);
+                  try {
+                    await darBajaDelClub(Number(id_club), personaABajar.id_persona, {
+                      fecha_fin: new Date().toISOString().split('T')[0],
+                    });
+                    setPersonaABajar(null);
+                    cargarFichajes();
+                  } catch (e: any) {
+                    alert(e?.response?.data?.detail || "Error al dar de baja.");
+                  } finally {
+                    setBajandoPersona(false);
+                  }
+                }}
+              >
+                {bajandoPersona ? "Procesando..." : "Confirmar baja general"}
+              </Button>
+            </div>
+          </>
+        )}
       </Modal>
     </section>
   );

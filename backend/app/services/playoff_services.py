@@ -1,9 +1,11 @@
 """
 Servicios para generación y gestión de fixture de playoff (eliminación directa).
 """
+import logging
 import math
 import random
 from fastapi import HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.partido import Partido, PartidoDetallado
@@ -15,6 +17,8 @@ from app.models.torneo import Torneo
 from app.models.enums import RolTorneoTemporada
 from app.models.vistas import TablaPosicionesAnual
 from app.schemas.fixture_playoff import GenerarPlayoffRequest, PlayoffPreviewResponse
+
+logger = logging.getLogger(__name__)
 
 
 # Cantidad de equipos que clasifican según la ronda inicial elegida.
@@ -637,6 +641,68 @@ def _generar_playoff_manual(
     return listar_fixture_por_torneo(db, id_torneo)
 
 
+def _penales_del_partido(db: Session, partido: Partido) -> tuple[int, int] | None:
+    """
+    Penales convertidos por cada lado en la tanda de ESTE partido.
+
+    Devuelve `(penales_local, penales_visitante)` según las inscripciones del
+    propio partido, o `None` si no hay tanda cargada. El lado sale de
+    `id_inscripcion`, nunca del club: si se enfrentan dos equipos del mismo club
+    la comparación por club daría verdadero para los dos lados.
+    """
+    from app.models.penal_definicion import PenalDefinicion
+
+    if not partido.id_inscripcion_local or not partido.id_inscripcion_visitante:
+        return None
+
+    filas = (
+        db.query(PenalDefinicion.id_inscripcion, func.count(PenalDefinicion.id_penal_definicion))
+        .filter(
+            PenalDefinicion.id_partido == partido.id_partido,
+            PenalDefinicion.convertido.is_(True),
+        )
+        .group_by(PenalDefinicion.id_inscripcion)
+        .all()
+    )
+
+    hay_tanda = (
+        db.query(PenalDefinicion)
+        .filter(PenalDefinicion.id_partido == partido.id_partido)
+        .first()
+        is not None
+    )
+    if not hay_tanda:
+        return None
+
+    convertidos = {insc: total for insc, total in filas}
+    return (
+        convertidos.get(partido.id_inscripcion_local, 0),
+        convertidos.get(partido.id_inscripcion_visitante, 0),
+    )
+
+
+def _ganador_por_penales(db: Session, partido: Partido) -> int | None:
+    """
+    Equipo que gana la tanda de este partido, o `None` si no hay tanda cargada
+    o si quedó empatada (una tanda empatada no define nada).
+
+    Devuelve el `id_equipo` del partido donde se pateó la tanda. En una serie de
+    ida y vuelta eso es el partido de VUELTA, donde los equipos están invertidos
+    respecto del cruce: por eso se usan `id_equipo_local` / `id_equipo_visitante`
+    de ESE partido y no los de la llave.
+    """
+    penales = _penales_del_partido(db, partido)
+    if penales is None:
+        return None
+
+    pen_local, pen_visitante = penales
+    if pen_local > pen_visitante:
+        return partido.id_equipo_local
+    if pen_visitante > pen_local:
+        return partido.id_equipo_visitante
+    return None
+
+
 def avanzar_ganador(db: Session, id_fixture_partido: int, username: str) -> None:
     """
     Cuando un partido de playoff se marca como TERMINADO,
@@ -681,7 +747,22 @@ def avanzar_ganador(db: Session, id_fixture_partido: int, username: str) -> None
         id_ganador = fp.id_equipo_visitante
         id_perdedor = fp.id_equipo_local
     else:
-        return  # Empate — no avanza automáticamente
+        # Empatado en el marcador: lo define la tanda de penales, si está
+        # cargada. Los penales no tocan el marcador; sólo deciden quién pasa.
+        id_ganador = _ganador_por_penales(db, fp)
+        if id_ganador is None:
+            logger.info(
+                "Cruce %s empatado y sin definición por penales: el ganador "
+                "queda pendiente de definición manual. Se puede cargar la tanda "
+                "en la planilla del partido.",
+                fp.id_partido,
+            )
+            return  # Empate sin tanda — no avanza automáticamente
+        id_perdedor = (
+            fp.id_equipo_visitante
+            if id_ganador == fp.id_equipo_local
+            else fp.id_equipo_local
+        )
 
     _asignar_ganador_siguiente_ronda(db, fp, ronda, id_ganador, username)
 
@@ -845,7 +926,25 @@ def _avanzar_ganador_ida_vuelta(
         id_ganador = par[0].id_equipo_visitante
         id_perdedor = par[0].id_equipo_local
     else:
-        return  # Empate global — no avanza automáticamente
+        # Serie empatada en el global: la define la tanda, que se patea en el
+        # partido de VUELTA. Ahí los equipos están invertidos respecto de la
+        # llave, así que `_ganador_por_penales` resuelve contra par[1] y
+        # devuelve un id_equipo, que sirve igual para cualquiera de los dos.
+        id_ganador = _ganador_por_penales(db, par[1])
+        if id_ganador is None:
+            logger.info(
+                "Serie %s-%s empatada y sin definición por penales: el ganador "
+                "queda pendiente de definición manual. Se puede cargar la tanda "
+                "en la planilla del partido de vuelta.",
+                par[0].id_partido,
+                par[1].id_partido,
+            )
+            return  # Empate global sin tanda — no avanza automáticamente
+        id_perdedor = (
+            par[0].id_equipo_visitante
+            if id_ganador == par[0].id_equipo_local
+            else par[0].id_equipo_local
+        )
 
     # Perdedor de la semifinal → partido por el 3er puesto (si existe)
     _asignar_perdedor_tercer_puesto(db, ronda, numero_llave, id_perdedor, username)

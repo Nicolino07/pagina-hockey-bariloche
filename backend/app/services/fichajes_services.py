@@ -7,6 +7,10 @@ from app.models.persona_rol import PersonaRol
 from app.core.exceptions  import ValidationError
 from app.models.persona import Persona
 from app.models.plantel_integrante import PlantelIntegrante
+from app.models.plantel import Plantel
+from app.models.equipo import Equipo
+from app.models.torneo import Torneo
+from app.models.club import Club
 from app.models.enums import es_rol_cuerpo_tecnico
 from fastapi import HTTPException, status
 
@@ -152,10 +156,19 @@ def dar_baja_fichaje(db: Session, id_fichaje_rol: int, fecha_fin: date, actualiz
         # 3. CASCADA LÓGICA: 
         # Buscamos si esta persona está en algún plantel usando este fichaje específico
         # y que aún no tenga fecha de baja.
-        integrantes_activos = db.query(PlantelIntegrante).filter(
-            PlantelIntegrante.id_fichaje_rol == id_fichaje_rol,
-            PlantelIntegrante.fecha_baja == None
-        ).all()
+        # Sólo los planteles abiertos: una nómina cerrada es historial y no se
+        # toca (y tampoco bloquea un pase, ver `_planteles_de_fichaje`).
+        integrantes_activos = (
+            db.query(PlantelIntegrante)
+            .join(Plantel, PlantelIntegrante.id_plantel == Plantel.id_plantel)
+            .filter(
+                PlantelIntegrante.id_fichaje_rol == id_fichaje_rol,
+                PlantelIntegrante.fecha_baja.is_(None),
+                Plantel.activo.is_(True),
+                Plantel.borrado_en.is_(None),
+            )
+            .all()
+        )
 
         for integrante in integrantes_activos:
             integrante.fecha_baja = fecha_fin
@@ -169,6 +182,185 @@ def dar_baja_fichaje(db: Session, id_fichaje_rol: int, fecha_fin: date, actualiz
     except Exception as e:
         db.rollback()
         # Esto te dirá exactamente qué constraint falló en la consola
+        print(f"Error en DB: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Conflicto de integridad: {str(e)}"
+        )
+
+
+def _planteles_de_fichaje(db: Session, id_fichaje_rol: int) -> tuple[list[dict], list[dict]]:
+    """
+    Devuelve los planteles donde la persona figura activa por este fichaje,
+    separados en dos listas: `(impactados, historial)`.
+
+    - **impactados**: planteles abiertos. Son los que la baja arrastra.
+    - **historial**: planteles ya cerrados. La baja NO los toca: una nómina
+      cerrada es el registro de lo que pasó y la persona tiene que seguir
+      figurando ahí como integrante.
+
+    Dejarlos intactos tampoco traba un pase a otro club: el trigger
+    `validar_rol_unico_por_club` sólo mira planteles con `activo = true`.
+    """
+    filas = (
+        db.query(PlantelIntegrante, Plantel, Equipo, Torneo)
+        .join(Plantel, PlantelIntegrante.id_plantel == Plantel.id_plantel)
+        .join(Equipo, Plantel.id_equipo == Equipo.id_equipo)
+        .outerjoin(Torneo, Plantel.id_torneo == Torneo.id_torneo)
+        .filter(
+            PlantelIntegrante.id_fichaje_rol == id_fichaje_rol,
+            PlantelIntegrante.fecha_baja.is_(None),
+            Plantel.borrado_en.is_(None),
+        )
+        .order_by(Equipo.nombre, Plantel.id_plantel)
+        .all()
+    )
+
+    impactados: list[dict] = []
+    historial: list[dict] = []
+
+    for integrante, plantel, equipo, torneo in filas:
+        destino = impactados if plantel.activo else historial
+        destino.append({
+            "id_plantel_integrante": integrante.id_plantel_integrante,
+            "id_plantel": plantel.id_plantel,
+            "plantel_nombre": plantel.nombre,
+            "id_equipo": equipo.id_equipo,
+            "equipo_nombre": equipo.nombre,
+            "equipo_categoria": equipo.categoria,
+            "equipo_division": equipo.division,
+            "equipo_genero": equipo.genero,
+            "rol_en_plantel": integrante.rol_en_plantel,
+            "numero_camiseta": integrante.numero_camiseta,
+            "id_torneo": plantel.id_torneo,
+            "torneo_nombre": torneo.nombre if torneo else None,
+            "fecha_alta": integrante.fecha_alta,
+            "plantel_cerrado": not plantel.activo,
+        })
+
+    return impactados, historial
+
+
+def _fichajes_activos_en_club(db: Session, id_persona: int, id_club: int) -> list[FichajeRol]:
+    """Fichajes vigentes de una persona en un club, uno por rol."""
+    return (
+        db.query(FichajeRol)
+        .filter(
+            FichajeRol.id_persona == id_persona,
+            FichajeRol.id_club == id_club,
+            FichajeRol.activo.is_(True),
+            FichajeRol.fecha_fin.is_(None),
+        )
+        .order_by(FichajeRol.rol)
+        .all()
+    )
+
+
+def preview_baja_club(db: Session, id_persona: int, id_club: int) -> dict:
+    """
+    Calcula el impacto de la baja general de una persona en un club, sin tocar
+    nada.
+
+    La baja general cierra **todos** los roles vigentes de la persona en el club
+    y, por cascada, la saca de todos los planteles que dependen de esos roles,
+    sin importar el equipo ni el torneo. Este preview existe para que el usuario
+    vea exactamente eso antes de confirmar y, si sólo quiere sacarla de un
+    equipo puntual, use la baja del integrante en ese plantel.
+    """
+    persona = db.get(Persona, id_persona)
+    if not persona:
+        raise HTTPException(status_code=404, detail="Persona no encontrada")
+
+    club = db.get(Club, id_club)
+    if not club:
+        raise HTTPException(status_code=404, detail="Club no encontrado")
+
+    roles = []
+    for fichaje in _fichajes_activos_en_club(db, id_persona, id_club):
+        impactados, historial = _planteles_de_fichaje(db, fichaje.id_fichaje_rol)
+        roles.append({
+            "id_fichaje_rol": fichaje.id_fichaje_rol,
+            "rol": fichaje.rol,
+            "fecha_inicio": fichaje.fecha_inicio,
+            "planteles": impactados,
+            "planteles_historial": historial,
+        })
+
+    return {
+        "id_persona": id_persona,
+        "persona_nombre": persona.nombre,
+        "persona_apellido": persona.apellido,
+        "persona_documento": persona.documento,
+        "id_club": id_club,
+        "club_nombre": club.nombre,
+        "roles": roles,
+        "total_planteles": sum(len(r["planteles"]) for r in roles),
+        "total_historial": sum(len(r["planteles_historial"]) for r in roles),
+    }
+
+
+def dar_baja_club(
+    db: Session,
+    id_persona: int,
+    id_club: int,
+    fecha_fin: date,
+    actualizado_por: str | None,
+) -> dict:
+    """
+    Baja general: cierra todos los roles vigentes de la persona en el club y la
+    saca en cascada de todos los planteles que dependían de esos roles.
+
+    Para sacar a alguien de un solo equipo hay que usar la baja del integrante
+    en ese plantel, que no toca el vínculo con el club.
+    """
+    fichajes = _fichajes_activos_en_club(db, id_persona, id_club)
+
+    if not fichajes:
+        raise HTTPException(
+            status_code=404,
+            detail="La persona no tiene fichajes vigentes en este club",
+        )
+
+    try:
+        roles_dados_de_baja: list[str] = []
+        integrantes_dados_de_baja = 0
+
+        for fichaje in fichajes:
+            fichaje.activo = False
+            fichaje.fecha_fin = fecha_fin
+            fichaje.actualizado_por = actualizado_por
+            roles_dados_de_baja.append(getattr(fichaje.rol, "value", str(fichaje.rol)))
+
+            integrantes_activos = (
+                db.query(PlantelIntegrante)
+                .join(Plantel, PlantelIntegrante.id_plantel == Plantel.id_plantel)
+                .filter(
+                    PlantelIntegrante.id_fichaje_rol == fichaje.id_fichaje_rol,
+                    PlantelIntegrante.fecha_baja.is_(None),
+                    # Los planteles cerrados son historial: quedan como están.
+                    Plantel.activo.is_(True),
+                    Plantel.borrado_en.is_(None),
+                )
+                .all()
+            )
+
+            for integrante in integrantes_activos:
+                integrante.fecha_baja = fecha_fin
+                integrante.actualizado_por = actualizado_por
+                integrantes_dados_de_baja += 1
+
+        db.commit()
+
+        return {
+            "id_persona": id_persona,
+            "id_club": id_club,
+            "roles_dados_de_baja": roles_dados_de_baja,
+            "planteles_dados_de_baja": integrantes_dados_de_baja,
+            "fecha_fin": fecha_fin,
+        }
+
+    except Exception as e:
+        db.rollback()
         print(f"Error en DB: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

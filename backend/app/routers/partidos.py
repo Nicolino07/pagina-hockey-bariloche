@@ -29,7 +29,7 @@ router = APIRouter(
 )
 
 
-@router.get("/recientes")
+@router.get("/recientes", response_model=List[PartidoDetalle])
 def listar_partidos_recientes(
     torneo_id: int = Query(None),
     db: Session = Depends(get_db)
@@ -37,13 +37,24 @@ def listar_partidos_recientes(
     """
     Devuelve los partidos más recientes.
     Se puede filtrar por torneo con el parámetro `torneo_id`. Acceso público.
+
+    El `response_model` expone la definición por penales, que se calcula con
+    properties del modelo. El marcador no la incluye nunca: va en
+    `penales_local` / `penales_visitante`, aparte.
     """
     partidos = get_ultimos_partidos(db, torneo_id=torneo_id)
     return partidos
 
-@router.get("/{partido_id}")
+@router.get("/{partido_id}", response_model=PartidoDetalle)
 def detalle_partido(partido_id: int, db: Session = Depends(get_db)):
-    """Devuelve el detalle completo de un partido por su ID. Acceso público."""
+    """
+    Devuelve el detalle completo de un partido por su ID. Acceso público.
+
+    El `response_model` es necesario para exponer la definición por penales:
+    se calcula con properties del modelo y sin él FastAPI serializaría sólo las
+    columnas. Los penales van SIEMPRE en campos aparte; `goles_local` y
+    `goles_visitante` no los incluyen nunca.
+    """
     partido = get_partido_by_id(db, partido_id)
     if not partido:
         raise HTTPException(status_code=404, detail="Partido no encontrado")
@@ -139,7 +150,21 @@ def otorgar_puntos(
     """
     Otorga puntos a un partido mediante goles por defecto
     (descalificación, no presentación, abandono, etc.).
-    Crea el partido si no existe, cambia el estado a TERMINADO y recalcula posiciones.
+
+    **Anula los goles que ya estuvieran cargados**: el resultado pasa a ser
+    exclusivamente los goles por defecto, para que el marcador y la diferencia de
+    gol no queden con doble carga. La convocatoria y las tarjetas se conservan.
+
+    Cambia el estado a TERMINADO y recalcula posiciones.
     Requiere rol EDITOR o superior.
     """
-    return otorgar_puntos_partido(db, id_fixture_partido, data.goles_local, data.goles_visitante, current_user)
+    return otorgar_puntos_partido(
+        db,
+        id_fixture_partido,
+        data.goles_local,
+        data.goles_visitante,
+        current_user,
+        motivo=data.motivo,
+        descripcion=data.descripcion,
+        sin_puntos=data.sin_puntos,
+    )

@@ -62,3 +62,9 @@ class ParticipanPartido(Base, AuditFieldsMixin):
         back_populates="participante_partido",
         cascade="all, delete-orphan"
     )
+
+    penales = relationship(
+        "PenalDefinicion",
+        back_populates="participante_partido",
+        cascade="all, delete-orphan"
+    )

@@ -104,14 +104,25 @@ export type TipoOrigenSuspension = typeof ORIGENES_SUSPENSION[number]
 // =====================
 // Gol
 // =====================
+// `DP` (definición por penales) ya NO es un tipo de gol: la tanda vive en su
+// propia tabla (`penal_definicion`) porque no suma al marcador, ni al ranking de
+// goleadores, ni a la diferencia de gol. El valor sigue existiendo en el enum de
+// la base por compatibilidad, pero no se puede elegir desde la interfaz.
 export const TIPOS_GOL = [
   "GJ",
   "GC",
   "GP",
-  "DP",
 ] as const
 
 export type TipoGol = typeof TIPOS_GOL[number]
+
+/** Etiquetas legibles para el selector de tipo de gol. */
+export const TIPOS_GOL_LABEL: Record<string, string> = {
+  GJ: "Jugada",
+  GC: "Corto",
+  GP: "Penal",
+  DP: "Definición por penales (histórico)",
+}
 
 export const ESTADOS_GOL = [
   "VALIDO",
@@ -154,3 +165,37 @@ export const TIPOS_USUARIO = [
 ] as const
 
 export type TipoUsuario = typeof TIPOS_USUARIO[number]
+
+// =====================
+// Entrega de puntos (walkover)
+// =====================
+export const MOTIVOS_PUNTOS = [
+  "NO_PRESENTO_LOCAL",
+  "NO_PRESENTO_VISITANTE",
+  "NO_PRESENTARON_AMBOS",
+  "DESCALIFICADO_LOCAL",
+  "DESCALIFICADO_VISITANTE",
+  "OTRO",
+] as const
+
+export type MotivoPuntos = typeof MOTIVOS_PUNTOS[number]
+
+/**
+ * Etiquetas del motivo con los nombres de equipo interpolados.
+ * Se usan tanto en el panel de carga como en las vistas públicas.
+ */
+export function etiquetaMotivoPuntos(
+  motivo: string | null | undefined,
+  equipoLocal = "El equipo local",
+  equipoVisitante = "El equipo visitante",
+): string | null {
+  switch (motivo) {
+    case "NO_PRESENTO_LOCAL":       return `${equipoLocal} no se presentó`
+    case "NO_PRESENTO_VISITANTE":   return `${equipoVisitante} no se presentó`
+    case "NO_PRESENTARON_AMBOS":    return "Ningún equipo se presentó"
+    case "DESCALIFICADO_LOCAL":     return `${equipoLocal} fue descalificado`
+    case "DESCALIFICADO_VISITANTE": return `${equipoVisitante} fue descalificado`
+    case "OTRO":                    return "Puntos otorgados por decisión administrativa"
+    default:                        return null
+  }
+}

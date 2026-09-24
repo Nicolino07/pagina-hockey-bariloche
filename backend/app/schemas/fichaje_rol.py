@@ -46,3 +46,70 @@ class FichajeConPersona(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+
+class PlantelImpactadoBaja(BaseModel):
+    """Un plantel del que la persona sale por efecto cascada de la baja."""
+    id_plantel_integrante: int
+    id_plantel: int
+    plantel_nombre: str
+    id_equipo: int
+    equipo_nombre: str
+    equipo_categoria: Optional[str] = None
+    equipo_division: Optional[str] = None
+    equipo_genero: Optional[str] = None
+    rol_en_plantel: str
+    numero_camiseta: Optional[int] = None
+    id_torneo: Optional[int] = None
+    torneo_nombre: Optional[str] = None
+    fecha_alta: date
+    plantel_cerrado: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RolImpactadoBaja(BaseModel):
+    """Un rol vigente en el club que la baja general va a cerrar."""
+    id_fichaje_rol: int
+    rol: str
+    fecha_inicio: date
+    #: Planteles abiertos, de los que la persona efectivamente sale.
+    planteles: list[PlantelImpactadoBaja]
+    #: Planteles ya cerrados: la baja no los toca, quedan como historial.
+    planteles_historial: list[PlantelImpactadoBaja] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BajaClubPreview(BaseModel):
+    """
+    Impacto de la baja general de una persona en un club, para mostrarle al
+    usuario antes de confirmar: cierra TODOS sus roles vigentes en el club y la
+    saca de los planteles **abiertos** que dependen de ellos.
+
+    Los planteles ya cerrados no se tocan: son el registro histórico del torneo
+    y la persona sigue figurando en ellos como integrante.
+    """
+    id_persona: int
+    persona_nombre: str
+    persona_apellido: str
+    persona_documento: int
+    id_club: int
+    club_nombre: str
+    roles: list[RolImpactadoBaja]
+    total_planteles: int
+    total_historial: int = 0
+
+
+class BajaClubRequest(BaseModel):
+    fecha_fin: date
+    actualizado_por: Optional[str] = Field(None, max_length=100)
+
+
+class BajaClubResultado(BaseModel):
+    id_persona: int
+    id_club: int
+    roles_dados_de_baja: list[str]
+    planteles_dados_de_baja: int
+    fecha_fin: date

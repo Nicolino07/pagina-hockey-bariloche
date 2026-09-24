@@ -1,4 +1,5 @@
 import { usePartidos } from "../../hooks/usePartidos";
+import { etiquetaMotivoPuntos } from "../../constants/enums";
 import styles from "./PartidoDetalleModal.module.css";
 
 interface Props {
@@ -55,6 +56,22 @@ export default function PartidoDetalleModal({ partido, onClose }: Props) {
     }));
   };
 
+  /**
+   * Parsea la lista de penales de la tanda: "Apellido|Nombre|convertido".
+   * Va aparte de goles y tarjetas a propósito: un penal de la tanda no es un
+   * gol y no aparece mezclado con ellos.
+   */
+  const parsePenales = (str?: string | null) => {
+    if (!str) return [];
+    return str.split("; ").map(item => {
+      const parts = item.split("|");
+      return {
+        jugador: `${parts[0]}, ${parts[1]}`,
+        convertido: parts[2] === "true",
+      };
+    });
+  };
+
   const renderIconoTarjeta = (tipo?: string) => {
     switch (tipo) {
       case "VERDE":    return <span className={`${styles.cardIcon} ${styles.verde}`} />;
@@ -65,6 +82,17 @@ export default function PartidoDetalleModal({ partido, onClose }: Props) {
   };
 
   const esSub12 = partido.categoria_torneo === "SUB_12";
+
+  // Entrega de puntos: se muestra el motivo, nunca la descripción (interna).
+  const motivoPuntos = etiquetaMotivoPuntos(
+    partido.motivo_puntos,
+    partido.equipo_local_nombre,
+    partido.equipo_visitante_nombre,
+  );
+
+  const hubopenales = Boolean(partido.hubo_definicion_por_penales);
+  const penalesLocal = parsePenales(partido.lista_penales_local);
+  const penalesVisitante = parsePenales(partido.lista_penales_visitante);
 
   const equipos = [
     {
@@ -112,7 +140,14 @@ export default function PartidoDetalleModal({ partido, onClose }: Props) {
         {/* Score banner */}
         <div className={styles.mainScoreBanner}>
           <div className={styles.bigTeamName}>{partido.equipo_local_nombre}</div>
-          <div className={styles.bigScore}>{partido.goles_local} - {partido.goles_visitante}</div>
+          <div className={styles.scoreCol}>
+            <div className={styles.bigScore}>{partido.goles_local} - {partido.goles_visitante}</div>
+            {hubopenales && (
+              <div className={styles.penalesScore}>
+                ({partido.penales_local}-{partido.penales_visitante} pen.)
+              </div>
+            )}
+          </div>
           <div className={styles.bigTeamName}>{partido.equipo_visitante_nombre}</div>
         </div>
 
@@ -123,6 +158,21 @@ export default function PartidoDetalleModal({ partido, onClose }: Props) {
             <span>Árbitros: <strong>{partido.arbitros || "No designados"}</strong></span>
           </div>
         </div>
+
+        {/* Entrega de puntos: explica por qué el marcador no tiene goleadores. */}
+        {motivoPuntos && (
+          <div className={styles.walkoverRibbon}>
+            <span className={styles.walkoverIcon}>⚠️</span>
+            <span>
+              {motivoPuntos}
+              {partido.sin_puntos && (
+                <small className={styles.walkoverExtra}>
+                  No se otorgaron puntos a ninguno de los dos equipos.
+                </small>
+              )}
+            </span>
+          </div>
+        )}
 
         {/* Cuerpo */}
         <div className={styles.detailsBody}>
@@ -195,6 +245,44 @@ export default function PartidoDetalleModal({ partido, onClose }: Props) {
             ))
           )}
         </div>
+
+        {/* Definición por penales: sección propia, separada de goles y tarjetas.
+            No suma al marcador ni al ranking de goleadores. */}
+        {hubopenales && !esSub12 && (
+          <div className={styles.penalesSection}>
+            <h3 className={styles.penalesTitulo}>
+              🥅 Definición por penales
+              <span className={styles.penalesResultado}>
+                {partido.penales_local} - {partido.penales_visitante}
+              </span>
+            </h3>
+            <p className={styles.penalesNota}>
+              No cuenta para el marcador ni para el ranking de goleadores.
+            </p>
+            <div className={styles.penalesGrid}>
+              {[
+                { equipo: partido.equipo_local_nombre, lista: penalesLocal },
+                { equipo: partido.equipo_visitante_nombre, lista: penalesVisitante },
+              ].map(({ equipo, lista }, idx) => (
+                <div key={idx} className={styles.penalesCol}>
+                  <label>{equipo}</label>
+                  {lista.length === 0 ? (
+                    <span className={styles.penalesVacio}>Sin ejecutantes</span>
+                  ) : (
+                    lista.map((pen, i) => (
+                      <div key={i} className={styles.penalRow}>
+                        <span className={pen.convertido ? styles.penalOk : styles.penalFail}>
+                          {pen.convertido ? "✓" : "✗"}
+                        </span>
+                        <span>{pen.jugador}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <div className={styles.modalFooter}>

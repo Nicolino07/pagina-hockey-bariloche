@@ -140,11 +140,28 @@ export const getHistorialPorEquipo = async (id_equipo: number, limit = 10) => {
  * Otorga puntos a un partido mediante goles por defecto
  * (descalificación, no presentación, abandono, etc.)
  */
-export const otorgarPuntosPartido = async (id_fixture_partido: number, golesLocal: number, golesVisitante: number) => {
+/**
+ * Otorga puntos por defecto (walkover). El motivo es obligatorio y se publica en
+ * el detalle del partido; la descripción es interna y no se muestra.
+ *
+ * Ojo: la operación **anula los goles que el partido tuviera cargados**, para
+ * que el marcador no quede con doble carga.
+ */
+export const otorgarPuntosPartido = async (
+  id_fixture_partido: number,
+  golesLocal: number,
+  golesVisitante: number,
+  motivo: string,
+  descripcion?: string,
+  sinPuntos = false,
+) => {
   try {
     const response = await api.post(`/partidos/fixture/${id_fixture_partido}/otorgar-puntos`, {
       goles_local: golesLocal,
       goles_visitante: golesVisitante,
+      motivo,
+      descripcion: descripcion?.trim() || null,
+      sin_puntos: sinPuntos,
     }, {
       withCredentials: true,
       headers: {

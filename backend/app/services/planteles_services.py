@@ -381,6 +381,103 @@ def baja_integrante(
     integrante.actualizado_por = current_user.username
 
 
+def reactivar_integrante(
+    db: Session,
+    id_integrante: int,
+    current_user,
+) -> PlantelIntegrante:
+    """
+    Deshace la baja de un integrante del plantel, devolviéndolo a la nómina.
+
+    Conserva la `fecha_alta` original: la baja se toma como un error de carga,
+    no como una salida y un reingreso, así que el histórico no se altera.
+
+    Se rechaza si el plantel ya está cerrado (misma regla que el alta y la baja:
+    una nómina cerrada no se toca) o si la persona dejó de tener un fichaje
+    vigente en el club con ese rol, porque entonces no puede estar en la nómina.
+    """
+    integrante = db.get(PlantelIntegrante, id_integrante)
+
+    if not integrante:
+        raise NotFoundError("Integrante no encontrado")
+
+    if integrante.fecha_baja is None:
+        raise ValidationError("El integrante ya está activo en el plantel")
+
+    plantel = db.get(Plantel, integrante.id_plantel)
+    if plantel is not None and not plantel.activo:
+        raise ValidationError(
+            "El plantel está cerrado y no se puede modificar. "
+            "Si el torneo terminó, su nómina queda fija."
+        )
+
+    equipo = db.get(Equipo, plantel.id_equipo) if plantel is not None else None
+    if equipo is None:
+        raise NotFoundError("No se encontró el equipo del plantel")
+
+    # El vínculo con el club tiene que seguir vigente para ese rol: si se dio de
+    # baja el fichaje, primero hay que volver a ficharla.
+    fichaje = (
+        db.query(FichajeRol)
+        .filter(
+            FichajeRol.id_persona == integrante.id_persona,
+            FichajeRol.id_club == equipo.id_club,
+            FichajeRol.rol == integrante.rol_en_plantel,
+            FichajeRol.activo.is_(True),
+            FichajeRol.fecha_fin.is_(None),
+        )
+        .first()
+    )
+
+    if not fichaje:
+        rol = getattr(integrante.rol_en_plantel, "value", integrante.rol_en_plantel)
+        raise ValidationError(
+            f"La persona ya no tiene un fichaje vigente en el club con el rol "
+            f"{rol}. Hay que volver a ficharla antes de reincorporarla al plantel."
+        )
+
+    # Una suspensión vigente impide estar en la nómina, igual que en el alta.
+    from app.services.suspensiones_services import listar_suspensiones_activas_por_personas
+    suspensiones = listar_suspensiones_activas_por_personas(
+        db,
+        [integrante.id_persona],
+        rol=integrante.rol_en_plantel,
+        tipo_suspension=TipoSuspension.POR_FECHA,
+    )
+    activas = suspensiones.get(integrante.id_persona)
+    if activas:
+        s = activas[0]
+        raise ConflictError(
+            f"No se puede reincorporar al plantel: suspensión activa hasta "
+            f"{s.fecha_fin_suspension} ({s.motivo})."
+        )
+
+    integrante.fecha_baja = None
+    integrante.id_fichaje_rol = fichaje.id_fichaje_rol
+    integrante.actualizado_en = datetime.utcnow()
+    integrante.actualizado_por = current_user.username
+
+    try:
+        db.flush()
+    except DBAPIError as e:
+        db.rollback()
+        mensaje = str(e.orig).lower() if e.orig else str(e).lower()
+
+        if "otro equipo del mismo club" in mensaje:
+            raise ConflictError(
+                "La persona ya está en otro equipo del mismo club para este torneo"
+            )
+
+        if "rol" in mensaje and "otro club" in mensaje:
+            raise ConflictError(
+                "La persona ya tiene ese rol activo en otro club"
+            )
+
+        raise ValidationError("No se pudo reactivar el integrante del plantel")
+
+    return integrante
+
+
 def obtener_plantel(
     db: Session,
     id_plantel: int,

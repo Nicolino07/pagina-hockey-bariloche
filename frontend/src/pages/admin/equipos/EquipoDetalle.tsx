@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { getFichajesPorClub } from "../../../api/fichajes.api";
 import {
   bajaIntegrantePlantel,
+  reactivarIntegrantePlantel,
   createPlantel,
   getPlantelesDeEquipo,
   getIntegrantesByPlantel,
@@ -96,6 +97,8 @@ export default function EquipoDetalle() {
   // ── Integrantes del plantel seleccionado ───────────────────
   const [integrantes, setIntegrantes] = useState<PlantelActivoIntegrante[]>([]);
   const [loadingIntegrantes, setLoadingIntegrantes] = useState(false);
+  // IDs con una reactivación en vuelo, para deshabilitar su botón.
+  const [reactivando, setReactivando] = useState<Set<number>>(new Set());
 
   // ── Modales ────────────────────────────────────────────────
   type ModalType =
@@ -188,7 +191,9 @@ export default function EquipoDetalle() {
   useEffect(() => {
     if (!plantelSeleccionado) { setIntegrantes([]); return; }
     setLoadingIntegrantes(true);
-    getIntegrantesByPlantel(plantelSeleccionado.id_plantel, plantelSeleccionado.activo)
+    // Traemos también los dados de baja: se muestran grisados y, si el plantel
+    // sigue abierto, con el botón para deshacer la baja.
+    getIntegrantesByPlantel(plantelSeleccionado.id_plantel, false)
       .then(data => setIntegrantes(mapIntegrantes(data)))
       .catch(console.error)
       .finally(() => setLoadingIntegrantes(false));
@@ -197,6 +202,13 @@ export default function EquipoDetalle() {
   const integrantesValidos = useMemo(
     () => integrantes.filter(i => i.id_plantel_integrante !== null),
     [integrantes]
+  );
+
+  // Para los filtros de alta sólo cuentan los que están efectivamente en la
+  // nómina: a alguien dado de baja sí se lo puede volver a ofrecer.
+  const integrantesActivos = useMemo(
+    () => integrantesValidos.filter(i => !i.fecha_baja),
+    [integrantesValidos]
   );
 
   // ── Fichajes para modal agregar ────────────────────────────
@@ -231,11 +243,11 @@ export default function EquipoDetalle() {
   // Quien ya integra el plantel activo con ese rol no debe ofrecerse de nuevo.
   const yaEnPlantelPorRol = useMemo(
     () => new Set(
-      integrantesValidos
+      integrantesActivos
         .filter(i => i.rol_en_plantel === rolSeleccionado)
         .map(i => i.id_persona)
     ),
-    [integrantesValidos, rolSeleccionado]
+    [integrantesActivos, rolSeleccionado]
   );
 
   const fichajesFiltrados = useMemo(() => {
@@ -268,7 +280,7 @@ export default function EquipoDetalle() {
       const data = await getIntegrantesByPlantel(Number(idOrigenStr));
       // Los que ya están activos en el destino se omiten: no tiene sentido
       // ofrecer duplicarlos.
-      const yaEstan = new Set(integrantesValidos.map(i => i.id_persona));
+      const yaEstan = new Set(integrantesActivos.map(i => i.id_persona));
       const preview = data.filter(i => !yaEstan.has(i.id_persona));
       setCopiaPreview(preview);
       setCopiaSeleccionados(new Set(preview.map(i => i.id_plantel_integrante)));
@@ -312,7 +324,7 @@ export default function EquipoDetalle() {
           }).then(() => `${i.persona?.apellido}, ${i.persona?.nombre}`)
         )
       );
-      const updated = await getIntegrantesByPlantel(plantelSeleccionado.id_plantel);
+      const updated = await getIntegrantesByPlantel(plantelSeleccionado.id_plantel, false);
       setIntegrantes(mapIntegrantes(updated));
 
       const ok = resultados.filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled").map(r => r.value);
@@ -445,6 +457,26 @@ export default function EquipoDetalle() {
     }
   };
 
+  const handleReactivar = async (integrante: PlantelActivoIntegrante) => {
+    const id = integrante.id_plantel_integrante;
+    if (!id || !plantelSeleccionado) return;
+
+    setReactivando(prev => new Set(prev).add(id));
+    try {
+      await reactivarIntegrantePlantel(id);
+      const updated = await getIntegrantesByPlantel(plantelSeleccionado.id_plantel, false);
+      setIntegrantes(mapIntegrantes(updated));
+    } catch (err: any) {
+      alert(`No se pudo deshacer la baja: ${getErrorMessage(err, "Error del servidor")}`);
+    } finally {
+      setReactivando(prev => {
+        const siguiente = new Set(prev);
+        siguiente.delete(id);
+        return siguiente;
+      });
+    }
+  };
+
   if (loadingPlanteles) return <div className={styles.empty}>Cargando...</div>;
 
   const plantelActivo = plantelSeleccionado?.activo ?? false;
@@ -569,6 +601,8 @@ export default function EquipoDetalle() {
             <PlantelLista
               integrantes={integrantesValidos}
               editable={plantelActivo}
+              onReactivar={handleReactivar}
+              reactivando={reactivando}
               onEliminar={i => {
                 if (i.id_plantel_integrante) {
                   setIntegranteAEliminar({

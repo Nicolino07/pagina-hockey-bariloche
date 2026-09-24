@@ -9,7 +9,7 @@ import Button from "../../../components/ui/button/Button";
 import styles from "./PartidoPlanilla.module.css";
 import { getPersonasArbitro } from "../../../api/vistas/personas.api";
 import type { PersonasArbitro, PlantelActivoIntegrante } from "../../../types/vistas";
-import { TIPOS_GOL, TIPOS_TARJETA } from "../../../constants/enums";
+import { TIPOS_GOL, TIPOS_GOL_LABEL, TIPOS_TARJETA } from "../../../constants/enums";
 import { obtenerSuspensionesActivasPorPersonas } from "../../../api/suspensiones.api";
 import { mensajeDeError, requiereConfirmacion } from "../../../utils/errores";
 
@@ -20,6 +20,16 @@ interface Gol {
   cuarto: string | number;
   referencia_gol: string;
   es_autogol: boolean;
+}
+
+/**
+ * Un penal de la definición por penales (shoot-out).
+ * NO es un gol: no suma al marcador, ni al ranking de goleadores, ni a la
+ * diferencia de gol. Sólo decide quién pasa de ronda.
+ */
+interface Penal {
+  id_plantel_integrante: string | number;
+  convertido: boolean;
 }
 
 /** Representa una tarjeta disciplinaria registrada en la planilla del partido. */
@@ -100,11 +110,29 @@ export default function PartidoPlanilla() {
   const [capitanes, setCapitanes] = useState({ local: 0, visitante: 0 });
   const [goles, setGoles] = useState<Gol[]>([]);
   const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
+  const [penales, setPenales] = useState<Penal[]>([]);
+  // El bloque arranca plegado; se abre solo si el partido ya trae tanda cargada.
+  const [penalesAbierto, setPenalesAbierto] = useState(false);
   const [camisetas, setCamisetas] = useState<Record<number, string>>({});
   const [golesManual, setGolesManual] = useState({ local: "", visitante: "" });
 
   const torneoSeleccionado = torneos.find((t: any) => t.id_torneo === torneoId);
   const esSub12 = torneoSeleccionado?.categoria === "SUB_12";
+
+  // ── Contadores de la tanda ─────────────────────────────────
+  // El lado se decide por el plantel del que fue convocado el ejecutante, no
+  // por el club: si se enfrentan dos equipos del mismo club, comparar por club
+  // daría verdadero para los dos lados y los penales se contarían doble.
+  const esDelLocal = (idIntegrante: string | number) =>
+    plantelLocal.some(p => p.id_plantel_integrante === Number(idIntegrante));
+  const esDelVisitante = (idIntegrante: string | number) =>
+    plantelVisitante.some(p => p.id_plantel_integrante === Number(idIntegrante));
+
+  const penalesConvertidosLocal = penales.filter(p => p.convertido && esDelLocal(p.id_plantel_integrante)).length;
+  const penalesFalladosLocal = penales.filter(p => !p.convertido && esDelLocal(p.id_plantel_integrante)).length;
+  const penalesConvertidosVisitante = penales.filter(p => p.convertido && esDelVisitante(p.id_plantel_integrante)).length;
+  const penalesFalladosVisitante = penales.filter(p => !p.convertido && esDelVisitante(p.id_plantel_integrante)).length;
+  const hayTanda = penales.some(p => p.id_plantel_integrante !== "");
 
   // Si viene ?fixture=X, precarga fecha, horario, ubicación y número de fecha del partido programado.
   useEffect(() => {
@@ -185,8 +213,16 @@ export default function PartidoPlanilla() {
         minuto: t.minuto ? String(t.minuto) : "",
         cuarto: t.cuarto ? String(t.cuarto) : "",
       }))
+      const penalesPrec = (p.penales ?? []).map((pen: any) => ({
+        id_plantel_integrante: pen.id_plantel_integrante,
+        convertido: Boolean(pen.convertido),
+      }))
+
       setGoles(golesPrec)
       setTarjetas(tarjetasPrec)
+      setPenales(penalesPrec)
+      // Si el partido ya se definió por penales, el bloque se muestra abierto.
+      setPenalesAbierto(penalesPrec.length > 0)
       setGolesManual({
         local: p.goles_local_manual != null ? String(p.goles_local_manual) : "",
         visitante: p.goles_visitante_manual != null ? String(p.goles_visitante_manual) : "",
@@ -247,6 +283,8 @@ export default function PartidoPlanilla() {
     setInscripcionVisitante(null);
     setSeleccionados({ local: [], visitante: [] });
     setGoles([]);
+    setPenales([]);
+    setPenalesAbierto(false);
     setTarjetas([]);
     setGolesManual({ local: "", visitante: "" });
   };
@@ -280,8 +318,9 @@ export default function PartidoPlanilla() {
    * @param index - Posición en el array a eliminar.
    * @param tipo - Tipo de incidencia: "gol" o "tarjeta".
    */
-  const eliminarFila = (index: number, tipo: 'gol' | 'tarjeta') => {
+  const eliminarFila = (index: number, tipo: 'gol' | 'tarjeta' | 'penal') => {
     if (tipo === 'gol') setGoles(goles.filter((_, i) => i !== index));
+    else if (tipo === 'penal') setPenales(penales.filter((_, i) => i !== index));
     else setTarjetas(tarjetas.filter((_, i) => i !== index));
   };
 
@@ -354,6 +393,11 @@ export default function PartidoPlanilla() {
         minuto: Number(t.minuto) || 0,
         cuarto: Number(t.cuarto) || null,
         observaciones: ""
+      })),
+      penales: penales.filter(p => p.id_plantel_integrante !== "").map((p, i) => ({
+        id_plantel_integrante: Number(p.id_plantel_integrante),
+        convertido: Boolean(p.convertido),
+        orden: i + 1,
       })),
       id_fixture_partido: idFixturePartido,
       forzar,
@@ -627,7 +671,7 @@ export default function PartidoPlanilla() {
                       </td>
                       <td>
                         <select value={gol.referencia_gol} onChange={e => { const n = [...goles]; n[index].referencia_gol = e.target.value; setGoles(n); }}>
-                          {TIPOS_GOL.map(t => <option key={t} value={t}>{t}</option>)}
+                          {TIPOS_GOL.map(t => <option key={t} value={t}>{TIPOS_GOL_LABEL[t] ?? t}</option>)}
                         </select>
                       </td>
                       <td>
@@ -725,6 +769,121 @@ export default function PartidoPlanilla() {
               </table>
             )}
           </section>
+
+          {/* ===== DEFINICIÓN POR PENALES ===== */}
+          {/* Va debajo de goles y NO suma al marcador: la tanda sólo define
+              quién pasa de ronda. */}
+          <section className={`${styles.eventSection} ${styles.penalesSection}`}>
+            <button
+              type="button"
+              className={styles.penalesToggle}
+              onClick={() => setPenalesAbierto(!penalesAbierto)}
+              aria-expanded={penalesAbierto}
+            >
+              <span className={styles.penalesChevron} aria-hidden="true">
+                {penalesAbierto ? "▾" : "▸"}
+              </span>
+              <span>Definición por penales</span>
+              {penales.length > 0 && (
+                <span className={styles.penalesMarcador}>
+                  {penalesConvertidosLocal} - {penalesConvertidosVisitante}
+                </span>
+              )}
+            </button>
+
+            {penalesAbierto && (
+              <div className={styles.penalesCuerpo}>
+                <p className={styles.penalesLeyenda}>
+                  No cuenta para el marcador, ni para el ranking de goleadores,
+                  ni para la diferencia de gol. Sólo define quién pasa de ronda.
+                </p>
+
+                <div className={styles.penalesContadores}>
+                  <span>
+                    <strong>{inscripcionLocal?.nombre_equipo || "Local"}:</strong>{" "}
+                    {penalesConvertidosLocal} convertidos · {penalesFalladosLocal} fallados
+                  </span>
+                  <span>
+                    <strong>{inscripcionVisitante?.nombre_equipo || "Visitante"}:</strong>{" "}
+                    {penalesConvertidosVisitante} convertidos · {penalesFalladosVisitante} fallados
+                  </span>
+                </div>
+
+                <div className={styles.headerRow}>
+                  <Button
+                    onClick={() => setPenales([...penales, { id_plantel_integrante: "", convertido: true }])}
+                    size="sm"
+                    variant="secondary"
+                  >
+                    + Penal
+                  </Button>
+                </div>
+
+                {penales.length > 0 && (
+                  <table className={styles.eventTable}>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Ejecutante</th>
+                        <th>Resultado</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {penales.map((pen, index) => (
+                        <tr key={index}>
+                          <td className={styles.penalOrden}>{index + 1}</td>
+                          <td>
+                            <select
+                              value={String(pen.id_plantel_integrante)}
+                              onChange={e => {
+                                const n = [...penales];
+                                n[index].id_plantel_integrante = e.target.value;
+                                setPenales(n);
+                              }}
+                            >
+                              <option value="">— Ejecutante —</option>
+                              <optgroup label={inscripcionLocal?.nombre_equipo || "Local"}>
+                                {plantelLocal.filter(p => seleccionados.local.includes(p.id_plantel_integrante as number) && p.rol_en_plantel === "JUGADOR").map(p => (
+                                  <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                                    {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                                  </option>
+                                ))}
+                              </optgroup>
+                              <optgroup label={inscripcionVisitante?.nombre_equipo || "Visitante"}>
+                                {plantelVisitante.filter(p => seleccionados.visitante.includes(p.id_plantel_integrante as number) && p.rol_en_plantel === "JUGADOR").map(p => (
+                                  <option key={p.id_plantel_integrante} value={String(p.id_plantel_integrante)}>
+                                    {camisetas[p.id_plantel_integrante as number] ? `#${camisetas[p.id_plantel_integrante as number]} - ` : ''}{p.apellido_persona}, {p.nombre_persona}
+                                  </option>
+                                ))}
+                              </optgroup>
+                            </select>
+                          </td>
+                          <td>
+                            <select
+                              value={pen.convertido ? "1" : "0"}
+                              className={pen.convertido ? styles.penalConvertido : styles.penalFallado}
+                              onChange={e => {
+                                const n = [...penales];
+                                n[index].convertido = e.target.value === "1";
+                                setPenales(n);
+                              }}
+                            >
+                              <option value="1">✓ Convertido</option>
+                              <option value="0">✗ Fallado</option>
+                            </select>
+                          </td>
+                          <td>
+                            <button className={styles.deleteBtn} onClick={() => eliminarFila(index, 'penal')}>Borrar</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+          </section>
         </div>
       )}
 
@@ -766,6 +925,18 @@ export default function PartidoPlanilla() {
                 </span>
                 <span className={styles.resumenEquipo}>{inscripcionVisitante?.nombre_equipo}</span>
               </div>
+
+              {hayTanda && (
+                <div className={styles.resumenPenales}>
+                  <span className={styles.resumenPenalesTitulo}>Definición por penales</span>
+                  <span className={styles.resumenPenalesMarcador}>
+                    {penalesConvertidosLocal} - {penalesConvertidosVisitante}
+                  </span>
+                  <span className={styles.resumenPenalesNota}>
+                    No se suma al marcador ni al ranking de goleadores.
+                  </span>
+                </div>
+              )}
 
               <hr className={styles.divider} />
 

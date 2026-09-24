@@ -337,7 +337,21 @@ export default function ResultadosPage() {
                         >
                           <div className={styles.partidoEncuentro}>
                             <span className={styles.equipoNombre}>{p.equipo_local_nombre}</span>
-                            <span className={styles.marcador}>{p.goles_local} - {p.goles_visitante}</span>
+                            <span className={styles.marcador}>
+                              {p.goles_local} - {p.goles_visitante}
+                              {/* La tanda va AL LADO del marcador, nunca sumada. */}
+                              {p.hubo_definicion_por_penales && (
+                                <small className={styles.marcadorPenales}>
+                                  ({p.penales_local}-{p.penales_visitante} pen.)
+                                </small>
+                              )}
+                              {/* Walkover: avisa que el resultado no se jugó. */}
+                              {p.motivo_puntos && (
+                                <small className={styles.marcadorWalkover}>
+                                  {p.motivo_puntos.startsWith("DESCALIFICADO") ? "desc." : "no present."}
+                                </small>
+                              )}
+                            </span>
                             <span className={`${styles.equipoNombre} ${styles.equipoVisitante}`}>{p.equipo_visitante_nombre}</span>
                           </div>
                           {p.numero_fecha && (

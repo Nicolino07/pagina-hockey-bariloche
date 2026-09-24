@@ -16,9 +16,10 @@ from app.models.partido import Partido, PartidoDetallado
 from app.models.participan_partido import ParticipanPartido
 from app.models.gol import Gol
 from app.models.tarjeta import Tarjeta
+from app.models.penal_definicion import PenalDefinicion
 from app.models.plantel_integrante import PlantelIntegrante
 from app.models.inscripcion_torneo import InscripcionTorneo
-from app.models.enums import EstadoPartido, RolPersonaTipo
+from app.models.enums import EstadoPartido, MotivoPuntos, RolPersonaTipo
 from app.core.exceptions import AppError, ConfirmacionRequeridaError
 
 logger = logging.getLogger(__name__)
@@ -467,6 +468,21 @@ def get_partido_edicion(db: Session, id_partido: int):
                 "observaciones": tarjeta.observaciones
             })
 
+    # Estructurar penales de la tanda. Van aparte de los goles a propósito:
+    # no suman al marcador ni al ranking.
+    penales = []
+    for penal in sorted(
+        partido.penales,
+        key=lambda x: (x.orden is None, x.orden or 0, x.id_penal_definicion),
+    ):
+        pp = db.get(ParticipanPartido, penal.id_participante_partido)
+        if pp:
+            penales.append({
+                "id_plantel_integrante": pp.id_plantel_integrante,
+                "convertido": penal.convertido,
+                "orden": penal.orden,
+            })
+
     # El id del fixture es el mismo id del partido (unificación).
     id_fixture_partido = id_partido
 
@@ -493,6 +509,7 @@ def get_partido_edicion(db: Session, id_partido: int):
         "participantes_visitante": participantes_visitante,
         "goles": goles,
         "tarjetas": tarjetas,
+        "penales": penales,
         "id_fixture_partido": id_fixture_partido
     }
 
@@ -640,6 +657,51 @@ def actualizar_planilla_partido(db: Session, id_partido: int, data, current_user
             )
 
         # =========================
+        # 5️⃣c Recrear penales de la tanda
+        # =========================
+        # Igual que goles y tarjetas: el borrado de `participan_partido` se los
+        # llevó en cascada, así que hay que reinsertarlos con las referencias
+        # nuevas.
+        #
+        # El lado NO se deduce por club: se toma de la convocatoria con la que
+        # vino la planilla. Si se enfrentan dos equipos del mismo club, comparar
+        # por club daría verdadero para los dos lados y los penales se contarían
+        # doble.
+        if data.penales:
+            lado_por_integrante: dict[int, int | None] = {}
+            for pl in data.participantes.local:
+                lado_por_integrante[pl.id_plantel_integrante] = partido.id_inscripcion_local
+            for pv in data.participantes.visitante:
+                lado_por_integrante[pv.id_plantel_integrante] = partido.id_inscripcion_visitante
+
+            for orden, pen in enumerate(data.penales, start=1):
+                id_pp = participantes_map.get(pen.id_plantel_integrante)
+                if not id_pp:
+                    raise HTTPException(
+                        400,
+                        f"El jugador {pen.id_plantel_integrante} no participa del partido"
+                    )
+
+                id_inscripcion = lado_por_integrante.get(pen.id_plantel_integrante)
+                if not id_inscripcion:
+                    raise HTTPException(
+                        400,
+                        "No se puede determinar el equipo del ejecutante del penal. "
+                        "El partido tiene que tener ambas inscripciones definidas."
+                    )
+
+                db.add(
+                    PenalDefinicion(
+                        id_partido=id_partido,
+                        id_participante_partido=id_pp,
+                        id_inscripcion=id_inscripcion,
+                        orden=pen.orden if pen.orden is not None else orden,
+                        convertido=pen.convertido,
+                        creado_por=current_user.username,
+                    )
+                )
+
+        # =========================
         # 5️⃣b Recalcular suspensiones automáticas por tarjetas
         # =========================
         # La sesión es autoflush=False: sin este flush las tarjetas recién
@@ -677,10 +739,33 @@ def actualizar_planilla_partido(db: Session, id_partido: int, data, current_user
         raise _traducir_error_bd(e, "actualizar planilla")
 
 
-def otorgar_puntos_partido(db: Session, id_fixture_partido: int, goles_local: int, goles_visitante: int, current_user):
+def otorgar_puntos_partido(
+    db: Session,
+    id_fixture_partido: int,
+    goles_local: int,
+    goles_visitante: int,
+    current_user,
+    motivo=None,
+    descripcion: str | None = None,
+    sin_puntos: bool = False,
+):
     """
-    Otorga puntos a un partido (goles por defecto) cuando hay descalificación, no presentación, etc.
-    Si el partido no existe, lo crea. Transiciona el estado a TERMINADO y recalcula posiciones.
+    Otorga puntos por defecto (walkover) cuando hay no presentación,
+    descalificación, etc. Transiciona el partido a TERMINADO y recalcula
+    posiciones.
+
+    **Es idempotente y excluyente**: si el partido ya tenía goles cargados, se
+    borran. El resultado pasa a ser exclusivamente los goles por defecto, de modo
+    que ni el marcador ni la diferencia de gol puedan quedar con doble carga
+    (goles reales + goles otorgados). La convocatoria y las tarjetas se conservan
+    como registro: borrarlas rompería las suspensiones automáticas por
+    acumulación.
+
+    `motivo` es obligatorio y es lo que se muestra en el detalle del partido.
+    `descripcion` es una aclaración interna, opcional, que no se publica.
+    `sin_puntos` sirve para el caso en que no se presentó ninguno y no se le
+    otorgan puntos a nadie: sin esa marca, un 0-0 repartiría 1 punto a cada uno
+    por la regla del empate.
     """
     try:
         # El id del fixture es el id del partido (unificación); el partido existe.
@@ -704,9 +789,45 @@ def otorgar_puntos_partido(db: Session, id_fixture_partido: int, goles_local: in
             partido.id_inscripcion_local = insc_local.id_inscripcion
             partido.id_inscripcion_visitante = insc_visitante.id_inscripcion
 
+        if motivo is None:
+            raise HTTPException(400, "Hay que indicar el motivo de la entrega de puntos")
+
+        if sin_puntos and motivo != MotivoPuntos.NO_PRESENTARON_AMBOS:
+            raise HTTPException(
+                400,
+                "Sólo se puede dejar el partido sin puntos cuando no se presentó "
+                "ninguno de los dos equipos.",
+            )
+
+        # Anular lo que hubiera cargado: el resultado pasa a ser exclusivamente
+        # los goles por defecto. Sin esto, un partido con planilla cargada que
+        # recibe puntos termina sumando las dos cosas (pasó: un 4-0 otorgado
+        # sobre 4 goles reales se publicaba 8-0).
+        goles_borrados = (
+            db.query(Gol)
+            .filter(Gol.id_partido == partido.id_partido)
+            .delete(synchronize_session=False)
+        )
+        if goles_borrados:
+            logger.info(
+                "Entrega de puntos en el partido %s: se anularon %s goles cargados.",
+                partido.id_partido,
+                goles_borrados,
+            )
+
+        # La definición por penales tampoco tiene sentido en un walkover.
+        db.query(PenalDefinicion).filter(
+            PenalDefinicion.id_partido == partido.id_partido
+        ).delete(synchronize_session=False)
+
         # Actualizar goles y estado del partido
         partido.goles_por_defecto_local = goles_local
         partido.goles_por_defecto_visitante = goles_visitante
+        partido.goles_local_manual = None
+        partido.goles_visitante_manual = None
+        partido.motivo_puntos = motivo
+        partido.descripcion_puntos = descripcion
+        partido.sin_puntos = sin_puntos
         partido.estado_partido = EstadoPartido.TERMINADO
         partido.actualizado_por = current_user.username
 

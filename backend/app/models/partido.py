@@ -1,6 +1,6 @@
 from datetime import datetime, date, time
 from typing import Optional
-from app.models.enums import EstadoPartido
+from app.models.enums import EstadoPartido, MotivoPuntos
 from app.models.mixins import AuditFieldsMixin
 from sqlalchemy import (
     ForeignKey,
@@ -12,6 +12,7 @@ from sqlalchemy import (
     UniqueConstraint,
     Column,
     Enum,
+    Boolean,
     DateTime
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -126,6 +127,16 @@ class Partido(Base, AuditFieldsMixin):
     goles_por_defecto_local: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     goles_por_defecto_visitante: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
+    # --- Entrega de puntos (walkover) ---
+    #: Obligatorio al otorgar puntos. Es lo que se muestra en el detalle.
+    motivo_puntos: Mapped[Optional[MotivoPuntos]] = mapped_column(
+        Enum(MotivoPuntos, name="tipo_motivo_puntos"), nullable=True
+    )
+    #: Aclaración interna. NO se muestra en las vistas públicas.
+    descripcion_puntos: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    #: Cuando no se presentó ninguno y se decide no darle puntos a nadie.
+    sin_puntos: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
     # Mesa / organización
     juez_mesa_local: Mapped[Optional[str]] = mapped_column(String(100))
     juez_mesa_visitante: Mapped[Optional[str]] = mapped_column(String(100))
@@ -152,6 +163,12 @@ class Partido(Base, AuditFieldsMixin):
 
     tarjetas = relationship(
         "Tarjeta",
+        back_populates="partido",
+        cascade="all, delete-orphan"
+    )
+
+    penales = relationship(
+        "PenalDefinicion",
         back_populates="partido",
         cascade="all, delete-orphan"
     )
@@ -199,3 +216,75 @@ class PartidoDetallado(Base):
     lista_tarjetas_local = Column(String)
     lista_goles_visitante = Column(String)
     lista_tarjetas_visitante = Column(String)
+
+    # La definición por penales vive en su propia vista, no acá dentro: un penal
+    # de la tanda no es un gol y no puede contaminar el marcador. Se engancha
+    # por relación para exponerla en la misma respuesta, en campos aparte.
+    penales = relationship(
+        "PenalesPartido",
+        primaryjoin="foreign(PenalesPartido.id_partido) == PartidoDetallado.id_partido",
+        uselist=False,
+        viewonly=True,
+        lazy="joined",
+    )
+
+    @property
+    def penales_local(self) -> int:
+        """Penales convertidos por el local en la tanda (0 si no hubo tanda)."""
+        return self.penales.penales_local if self.penales else 0
+
+    @property
+    def penales_visitante(self) -> int:
+        """Penales convertidos por el visitante en la tanda (0 si no hubo tanda)."""
+        return self.penales.penales_visitante if self.penales else 0
+
+    @property
+    def hubo_definicion_por_penales(self) -> bool:
+        return bool(self.penales and (self.penales.total_penales or 0) > 0)
+
+    @property
+    def lista_penales_local(self):
+        return self.penales.lista_penales_local if self.penales else None
+
+    @property
+    def lista_penales_visitante(self):
+        return self.penales.lista_penales_visitante if self.penales else None
+
+    # La entrega de puntos vive en `partido`, no en la vista. Se engancha por
+    # relación para publicar el motivo en la misma respuesta.
+    partido_base = relationship(
+        "Partido",
+        primaryjoin="foreign(PartidoDetallado.id_partido) == Partido.id_partido",
+        uselist=False,
+        viewonly=True,
+        lazy="joined",
+    )
+
+    @property
+    def motivo_puntos(self):
+        """Motivo del walkover, o None si el partido se jugó normalmente."""
+        if not self.partido_base or not self.partido_base.motivo_puntos:
+            return None
+        motivo = self.partido_base.motivo_puntos
+        return getattr(motivo, "value", str(motivo))
+
+    @property
+    def sin_puntos(self) -> bool:
+        return bool(self.partido_base and self.partido_base.sin_puntos)
+
+
+class PenalesPartido(Base):
+    """
+    Vista `vw_penales_partido`: la tanda de cada partido, separada del marcador.
+    Sólo lectura.
+    """
+    __tablename__ = 'vw_penales_partido'
+
+    id_partido = Column(Integer, primary_key=True)
+    id_inscripcion_local = Column(Integer)
+    id_inscripcion_visitante = Column(Integer)
+    penales_local = Column(Integer)
+    penales_visitante = Column(Integer)
+    total_penales = Column(Integer)
+    lista_penales_local = Column(String)
+    lista_penales_visitante = Column(String)

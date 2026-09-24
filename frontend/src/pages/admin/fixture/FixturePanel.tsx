@@ -497,12 +497,25 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
     setOtorgarPuntosModal(true)
   }
 
-  async function handleConfirmarOtorgarPuntos(golesLocal: number, golesVisitante: number) {
+  async function handleConfirmarOtorgarPuntos(
+    golesLocal: number,
+    golesVisitante: number,
+    motivo: string,
+    descripcion: string,
+    sinPuntos: boolean,
+  ) {
     if (!partidoOtorgarPuntos?.id_fixture_partido) return
 
     setOtorgandoPuntos(true)
     try {
-      await otorgarPuntosPartido(partidoOtorgarPuntos.id_fixture_partido, golesLocal, golesVisitante)
+      await otorgarPuntosPartido(
+        partidoOtorgarPuntos.id_fixture_partido,
+        golesLocal,
+        golesVisitante,
+        motivo,
+        descripcion,
+        sinPuntos,
+      )
       setOtorgarPuntosModal(false)
       setPartidoOtorgarPuntos(null)
 
