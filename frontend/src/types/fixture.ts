@@ -92,6 +92,9 @@ export interface FixturePartido {
   nombre_arbitro2: string | null
   nombre_equipo_descansa: string | null
   rueda: string | null
+  /** Motivo del walkover. No nulo = el partido se resolvió por entrega de puntos. */
+  motivo_puntos: string | null
+  sin_puntos: boolean
   placeholder_local: string | null
   placeholder_visitante: string | null
   id_fixture_playoff_ronda: number | null

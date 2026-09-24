@@ -97,6 +97,10 @@ class FixturePartidoResponse(BaseModel):
     nombre_arbitro2: Optional[str] = None
     nombre_equipo_descansa: Optional[str] = None
     rueda: Optional[str] = None
+    # Entrega de puntos (walkover). `motivo_puntos` no nulo significa que este
+    # partido se resolvió por puntos y que se puede deshacer.
+    motivo_puntos: Optional[str] = None
+    sin_puntos: bool = False
     placeholder_local: Optional[str] = None
     placeholder_visitante: Optional[str] = None
     id_fixture_playoff_ronda: Optional[int] = None

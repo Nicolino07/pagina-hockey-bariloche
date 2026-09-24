@@ -9,11 +9,12 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
 from app.dependencies.permissions import require_editor, require_superuser
-from app.schemas.partido import PartidoBase, PartidoDetalle, OtorgarPuntosRequest
+from app.schemas.partido import PartidoBase, PartidoDetalle, OtorgarPuntosRequest, DeshacerPuntosResponse
 from app.schemas.planilla_partido import PlanillaPartidoCreate, PartidoEdicionResponse
 
 from app.services.partidos_services import (
     crear_planilla_partido,
+    deshacer_puntos_partido,
     get_partido_by_id,
     get_ultimos_partidos,
     get_historial_por_equipo,
@@ -167,4 +168,31 @@ def otorgar_puntos(
         motivo=data.motivo,
         descripcion=data.descripcion,
         sin_puntos=data.sin_puntos,
+    )
+
+# 🔐 EDITOR / ADMIN / SUPERUSUARIO
+@router.delete(
+    "/fixture/{id_partido}/otorgar-puntos",
+    response_model=DeshacerPuntosResponse,
+    summary="Deshacer la entrega de puntos de un partido",
+)
+def deshacer_puntos(
+    id_partido: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
+):
+    """
+    Deshace una entrega de puntos hecha por error: limpia los goles por defecto
+    y el motivo, devuelve el partido a PENDIENTE y **recalcula la tabla de
+    posiciones**.
+
+    Los goles que la entrega había anulado **no se recuperan**: si el partido se
+    jugó, hay que volver a cargar la planilla.
+
+    Requiere rol EDITOR o superior.
+    """
+    return deshacer_puntos_partido(
+        db=db,
+        id_partido=id_partido,
+        current_user=current_user,
     )

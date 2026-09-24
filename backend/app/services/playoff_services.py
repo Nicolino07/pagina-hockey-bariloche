@@ -1004,3 +1004,94 @@ def listar_rondas_playoff(db: Session, id_torneo: int) -> list[FixturePlayoffRon
         .order_by(FixturePlayoffRonda.orden)
         .all()
     )
+
+
+def revertir_avance_ganador(db: Session, fp: Partido, username: str) -> list[str]:
+    """
+    Deshace la propagación de este partido hacia rondas posteriores.
+
+    El avance reemplaza el placeholder por el equipo (`placeholder_* = NULL`), así
+    que para revertirlo hay que reconstruir el texto del placeholder y devolverlo
+    a su lugar.
+
+    Sólo revierte los cruces que **todavía no se jugaron**: si la ronda siguiente
+    ya tiene resultado, vaciar el equipo dejaría ese partido sin rival y con goles
+    cargados. En ese caso devuelve una advertencia para que lo corrija una
+    persona.
+
+    Devuelve la lista de advertencias (vacía si salió todo bien).
+    """
+    advertencias: list[str] = []
+
+    if not fp.id_fixture_playoff_ronda:
+        return advertencias
+
+    ronda = db.get(FixturePlayoffRonda, fp.id_fixture_playoff_ronda)
+    if not ronda:
+        return advertencias
+
+    numero_llave = _numero_llave_en_ronda(db, fp, ronda)
+    placeholders = {
+        f"Ganador {ronda.nombre} {numero_llave}",
+        f"Perdedor {ronda.nombre} {numero_llave}",
+    }
+
+    # Los equipos que este cruce pudo haber propagado.
+    equipos_propagables = {fp.id_equipo_local, fp.id_equipo_visitante} - {None}
+    if not equipos_propagables:
+        return advertencias
+
+    posteriores = (
+        db.query(Partido)
+        .join(FixturePlayoffRonda)
+        .filter(
+            FixturePlayoffRonda.id_torneo == ronda.id_torneo,
+            FixturePlayoffRonda.orden > ronda.orden,
+        )
+        .all()
+    )
+
+    for siguiente in posteriores:
+        for lado in ("local", "visitante"):
+            id_equipo = getattr(siguiente, f"id_equipo_{lado}")
+            placeholder_actual = getattr(siguiente, f"placeholder_{lado}")
+
+            # Un slot ocupado por uno de nuestros equipos y sin placeholder es el
+            # que este partido llenó al avanzar.
+            if id_equipo not in equipos_propagables or placeholder_actual:
+                continue
+
+            esperado = next(
+                (
+                    ph for ph in placeholders
+                    # El slot de 3er puesto lo llena el perdedor; el resto, el ganador.
+                    if (ph.startswith("Perdedor") and siguiente.id_fixture_playoff_ronda
+                        and _es_tercer_puesto(db, siguiente))
+                    or (ph.startswith("Ganador") and not (
+                        siguiente.id_fixture_playoff_ronda
+                        and _es_tercer_puesto(db, siguiente)))
+                ),
+                None,
+            )
+            if not esperado:
+                continue
+
+            if siguiente.estado_partido == "TERMINADO" or siguiente.goles:
+                advertencias.append(
+                    f"El partido {siguiente.id_partido} de la ronda siguiente ya "
+                    f"tiene resultado y sigue con el equipo que avanzó desde este "
+                    f"cruce. Hay que corregir la llave a mano."
+                )
+                continue
+
+            setattr(siguiente, f"id_equipo_{lado}", None)
+            setattr(siguiente, f"placeholder_{lado}", esperado)
+            siguiente.actualizado_por = username
+
+    db.flush()
+    return advertencias
+
+
+def _es_tercer_puesto(db: Session, partido: Partido) -> bool:
+    ronda = db.get(FixturePlayoffRonda, partido.id_fixture_playoff_ronda)
+    return bool(ronda and ronda.es_tercer_puesto)

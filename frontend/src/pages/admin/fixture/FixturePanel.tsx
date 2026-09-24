@@ -36,7 +36,7 @@ import { exportarFixturePDF } from "./exportarFixturePDF"
 import { generarPlanillaPDF, generarPlanillaCompletaPDF } from "../../../services/PlanillaVacia.service"
 import { marcarSuspendidos } from "../../../utils/suspensiones"
 import { getPlantelActivoPorEquipo } from "../../../api/vistas/plantel.api"
-import { obtenerDetallePartido, eliminarPartido, otorgarPuntosPartido } from "../../../api/partidos.api"
+import { obtenerDetallePartido, eliminarPartido, otorgarPuntosPartido, deshacerPuntosPartido } from "../../../api/partidos.api"
 import OtorgarPuntosModal from "../../../components/admin/OtorgarPuntosModal"
 import styles from "./FixturePanel.module.css"
 import { mensajeDeError } from "../../../utils/errores";
@@ -131,6 +131,7 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
   // Modal de otorgar puntos
   const [otorgarPuntosModal, setOtorgarPuntosModal] = useState(false)
   const [partidoOtorgarPuntos, setPartidoOtorgarPuntos] = useState<FixturePartido | null>(null)
+  const [deshaciendoPuntos, setDeshaciendoPuntos] = useState<number | null>(null)
   const [otorgandoPuntos, setOtorgandoPuntos] = useState(false)
 
   useEffect(() => {
@@ -489,6 +490,41 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
       alert("No se pudo cargar el detalle del partido")
     } finally {
       setCargandoDetalle(false)
+    }
+  }
+
+  /**
+   * Deshace una entrega de puntos hecha por error. Recalcula la tabla, que es
+   * el punto: mientras no se recalcule el torneo sigue con los puntos mal dados.
+   */
+  async function handleDeshacerPuntos(p: FixturePartido) {
+    if (!p.id_partido_real) return
+
+    const ok = confirm(
+      `¿Deshacer la entrega de puntos de ${p.nombre_equipo_local ?? "Local"} vs ` +
+      `${p.nombre_equipo_visitante ?? "Visitante"}?\n\n` +
+      "El partido vuelve a PENDIENTE y se recalcula la tabla de posiciones.\n\n" +
+      "Atención: los goles que la entrega había anulado NO se recuperan. " +
+      "Si el partido se jugó, hay que volver a cargar la planilla."
+    )
+    if (!ok) return
+
+    setDeshaciendoPuntos(p.id_partido_real)
+    try {
+      const res = await deshacerPuntosPartido(p.id_partido_real)
+      if (res.advertencias?.length) {
+        alert("Entrega deshecha, con observaciones:\n\n" + res.advertencias.join("\n"))
+      }
+      if (torneoId) {
+        setLoadingPartidos(true)
+        const fix = await listarFixturePorTorneoAdmin(torneoId)
+        setPartidos(fix)
+        setLoadingPartidos(false)
+      }
+    } catch (e: any) {
+      alert(e?.response?.data?.detail || "No se pudo deshacer la entrega de puntos.")
+    } finally {
+      setDeshaciendoPuntos(null)
     }
   }
 
@@ -1202,6 +1238,16 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
                                   {p.id_partido_real && (
                                     <button className={styles.btnEditar} onClick={() => navigate(`/admin/partidos/nueva-planilla?partido=${p.id_partido_real}`)}>Editar planilla</button>
                                   )}
+                                  {/* Sólo si el partido se resolvió por entrega de puntos. */}
+                                  {p.motivo_puntos && p.id_partido_real && (
+                                    <button
+                                      className={styles.btnDeshacerPuntos}
+                                      disabled={deshaciendoPuntos === p.id_partido_real}
+                                      onClick={() => handleDeshacerPuntos(p)}
+                                    >
+                                      {deshaciendoPuntos === p.id_partido_real ? "Deshaciendo…" : "↩ Deshacer puntos"}
+                                    </button>
+                                  )}
                                   <button className={styles.btnEditar} onClick={() => abrirFormularioEdicion(p)}>Editar fixture</button>
                                 </>
                               ) : (
@@ -1290,6 +1336,16 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
                                   )}
                                   {p.id_partido_real && (
                                     <button className={styles.btnEditar} onClick={() => navigate(`/admin/partidos/nueva-planilla?partido=${p.id_partido_real}`)}>Editar planilla</button>
+                                  )}
+                                  {/* Sólo si el partido se resolvió por entrega de puntos. */}
+                                  {p.motivo_puntos && p.id_partido_real && (
+                                    <button
+                                      className={styles.btnDeshacerPuntos}
+                                      disabled={deshaciendoPuntos === p.id_partido_real}
+                                      onClick={() => handleDeshacerPuntos(p)}
+                                    >
+                                      {deshaciendoPuntos === p.id_partido_real ? "Deshaciendo…" : "↩ Deshacer puntos"}
+                                    </button>
                                   )}
                                   <button className={styles.btnEditar} onClick={() => abrirFormularioEdicion(p)}>Editar fixture</button>
                                 </>

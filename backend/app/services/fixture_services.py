@@ -57,6 +57,9 @@ def _enriquecer_partido(p: Partido, db: Session) -> dict:
         "nombre_arbitro2": None,
         "nombre_equipo_descansa": None,
         "rueda": ff.rueda if ff else None,
+        # Entrega de puntos: el panel lo usa para ofrecer deshacerla.
+        "motivo_puntos": getattr(p.motivo_puntos, "value", p.motivo_puntos),
+        "sin_puntos": bool(p.sin_puntos),
         "placeholder_local": p.placeholder_local,
         "placeholder_visitante": p.placeholder_visitante,
         "id_fixture_playoff_ronda": p.id_fixture_playoff_ronda,

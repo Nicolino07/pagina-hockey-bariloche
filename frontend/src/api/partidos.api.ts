@@ -174,3 +174,20 @@ export const otorgarPuntosPartido = async (
     throw error;
   }
 };
+/**
+ * Deshace una entrega de puntos hecha por error: limpia los goles por defecto y
+ * el motivo, devuelve el partido a PENDIENTE y recalcula la tabla de posiciones.
+ *
+ * Los goles que la entrega había anulado NO se recuperan.
+ */
+export const deshacerPuntosPartido = async (id_partido: number) => {
+  const response = await api.delete(`/partidos/fixture/${id_partido}/otorgar-puntos`, {
+    withCredentials: true,
+  });
+  return response.data as {
+    id_partido: number;
+    id_torneo: number;
+    estado_partido: string;
+    advertencias: string[];
+  };
+};

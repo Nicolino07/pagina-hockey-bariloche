@@ -854,3 +854,77 @@ def otorgar_puntos_partido(
     except Exception as e:
         db.rollback()
         raise _traducir_error_bd(e, "otorgar puntos")
+
+def deshacer_puntos_partido(db: Session, id_partido: int, current_user):
+    """
+    Deshace una entrega de puntos hecha por error.
+
+    Limpia los goles por defecto, el motivo, la descripción y la marca de
+    `sin_puntos`, devuelve el partido a PENDIENTE y **recalcula la tabla de
+    posiciones**, que es el punto de todo: mientras no se recalcule, el torneo
+    sigue mostrando los puntos mal otorgados.
+
+    Importante: **los goles que la entrega anuló no se recuperan.** Aquella
+    operación los borró para que el marcador no se contara dos veces, y no
+    quedó copia. Si el partido se jugó, hay que volver a cargar la planilla.
+
+    Si el partido es de playoff, intenta devolver a su placeholder el cruce de la
+    ronda siguiente. Los que ya se jugaron no se tocan: se devuelven como
+    advertencia.
+    """
+    partido = db.get(Partido, id_partido)
+    if not partido:
+        raise HTTPException(404, "Partido no encontrado")
+
+    if (
+        partido.goles_por_defecto_local is None
+        and partido.goles_por_defecto_visitante is None
+        and partido.motivo_puntos is None
+    ):
+        raise HTTPException(400, "Este partido no tiene una entrega de puntos para deshacer")
+
+    try:
+        advertencias: list[str] = []
+
+        # Antes de limpiar nada: revertir el avance en la llave, que depende del
+        # resultado actual.
+        if partido.id_fixture_playoff_ronda:
+            from app.services.playoff_services import revertir_avance_ganador
+            advertencias = revertir_avance_ganador(db, partido, current_user.username)
+
+        partido.goles_por_defecto_local = None
+        partido.goles_por_defecto_visitante = None
+        partido.motivo_puntos = None
+        partido.descripcion_puntos = None
+        partido.sin_puntos = False
+        partido.estado_partido = EstadoPartido.PENDIENTE
+        partido.actualizado_por = current_user.username
+
+        db.flush()
+
+        db.execute(
+            text("SELECT recalcular_tabla_posiciones(:id_torneo)"),
+            {"id_torneo": partido.id_torneo},
+        )
+
+        db.commit()
+
+        logger.info(
+            "Entrega de puntos deshecha en el partido %s por %s.",
+            partido.id_partido,
+            current_user.username,
+        )
+
+        return {
+            "id_partido": partido.id_partido,
+            "id_torneo": partido.id_torneo,
+            "estado_partido": EstadoPartido.PENDIENTE.value,
+            "advertencias": advertencias,
+        }
+
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        raise _traducir_error_bd(e, "deshacer la entrega de puntos")

@@ -95,6 +95,14 @@ class OtorgarPuntosRequest(BaseModel):
 
 
 
+class DeshacerPuntosResponse(BaseModel):
+    """Resultado de deshacer una entrega de puntos."""
+    id_partido: int
+    id_torneo: int
+    estado_partido: str
+    advertencias: List[str] = []
+
+
 class DesignarArbitrosRequest(BaseModel):
     """Payload para designar (o quitar) los árbitros de un partido."""
     id_arbitro1: Optional[int] = None

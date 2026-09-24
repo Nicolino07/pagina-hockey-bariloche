@@ -195,24 +195,41 @@
   color: var(--color-badge-amber);
 }
 
+/* Los botones de acción entran hasta 6 por fila (PDF, Detalle, Editar planilla,
+   Editar fixture, Deshacer puntos, Eliminar): sin wrap se desbordaban de la
+   pantalla. Compactos y envolviendo. */
 .acciones {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+/* Métrica común de todos los botones de la celda de acciones. */
+.acciones button {
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 .btnPDF {
   background: var(--tint-red-weak);
   border: 1px solid var(--color-badge-red);
-  border-radius: 6px;
-  padding: 4px 9px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
   color: var(--color-badge-red);
   display: inline-flex;
   align-items: center;
   gap: 4px;
   transition: background 0.15s;
+}
+
+/* El ícono venía a 16px y desbalanceaba el botón ya compacto. */
+.btnPDF svg {
+  width: 13px;
+  height: 13px;
 }
 
 .btnPDF:hover {
@@ -228,11 +245,6 @@
   background: var(--tint-green-weak);
   color: var(--color-badge-green);
   border: none;
-  padding: 5px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
 }
 
 .btnCargar:hover {
@@ -243,11 +255,6 @@
   background: rgba(138, 180, 248, 0.15);
   color: var(--color-primary);
   border: none;
-  padding: 5px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
 }
 
 .btnEditar:hover {
@@ -258,11 +265,6 @@
   background: var(--tint-red-medium);
   color: var(--color-badge-red);
   border: none;
-  padding: 5px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
 }
 
 .btnEliminar:hover {
@@ -273,15 +275,28 @@
   background: var(--tint-amber-weak);
   color: var(--color-badge-amber);
   border: none;
-  padding: 5px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
 }
 
 .btnOtorgarPuntos:hover {
   background: var(--tint-amber-strong);
+}
+
+/* Deshacer la entrega de puntos: acción correctiva, mismo lenguaje visual que
+   el botón de otorgar pero en el tono de deshacer. */
+.btnDeshacerPuntos {
+  background: var(--tint-amber-weak);
+  color: var(--color-badge-amber);
+  border: 1px solid var(--color-badge-amber);
+  white-space: nowrap;
+}
+
+.btnDeshacerPuntos:hover:not(:disabled) {
+  background: var(--tint-amber-strong);
+}
+
+.btnDeshacerPuntos:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }
 
 /* Panel generación automática */
@@ -834,5 +849,22 @@
     width: 100%;
     height: 100%;
     border-radius: 0;
+  }
+}
+
+
+/* En pantallas angostas la celda de acciones se vuelve una grilla: los botones
+   quedan del mismo ancho y se leen mejor que apilados de a uno. */
+@media (max-width: 900px) {
+  .acciones {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+    gap: 4px;
+  }
+
+  .acciones button {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
   }
 }
