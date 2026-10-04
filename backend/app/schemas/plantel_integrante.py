@@ -52,17 +52,14 @@ class PlantelIntegranteRead(PlantelIntegranteBase):
 class PlantelIntegrantePublico(BaseModel):
     """Integrante de plantel para el sitio público (lista blanca explícita).
 
-    La versión completa, con los datos personales, es PlantelIntegranteRead y
-    solo se sirve en endpoints protegidos.
+    Solo lo que muestra la página del club: quién es, rol y camiseta. Fechas
+    de alta/baja, partidos jugados y auditoría quedan para el panel, en
+    PlantelIntegranteRead, que solo se sirve en endpoints protegidos.
     """
     id_plantel_integrante: int
-    id_plantel: int
     id_persona: int
     rol_en_plantel: RolPersonaTipo
     numero_camiseta: Optional[int] = None
-    fecha_alta: Optional[date] = None
-    fecha_baja: Optional[date] = None
-    partidos_jugados: int = 0
     persona: Optional[PersonaPublica] = None
 
     model_config = ConfigDict(from_attributes=True)

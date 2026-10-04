@@ -17,3 +17,6 @@ export interface Plantel {
   creado_por?: string | null
   actualizado_por?: string | null
 }
+
+/** Lo que devuelve el endpoint público `/planteles/activo/{id_equipo}`. */
+export type PlantelPublico = Pick<Plantel, "id_plantel" | "id_equipo" | "id_torneo" | "nombre" | "temporada">

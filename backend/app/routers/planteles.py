@@ -14,6 +14,7 @@ from app.core.exceptions import NotFoundError
 from app.schemas.plantel import (
     PlantelCreate,
     PlantelRead,
+    PlantelPublico,
     PlantelUpdate,
     PlantelCopiar,
     PlantelCopiaResultado,
@@ -78,14 +79,14 @@ def crear_integrante(
 
 @router.get(
     "/activo/{id_equipo}",
-    response_model=PlantelRead,
+    response_model=PlantelPublico,
     status_code=status.HTTP_200_OK,
 )
 def obtener_plantel_activo(
     id_equipo: int,
     db: Session = Depends(get_db),
 ):
-    """Devuelve el plantel activo de un equipo por su ID. Acceso público."""
+    """Devuelve el plantel activo de un equipo por su ID. Acceso público, sin auditoría."""
     plantel = planteles_services.obtener_plantel_activo_por_equipo(db, id_equipo)
 
     if not plantel:

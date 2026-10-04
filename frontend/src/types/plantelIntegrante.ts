@@ -21,6 +21,12 @@ export type PlantelIntegrante = {
 
 }
 
+/** Integrante tal como lo devuelve el endpoint público (sin fechas ni partidos jugados). */
+export type PlantelIntegrantePublico = Pick<
+  PlantelIntegrante,
+  "id_plantel_integrante" | "id_persona" | "rol_en_plantel" | "numero_camiseta" | "persona"
+>
+
 // ➕ Lo que enviamos al backend
 export type PlantelIntegranteCreate = {
   id_plantel: number

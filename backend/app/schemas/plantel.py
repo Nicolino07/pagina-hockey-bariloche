@@ -97,3 +97,21 @@ class PlantelRead(PlantelBase):
     actualizado_por: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# ======================
+# Público
+# ======================
+class PlantelPublico(BaseModel):
+    """Plantel para el sitio público (lista blanca explícita).
+
+    Sin fechas ni auditoría (creado_por es el nombre de un usuario del panel).
+    La versión completa es PlantelRead.
+    """
+    id_plantel: int
+    id_equipo: int
+    id_torneo: Optional[int] = None
+    nombre: Optional[str] = None
+    temporada: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)

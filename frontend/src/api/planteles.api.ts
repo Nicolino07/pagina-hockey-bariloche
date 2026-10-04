@@ -2,9 +2,9 @@
 import type { TipoRolPersona } from "../constants/enums"
 import api from "./axiosAdmin"
 import axiosAdmin from "./axiosAdmin"
-import type { Plantel } from "../types/plantel"
+import type { Plantel, PlantelPublico } from "../types/plantel"
 import type { Torneo } from "../types/torneo"
-import type { PlantelIntegrante } from "../types/plantelIntegrante"
+import type { PlantelIntegrante, PlantelIntegrantePublico } from "../types/plantelIntegrante"
 
 export interface CreatePlantelDTO {
   id_equipo: number
@@ -43,8 +43,8 @@ export async function getPlantelesDeEquipo(id_equipo: number): Promise<Plantel[]
   return data
 }
 
-export async function getPlantelActivoByEquipo(id_equipo: number): Promise<Plantel> {
-  const { data } = await api.get<Plantel>(`/planteles/activo/${id_equipo}`)
+export async function getPlantelActivoByEquipo(id_equipo: number): Promise<PlantelPublico> {
+  const { data } = await api.get<PlantelPublico>(`/planteles/activo/${id_equipo}`)
   return data
 }
 
@@ -92,9 +92,9 @@ export async function deletePlantel(id_plantel: number): Promise<void> {
   await api.delete(`/planteles/${id_plantel}`)
 }
 
-/** Integrantes para el sitio público: la persona trae solo id, nombre y apellido. */
-export async function getIntegrantesByPlantel(id_plantel: number, soloActivos = true): Promise<PlantelIntegrante[]> {
-  const { data } = await api.get<PlantelIntegrante[]>(`/planteles/${id_plantel}/integrantes`, {
+/** Integrantes para el sitio público: solo rol, camiseta y nombre/apellido de la persona. */
+export async function getIntegrantesByPlantel(id_plantel: number, soloActivos = true): Promise<PlantelIntegrantePublico[]> {
+  const { data } = await api.get<PlantelIntegrantePublico[]>(`/planteles/${id_plantel}/integrantes`, {
     params: { solo_activos: soloActivos },
   })
   return data

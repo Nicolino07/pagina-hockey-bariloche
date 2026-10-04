@@ -177,6 +177,26 @@ def test_integrantes_publico_sin_datos_personales(client_publico, plantel_con_pe
     assert integrante["numero_camiseta"] == 10
 
 
+def test_integrantes_publico_solo_lo_que_muestra_el_sitio(client_publico, plantel_con_persona_completa):
+    """Sin fechas de alta/baja ni partidos jugados: eso es info del panel."""
+    ids = plantel_con_persona_completa
+    resp = client_publico.get(f"/api/planteles/{ids['id_plantel']}/integrantes")
+    assert resp.status_code == 200, resp.text
+    assert set(resp.json()[0]) == {
+        "id_plantel_integrante", "id_persona", "rol_en_plantel", "numero_camiseta", "persona",
+    }
+
+
+def test_plantel_activo_por_equipo_sin_auditoria(client_publico, plantel_con_persona_completa):
+    """El plantel público no expone fechas ni quién lo cargó en el panel."""
+    ids = plantel_con_persona_completa
+    resp = client_publico.get(f"/api/planteles/activo/{ids['id_equipo']}")
+    assert resp.status_code == 200, resp.text
+    plantel = resp.json()
+    assert plantel["id_plantel"] == ids["id_plantel"]
+    assert not {"creado_por", "actualizado_por", "creado_en", "fecha_apertura"} & set(plantel)
+
+
 def test_plantel_activo_publico_sin_datos_personales(client_publico, plantel_con_persona_completa):
     ids = plantel_con_persona_completa
     resp = client_publico.get(f"/api/vistas/plantel-activo/{ids['id_equipo']}")

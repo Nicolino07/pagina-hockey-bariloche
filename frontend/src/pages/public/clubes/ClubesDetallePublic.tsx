@@ -8,7 +8,7 @@ import type { Club } from "../../../types/club";
 import type { Equipo } from "../../../types/equipo";
 import type { FilaPosiciones } from "../../../types/vistas";
 import { getPlantelActivoByEquipo, getIntegrantesByPlantel } from "../../../api/planteles.api";
-import type { PlantelIntegrante } from "../../../types/plantelIntegrante";
+import type { PlantelIntegrantePublico } from "../../../types/plantelIntegrante";
 
 import { useSeo } from "../../../hooks/useSeo";
 import styles from "./ClubesDetallePublic.module.css";
@@ -29,7 +29,7 @@ export default function ClubesDetallePublic() {
   const [posiciones, setPosiciones] = useState<FilaPosiciones[]>([]);
   const [partidos, setPartidos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [integrantes, setIntegrantes] = useState<PlantelIntegrante[]>([]);
+  const [integrantes, setIntegrantes] = useState<PlantelIntegrantePublico[]>([]);
   const [selectorAbierto, setSelectorAbierto] = useState(false);
 
   useSeo({
