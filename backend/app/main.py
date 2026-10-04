@@ -1,13 +1,12 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import IntegrityError
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from app.core.middleware import request_context_middleware
+from app.core.rate_limit import limiter
 from app.core.exceptions import AppError
 from app.core.exception_handlers import (
     app_error_handler,
@@ -22,8 +21,6 @@ from app import models  # noqa: F401
 # =====================================================
 # App
 # =====================================================
-limiter = Limiter(key_func=get_remote_address)
-
 # Leemos el entorno
 ENV = os.getenv("ENVIRONMENT", "development")
 API_PREFIX = "/api"  # 🔥 Definimos el prefijo una vez

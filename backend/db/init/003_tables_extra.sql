@@ -132,4 +132,18 @@ CREATE TABLE noticias (
     actualizado_por VARCHAR(100)
 );
 
+-- =====================================================
+-- LOGIN_INTENTO (bloqueo temporal de login por cuenta, migración 0046)
+-- Sin trigger de auditoría: cada intento de login es una escritura.
+-- =====================================================
+CREATE TABLE IF NOT EXISTS login_intento (
+    email            VARCHAR(255) PRIMARY KEY,
+    intentos         INT NOT NULL DEFAULT 0,
+    ultimo_intento   TIMESTAMP NOT NULL,
+    bloqueado_hasta  TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS ix_login_intento_ultimo_intento
+    ON login_intento (ultimo_intento);
+
 COMMIT;

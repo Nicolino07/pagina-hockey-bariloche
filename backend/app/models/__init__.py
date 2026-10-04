@@ -17,6 +17,7 @@ from .suspension import Suspension
 from .posicion import Posicion
 from .usuario import Usuario
 from .refresh_token import RefreshToken
+from .login_intento import LoginIntento
 from .inscripcion_torneo import InscripcionTorneo
 from .auditoria_log import AuditoriaLog
 from .mixins import AuditFieldsMixin, SoftDeleteMixin

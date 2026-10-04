@@ -23,13 +23,11 @@ Endpoints exclusivos SUPERUSUARIO:
 """
 import os
 from app.services import usuarios_services
-from slowapi import Limiter
 from typing import List
 from app.models import refresh_token
 from fastapi import APIRouter, Depends, Response, Request, BackgroundTasks, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from slowapi.util import get_remote_address
 from app.database import get_db
 from app.dependencies.permissions import require_superuser
 from app.schemas.user import UserInviteRequest
@@ -38,9 +36,11 @@ from app.core.email import send_invite_email, send_reset_password_email, send_ve
 from datetime import timedelta
 from jose import jwt, JWTError
 from app.core.config import settings
+from app.core.rate_limit import limiter
 
 from app.database import get_db
 from app.auth.service import login_user, logout_user, refresh_access_token
+from app.auth.bloqueo import limpiar_intentos
 from app.dependencies.permissions import get_current_user
 from app.models.usuario import Usuario
 from app.auth.security import hash_password, verify_password
@@ -60,7 +60,6 @@ from app.schemas.user import (
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/login")
@@ -441,6 +440,8 @@ def reset_confirm(payload: ResetPasswordConfirm, db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
             
         user.password_hash = hash_password(payload.new_password)
+        # Quien pudo leer el mail es el dueño: se levanta el bloqueo de login.
+        limpiar_intentos(db, user.email)
         db.commit()
         return {"message": "Contraseña restablecida correctamente. Ya puedes iniciar sesión."}
         

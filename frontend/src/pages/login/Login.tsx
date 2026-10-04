@@ -70,7 +70,8 @@ export default function Login() {
       navigate("/admin")
     } catch (error) {
       console.error("Error en login:", error)
-      setError("Email o contraseña incorrectos")
+      // auth.api ya traduce cada caso (credenciales, bloqueo, conexión).
+      setError(error instanceof Error ? error.message : "Email o contraseña incorrectos")
     } finally {
       setLoading(false)
     }

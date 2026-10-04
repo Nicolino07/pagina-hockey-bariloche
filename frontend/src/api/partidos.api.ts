@@ -119,14 +119,6 @@ export const getPartidosByEquipo = async (equipoNombre: string) => {
 };
 
 /**
- * Trae la tabla de posiciones de un torneo específico
- */
-export const getTablaPosiciones = async (torneoId: number) => {
-  const response = await axiosPublic.get(`/posiciones/torneo/${torneoId}`);
-  return response.data;
-};
-
-/**
  * Trae el historial de partidos de un equipo por su id
  */
 export const getHistorialPorEquipo = async (id_equipo: number, limit = 10) => {

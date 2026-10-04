@@ -57,7 +57,8 @@ export async function login(email: string, password: string): Promise<LoginRespo
     } else if (error.response?.status === 403) {
       throw new Error('Usuario bloqueado o sin permisos')
     } else if (error.response?.status === 429) {
-      throw new Error('Demasiados intentos, intenta más tarde')
+      // Bloqueo por cuenta o límite por IP: el backend explica cuál y qué hacer.
+      throw new Error(error.response?.data?.error?.message ?? 'Demasiados intentos, intentá más tarde')
     } else if (!error.response) {
       throw new Error('Error de conexión con el servidor')
     }

@@ -29,6 +29,15 @@ class AuthorizationError(AppError):
     message = "Permisos insuficientes"
 
 
+class LoginBloqueadoError(AppError):
+    status_code = 429
+    code = "LOGIN_BLOQUEADO"
+    message = (
+        "Demasiados intentos fallidos. Probá de nuevo en unos minutos "
+        "o restablecé tu contraseña."
+    )
+
+
 # =========================
 # Dominio / Negocio
 # =========================

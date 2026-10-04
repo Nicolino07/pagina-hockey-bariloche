@@ -17,10 +17,13 @@ from uuid import uuid4
 
 import pytest
 from fastapi.routing import APIRoute
+from fastapi.testclient import TestClient
 from pydantic import BaseModel
 
 from app.main import app
 from app.dependencies.auth import get_current_user
+from app.models.enums import TipoUsuario
+from app.models.usuario import Usuario
 
 
 CAMPOS_PROHIBIDOS = {
@@ -239,26 +242,85 @@ def test_panel_sigue_recibiendo_el_dni(plantel_con_persona_completa, client_edit
     assert resp.json()[0]["persona_documento"]
 
 
+# ─── Escrituras sin autenticación ────────────────────────────────────────────
+
+# Las únicas escrituras que pueden hacerse sin login: el propio flujo de auth.
+ESCRITURAS_PUBLICAS_PERMITIDAS = {
+    "/api/auth/login",
+    "/api/auth/refresh",
+    "/api/auth/logout",
+    "/api/auth/confirmar-registro",
+    "/api/auth/recuperar-password",
+    "/api/auth/reset-password-confirm",
+    "/api/auth/confirmar-cambio-email",
+}
+
+
+def test_ninguna_escritura_sin_autenticacion_fuera_de_auth():
+    problemas = []
+    for ruta in app.routes:
+        if not isinstance(ruta, APIRoute):
+            continue
+        metodos = ruta.methods & {"POST", "PUT", "PATCH", "DELETE"}
+        if not metodos or ruta.path in ESCRITURAS_PUBLICAS_PERMITIDAS:
+            continue
+        if get_current_user not in set(_dependencias(ruta.dependant)):
+            problemas.append(f"{sorted(metodos)} {ruta.path}")
+    assert not problemas, "Escrituras sin autenticación:\n" + "\n".join(problemas)
+
+
 # ─── /api/posiciones ─────────────────────────────────────────────────────────
 
-# Estos tests no deben poder modificar datos aunque la protección se pierda:
-# se usa un id inexistente y un body inválido. Sin auth, la API respondería
-# 404/422 (y el test fallaría igual); con auth, 401 antes de tocar la base.
+# `posicion` solo se escribe desde triggers: la API expone únicamente lectura.
+# Se usa un id inexistente y un body vacío para que estos tests no puedan
+# modificar datos si alguna vez vuelve a aparecer una ruta de escritura.
 ID_INEXISTENTE = 999_999_999
 
-
-def test_posiciones_crear_sin_token_401(client_publico):
-    assert client_publico.post("/api/posiciones/", json={}).status_code == 401
-
-
-def test_posiciones_editar_sin_token_401(client_publico):
-    resp = client_publico.put(f"/api/posiciones/{ID_INEXISTENTE}", json={})
-    assert resp.status_code == 401
+ESCRITURAS_POSICIONES = [
+    ("post", "/api/posiciones/"),
+    ("put", f"/api/posiciones/{ID_INEXISTENTE}"),
+    ("patch", f"/api/posiciones/{ID_INEXISTENTE}"),
+    ("delete", f"/api/posiciones/{ID_INEXISTENTE}"),
+]
 
 
-def test_posiciones_borrar_sin_token_401(client_publico):
-    assert client_publico.delete(f"/api/posiciones/{ID_INEXISTENTE}").status_code == 401
+@pytest.fixture()
+def cliente_superusuario_real():
+    """Cliente autenticado como SUPERUSUARIO sin saltear ningún chequeo de rol."""
+    user = Usuario()
+    user.id_usuario = 1
+    user.username = "test_superusuario"
+    user.tipo = TipoUsuario.SUPERUSUARIO
+    user.activo = True
+    app.dependency_overrides[get_current_user] = lambda: user
+    yield TestClient(app, raise_server_exceptions=False)
+    app.dependency_overrides.clear()
+
+
+def _pedir(client, metodo, ruta):
+    kwargs = {} if metodo == "delete" else {"json": {}}
+    return getattr(client, metodo)(ruta, **kwargs)
+
+
+@pytest.mark.parametrize("metodo,ruta", ESCRITURAS_POSICIONES)
+def test_posiciones_no_acepta_escrituras_sin_token(client_publico, metodo, ruta):
+    assert _pedir(client_publico, metodo, ruta).status_code == 405
+
+
+@pytest.mark.parametrize("metodo,ruta", ESCRITURAS_POSICIONES)
+def test_posiciones_no_acepta_escrituras_con_token(cliente_superusuario_real, metodo, ruta):
+    assert _pedir(cliente_superusuario_real, metodo, ruta).status_code == 405
+
+
+def test_posiciones_router_sin_rutas_de_escritura():
+    escrituras = [
+        (sorted(r.methods), r.path) for r in app.routes
+        if isinstance(r, APIRoute) and r.path.startswith("/api/posiciones")
+        and r.methods & {"POST", "PUT", "PATCH", "DELETE"}
+    ]
+    assert not escrituras, escrituras
 
 
 def test_posiciones_lectura_sigue_publica(client_publico):
     assert client_publico.get("/api/posiciones/").status_code == 200
+    assert client_publico.get(f"/api/posiciones/{ID_INEXISTENTE}").status_code == 404

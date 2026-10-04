@@ -8,6 +8,7 @@ from app.database import get_db
 from app.models import Usuario
 from app.core.config import settings
 from app.core.audit_context import set_audit_context
+from app.core.rate_limit import client_ip
 
 security = HTTPBearer(auto_error=False)
 
@@ -59,7 +60,7 @@ def get_current_user(
         db,
         user_id=user.id_usuario,
         username=user.username,
-        ip_address=request.client.host if request.client else None,
+        ip_address=client_ip(request),
         user_agent=request.headers.get("user-agent"),
     )
 

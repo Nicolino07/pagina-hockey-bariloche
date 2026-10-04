@@ -12,10 +12,13 @@ from app.auth.security import (
     verify_password,
 )
 from app.core.config import settings
+from app.core.rate_limit import client_ip
 from app.core.exceptions import (
     AuthenticationError,
     AuthorizationError,
+    LoginBloqueadoError,
 )
+from app.auth.bloqueo import reservar_intento, limpiar_intentos
 
 def _purgar_tokens_vencidos(db: Session, id_usuario: int) -> None:
     """
@@ -35,6 +38,10 @@ def login_user(
     password: str,
     request: Request,
 ):
+    # 🚦 0. Bloqueo por cuenta: se cuenta el intento antes de verificar nada.
+    if reservar_intento(db, username):
+        raise LoginBloqueadoError()
+
     # 🔍 1. Buscar usuario por EMAIL (cambiamos el filtro aquí)
     user = (
         db.query(Usuario)
@@ -63,6 +70,9 @@ def login_user(
     # 🧹 Aprovechamos el login para limpiar tokens vencidos de este usuario.
     _purgar_tokens_vencidos(db, user.id_usuario)
 
+    # ✅ Login correcto: se descartan los fallos acumulados.
+    limpiar_intentos(db, username)
+
     # 🔁 4. Refresh token (valor random)
     refresh_token_value = generate_refresh_token_value()
 
@@ -72,7 +82,7 @@ def login_user(
         expires_at=datetime.utcnow() + settings.refresh_token_expire_timedelta,
         # Auditoría: momento del login original de esta cadena de sesión.
         session_started_at=datetime.utcnow(),
-        created_by_ip=request.client.host if request.client else None,
+        created_by_ip=client_ip(request),
         user_agent=request.headers.get("user-agent"),
         revoked=False,
     ))
