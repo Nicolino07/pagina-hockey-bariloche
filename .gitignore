@@ -72,3 +72,9 @@ backups/*.sql.gz
 backups/*.tar
 backups/*.log
 backups/.env.*
+
+# =====================
+# Documentos
+# =====================
+
+auditoria_seg_*.md

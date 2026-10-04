@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react"
-import { getPlantelActivoPorEquipo } from "../api/vistas/plantel.api"
+import { getPlantelActivoPorEquipo, getPlantelActivoDetallePorEquipo } from "../api/vistas/plantel.api"
 import type { PlantelActivoIntegrante } from "../types/vistas"
 
 /**
@@ -14,10 +14,12 @@ import type { PlantelActivoIntegrante } from "../types/vistas"
  *
  * @param id_equipo - ID del equipo cuyo plantel se consulta (opcional).
  * @param id_torneo - Torneo para el que se quiere la nómina (opcional).
+ * @param conDocumento - Si es true usa el endpoint protegido que incluye el DNI
+ *                       (solo para pantallas del panel). Por defecto false.
  * @returns Objeto con integrantes, ID del plantel, estado de carga, error,
  *          indicador de existencia del plantel y función de recarga.
  */
-export function usePlantelActivo(id_equipo?: number, id_torneo?: number) {
+export function usePlantelActivo(id_equipo?: number, id_torneo?: number, conDocumento = false) {
   const [integrantes, setIntegrantes] = useState<PlantelActivoIntegrante[]>([]);
   const [id_plantel, setIdPlantel] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -35,7 +37,9 @@ export function usePlantelActivo(id_equipo?: number, id_torneo?: number) {
     setError(null);
 
     try {
-      const data = await getPlantelActivoPorEquipo(id_equipo, id_torneo);
+      const data = conDocumento
+        ? await getPlantelActivoDetallePorEquipo(id_equipo, id_torneo)
+        : await getPlantelActivoPorEquipo(id_equipo, id_torneo);
 
       if (data && data.length > 0) {
         setIdPlantel(data[0].id_plantel);
@@ -53,7 +57,7 @@ export function usePlantelActivo(id_equipo?: number, id_torneo?: number) {
     } finally {
       setLoading(false);
     }
-  }, [id_equipo, id_torneo]);
+  }, [id_equipo, id_torneo, conDocumento]);
 
   useEffect(() => {
     fetchData();

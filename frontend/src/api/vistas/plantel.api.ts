@@ -1,5 +1,6 @@
 // frontend/src/api/vistas/plantel.api.ts
 import AxiosPublic from '../axiosPublic'
+import axiosAdmin from '../axiosAdmin'
 import type { PlantelActivoIntegrante } from '../../types/vistas'
 
 /**
@@ -18,6 +19,20 @@ export async function getPlantelActivoPorEquipo(
   idTorneo?: number,
 ): Promise<PlantelActivoIntegrante[]> {
   const response = await AxiosPublic.get(`/vistas/plantel-activo/${idEquipo}`, {
+    params: idTorneo != null ? { id_torneo: idTorneo } : undefined,
+  })
+  return Array.isArray(response.data) ? response.data : []
+}
+
+/**
+ * Igual que `getPlantelActivoPorEquipo` pero incluye el DNI de cada integrante.
+ * Solo para el panel: requiere rol EDITOR o superior.
+ */
+export async function getPlantelActivoDetallePorEquipo(
+  idEquipo: number,
+  idTorneo?: number,
+): Promise<PlantelActivoIntegrante[]> {
+  const response = await axiosAdmin.get(`/vistas/plantel-activo/${idEquipo}/detalle`, {
     params: idTorneo != null ? { id_torneo: idTorneo } : undefined,
   })
   return Array.isArray(response.data) ? response.data : []

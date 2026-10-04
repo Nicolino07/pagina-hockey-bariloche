@@ -111,7 +111,8 @@ class PlantelActivoIntegrante(BaseModel):
     id_persona: Optional[int] = None
     nombre_persona: Optional[str] = None
     apellido_persona: Optional[str] = None
-    documento: Optional[int] = None
+    # Sin documento: este schema se sirve en un endpoint público. La vista
+    # vw_plantel_detallado sí lo trae; acá se descarta por lista blanca.
     rol_en_plantel: Optional[str] = None
     numero_camiseta: Optional[int] = None
     fecha_alta: Optional[date] = None
@@ -120,13 +121,19 @@ class PlantelActivoIntegrante(BaseModel):
     class Config:
         from_attributes = True
 
+
+class PlantelActivoIntegranteDetalle(PlantelActivoIntegrante):
+    """Igual que PlantelActivoIntegrante más el DNI. Solo para endpoints protegidos."""
+    documento: Optional[int] = None
+
+
 class PersonasArbitro(BaseModel):
 
     id_persona_rol: int
     id_persona: int
     nombre: str
     apellido: str
-    documento: Optional[int] = None
+    # Sin documento: endpoint público (vista_arbitros_activos sí lo trae).
     rol: RolPersonaTipo
 
     class Config:
@@ -219,7 +226,7 @@ class JugadorParticipoTorneo(BaseModel):
     id_persona: int
     nombre_persona: str
     apellido_persona: str
-    documento: Optional[int] = None
+    # Sin documento: endpoint público (la vista sí lo trae).
     rol_en_plantel: Optional[str] = None
     numero_camiseta: Optional[int] = None
     partidos_jugados: int

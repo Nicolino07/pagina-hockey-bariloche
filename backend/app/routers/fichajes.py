@@ -2,7 +2,8 @@
 Rutas para la gestión de fichajes (vinculación de personas a clubes con un rol).
 - Crear fichaje: rol EDITOR o superior.
 - Dar de baja un fichaje: rol ADMIN o superior.
-- Consultas de fichajes activos por club/rol: acceso público.
+- Consulta de fichajes activos por club/rol (sin datos personales): acceso público.
+- Fichajes de un club con datos de la persona (DNI): rol EDITOR o superior.
 """
 from app.models.fichaje_rol import FichajeRol
 from app.models.persona import Persona
@@ -188,6 +189,7 @@ def obtener_fichajes_activos_por_club_y_rol(
     )
 
 
+# 🔐 EDITOR (incluye el DNI de cada persona)
 @router.get(
     "/club/{id_club}",
     response_model=List[FichajeConPersona],
@@ -199,6 +201,7 @@ def obtener_fichajes_por_club(
     id_torneo: int | None = None,
     id_equipo: int | None = None,
     db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
 ):
     """
     Devuelve todos los fichajes de un club con los datos de la persona.
@@ -211,7 +214,7 @@ def obtener_fichajes_por_club(
     no tiene sentido ofrecerlas para agregar. El cuerpo técnico queda fuera de
     esa exclusión: sí puede repetirse en varios equipos y clubes.
 
-    Acceso público.
+    Rol EDITOR o superior: la respuesta incluye el DNI.
     """
     query = (
         db.query(FichajeRol)

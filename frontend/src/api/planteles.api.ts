@@ -92,8 +92,17 @@ export async function deletePlantel(id_plantel: number): Promise<void> {
   await api.delete(`/planteles/${id_plantel}`)
 }
 
+/** Integrantes para el sitio público: la persona trae solo id, nombre y apellido. */
 export async function getIntegrantesByPlantel(id_plantel: number, soloActivos = true): Promise<PlantelIntegrante[]> {
   const { data } = await api.get<PlantelIntegrante[]>(`/planteles/${id_plantel}/integrantes`, {
+    params: { solo_activos: soloActivos },
+  })
+  return data
+}
+
+/** Integrantes para el panel, con los datos completos de la persona (DNI). Requiere rol EDITOR o superior. */
+export async function getIntegrantesByPlantelDetalle(id_plantel: number, soloActivos = true): Promise<PlantelIntegrante[]> {
+  const { data } = await axiosAdmin.get<PlantelIntegrante[]>(`/planteles/${id_plantel}/integrantes/detalle`, {
     params: { solo_activos: soloActivos },
   })
   return data

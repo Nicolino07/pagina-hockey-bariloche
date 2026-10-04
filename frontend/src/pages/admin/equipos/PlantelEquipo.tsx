@@ -13,8 +13,9 @@ interface Props {
  * Delega la renderización de la lista al componente PlantelLista.
  */
 export default function PlantelEquipo({ id_equipo }: Props) {
+  // Panel: se pide la versión con DNI, que PlantelLista muestra.
   const { integrantes, loading, error, hasPlantel } =
-    usePlantelActivo(id_equipo)
+    usePlantelActivo(id_equipo, undefined, true)
 
 
 

@@ -72,5 +72,19 @@ class PersonaRead(PersonaBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+class PersonaPublica(BaseModel):
+    """Datos de una persona que se pueden mostrar en el sitio público.
+
+    Lista blanca explícita: no hereda de PersonaBase a propósito, para que un
+    campo nuevo en la persona no termine expuesto sin que nadie lo decida.
+    Nunca agregar documento, fecha_nacimiento, email, telefono ni direccion.
+    """
+    id_persona: int
+    nombre: str
+    apellido: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PersonaConRolesActivos(PersonaBase):
     roles: List[PersonaRol] = []

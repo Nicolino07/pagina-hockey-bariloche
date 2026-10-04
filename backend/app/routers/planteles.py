@@ -1,6 +1,7 @@
 """
 Rutas para la gestión de planteles e integrantes de equipos.
-- Lectura de plantel activo e integrantes: acceso público.
+- Lectura de plantel activo e integrantes: acceso público, sin datos personales.
+- Integrantes con datos personales (DNI, etc.): rol EDITOR o superior.
 - Creación de plantel: rol ADMIN o superior.
 - Alta/baja de integrantes: rol EDITOR o superior.
 """
@@ -21,6 +22,7 @@ from app.schemas.torneo import TorneoSchema
 from app.schemas.plantel_integrante import (
     PlantelIntegranteCreate,
     PlantelIntegranteRead,
+    PlantelIntegrantePublico,
 )
 from app.services import planteles_services, plantel_resolver
 from app.dependencies.permissions import require_admin, require_editor
@@ -94,14 +96,37 @@ def obtener_plantel_activo(
 
 @router.get(
     "/{id_plantel}/integrantes",
-    response_model=list[PlantelIntegranteRead],
+    response_model=list[PlantelIntegrantePublico],
 )
 def listar_integrantes(
     id_plantel: int,
     solo_activos: bool = True,
     db: Session = Depends(get_db),
 ):
-    """Devuelve los integrantes de un plantel. Con solo_activos=false incluye los dados de baja."""
+    """Devuelve los integrantes de un plantel sin datos personales. Acceso público.
+
+    Con solo_activos=false incluye los dados de baja. Para el panel, con DNI y
+    demás datos de la persona, usar `/{id_plantel}/integrantes/detalle`.
+    """
+    return planteles_services.listar_integrantes_por_plantel(
+        db=db,
+        id_plantel=id_plantel,
+        solo_activos=solo_activos,
+    )
+
+
+# 🔐 EDITOR
+@router.get(
+    "/{id_plantel}/integrantes/detalle",
+    response_model=list[PlantelIntegranteRead],
+)
+def listar_integrantes_detalle(
+    id_plantel: int,
+    solo_activos: bool = True,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
+):
+    """Devuelve los integrantes de un plantel con los datos completos de la persona."""
     return planteles_services.listar_integrantes_por_plantel(
         db=db,
         id_plantel=id_plantel,

@@ -6,8 +6,10 @@ from sqlalchemy import text
 from typing import List, Optional
 
 from app.database import get_db
+from app.dependencies.permissions import require_editor
 from app.schemas.vistas import (
     PlantelActivoIntegrante,
+    PlantelActivoIntegranteDetalle,
     PersonasArbitro,
     PosicionSchema,
     TarjetaDetalle,
@@ -45,25 +47,17 @@ _SQL_PLANTEL_SIN_TORNEO = """
 """
 
 
-@router.get(
-    "/plantel-activo/{id_equipo}",
-    response_model=List[PlantelActivoIntegrante],
-    summary="Obtener el plantel de un equipo",
-    description=(
-        "Devuelve el plantel de un equipo, siempre de UN solo plantel. "
-        "Con `id_torneo` resuelve el plantel de ese torneo (contemplando "
-        "playoffs y el fallback al plantel histórico). Sin `id_torneo` elige el "
-        "histórico si existe y, si no, el más reciente. "
-        "Si el plantel existe pero no tiene integrantes, devuelve una fila con "
-        "los datos de persona en null."
-    ),
-)
-def obtener_plantel_activo_por_equipo(
+def _plantel_detallado(
+    db: Session,
     id_equipo: int,
-    id_torneo: Optional[int] = Query(None, description="Torneo para el que se quiere la nómina"),
-    rol: Optional[str] = Query(None, description="Filtrar por rol (JUGADOR, DT, etc.)"),
-    db: Session = Depends(get_db),
+    id_torneo: Optional[int],
+    rol: Optional[str],
 ):
+    """Filas de vw_plantel_detallado de UN plantel del equipo (ver endpoints abajo).
+
+    Devuelve todas las columnas de la vista, DNI incluido: cada endpoint decide
+    qué expone mediante su response_model.
+    """
     try:
         if id_torneo is not None:
             # Resolución canónica (espejo de app/services/plantel_resolver.py).
@@ -100,6 +94,45 @@ def obtener_plantel_activo_por_equipo(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error al obtener el plantel detallado: {str(e)}"
         )
+
+
+@router.get(
+    "/plantel-activo/{id_equipo}",
+    response_model=List[PlantelActivoIntegrante],
+    summary="Obtener el plantel de un equipo",
+    description=(
+        "Devuelve el plantel de un equipo, siempre de UN solo plantel. "
+        "Con `id_torneo` resuelve el plantel de ese torneo (contemplando "
+        "playoffs y el fallback al plantel histórico). Sin `id_torneo` elige el "
+        "histórico si existe y, si no, el más reciente. "
+        "Si el plantel existe pero no tiene integrantes, devuelve una fila con "
+        "los datos de persona en null. Acceso público: no incluye el DNI."
+    ),
+)
+def obtener_plantel_activo_por_equipo(
+    id_equipo: int,
+    id_torneo: Optional[int] = Query(None, description="Torneo para el que se quiere la nómina"),
+    rol: Optional[str] = Query(None, description="Filtrar por rol (JUGADOR, DT, etc.)"),
+    db: Session = Depends(get_db),
+):
+    return _plantel_detallado(db, id_equipo, id_torneo, rol)
+
+
+# 🔐 EDITOR
+@router.get(
+    "/plantel-activo/{id_equipo}/detalle",
+    response_model=List[PlantelActivoIntegranteDetalle],
+    summary="Obtener el plantel de un equipo con DNI",
+    description="Igual que `/plantel-activo/{id_equipo}` pero incluye el DNI. Rol EDITOR o superior.",
+)
+def obtener_plantel_activo_detalle_por_equipo(
+    id_equipo: int,
+    id_torneo: Optional[int] = Query(None, description="Torneo para el que se quiere la nómina"),
+    rol: Optional[str] = Query(None, description="Filtrar por rol (JUGADOR, DT, etc.)"),
+    db: Session = Depends(get_db),
+    current_user=Depends(require_editor),
+):
+    return _plantel_detallado(db, id_equipo, id_torneo, rol)
 
 @router.get(
     "/persona-arbitro/",

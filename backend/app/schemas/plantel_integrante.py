@@ -2,7 +2,7 @@
 from datetime import date, datetime
 from typing import Optional
 
-from app.schemas.persona import PersonaRead
+from app.schemas.persona import PersonaRead, PersonaPublica
 from pydantic import BaseModel, Field, ConfigDict
 from app.models.enums import RolPersonaTipo
 
@@ -45,5 +45,24 @@ class PlantelIntegranteRead(PlantelIntegranteBase):
     actualizado_en: Optional [datetime] = None
     creado_por: Optional[str] = None
     actualizado_por: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PlantelIntegrantePublico(BaseModel):
+    """Integrante de plantel para el sitio público (lista blanca explícita).
+
+    La versión completa, con los datos personales, es PlantelIntegranteRead y
+    solo se sirve en endpoints protegidos.
+    """
+    id_plantel_integrante: int
+    id_plantel: int
+    id_persona: int
+    rol_en_plantel: RolPersonaTipo
+    numero_camiseta: Optional[int] = None
+    fecha_alta: Optional[date] = None
+    fecha_baja: Optional[date] = None
+    partidos_jugados: int = 0
+    persona: Optional[PersonaPublica] = None
 
     model_config = ConfigDict(from_attributes=True)

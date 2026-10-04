@@ -6,7 +6,7 @@ import {
   reactivarIntegrantePlantel,
   createPlantel,
   getPlantelesDeEquipo,
-  getIntegrantesByPlantel,
+  getIntegrantesByPlantelDetalle,
   updatePlantel,
   deletePlantel,
 } from "../../../api/planteles.api";
@@ -193,7 +193,7 @@ export default function EquipoDetalle() {
     setLoadingIntegrantes(true);
     // Traemos también los dados de baja: se muestran grisados y, si el plantel
     // sigue abierto, con el botón para deshacer la baja.
-    getIntegrantesByPlantel(plantelSeleccionado.id_plantel, false)
+    getIntegrantesByPlantelDetalle(plantelSeleccionado.id_plantel, false)
       .then(data => setIntegrantes(mapIntegrantes(data)))
       .catch(console.error)
       .finally(() => setLoadingIntegrantes(false));
@@ -277,7 +277,7 @@ export default function EquipoDetalle() {
     if (!idOrigenStr) return;
     setLoadingCopiaPreview(true);
     try {
-      const data = await getIntegrantesByPlantel(Number(idOrigenStr));
+      const data = await getIntegrantesByPlantelDetalle(Number(idOrigenStr));
       // Los que ya están activos en el destino se omiten: no tiene sentido
       // ofrecer duplicarlos.
       const yaEstan = new Set(integrantesActivos.map(i => i.id_persona));
@@ -324,7 +324,7 @@ export default function EquipoDetalle() {
           }).then(() => `${i.persona?.apellido}, ${i.persona?.nombre}`)
         )
       );
-      const updated = await getIntegrantesByPlantel(plantelSeleccionado.id_plantel, false);
+      const updated = await getIntegrantesByPlantelDetalle(plantelSeleccionado.id_plantel, false);
       setIntegrantes(mapIntegrantes(updated));
 
       const ok = resultados.filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled").map(r => r.value);
@@ -419,7 +419,7 @@ export default function EquipoDetalle() {
       )
     );
     // Recarga integrantes
-    const updated = await getIntegrantesByPlantel(plantelSeleccionado.id_plantel);
+    const updated = await getIntegrantesByPlantelDetalle(plantelSeleccionado.id_plantel);
     setIntegrantes(mapIntegrantes(updated));
 
     const ok = resultados.filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled").map(r => r.value);
@@ -448,7 +448,7 @@ export default function EquipoDetalle() {
     setModalType(null);
     setIntegranteAEliminar(null);
     try {
-      const updated = await getIntegrantesByPlantel(plantelSeleccionado.id_plantel);
+      const updated = await getIntegrantesByPlantelDetalle(plantelSeleccionado.id_plantel);
       setIntegrantes(mapIntegrantes(updated));
     } catch (err: any) {
       // La baja ya se aplicó: si esto falla, no hay que decir que falló la
@@ -464,7 +464,7 @@ export default function EquipoDetalle() {
     setReactivando(prev => new Set(prev).add(id));
     try {
       await reactivarIntegrantePlantel(id);
-      const updated = await getIntegrantesByPlantel(plantelSeleccionado.id_plantel, false);
+      const updated = await getIntegrantesByPlantelDetalle(plantelSeleccionado.id_plantel, false);
       setIntegrantes(mapIntegrantes(updated));
     } catch (err: any) {
       alert(`No se pudo deshacer la baja: ${getErrorMessage(err, "Error del servidor")}`);
