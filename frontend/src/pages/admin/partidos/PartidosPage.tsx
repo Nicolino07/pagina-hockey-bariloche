@@ -134,7 +134,7 @@ export default function PartidosPage() {
     const data = await getPlantelActivoPorEquipo(idEquipo, idTorneo);
     if (!data || data.length === 0) return { jugadores: [], cuerpoTecnico: [] };
     const conPersona = data.filter((i: any) => i.id_persona !== null && i.id_persona !== undefined);
-    const marcados = await marcarSuspendidos(conPersona);
+    const marcados = await marcarSuspendidos(conPersona, idTorneo ?? null);
     return {
       jugadores: marcados.filter((i: any) => i.rol_en_plantel === "JUGADOR"),
       cuerpoTecnico: marcados.filter((i: any) => i.rol_en_plantel !== "JUGADOR"),

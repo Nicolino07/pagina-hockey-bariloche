@@ -112,6 +112,12 @@ def crear_fixture_partido(db: Session, data: FixturePartidoCreate, username: str
         creado_por=username,
     )
     db.add(p)
+    db.flush()
+
+    # Un partido nuevo puede ser el próximo a cumplir de alguien suspendido.
+    from app.services.suspensiones_services import recalcular_cola_por_equipos_en_torneo
+    recalcular_cola_por_equipos_en_torneo(db, p.id_torneo, [data.id_equipo_local, data.id_equipo_visitante])
+
     db.commit()
     db.refresh(p)
     return _enriquecer_partido(p, db)
@@ -211,7 +217,16 @@ def eliminar_fixture_partido(db: Session, id_fixture_partido: int):
     if str(getattr(p.estado_partido, "value", p.estado_partido)) == "TERMINADO":
         raise HTTPException(400, "No se puede eliminar un partido ya jugado")
 
+    id_torneo = p.id_torneo
+    ids_equipo = [e for e in (p.id_equipo_local, p.id_equipo_visitante) if e is not None]
     db.delete(p)
+    db.flush()
+
+    # Si era el partido reservado de alguna suspensión, se reasigna al siguiente.
+    if ids_equipo:
+        from app.services.suspensiones_services import recalcular_cola_por_equipos_en_torneo
+        recalcular_cola_por_equipos_en_torneo(db, id_torneo, ids_equipo)
+
     db.commit()
 
 
@@ -426,6 +441,10 @@ def generar_fixture(db: Session, id_torneo: int, tipo: str, username: str) -> li
                 db.add(p)
                 nuevos.append(p)
 
+    db.flush()
+    from app.services.suspensiones_services import recalcular_cola_por_equipos_en_torneo
+    recalcular_cola_por_equipos_en_torneo(db, id_torneo)
+
     db.commit()
     for p in nuevos:
         db.refresh(p)
@@ -451,4 +470,7 @@ def eliminar_fixture_torneo(db: Session, id_torneo: int) -> None:
         Partido.estado_partido != "TERMINADO",
     ).delete(synchronize_session=False)
     db.query(FixtureFecha).filter(FixtureFecha.id_torneo == id_torneo).delete()
+    db.flush()
+    from app.services.suspensiones_services import recalcular_cola_por_equipos_en_torneo
+    recalcular_cola_por_equipos_en_torneo(db, id_torneo)
     db.commit()

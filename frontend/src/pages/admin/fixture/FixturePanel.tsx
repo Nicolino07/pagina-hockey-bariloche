@@ -584,7 +584,7 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
           const data = await getPlantelActivoPorEquipo(idEquipo, p.id_torneo)
           if (!data || data.length === 0) return { jugadores: [], cuerpoTecnico: [] }
           const conPersona = data.filter((i: any) => i.id_persona != null)
-          const marcados = await marcarSuspendidos(conPersona)
+          const marcados = await marcarSuspendidos(conPersona, p.id_torneo ?? null)
           return {
             jugadores: marcados.filter((i: any) => i.rol_en_plantel === 'JUGADOR'),
             cuerpoTecnico: marcados.filter((i: any) => i.rol_en_plantel !== 'JUGADOR'),

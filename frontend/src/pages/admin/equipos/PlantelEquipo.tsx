@@ -34,6 +34,7 @@ export default function PlantelEquipo({ id_equipo }: Props) {
 
       <PlantelLista
         integrantes={integrantes}
+        idTorneo={integrantes[0]?.id_torneo ?? null}
         editable={false}
         onEliminar={handleEliminar}
       />

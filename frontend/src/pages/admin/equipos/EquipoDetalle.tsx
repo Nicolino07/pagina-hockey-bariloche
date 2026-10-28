@@ -286,7 +286,8 @@ export default function EquipoDetalle() {
       setCopiaSeleccionados(new Set(preview.map(i => i.id_plantel_integrante)));
       // Solo informativo: se marcan en rojo, no se destildan solos. El
       // trigger de la base los rechaza igual al confirmar si corresponde.
-      marcarSuspendidos(preview)
+      // Se evalúa contra el torneo del plantel destino, que es donde van a jugar.
+      marcarSuspendidos(preview, plantelSeleccionado?.id_torneo ?? null)
         .then(marcados => setCopiaSuspendidos(new Set(
           marcados.filter(m => m.suspendido).map(m => m.id_plantel_integrante)
         )))
@@ -600,6 +601,7 @@ export default function EquipoDetalle() {
           ) : integrantesValidos.length > 0 ? (
             <PlantelLista
               integrantes={integrantesValidos}
+              idTorneo={plantelSeleccionado?.id_torneo ?? null}
               editable={plantelActivo}
               onReactivar={handleReactivar}
               reactivando={reactivando}

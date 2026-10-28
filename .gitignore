@@ -78,3 +78,4 @@ backups/.env.*
 # =====================
 
 auditoria_seg_*.md
+docs/reporte_seg.md

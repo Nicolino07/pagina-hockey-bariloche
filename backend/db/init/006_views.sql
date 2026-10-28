@@ -383,14 +383,29 @@ LEFT JOIN (
     SELECT
         s.id_persona,
         s.id_torneo,
+        eq.id_equipo,
         COUNT(*) FILTER (WHERE s.origen = 'AUTOMATICA_AMARILLAS') AS cumplidas_amarillas,
         COUNT(*) FILTER (WHERE s.origen = 'AUTOMATICA_ROJA')      AS cumplidas_rojas
     FROM suspension s
+    -- Cada suspensión cuenta para el equipo con el que la persona figuró en
+    -- el partido de origen (alguien puede estar en dos equipos del torneo).
+    JOIN LATERAL (
+        SELECT pl.id_equipo
+        FROM participan_partido pp
+        JOIN plantel_integrante pi
+            ON pi.id_plantel_integrante = pp.id_plantel_integrante
+        JOIN plantel pl
+            ON pl.id_plantel = pi.id_plantel
+        WHERE pp.id_partido = s.id_partido_origen
+          AND pi.id_persona = s.id_persona
+        LIMIT 1
+    ) eq ON TRUE
     WHERE s.estado_suspension = 'CUMPLIDA'
-    GROUP BY s.id_persona, s.id_torneo
+    GROUP BY s.id_persona, s.id_torneo, eq.id_equipo
 ) sc
     ON sc.id_persona = v.id_persona
    AND sc.id_torneo = v.id_torneo
+   AND sc.id_equipo = v.id_equipo
 GROUP BY
     v.id_torneo,
     v.torneo,

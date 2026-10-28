@@ -33,6 +33,8 @@ function ordenDeRol(rol?: string | null): number {
 
 interface Props {
   integrantes: PlantelActivoIntegrante[];
+  /** Torneo del plantel; las suspensiones de otros torneos no lo marcan. null = plantel histórico. */
+  idTorneo: number | null;
   /** Si es true, muestra el botón de baja para cada integrante. */
   editable?: boolean;
   /** Callback invocado al hacer clic en "Dar de Baja" de un integrante. */
@@ -52,6 +54,7 @@ interface Props {
  */
 export default function PlantelLista({
   integrantes,
+  idTorneo,
   editable = false,
   onEliminar,
   onReactivar,
@@ -74,12 +77,12 @@ export default function PlantelLista({
   }, [integrantes]);
 
   useEffect(() => {
-    marcarSuspendidos(integrantes)
+    marcarSuspendidos(integrantes, idTorneo)
       .then(marcados => setSuspendidos(new Set(
         marcados.filter(m => m.suspendido && typeof m.id_persona === "number").map(m => m.id_persona as number)
       )))
       .catch(() => setSuspendidos(new Set()));
-  }, [integrantes]);
+  }, [integrantes, idTorneo]);
 
   const renderLista = (lista: PlantelActivoIntegrante[]) => (
     <div className={styles.scrollList}>
