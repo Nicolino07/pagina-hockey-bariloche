@@ -49,11 +49,10 @@ function construirRondas(partidos: FixturePartido[]): Ronda[] {
   )
 
   return rondas.map(r => {
-    // Detectar si es ida y vuelta: hay pares de partidos con mismos equipos invertidos
+    // El formato viene de la ronda; en ida y vuelta los partidos van de a pares
+    // (ida, vuelta) ordenados por id, igual que en el backend.
     const ps = [...r.partidos].sort((a, b) => a.id_fixture_partido - b.id_fixture_partido)
-    const idaYVuelta = ps.length > 1 &&
-      ps[0].id_equipo_local === ps[1].id_equipo_visitante &&
-      ps[0].id_equipo_visitante === ps[1].id_equipo_local
+    const idaYVuelta = ps.some(p => p.ida_y_vuelta_ronda)
 
     const llaves: Llave[] = []
     const paso = idaYVuelta ? 2 : 1

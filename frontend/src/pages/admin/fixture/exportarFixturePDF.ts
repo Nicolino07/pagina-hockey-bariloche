@@ -118,6 +118,11 @@ function exportarLiga(doc: jsPDF, partidos: FixturePartido[], startY: number, pa
 }
 
 function exportarPlayoff(doc: jsPDF, partidos: FixturePartido[], startY: number, pageWidth: number, pageHeight: number): void {
+  // Rondas y partidos por id: es el orden en que el backend numera las llaves.
+  partidos = [...partidos].sort((a, b) =>
+    (a.id_fixture_playoff_ronda ?? Infinity) - (b.id_fixture_playoff_ronda ?? Infinity) ||
+    a.id_fixture_partido - b.id_fixture_partido
+  )
   const rondas = [...new Set(partidos.map(p => p.nombre_ronda_playoff ?? "Sin ronda"))]
 
   const colWidth = (pageWidth - 28 - 8) / 2

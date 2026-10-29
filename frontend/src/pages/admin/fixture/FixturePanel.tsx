@@ -639,6 +639,11 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
     return fa - fb
   })
 
+  const partidosPlayoff = [...partidos].sort((a, b) =>
+    (a.id_fixture_playoff_ronda ?? Infinity) - (b.id_fixture_playoff_ronda ?? Infinity) ||
+    a.id_fixture_partido - b.id_fixture_partido
+  )
+
   const fechasExistentes = [...new Set(partidosOrdenados.map(p => p.numero_fecha ?? 0))].sort((a, b) => a - b)
 
   return (
@@ -1179,14 +1184,16 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
           ) : partidos.length === 0 ? (
             <p className={styles.infoMsg}>No hay partidos programados para este torneo.</p>
           ) : esPlayoff ? (
-            // Agrupado por ronda de playoff
-            [...new Set(partidosOrdenados.map(p => p.nombre_ronda_playoff ?? "Sin ronda"))].map(ronda => {
-              const ps = partidosOrdenados.filter(p => (p.nombre_ronda_playoff ?? "Sin ronda") === ronda)
+            // Agrupado por ronda de playoff. Rondas y partidos van por id, que es
+            // como el backend numera las llaves («Ganador Cuartos de final 1»).
+            [...new Set(partidosPlayoff.map(p => p.nombre_ronda_playoff ?? "Sin ronda"))].map(ronda => {
+              const ps = partidosPlayoff.filter(p => (p.nombre_ronda_playoff ?? "Sin ronda") === ronda)
+              const idaYVuelta = ps.some(p => p.ida_y_vuelta_ronda)
               return (
                 <div key={ronda} className={styles.fechaBloque}>
                   <div className={styles.fechaBloqueHeader}>
                     <span className={styles.fechaNro}>{ronda}</span>
-                    {ps[0]?.rueda && (
+                    {idaYVuelta && (
                       <span className={`${styles.ruedaBadge} ${styles.ruedaIda}`}>ida y vuelta</span>
                     )}
                   </div>
@@ -1194,6 +1201,7 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
                     <table className={styles.tabla}>
                       <thead>
                         <tr>
+                          <th>Llave</th>
                           <th>Local</th>
                           <th>Visitante</th>
                           <th>Resultado</th>
@@ -1204,8 +1212,9 @@ export default function FixturePanel({ torneo }: FixturePanelProps) {
                         </tr>
                       </thead>
                       <tbody>
-                        {ps.map(p => (
+                        {ps.map((p, i) => (
                           <tr key={p.id_fixture_partido}>
+                            <td>{idaYVuelta ? `${Math.floor(i / 2) + 1} (${i % 2 === 0 ? "ida" : "vuelta"})` : i + 1}</td>
                             <td>{p.nombre_equipo_local ?? p.placeholder_local ?? "—"}</td>
                             <td>{p.nombre_equipo_visitante ?? p.placeholder_visitante ?? "—"}</td>
                             <td>

@@ -139,20 +139,53 @@ def _obtener_equipos(db: Session, id_torneo: int) -> list[dict]:
     return equipos
 
 
+def _orden_cuadro(n: int) -> list[int]:
+    """
+    Devuelve las posiciones (1-based) de los n sembrados en orden de cuadro,
+    con n potencia de 2. Ej. para 8: [1, 8, 4, 5, 2, 7, 3, 6].
+
+    Leídos de a pares son los cruces de la primera ronda, y como cada ronda
+    siguiente enfrenta llaves contiguas (1-2, 3-4, ...), el 1º y el 2º sólo
+    pueden cruzarse en la final.
+    """
+    orden = [1]
+    tam = 1
+    while tam < n:
+        tam *= 2
+        orden = [x for s in orden for x in (s, tam + 1 - s)]
+    return orden
+
+
 def _ordenar_seeds(equipos: list[dict]) -> list[dict]:
     """
     Reordena una lista ya ordenada por mérito (mejor primero) para que los
-    enfrentamientos de la primera ronda crucen mejor contra peor:
-    (1º vs último), (2º vs anteúltimo), etc.
+    enfrentamientos de la primera ronda crucen mejor contra peor y queden en
+    orden de cuadro (ver `_orden_cuadro`). Si la cantidad no es potencia de 2
+    (hay repechaje) se cruza simplemente (1º vs último), (2º vs anteúltimo), etc.
     """
+    n = len(equipos)
+    if n >= 2 and n & (n - 1) == 0:
+        return [equipos[pos - 1] for pos in _orden_cuadro(n)]
+
     ordenados: list[dict] = []
-    i, j = 0, len(equipos) - 1
+    i, j = 0, n - 1
     while i < j:
         ordenados.append(equipos[i])
         ordenados.append(equipos[j])
         i += 1
         j -= 1
     return ordenados
+
+
+def _placeholders_llave(nombre_ronda_anterior: str, j: int) -> tuple[str, str]:
+    """
+    Placeholders de la llave j (1-based) de una ronda: la enfrentan los
+    ganadores de las llaves contiguas 2j-1 y 2j de la ronda anterior.
+    """
+    return (
+        f"Ganador {nombre_ronda_anterior} {2 * j - 1}",
+        f"Ganador {nombre_ronda_anterior} {2 * j}",
+    )
 
 
 def _obtener_equipos_clasificados(
@@ -349,11 +382,12 @@ def previsualizar_playoff(
             ronda_anterior = rondas_config[i - 1]
             nombre_ant = ronda_anterior["nombre"]
             for j in range(1, n + 1):
+                ph_local, ph_visitante = _placeholders_llave(nombre_ant, j)
                 partidos.append({
                     "local": None,
                     "visitante": None,
-                    "placeholder_local": f"Ganador {nombre_ant} {j}",
-                    "placeholder_visitante": f"Ganador {nombre_ant} {n + j if n > 1 else j + 1}",
+                    "placeholder_local": ph_local,
+                    "placeholder_visitante": ph_visitante,
                 })
 
         rondas_preview.append({
@@ -461,8 +495,7 @@ def generar_playoff(
             ronda_anterior = rondas_config[i - 1]
             nombre_ant = ronda_anterior["nombre"]
             for j in range(1, n + 1):
-                ph_local = f"Ganador {nombre_ant} {j}"
-                ph_visitante = f"Ganador {nombre_ant} {n + j if n > 1 else j + 1}"
+                ph_local, ph_visitante = _placeholders_llave(nombre_ant, j)
                 nuevos_partidos += _crear_partido_playoff(
                     db, id_torneo, ronda_obj.id_fixture_playoff_ronda,
                     placeholder_local=ph_local,
@@ -618,8 +651,7 @@ def _generar_playoff_manual(
             nombre_ant = ronda_anterior["nombre"]
             n = ronda["n_partidos"]
             for j in range(1, n + 1):
-                ph_local = f"Ganador {nombre_ant} {j}"
-                ph_visitante = f"Ganador {nombre_ant} {n + j if n > 1 else j + 1}"
+                ph_local, ph_visitante = _placeholders_llave(nombre_ant, j)
                 nuevos_partidos += _crear_partido_playoff(
                     db, id_torneo, ronda_obj.id_fixture_playoff_ronda,
                     placeholder_local=ph_local,

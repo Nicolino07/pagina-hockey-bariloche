@@ -65,6 +65,7 @@ def _enriquecer_partido(p: Partido, db: Session) -> dict:
         "id_fixture_playoff_ronda": p.id_fixture_playoff_ronda,
         "nombre_ronda_playoff": ronda.nombre if ronda else None,
         "es_tercer_puesto": ronda.es_tercer_puesto if ronda else False,
+        "ida_y_vuelta_ronda": ronda.ida_y_vuelta if ronda else False,
         "creado_en": p.creado_en,
         "creado_por": p.creado_por,
     }

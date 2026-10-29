@@ -100,6 +100,8 @@ export interface FixturePartido {
   id_fixture_playoff_ronda: number | null
   nombre_ronda_playoff: string | null
   es_tercer_puesto?: boolean
+  /** La ronda de playoff es ida y vuelta: los partidos van de a pares (ida, vuelta) por llave. */
+  ida_y_vuelta_ronda?: boolean
   creado_en: string
   creado_por: string | null
 }

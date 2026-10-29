@@ -106,6 +106,9 @@ class FixturePartidoResponse(BaseModel):
     id_fixture_playoff_ronda: Optional[int] = None
     nombre_ronda_playoff: Optional[str] = None
     es_tercer_puesto: bool = False
+    # La ronda de playoff se juega ida y vuelta: sus partidos van de a pares
+    # (ida, vuelta) por llave, ordenados por id.
+    ida_y_vuelta_ronda: bool = False
     creado_en: datetime
     creado_por: Optional[str]
 
