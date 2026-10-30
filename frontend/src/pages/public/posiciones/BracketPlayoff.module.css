@@ -35,7 +35,7 @@
   gap: 12px;
   position: relative;
   z-index: 1;
-  min-width: 180px;
+  min-width: 200px;
 }
 
 .rondaNombre {
@@ -71,7 +71,7 @@
   border: 1.5px solid var(--border-color);
   border-radius: var(--radius-md, 10px);
   overflow: hidden;
-  width: 180px;
+  width: 200px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   position: relative;
 }
@@ -134,15 +134,10 @@
   font-weight: 400;
 }
 
-/* ── Badge ida y vuelta ──────────────────────── */
-.idaVueltaBadge {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  text-align: center;
-  padding: 3px 0;
-  border-top: 1px solid var(--border-color);
-  background: var(--bg-main);
-  letter-spacing: 0.3px;
+/* En modo claro el gris de --text-muted queda lavado sobre la tarjeta blanca. */
+:global([data-theme='light']) .placeholder .equipoNombre {
+  color: #3d4a58;
+  font-weight: 500;
 }
 
 /* ── Empty ───────────────────────────────────── */
@@ -160,36 +155,69 @@
   object-fit: contain;
 }
 
-/* ── Detalles compactos en una línea ──────────── */
-.detallesCompactos {
-  font-size: 0.55rem;
-  color: var(--text-muted);
-  padding: 3px 6px;
+/* ── Detalles: fecha, hora y cancha ──────────── */
+.detalles {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 10px;
   border-top: 1px solid var(--border-color);
   background: var(--bg-main);
-  display: flex;
-  gap: 4px;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  line-height: 1;
-  text-align: center;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: var(--text-main);
 }
 
-.detallesCompactos span {
+.detalleLinea {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.detalleItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   white-space: nowrap;
+}
+
+.icono {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.hora {
+  font-weight: 700;
+}
+
+.separador {
+  color: var(--text-muted);
+}
+
+.ubicacion {
+  min-width: 0;
+}
+
+.ubicacionTexto {
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.idaVueltaBadgeCompacto {
-  background: var(--border-color);
-  color: var(--text-main);
-  padding: 1px 3px;
-  border-radius: 2px;
-  font-weight: 600;
-  font-size: 0.5rem;
-  letter-spacing: 0.2px;
+.etiquetaPartido {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--text-muted);
+  min-width: 40px;
+}
+
+.aConfirmar {
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* ── Partido por el 3er / 4to puesto (fuera del bracket) ── */
@@ -204,7 +232,7 @@
 }
 
 .tercerPuestoLlave {
-  width: 180px;
+  width: 200px;
 }
 
 /* ── Scrollbar ───────────────────────────────── */

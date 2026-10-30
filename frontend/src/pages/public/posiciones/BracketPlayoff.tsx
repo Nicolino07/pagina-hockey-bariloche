@@ -95,6 +95,94 @@ function nombreEquipo(p: FixturePartido, lado: "local" | "visitante"): string {
   return p.nombre_equipo_visitante ?? p.placeholder_visitante ?? "Por definir"
 }
 
+/** "2026-11-01" → "Sáb 1 nov" */
+function formatearFecha(fecha: string): string {
+  const d = new Date(fecha + "T00:00:00")
+  const dia = d.toLocaleDateString("es-AR", { weekday: "short" }).replace(".", "")
+  const mes = d.toLocaleDateString("es-AR", { month: "short" }).replace(".", "")
+  return `${dia.charAt(0).toUpperCase()}${dia.slice(1)} ${d.getDate()} ${mes}`
+}
+
+const PALABRAS_MENORES = new Set(["de", "del", "la", "las", "el", "los", "y"])
+
+/** Las canchas suelen cargarse en mayúsculas ("ESTUDIANTES"): se muestran en tipo título. */
+function formatearUbicacion(ubicacion: string): string {
+  if (ubicacion !== ubicacion.toUpperCase()) return ubicacion
+  return ubicacion
+    .toLowerCase()
+    .split(" ")
+    .map((w, i) => (i > 0 && PALABRAS_MENORES.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+    .join(" ")
+}
+
+const IconoCalendario = () => (
+  <svg className={styles.icono} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+)
+
+const IconoReloj = () => (
+  <svg className={styles.icono} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+  </svg>
+)
+
+const IconoUbicacion = () => (
+  <svg className={styles.icono} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+  </svg>
+)
+
+/** Pie de la llave: fecha y hora de cada partido (ida / vuelta) y la cancha. */
+function DetallesLlave({ partidos }: { partidos: FixturePartido[] }) {
+  const esIdaYVuelta = partidos.length === 2
+  const ubicaciones = [...new Set(partidos.map(p => p.ubicacion).filter((u): u is string => !!u))]
+  const algoProgramado = ubicaciones.length > 0 || partidos.some(p => p.fecha_programada || p.horario)
+
+  if (!algoProgramado) {
+    return (
+      <div className={styles.detalles}>
+        <span className={styles.aConfirmar}>Fecha a confirmar</span>
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.detalles}>
+      {partidos.map((p, i) => (
+        <div key={p.id_fixture_partido} className={styles.detalleLinea}>
+          {esIdaYVuelta && <span className={styles.etiquetaPartido}>{i === 0 ? "Ida" : "Vuelta"}</span>}
+          {p.fecha_programada || p.horario ? (
+            <>
+              {p.fecha_programada && (
+                <span className={styles.detalleItem}>
+                  <IconoCalendario />{formatearFecha(p.fecha_programada)}
+                </span>
+              )}
+              {p.fecha_programada && p.horario && <span className={styles.separador}>·</span>}
+              {p.horario && (
+                <span className={`${styles.detalleItem} ${styles.hora}`}>
+                  <IconoReloj />{p.horario.slice(0, 5)}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className={styles.aConfirmar}>A confirmar</span>
+          )}
+        </div>
+      ))}
+      {ubicaciones.length > 0 && (
+        <div className={styles.detalleLinea}>
+          <span className={`${styles.detalleItem} ${styles.ubicacion}`} title={ubicaciones.join(" / ")}>
+            <IconoUbicacion />
+            <span className={styles.ubicacionTexto}>{ubicaciones.map(formatearUbicacion).join(" / ")}</span>
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function esPlaceholder(p: FixturePartido, lado: "local" | "visitante"): boolean {
   if (lado === "local") return !p.id_equipo_local
   return !p.id_equipo_visitante
@@ -185,8 +273,10 @@ export default function BracketPlayoff({ partidos, onPartidoClick }: Props) {
     const visitanteNombre = nombreEquipo(p, "visitante")
     const localPH = esPlaceholder(p, "local")
     const visitantePH = esPlaceholder(p, "visitante")
-    const localGana = llave.ganadorId === p.id_equipo_local
-    const visitanteGana = llave.ganadorId === p.id_equipo_visitante
+    // Sin ganador (o con placeholders, donde los ids son null) nadie gana:
+    // comparar null === null marcaba ambos lados como ganador y perdedor.
+    const localGana = llave.ganadorId !== null && llave.ganadorId === p.id_equipo_local
+    const visitanteGana = llave.ganadorId !== null && llave.ganadorId === p.id_equipo_visitante
 
     return (
       <div
@@ -234,21 +324,7 @@ export default function BracketPlayoff({ partidos, onPartidoClick }: Props) {
           )}
         </div>
 
-        {/* Fecha, hora, ubicación e ida y vuelta en una línea */}
-        <div className={styles.detallesCompactos}>
-          {llave.partidos[0].fecha_programada && (
-            <span>{new Date(llave.partidos[0].fecha_programada + 'T00:00:00').toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}</span>
-          )}
-          {llave.partidos[0].horario && (
-            <span>{llave.partidos[0].horario.slice(0, 5)}</span>
-          )}
-          {llave.partidos[0].ubicacion && (
-            <span>{llave.partidos[0].ubicacion}</span>
-          )}
-          {llave.partidos.length === 2 && (
-            <span className={styles.idaVueltaBadgeCompacto}>IyV</span>
-          )}
-        </div>
+        <DetallesLlave partidos={llave.partidos} />
       </div>
     )
   }
